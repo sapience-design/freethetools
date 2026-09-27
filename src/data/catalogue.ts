@@ -6,8 +6,8 @@ import wanted from "./wanted.json";
 export const REPO = "https://github.com/sapience-design/freethetools";
 export const SITE_NAME = "Free the Tools";
 
-export type Tool = CollectionEntry<"tools"> & { category: Category; slug: string; url: string };
-export type Wanted = { name: string; category: string; section: string; url: string };
+export type Tool = CollectionEntry<"tools"> & { category: Category; slug: string; url: string; number: string };
+export type Wanted = { name: string; category: string; section: string; blurb: string; url: string; number: string };
 export type Aisle = Category & { live: Tool[]; wanted: Wanted[]; sectionsUsed: { name: string; live: Tool[]; wanted: Wanted[] }[] };
 
 const wantedUrl = (name: string) =>
@@ -21,14 +21,14 @@ export async function loadCatalogue() {
     const category = CATEGORIES.find((c) => c.slug === cat)!;
     if (!(category.sections as readonly string[]).includes(e.data.section))
       throw new Error(`tools/${e.id}: section "${e.data.section}" is not one of ${category.sections.join(", ")}.`);
-    return { ...e, category, slug, url: `/${e.id}/` };
+    return { ...e, category, slug, url: `/${e.id}/`, number: "" };
   });
 
   const aisles: Aisle[] = CATEGORIES.map((c) => {
     const live = tools.filter((t) => t.category.slug === c.slug).sort((a, b) => a.data.short.localeCompare(b.data.short));
     const want = wanted
       .filter((w) => w.category === c.slug && !live.some((t) => t.data.name === w.name))
-      .map((w) => ({ ...w, url: wantedUrl(w.name) }));
+      .map((w) => ({ ...w, url: wantedUrl(w.name), number: "" }));
     return {
       ...c,
       live,
@@ -38,6 +38,10 @@ export async function loadCatalogue() {
         .filter((s) => s.live.length || s.wanted.length),
     };
   });
+
+  // Product numbers follow catalogue order: group, then section, finished tools before planned ones.
+  let n = 0;
+  for (const a of aisles) for (const sec of a.sectionsUsed) for (const item of [...sec.live, ...sec.wanted]) item.number = `No. ${String(++n).padStart(3, "0")}`;
 
   const searchIndex = [
     ...tools.map((t) => ({ n: t.data.name, c: t.category.name, u: t.url, k: `${t.data.short} ${t.data.keywords.join(" ")} ${t.data.tagline}` })),

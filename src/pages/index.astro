@@ -4,8 +4,7 @@ import Card from "../components/Card.astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
 
 const { tools, aisles } = await loadCatalogue();
-const planned = aisles.flatMap((a) => a.wanted.map((w) => ({ ...w, group: a.name })));
-const newest = [...tools].sort((a, b) => b.data.added.localeCompare(a.data.added));
+const planned = aisles.reduce((n, a) => n + a.wanted.length, 0);
 ---
 <Base
   page="home"
@@ -15,71 +14,41 @@ const newest = [...tools].sort((a, b) => b.data.added.localeCompare(a.data.added
 >
   <section class="opening">
     <p class="eyebrow">A Sapience initiative</p>
-    <h1>Everyday tools that never leave your device.</h1>
-    <p>Everything here runs in your browser, so your files stay with you. No accounts, no ads, no tracking. The code is open, and anyone can add the next tool.</p>
+    <h1>Everyday tools, made to <em>stay with you.</em></h1>
+    <p>Every tool here works inside your browser, so your files never leave your device. {tools.length} in stock, {planned} made to order, and anyone can make the next one.</p>
   </section>
 
-  <section class="sect first" aria-labelledby="now">
-    <div class="sect-head"><h2 id="now">Available now</h2><span>{tools.length} {tools.length === 1 ? "tool" : "tools"}</span></div>
-    {newest.length === 1 ? (
-      <ul class="grid one">
-        <Card size="lg" name={newest[0].data.name} href={newest[0].url} category={newest[0].category.slug} toolId={newest[0].id} blurb={newest[0].data.tagline} group={newest[0].category.name} />
-      </ul>
-    ) : (
+  {aisles.map((a) => (
+    <section class="shelf" aria-labelledby={`s-${a.slug}`}>
+      <div class="shelf-head">
+        <h2 id={`s-${a.slug}`}>{a.name}</h2>
+        <a href={`/${a.slug}/`}>View all</a>
+      </div>
       <ul class="grid">
-        {newest.map((t) => <Card name={t.data.name} href={t.url} category={t.category.slug} toolId={t.id} blurb={t.data.tagline} group={t.category.name} />)}
+        {a.sectionsUsed.flatMap((s) => [
+          ...s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} />),
+          ...s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />),
+        ])}
       </ul>
-    )}
-  </section>
+    </section>
+  ))}
 
-  <section class="sect" aria-labelledby="groups">
-    <div class="sect-head"><h2 id="groups">Browse by group</h2></div>
-    <ul class="list groups">
-      {aisles.map((a) => (
-        <li>
-          <a href={`/${a.slug}/`}>
-            <span class="g"><b>{a.name}</b><span class="meta">{a.blurb}</span></span>
-            <span class="meta">{a.live.length ? `${a.live.length} available · ` : ""}{a.wanted.length} planned</span>
-          </a>
-        </li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="sect" aria-labelledby="works">
-    <div class="sect-head"><h2 id="works">In the works</h2><a href={`${REPO}/issues?q=is%3Aissue+is%3Aopen+label%3Awanted`}>All requests on GitHub</a></div>
-    <div class="works">
-      <p class="works-intro">These tools have been requested and accepted. Anyone can pick one up and build it: the template and guide take about an afternoon.</p>
-      <ul class="planned">
-        {planned.map((w) => <li><a href={w.url}>{w.name}<span>{w.group}</span></a></li>)}
-      </ul>
-      <p class="actions"><a class="btn" href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a><a class="btn line" href={`${REPO}/issues/new?template=tool_request.yml`}>Request one</a></p>
-    </div>
-  </section>
-
-  <section class="sect principles" aria-label="How it works">
-    <div><h3>Stays on your device</h3><p>Every page is locked to this site by its security policy. Tools can't send your files anywhere, and our tests check it on every change.</p></div>
-    <div><h3>Nothing to sign up for</h3><p>No accounts, no limits, no ads and no tracking. What you save stays in your own browser.</p></div>
-    <div><h3>Open source</h3><p>All code is public under AGPL-3.0. Read it, run it yourself, or improve it. Built in the open by Sapience Design and contributors.</p></div>
+  <section class="about-strip" aria-label="How it works">
+    <div><h3>Stays on your device</h3><p>Each page is locked to this site, so a tool can't send your files anywhere. Our tests check it on every change.</p></div>
+    <div><h3>Made to order</h3><p>Grey prototypes are tools people have asked for. <a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Make one</a> and it goes on the shelf with your name.</p></div>
+    <div><h3>Open source</h3><p>All code is public under AGPL-3.0. A Sapience Design initiative, built with contributors.</p></div>
   </section>
 </Base>
 
 <style>
-  .first { margin-top: 0; }
-  .one { grid-template-columns: 1fr; }
-  .groups a { grid-template-columns: minmax(0, 1fr) auto; padding: 18px 0; }
-  .groups .g { display: grid; gap: 2px; }
-  .groups b { font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
-  .works { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--s3) var(--s6); align-items: start; }
-  .works-intro { color: var(--ink-soft); max-width: 36ch; }
-  .planned { list-style: none; margin: 0; padding: 0; columns: 2 220px; column-gap: var(--s5); }
-  .planned li { break-inside: avoid; border-bottom: 1px solid var(--line); }
-  .planned a { display: flex; justify-content: space-between; gap: var(--s2); padding: 10px 0; text-decoration: none; color: var(--ink); font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
-  .planned a:hover { color: var(--ink-soft); }
-  .planned span { font-size: var(--t-xs); color: var(--muted); align-self: center; }
-  .works .actions { grid-column: 2; }
-  .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s4) var(--s5); padding-top: var(--s5); border-top: 1px solid var(--line); }
-  .principles h3 { font-size: var(--t-base); line-height: var(--lh-base); margin-bottom: 4px; }
-  .principles p { color: var(--muted); font-size: var(--t-sm); line-height: var(--lh-sm-ui); max-width: 38ch; }
-  @media (max-width: 860px) { .works { grid-template-columns: 1fr; } .works .actions { grid-column: 1; } }
+  .shelf + .shelf { margin-top: var(--s7); }
+  .shelf-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); margin-bottom: var(--s3); }
+  .shelf-head h2 { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
+  .shelf-head a { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); text-decoration: none; }
+  .shelf-head a:hover { color: var(--ink); }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--s5) var(--s3); }
+  .about-strip { margin-top: var(--s7); padding-top: var(--s4); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s4) var(--s5); }
+  .about-strip h3 { font-family: var(--serif); font-weight: 400; font-size: var(--t-xl); line-height: var(--lh-xl); margin-bottom: 4px; }
+  .about-strip p { font-size: var(--t-sm); line-height: var(--lh-sm-ui); color: var(--muted); max-width: 38ch; }
+  .about-strip a { color: var(--ink); }
 </style>

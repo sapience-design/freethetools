@@ -1,9 +1,11 @@
 ---
 // Compress PDF: the working area. The page around it (name, specs, FAQ, credits) comes from tool.json.
+import { artFor } from "../../../src/data/art";
+const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
 ---
 <section class="shrink" aria-label="Compress PDFs">
   <div class="drop" id="pdfc-drop" tabindex="0" role="button" aria-label="Choose PDF files">
-    <span class="plus" aria-hidden="true">+</span>
+    <span class="shot" aria-hidden="true" set:html={shot} />
     <strong>Drop PDFs here</strong>
     <span>or click to choose · several at once is fine</span>
     <input type="file" id="pdfc-file" accept="application/pdf,.pdf" multiple hidden>
@@ -32,12 +34,15 @@
 <style>
   .shrink { display: grid; gap: 28px; }
   .drop {
-    display: grid; place-items: center; align-content: center; gap: 6px; text-align: center; aspect-ratio: 4 / 3;
-    background: var(--studio); border-radius: 14px; cursor: pointer; transition: background .2s;
+    position: relative; display: grid; place-items: center; align-content: end; gap: 4px; text-align: center; aspect-ratio: 4 / 3;
+    padding-bottom: 28px; border-radius: 6px; overflow: hidden; cursor: pointer; isolation: isolate;
   }
-  .drop:hover, .drop.over { background: var(--studio-2); }
-  .plus { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: var(--paper); font-size: 24px; font-weight: 300; margin-bottom: 10px; transition: transform .2s; }
-  .drop:hover .plus, .drop.over .plus { transform: rotate(90deg); background: var(--accent); color: #111; }
+  .drop .shot { position: absolute; inset: 0; z-index: -1; }
+  .drop .shot :global(svg) { width: 100%; height: 100%; display: block; }
+  .drop .shot :global(.obj) { transition: transform .6s cubic-bezier(.2,.7,.2,1); }
+  .drop:hover .shot :global(.obj), .drop.over .shot :global(.obj) { transform: translateY(-8px); }
+  .drop::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
+  .drop.over::after { box-shadow: inset 0 0 0 2px var(--ink); }
   .drop strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
   .drop span:not(.plus) { color: var(--muted); font-size: var(--t-sm); line-height: var(--lh-sm); }
   fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 14px; }

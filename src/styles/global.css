@@ -1,5 +1,7 @@
 /* Free the Tools: tokens and shared components. Tools add their own rules in a <style> block. */
-@import "@fontsource-variable/inter";
+@import "@fontsource-variable/schibsted-grotesk";
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
 @import "@fontsource/ibm-plex-mono/400.css";
 @import "@fontsource/ibm-plex-mono/500.css";
 
@@ -33,7 +35,8 @@
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 48px; --s6: 64px; --s7: 96px;
 
   --side-w: 232px;
-  --sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: light;
 }
@@ -52,7 +55,7 @@
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-base)/var(--lh-base) var(--sans); font-feature-settings: "cv11", "ss01"; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 var(--t-base)/var(--lh-base) var(--sans); }
 img, svg { max-width: 100%; }
 a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
@@ -71,7 +74,8 @@ kbd { font-family: var(--sans); font-size: var(--t-xs); line-height: var(--lh-xs
 
 /* Page opening: eyebrow, big statement, supporting line */
 .opening { display: grid; gap: 12px; max-width: 760px; margin-bottom: var(--s6); }
-.opening h1 { font-size: var(--t-3xl); line-height: var(--lh-3xl); letter-spacing: -0.02em; }
+.opening h1 { font-family: var(--serif); font-weight: 400; font-size: var(--t-3xl); line-height: var(--lh-3xl); letter-spacing: -0.005em; }
+.opening h1 em { font-style: italic; }
 .opening h1.sm { max-width: 26ch; }
 .opening p { font-size: var(--t-lg); line-height: var(--lh-lg); color: var(--ink-soft); max-width: 52ch; }
 

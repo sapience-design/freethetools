@@ -55,8 +55,9 @@ const specs: [string, string][] = [
     </div>
 
     <aside class="info">
-      <p class="eyebrow"><a href={`/${tool.category.slug}/`}>{tool.category.name}</a> · {d.section}</p>
+      <p class="eyebrow"><span class="mono">{tool.number}</span> · <a href={`/${tool.category.slug}/`}>{tool.category.name}</a> · {d.section}</p>
       <h1>{d.name}</h1>
+      <p class="stock">In stock · runs on your device</p>
       <p class="tagline">{d.tagline}</p>
       <div class="actions">
         <button class="btn line" type="button" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
@@ -88,7 +89,8 @@ const specs: [string, string][] = [
   .info { display: grid; gap: var(--s3); position: sticky; top: var(--s5); }
   .info .eyebrow a { color: inherit; text-decoration: none; }
   .info .eyebrow a:hover { color: var(--ink); }
-  .info h1 { font-size: var(--t-3xl); line-height: var(--lh-3xl); letter-spacing: -0.02em; }
+  .info h1 { font-family: var(--serif); font-weight: 400; font-size: var(--t-3xl); line-height: var(--lh-3xl); }
+  .stock { font-size: var(--t-xs); line-height: var(--lh-xs); font-weight: 500; margin-top: -12px; }
   .tagline { color: var(--ink-soft); font-size: var(--t-lg); line-height: var(--lh-lg); max-width: 38ch; }
   .actions .on { display: none; }
   .actions [aria-pressed="true"] .on { display: inline; }
