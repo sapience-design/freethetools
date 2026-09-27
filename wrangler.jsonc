@@ -9,6 +9,9 @@
   // search engines on freethetools.com.
   "workers_dev": true,
   "preview_urls": true,
+  // Cloudflare Workers Builds runs "wrangler preview" for branches other than main.
+  // It needs this block; everything else (assets, domains) stays at the top level.
+  "previews": {},
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page",
