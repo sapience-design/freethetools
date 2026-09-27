@@ -6,7 +6,7 @@ import { REPO } from "../data/catalogue";
 const parts = [
   { name: "Ghostscript 9.56", by: "Artifex Software", licence: "AGPL-3.0", use: "Shipped: PDF engine in Compress PDF", url: "https://www.ghostscript.com/" },
   { name: "@jspawn/ghostscript-wasm 0.0.2", by: "jspawn", licence: "AGPL-3.0", use: "Shipped: Ghostscript compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/ghostscript-wasm" },
-  { name: "Outfit", by: "Rodrigo Fuenzalida", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://fonts.google.com/specimen/Outfit" },
+  { name: "Inter", by: "Rasmus Andersson", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://rsms.me/inter/" },
   { name: "IBM Plex Mono", by: "IBM", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/IBM/plex" },
   { name: "Astro", by: "The Astro Technology Company", licence: "MIT", use: "Build: static site generator", url: "https://astro.build/" },
   { name: "PyMuPDF", by: "Artifex Software", licence: "AGPL-3.0", use: "Command-line version of Compress PDF only", url: "https://pymupdf.readthedocs.io/" },
@@ -33,6 +33,6 @@ const parts = [
   .parts { max-width: 980px; }
   .parts thead th { width: auto; padding-top: 0; }
   .parts a { color: var(--ink); }
-  .note { margin-top: 32px; max-width: 70ch; color: var(--ink-soft); font-size: 14px; }
+  .note { margin-top: 32px; max-width: 70ch; color: var(--ink-soft); font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
   @media (max-width: 700px) { .parts thead { display: none; } .parts tr { display: grid; padding: 10px 0; border-bottom: 1px solid var(--line); } .parts td { border: 0; padding: 2px 0; } }
 </style>

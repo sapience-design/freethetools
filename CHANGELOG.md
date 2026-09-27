@@ -10,6 +10,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 ### Changed
 
 - Redesign for a calmer, more confident look: one type scale and 8-point spacing, a large opening statement, the available tool shown as a feature, planned tools as a list instead of placeholder cards, sentence-case sidebar with an overview per group, and a new footer.
+- Typography follows Cloudflare's open-source Kumo scale (12, 13, 14, 16, 20, 24 and 30px) in Inter Variable, with Kumo's neutral colours. Outfit is replaced by Inter.
 - Pricing labels removed everywhere (price stickers, "free forever" lines and the price row in specs). The app icon and wordmark no longer show a price.
 
 ## [1.0.0] - 2026-09-27
