@@ -6,7 +6,7 @@ Every tool runs on the visitor's device, and their files never leave it. Everyth
 
 ## A static site with the work in the browser
 
-The site is plain HTML, CSS and JavaScript built by [Astro](https://astro.build) and served by Cloudflare Pages. There is no application server and no database. A tool is a page whose script does the work in the browser tab, in a Web Worker when it is heavy (Compress PDF runs Ghostscript compiled to WebAssembly).
+The site is plain HTML, CSS and JavaScript built by [Astro](https://astro.build) and served as static files by Cloudflare Workers. There is no application server and no database. A tool is a page whose script does the work in the browser tab, in a Web Worker when it is heavy (Compress PDF runs Ghostscript compiled to WebAssembly).
 
 This keeps hosting free, pages fast, and means there is nowhere for a file to be uploaded to. See [ADR 0002](../adr/0002-static-site-work-in-the-browser.md).
 

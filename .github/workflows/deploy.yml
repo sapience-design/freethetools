@@ -1,8 +1,8 @@
 name: Deploy
 
-# Publishes to Cloudflare Pages: main -> freethetools.com, branches in this repo -> preview URLs.
-# Needs repository secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID (docs/how-to/deploy.md).
-# Pull requests from forks can't read secrets, so they are not previewed here.
+# Publishes to Cloudflare Workers (static assets): main -> freethetools.com, pull requests from
+# branches in this repo -> a preview URL. Needs repository secrets CLOUDFLARE_API_TOKEN and
+# CLOUDFLARE_ACCOUNT_ID (docs/how-to/deploy.md). Forks can't read secrets, so they aren't previewed.
 on:
   push:
     branches: [main]
@@ -33,16 +33,22 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test && npm run test:site
-      - name: Publish to Cloudflare Pages
+      - name: Publish
         id: publish
         if: env.CLOUDFLARE_API_TOKEN != ''
         env:
-          BRANCH: ${{ github.event_name == 'push' && 'main' || format('pr-{0}', github.event.pull_request.number) }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
         run: |
-          npx wrangler pages deploy dist --project-name freethetools --branch "$BRANCH" --commit-hash "$GITHUB_SHA" | tee deploy.log
-          url=$(grep -oE 'https://[a-z0-9.-]+\.pages\.dev' deploy.log | tail -1)
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Deployed to $url" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$EVENT" = "push" ]; then
+            npx wrangler deploy | tee deploy.log
+            echo "url=https://freethetools.com" >> "$GITHUB_OUTPUT"
+          else
+            npx wrangler versions upload --preview-alias "pr-$PR" | tee deploy.log
+            url=$(grep -oE 'https://pr-[^ ]+\.workers\.dev' deploy.log | tail -1)
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Published: $(grep -oE 'https://[^ ]+' deploy.log | tail -1)" >> "$GITHUB_STEP_SUMMARY"
       - name: Explain skipped deploy
         if: env.CLOUDFLARE_API_TOKEN == ''
         run: echo "::notice::CLOUDFLARE_API_TOKEN is not set, so this run built and tested but did not deploy."

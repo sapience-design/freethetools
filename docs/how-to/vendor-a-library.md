@@ -29,4 +29,4 @@ See `tools/pdf/compress/` for a full example.
 
 - Pinned exact version in `package.json`
 - Licence compatible with AGPL-3.0, and added to `NOTICE` and `src/pages/licenses.astro`
-- Size noted in the pull request (Cloudflare Pages allows 25 MiB per file)
+- Size noted in the pull request (Cloudflare allows 25 MiB per static file)

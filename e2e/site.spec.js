@@ -11,7 +11,8 @@ test.beforeEach(async ({ page }) => {
   const violations = [];
   page.on("request", (r) => {
     const u = new URL(r.url());
-    if (u.protocol.startsWith("http") && !["localhost", "127.0.0.1"].includes(u.hostname)) offsite.push(r.url());
+    const own = new URL(test.info().project.use.baseURL).hostname;
+    if (u.protocol.startsWith("http") && u.hostname !== own) offsite.push(r.url());
   });
   page.on("console", (m) => { if (/Content Security Policy/i.test(m.text())) violations.push(m.text()); });
   page.__checks = { offsite, violations };

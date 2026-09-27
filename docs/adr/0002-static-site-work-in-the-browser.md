@@ -8,7 +8,7 @@ The tools must be free forever and must not upload files. A server that processe
 
 ## Decision
 
-Build the site as static files with Astro and host them on Cloudflare Pages. Every tool does its work in the browser, using WebAssembly and Web Workers for heavy jobs.
+Build the site as static files with Astro and serve them as static assets on Cloudflare Workers, with no server code. Every tool does its work in the browser, using WebAssembly and Web Workers for heavy jobs.
 
 ## Consequences
 

@@ -15,14 +15,15 @@
     "sync": "node scripts/sync-tool-assets.mjs",
     "dev": "npm run sync && astro dev",
     "build": "npm run sync && astro build",
-    "preview": "wrangler pages dev dist --port 8788",
+    "preview": "wrangler dev --port 8788",
     "test": "node --test \"tools/*/*/tests/*.test.js\"",
     "test:site": "node --test \"tests/*.test.js\"",
     "test:e2e": "playwright test",
     "check": "npm run build && npm test && npm run test:site && npm run test:e2e",
     "new-tool": "node scripts/new-tool.mjs",
     "astro": "astro",
-    "test:py": "python -m pytest -q tools"
+    "test:py": "python -m pytest -q tools",
+    "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
     "@fontsource-variable/outfit": "^5.3.0",
