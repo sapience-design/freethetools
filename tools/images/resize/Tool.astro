@@ -1,0 +1,63 @@
+---
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Resize images">
+  <DropZone prefix="rsz" toolId="images/resize" category="images" name="Resize Images" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · one or many" />
+  <fieldset class="field">
+    <legend class="eyebrow">Resize by</legend>
+    <div class="seg">
+      <input type="radio" name="rsz-mode" id="rsz-width" value="width" checked><label for="rsz-width">Width</label>
+      <input type="radio" name="rsz-mode" id="rsz-height" value="height"><label for="rsz-height">Height</label>
+      <input type="radio" name="rsz-mode" id="rsz-box" value="box"><label for="rsz-box">Fit in a box</label>
+      <input type="radio" name="rsz-mode" id="rsz-percent" value="percent"><label for="rsz-percent">Percentage</label>
+    </div>
+  </fieldset>
+  <div class="rsz-row">
+    <label class="field" id="rsz-w-f"><span>Width (px)</span><input type="number" id="rsz-w" value="1200" min="1"></label>
+    <label class="field" id="rsz-h-f" hidden><span>Height (px)</span><input type="number" id="rsz-h" value="1200" min="1"></label>
+    <label class="field" id="rsz-p-f" hidden><span>Percent</span><input type="number" id="rsz-p" value="50" min="1"></label>
+  </div>
+  <ul class="file-list" id="rsz-list" aria-live="polite"></ul>
+</section>
+
+<script>
+  import { targetSize, checkSize } from "./core.js";
+  import { decode, encode, EXT, type Format } from "../../../src/lib/images";
+  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const num = (id: string) => +($(id) as HTMLInputElement).value;
+  const mode = () => (document.querySelector('input[name="rsz-mode"]:checked') as HTMLInputElement).value;
+  function fields() {
+    const m = mode();
+    $("rsz-w-f").hidden = !(m === "width" || m === "box");
+    $("rsz-h-f").hidden = !(m === "height" || m === "box");
+    $("rsz-p-f").hidden = m !== "percent";
+  }
+  document.querySelectorAll('input[name="rsz-mode"]').forEach((r) => r.addEventListener("change", fields));
+
+  wireDrop("rsz", async (files) => {
+    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Resizing…";
+      const act = document.createElement("span"); act.className = "fact";
+      li.append(n, m, act); $("rsz-list").prepend(li);
+      try {
+        const bmp = await decode(f);
+        const md = mode();
+        const opt = md === "percent" ? { mode: md, percent: num("rsz-p") } : md === "width" ? { mode: md, width: num("rsz-w") } : md === "height" ? { mode: md, height: num("rsz-h") } : { mode: md, width: num("rsz-w"), height: num("rsz-h") };
+        const size = checkSize(targetSize(bmp.width, bmp.height, opt as never));
+        const type: Format = f.type === "image/png" || f.type === "image/webp" ? (f.type as Format) : "image/jpeg";
+        const blob = await encode(bmp, size.width, size.height, type, 0.9);
+        m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
+        act.append(downloadLink(blob, `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`, type));
+      } catch (e) { m.textContent = (e as Error).message; }
+    }
+  });
+  fields();
+</script>
+
+<style>
+  .rsz-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
+  .rsz-row .field { width: 160px; }
+</style>

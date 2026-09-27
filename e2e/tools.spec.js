@@ -139,3 +139,61 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#tz-list li").first()).toBeVisible();
   });
 });
+
+// ---- Image tools -------------------------------------------------------------------------------
+import { deflateSync, crc32 } from "node:zlib";
+
+function gradientPng(w, h) {
+  const chunk = (type, data) => {
+    const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
+    const td = Buffer.concat([Buffer.from(type), data]);
+    const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td));
+    return Buffer.concat([len, td, crc]);
+  };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const o = y * (w * 3 + 1) + 1 + x * 3; raw[o] = (x * 255) / w; raw[o + 1] = (y * 255) / h; raw[o + 2] = 140; }
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", Buffer.alloc(0))]);
+}
+
+function jpegWithGps() {
+  const tiff = Buffer.from([0x49, 0x49, 0x2a, 0, 8, 0, 0, 0, 1, 0, 0x25, 0x88, 4, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  const exif = Buffer.concat([Buffer.from("Exif\0\0", "latin1"), tiff]);
+  const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, (exif.length + 2) >> 8, (exif.length + 2) & 255]), exif]);
+  return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
+}
+
+test.describe("image tools", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+  const png = () => ({ name: "gradient.png", mimeType: "image/png", buffer: gradientPng(300, 200) });
+
+  test("Resize Images makes the requested width", async ({ page }) => {
+    await page.goto("/images/resize/");
+    await page.fill("#rsz-w", "150");
+    await page.setInputFiles("#rsz-file", png());
+    await expect(page.locator("#rsz-list .fmeta")).toContainText("300×200 → 150×100");
+  });
+
+  test("Convert Image Format writes a real JPG", async ({ page }) => {
+    await page.goto("/images/convert/");
+    await page.setInputFiles("#cvi-file", png());
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
+    expect(out[0]).toBe(0xff);
+    expect(out[1]).toBe(0xd8);
+  });
+
+  test("Compress Images reports a result", async ({ page }) => {
+    await page.goto("/images/compress/");
+    await page.setInputFiles("#cmi-file", png());
+    await expect(page.locator("#cmi-list .fmeta")).toContainText(/smaller|Already compact/);
+  });
+
+  test("Remove Photo Location strips GPS", async ({ page }) => {
+    await page.goto("/images/remove-location/");
+    await page.setInputFiles("#rml-file", { name: "photo.jpg", mimeType: "image/jpeg", buffer: jpegWithGps() });
+    await expect(page.locator("#rml-list .fmeta")).toContainText("Removed GPS location");
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
+    expect(out.toString("hex")).not.toContain("ffe1");
+  });
+});

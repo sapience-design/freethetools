@@ -1,0 +1,47 @@
+---
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Compress images">
+  <DropZone prefix="cmi" toolId="images/compress" category="images" name="Compress Images" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · one or many" />
+  <fieldset class="field">
+    <legend class="eyebrow">Quality</legend>
+    <div class="seg">
+      <input type="radio" name="cmi-q" id="cmi-high" value="high"><label for="cmi-high">Best quality<small>up to 4096 px</small></label>
+      <input type="radio" name="cmi-q" id="cmi-balanced" value="balanced" checked><label for="cmi-balanced">Balanced<small>up to 2560 px</small></label>
+      <input type="radio" name="cmi-q" id="cmi-small" value="small"><label for="cmi-small">Smallest<small>up to 1600 px</small></label>
+    </div>
+  </fieldset>
+  <label class="check"><input type="checkbox" id="cmi-keep" checked> Keep JPG and WebP in their format</label>
+  <ul class="file-list" id="cmi-list" aria-live="polite"></ul>
+</section>
+
+<script>
+  import { PRESETS, outputType, worthIt, saving } from "./core.js";
+  import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
+  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const webpOk = canEncode("image/webp");
+
+  wireDrop("cmi", async (files) => {
+    const preset = PRESETS[(document.querySelector('input[name="cmi-q"]:checked') as HTMLInputElement).value as keyof typeof PRESETS];
+    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Compressing…";
+      const act = document.createElement("span"); act.className = "fact";
+      li.append(n, m, act); $("cmi-list").prepend(li);
+      try {
+        const bmp = await decode(f);
+        const type = outputType(f.type, await webpOk, ($("cmi-keep") as HTMLInputElement).checked) as Format;
+        const size = fitWithin(bmp.width, bmp.height, preset.maxSide, preset.maxSide);
+        const blob = await encode(bmp, size.width, size.height, type, preset.quality);
+        if (worthIt(f.size, blob.size)) {
+          m.textContent = `${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${saving(f.size, blob.size)}% smaller`;
+          act.append(downloadLink(blob, `${baseName(f.name)}_small.${EXT[type]}`, type));
+        } else {
+          m.textContent = `Already compact: ${fmtBytes(f.size)}. Keep the original, or try Smallest.`;
+        }
+      } catch (e) { m.textContent = (e as Error).message; }
+    }
+  });
+</script>
