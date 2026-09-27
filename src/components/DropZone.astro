@@ -19,8 +19,7 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
 ---
 <div class:list={["drop", { dark: category === "developer" }]} id={`${prefix}-drop`} tabindex="0" role="button" aria-label={title}>
   <span class="shot" aria-hidden="true" set:html={shot} />
-  <strong>{title}</strong>
-  <span class="hint">{hint}</span>
+  <span class="label"><strong>{title}</strong><span class="hint">{hint}</span></span>
   <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
 </div>
 
@@ -35,6 +34,8 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
   .drop:hover .shot :global(.obj), .drop.over .shot :global(.obj) { transform: translateY(-8px); }
   .drop::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
   .drop.over::after { box-shadow: inset 0 0 0 2px var(--ink); }
+  .label { display: grid; gap: 2px; padding: 10px 18px 11px; border-radius: 14px; background: rgba(255, 255, 255, .78); backdrop-filter: blur(10px); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  .dark .label { background: rgba(20, 22, 26, .62); }
   strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; color: #111; }
   .hint { color: #555a60; font-size: var(--t-sm); line-height: var(--lh-sm); }
   .dark strong { color: #f4f5f7; }
