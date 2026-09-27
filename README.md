@@ -42,7 +42,7 @@ npm run dev          # http://localhost:4321/text/word-counter/
 | `e2e/`, `tests/` | Browser tests and checks on the built site |
 | `docs/` | Tutorials, how-to guides, reference and design decisions |
 
-The site is static [Astro](https://astro.build), hosted as static files on Cloudflare Workers. Read [docs/explanation/architecture.md](docs/explanation/architecture.md) for the reasoning.
+The site is static [Astro](https://astro.build), hosted as static files on Cloudflare Workers, which builds and deploys every merge to `main`. Read [docs/explanation/architecture.md](docs/explanation/architecture.md) for the reasoning.
 
 ## Project
 

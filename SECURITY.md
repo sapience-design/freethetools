@@ -44,6 +44,12 @@ We'll keep you updated along the way. If we can't meet a target, we'll tell you 
 
 We won't pursue legal action against research done in good faith that follows this policy: stay in scope, don't access other people's data, don't degrade the service, and give us reasonable time to fix before disclosing.
 
+## How deploys are protected
+
+- The site is built and deployed by Cloudflare Workers Builds from the `main` branch. No Cloudflare credentials are stored in GitHub, so workflows, forks and contributors have nothing to leak.
+- Nothing reaches `main` without passing checks and a maintainer review (branch protection with code owners).
+- GitHub Actions are pinned to full commit hashes and run with read-only permissions.
+
 ## Supported versions
 
 Only the current site (the `main` branch) is supported. There are no older releases to patch.
