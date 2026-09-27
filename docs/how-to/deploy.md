@@ -14,7 +14,7 @@ Cloudflare is connected to this repository and builds it on its own infrastructu
 | Build command | `npm ci && npm run build && npm test && npm run test:site` |
 | Deploy command | `npx wrangler deploy` |
 | Non-production branch builds | On |
-| Non-production deploy command | `npx wrangler versions upload` (**never** `wrangler deploy`, which would publish the branch to production) |
+| Non-production deploy command | `npx wrangler preview` (the default; needs the `previews` block in `wrangler.jsonc`). **Never** `wrangler deploy`, which would publish the branch to production. |
 
 - A push to `main` builds, tests and publishes freethetools.com. If the tests fail, nothing is published.
 - A push to any other branch **in this repository** uploads a preview version with its own `*.workers.dev` link. Production is untouched. Forks are never built.
