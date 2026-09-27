@@ -24,34 +24,30 @@ const a = aisles.find((x) => x.slug === category)!;
   }}
 >
   <section class="opening">
-    <p class="eyebrow">{a.name} tools</p>
-    <h1 class="sm">{a.blurb}</h1>
+    <p class="eyebrow">{a.name} · {a.live.length} in stock · {a.wanted.length} made to order</p>
+    <h1>{a.blurb}</h1>
     <p>Each tool runs in your browser and never uploads your files.</p>
   </section>
 
-  {a.live.length > 0 && (
-    <section class="sect first" aria-labelledby="now">
-      <div class="sect-head"><h2 id="now">Available now</h2><span>{a.live.length}</span></div>
+  {a.sectionsUsed.map((s) => (
+    <section class="shelf" aria-labelledby={`sec-${s.name.replace(/\W+/g, "-")}`}>
+      <div class="shelf-head"><h2 id={`sec-${s.name.replace(/\W+/g, "-")}`}>{s.name}</h2></div>
       <ul class="grid">
-        {a.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} toolId={t.id} blurb={t.data.tagline} group={t.data.section} />)}
+        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} />)}
+        {s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />)}
       </ul>
     </section>
-  )}
+  ))}
 
-  {a.wanted.length > 0 && (
-    <section class:list={["sect", { first: !a.live.length }]} aria-labelledby="planned">
-      <div class="sect-head"><h2 id="planned">In the works</h2><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build one</a></div>
-      <ul class="list">
-        {a.wanted.map((w) => <li><a href={w.url}><span>{w.name}</span><span class="meta">{w.section} · open request</span></a></li>)}
-      </ul>
-      <p class="more"><a href={`${REPO}/issues/new?template=tool_request.yml`}>Missing something? Request a {a.name === a.name.toUpperCase() ? a.name : a.name.toLowerCase()} tool</a></p>
-    </section>
-  )}
+  <p class="more"><a href={`${REPO}/issues/new?template=tool_request.yml`}>Missing something? Request a tool</a></p>
 </Base>
 
 <style>
-  .first { margin-top: 0; }
-  .more { margin-top: var(--s3); font-size: var(--t-sm); }
+  .shelf + .shelf { margin-top: var(--s6); }
+  .shelf-head { margin-bottom: var(--s3); }
+  .shelf-head h2 { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--s5) var(--s3); }
+  .more { margin-top: var(--s6); font-size: var(--t-sm); }
   .more a { color: var(--muted); }
   .more a:hover { color: var(--ink); }
 </style>
