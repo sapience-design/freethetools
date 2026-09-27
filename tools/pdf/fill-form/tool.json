@@ -1,0 +1,23 @@
+{
+  "name": "Fill PDF Form",
+  "short": "Fill form",
+  "tagline": "Type into a PDF form's fields, tick the boxes, and save it, optionally locked.",
+  "seoTitle": "Fill in PDF forms online without uploading",
+  "description": "Fill in PDF form fields for free in your browser: text, checkboxes, dropdowns and choices. Lock the answers if you like. Nothing is uploaded.",
+  "section": "Edit",
+  "keywords": ["fill pdf", "pdf form", "fillable pdf", "acroform", "complete form", "type on pdf", "flatten"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "beta",
+  "added": "2026-09-28",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf-lib 1.17 (MIT), in your browser",
+    "Fields": "Text, checkboxes, dropdowns, radio buttons and lists",
+    "Not yet": "Signatures, and forms that are just printed lines without real fields"
+  },
+  "faq": [
+    { "q": "Is my form uploaded?", "a": "No. Forms often hold personal details, so it's filled inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "It says my PDF has no fields. Why?", "a": "Some forms are only printed lines, with no real fields inside the file. Those need a tool that places text anywhere on the page, which is planned." },
+    { "q": "What does locking the answers do?", "a": "It flattens the form: your answers become part of the page and can no longer be changed in a PDF reader." }
+  ]
+}

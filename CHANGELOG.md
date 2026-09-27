@@ -10,6 +10,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 ### Added
 
 - 15 new tools: Merge PDFs, Split PDF, Rotate Pages, Images to PDF, Word Counter, Case Converter, Text Diff, JSON Formatter, CSV to JSON, Base64, Hash Generator, UUID Generator, QR Code Maker, Unit Converter, Time Zone Converter.
+- Batch two: Compress Images, Resize Images, Convert Image Format, Remove Photo Location (lossless), PDF to Images (pdf.js), Fill PDF Form (beta), Password Generator, JWT Decoder, Regex Tester.
 - Shared DropZone and ToolShot components and tool interface styles.
 - Browser tests for every tool page (clean load, no outside requests) and end-to-end file flows.
 

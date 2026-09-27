@@ -1,0 +1,23 @@
+{
+  "name": "PDF to Images",
+  "short": "PDF to images",
+  "tagline": "Save every page, or just some, as PNG or JPG at screen or print resolution.",
+  "seoTitle": "PDF to JPG and PNG without uploading",
+  "description": "Convert PDF pages to PNG or JPG images for free in your browser, at 72, 150 or 300 dpi. Choose the pages. Nothing is uploaded.",
+  "section": "Convert",
+  "keywords": ["pdf to jpg", "pdf to png", "pdf to image", "extract pages", "convert pdf", "screenshot pdf"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-28",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf.js 6.3 (Apache-2.0), in your browser",
+    "Resolution": "72, 150 or 300 dpi, capped at 8000 px a side",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my files uploaded?", "a": "No. Pages are drawn inside this browser tab by pdf.js, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "PNG or JPG?", "a": "PNG is sharp and lossless, best for text and diagrams. JPG is much smaller, best for photos and scans." }
+  ],
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }]
+}

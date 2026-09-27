@@ -1,0 +1,18 @@
+{
+  "name": "Regex Tester",
+  "short": "Regex tester",
+  "tagline": "Try a regular expression on your text and see every match and group highlighted.",
+  "seoTitle": "Regex tester for JavaScript regular expressions",
+  "description": "Test JavaScript regular expressions live: matches highlighted, groups and named groups listed, clear errors. Free, and your text stays on the page.",
+  "section": "Inspect",
+  "keywords": ["regex", "regular expression", "regex tester", "regexp", "pattern", "match", "javascript regex"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-28",
+  "offline": true,
+  "specs": { "Engine": "Your browser's JavaScript regex engine", "Flags": "g, i, m, s, u and y" },
+  "faq": [
+    { "q": "Which regex flavour is this?", "a": "JavaScript (ECMAScript), as used in browsers and Node.js. Most patterns work the same in other languages; lookbehind and named groups are supported." },
+    { "q": "Is my text sent anywhere?", "a": "No. Matching runs in this tab, and the page's security policy blocks any outside connection." }
+  ]
+}

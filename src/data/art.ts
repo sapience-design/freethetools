@@ -129,6 +129,7 @@ const PIECES: Record<string, Draw> = {
   "rotate-pages": (c) => { const [x, y] = at(0); return stack(c, x - 20, y, 3, 88, 112) + box(x + 44, y - 10, 112, 4, 88, c.paper, 0, c.line); },
   "images-to-pdf": (c) => { const [x, y] = at(0); return stack(c, x + 26, y + 10, 5, 88, 112) + print(c, x - 44, y - 30, 70, 92); },
   "pdf-to-images": (c) => { const [x, y] = at(0); return print(c, x + 40, y - 34, 64, 82) + print(c, x + 62, y - 6, 64, 82) + stack(c, x - 30, y + 14, 5, 88, 112); },
+  "fill-pdf-form": (c) => { const [x, y] = at(0); return stack(c, x, y, 4) + box(x + 10, y - 6, 140, 8, 8, c.accent, 16) + box(x + 10 - 70 * 0.866 - 4, y - 6 - 70 * 0.5 - 2, 10, 8, 8, c.navy, 16); },
   // Images
   "compress-images": (c) => { const [x, y] = at(0); return print(c, x, y, 120, 70) + box(x, y, 124, 16, 8, c.accent, 70); },
   "resize-images": (c) => { const [x, y] = at(0); return print(c, x - 30, y - 12, 96, 112) + print(c, x + 56, y + 28, 56, 66); },
@@ -150,6 +151,9 @@ const PIECES: Record<string, Draw> = {
     const cells = [[0, 0], [1, 0], [0, 1], [3, 0], [4, 1], [2, 2], [1, 3], [3, 3], [4, 4], [0, 4], [2, 4], [4, 2]].map(([i, j]) => `<rect x="${-40 + i * 16}" y="${-40 + j * 16}" width="14" height="14" fill="${c.clay ? c.line : "#1f2733"}"/>`).join("");
     return box(x, y, 112, 112, 12, c.paper, 0, c.line) + top(x, y, 12, cells + `<rect x="-40" y="-40" width="30" height="30" fill="none" stroke="${c.clay ? c.line : c.accent.left}" stroke-width="5"/>`);
   },
+  "password-generator": (c) => { const [x, y] = at(0); return key(c, x, y, 118, "•••"); },
+  "jwt-decoder": (c) => { const [x, y] = at(0); return key(c, x, y, 118, "JWT"); },
+  "regex-tester": (c) => { const [x, y] = at(0); return key(c, x, y, 118, ".*"); },
   "uuid-generator": (c) => { const [x, y] = at(0); return cylinder(c, x - 40, y - 12, 30, 16, c.paper) + cylinder(c, x - 40, y - 28, 30, 16, c.paper) + cylinder(c, x + 30, y + 16, 30, 16, c.accent) + cylinder(c, x + 30, y, 30, 16, c.paper); },
   // Everyday
   "unit-converter": (c) => { const [x, y] = at(0); return box(x, y, 176, 34, 8, c.accent) + top(x, y, 8, Array.from({ length: 17 }, (_, i) => `<rect x="${-84 + i * 10.5}" y="-17" width="2" height="${i % 4 ? 8 : 14}" fill="${c.ink}"/>`).join("")) + cube(c, x + 10, y - 44, 40, c.paper); },

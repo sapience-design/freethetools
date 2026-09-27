@@ -1,0 +1,48 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+const flags = [["g", "all matches"], ["i", "ignore case"], ["m", "^ $ per line"], ["s", ". matches newline"], ["u", "unicode"]];
+---
+<section class="tool" aria-label="Regex tester">
+  <ToolShot toolId="developer/regex-tester" category="developer" name="Regex Tester" />
+  <label class="field"><span>Pattern</span><input type="text" id="rx-pattern" class="mono" value="(?<user>[\w.]+)@(?<domain>[\w-]+\.\w+)" autocomplete="off" spellcheck="false"></label>
+  <div class="rx-flags">
+    {flags.map(([f, label], i) => <label class="check"><input type="checkbox" id={`rx-f-${f}`} data-flag={f} checked={i === 0} /> <span class="mono">{f}</span> <span class="muted">{label}</span></label>)}
+  </div>
+  <label class="field"><span>Text</span><textarea id="rx-text" rows="6" spellcheck="false">Write to ada@example.com or alan.turing@bletchley.org.uk
+No address on this line.</textarea></label>
+  <p class="tool-error" id="rx-err" hidden></p>
+  <div class="out"><span class="eyebrow" id="rx-count"></span><div class="out-box" id="rx-view"></div></div>
+  <ul class="file-list" id="rx-list"></ul>
+</section>
+
+<script>
+  import { runRegex, segments } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const pattern = $("rx-pattern") as HTMLInputElement, text = $("rx-text") as HTMLTextAreaElement;
+  function update() {
+    const flags = [...document.querySelectorAll<HTMLInputElement>("[data-flag]")].filter((c) => c.checked).map((c) => c.dataset.flag).join("");
+    const r = runRegex(pattern.value, flags, text.value);
+    $("rx-err").hidden = !r.error; $("rx-err").textContent = r.error ?? "";
+    $("rx-count").textContent = r.error ? "" : `${r.matches.length}${r.truncated ? "+" : ""} ${r.matches.length === 1 ? "match" : "matches"}`;
+    $("rx-view").replaceChildren(...segments(text.value, r.matches).map((s) => {
+      const el = document.createElement(s.match ? "mark" : "span"); el.textContent = s.text; return el;
+    }));
+    $("rx-list").replaceChildren(...r.matches.slice(0, 50).map((m, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname mono"; n.textContent = `${i + 1}. ${m.text}`;
+      const meta = document.createElement("span"); meta.className = "fmeta";
+      const groups = m.named ? Object.entries(m.named).map(([k, v]) => `${k}: ${v}`) : m.groups.map((g, j) => `$${j + 1}: ${g}`);
+      meta.textContent = `at ${m.index}${groups.length ? " · " + groups.join(" · ") : ""}`;
+      li.append(n, meta); return li;
+    }));
+  }
+  [pattern, text].forEach((el) => el.addEventListener("input", update));
+  document.querySelectorAll("[data-flag]").forEach((el) => el.addEventListener("change", update));
+  update();
+</script>
+
+<style>
+  .rx-flags { display: flex; flex-wrap: wrap; gap: 6px var(--s3); }
+  #rx-view { font-family: var(--mono); white-space: pre-wrap; }
+  #rx-view :global(mark) { background: color-mix(in srgb, var(--accent) 55%, transparent); color: var(--ink-strong); border-radius: 3px; }
+</style>

@@ -1,0 +1,18 @@
+{
+  "name": "Password Generator",
+  "short": "Passwords",
+  "tagline": "Strong random passwords and memorable passphrases, made on your device.",
+  "seoTitle": "Strong password and passphrase generator",
+  "description": "Generate strong random passwords or memorable passphrases with a clear strength rating. Made on your device, never sent or stored anywhere.",
+  "section": "Generate",
+  "keywords": ["password generator", "strong password", "passphrase", "random password", "secure", "diceware"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-28",
+  "offline": true,
+  "specs": { "Engine": "crypto.getRandomValues, without modulo bias", "Look-alikes": "l, I, O, 0 and 1 left out unless you ask" },
+  "faq": [
+    { "q": "Is the password sent or saved anywhere?", "a": "No. It's made in this tab from your device's secure random number generator and is never stored or sent. The page's security policy blocks any outside connection." },
+    { "q": "Password or passphrase?", "a": "A passphrase of five or six random words is easier to remember and type, and just as hard to guess as a long jumble. Use a password manager for the rest." }
+  ]
+}
