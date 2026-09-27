@@ -1,0 +1,18 @@
+{
+  "name": "JSON Formatter",
+  "short": "JSON formatter",
+  "tagline": "Tidy, validate and minify JSON, with errors that point at the exact line.",
+  "seoTitle": "JSON formatter and validator",
+  "description": "Format, validate and minify JSON for free in your browser, with errors that show the line and column. Sort keys too. Your data stays on the page.",
+  "section": "Format",
+  "keywords": ["json", "format", "pretty print", "beautify", "validate", "minify", "lint", "sort keys"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's own JSON parser", "Options": "2 or 4 spaces, tabs, minified; sort keys" },
+  "faq": [
+    { "q": "Is my JSON sent anywhere?", "a": "No. It's parsed in this tab, and the page's security policy blocks it from sending data anywhere. That makes it safe for API keys and customer data." },
+    { "q": "Why does it say my JSON is invalid?", "a": "The most common causes are a trailing comma, single quotes instead of double quotes, or a missing closing bracket. The error shows the line and column to look at." }
+  ]
+}

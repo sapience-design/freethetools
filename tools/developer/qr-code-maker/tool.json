@@ -1,0 +1,18 @@
+{
+  "name": "QR Code Maker",
+  "short": "QR code maker",
+  "tagline": "Links, text and Wi-Fi logins as a crisp QR code. Download as SVG or PNG.",
+  "seoTitle": "Free QR code generator (no sign-up, no expiry)",
+  "description": "Make QR codes for links, text or Wi-Fi, free and without sign-up. Codes never expire and aren't tracked. Download SVG or PNG.",
+  "section": "Generate",
+  "keywords": ["qr code", "qr generator", "wifi qr", "link", "svg", "png", "no expiry"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "qrcode-generator 2 (MIT), in your browser", "Tracking": "None: the code holds your text directly, not a redirect link" },
+  "faq": [
+    { "q": "Do these QR codes expire?", "a": "Never. Many free QR sites encode a link to their own server so they can track scans or switch the code off later. This one puts your link or text directly in the code." },
+    { "q": "Which error correction should I pick?", "a": "Medium suits most uses. Choose High if the code will be printed small, on fabric, or with a logo over it." }
+  ]
+}

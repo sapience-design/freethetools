@@ -1,0 +1,22 @@
+{
+  "name": "Rotate Pages",
+  "short": "Rotate",
+  "tagline": "Turn sideways or upside-down pages the right way up, all of them or just some.",
+  "seoTitle": "Rotate PDF pages without uploading",
+  "description": "Rotate PDF pages 90 or 180 degrees for free in your browser. Turn every page or just the ones you pick. Nothing is uploaded.",
+  "section": "Organize",
+  "keywords": ["rotate", "turn", "sideways", "upside down", "landscape", "portrait", "pdf", "orientation"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf-lib 1.17 (MIT), in your browser",
+    "Quality": "Lossless: pages are turned, not re-rendered",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my files uploaded?", "a": "No. The PDF is changed inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Does rotating lower the quality?", "a": "No. The tool changes each page's rotation setting; nothing is re-rendered or compressed." }
+  ]
+}

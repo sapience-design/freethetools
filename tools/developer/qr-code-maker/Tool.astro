@@ -1,0 +1,79 @@
+---
+// QR Code Maker. The code itself is the product shot here, so no banner.
+---
+<section class="tool" aria-label="QR code maker">
+  <fieldset class="field">
+    <legend class="eyebrow">What to encode</legend>
+    <div class="seg">
+      <input type="radio" name="qr-kind" id="qr-text" value="text" checked><label for="qr-text">Link or text</label>
+      <input type="radio" name="qr-kind" id="qr-wifi" value="wifi"><label for="qr-wifi">Wi-Fi login</label>
+    </div>
+  </fieldset>
+  <label class="field" id="qr-text-field"><span>Link or text</span><input type="text" id="qr-in" value="https://freethetools.com" autocomplete="off"></label>
+  <div id="qr-wifi-fields" class="qr-wifi" hidden>
+    <label class="field"><span>Network name</span><input type="text" id="qr-ssid" autocomplete="off"></label>
+    <label class="field"><span>Password</span><input type="text" id="qr-pass" autocomplete="off"></label>
+    <label class="check"><input type="checkbox" id="qr-hidden"> Hidden network</label>
+  </div>
+  <fieldset class="field">
+    <legend class="eyebrow">Error correction</legend>
+    <div class="seg">
+      <input type="radio" name="qr-level" id="qr-L" value="L"><label for="qr-L">Low</label>
+      <input type="radio" name="qr-level" id="qr-M" value="M" checked><label for="qr-M">Medium</label>
+      <input type="radio" name="qr-level" id="qr-Q" value="Q"><label for="qr-Q">Quartile</label>
+      <input type="radio" name="qr-level" id="qr-H" value="H"><label for="qr-H">High</label>
+    </div>
+  </fieldset>
+  <div class="qr-stage"><div class="qr-code" id="qr-code" role="img" aria-label="QR code preview"></div></div>
+  <p class="tool-error" id="qr-err" hidden></p>
+  <div class="actions" id="qr-actions"></div>
+</section>
+
+<script>
+  import { makeQr, wifiPayload } from "./core.js";
+  import { downloadLink } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const val = (id: string) => ($(id) as HTMLInputElement).value;
+  let svg = "";
+
+  function payload() {
+    const wifi = ($("qr-wifi") as HTMLInputElement).checked;
+    $("qr-text-field").hidden = wifi; $("qr-wifi-fields").hidden = !wifi;
+    return wifi ? wifiPayload({ ssid: val("qr-ssid"), password: val("qr-pass"), hidden: ($("qr-hidden") as HTMLInputElement).checked }) : val("qr-in");
+  }
+  async function pngBlob(svgText: string, px = 1024): Promise<Blob> {
+    const img = new Image();
+    img.src = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml" }));
+    await img.decode();
+    const c = document.createElement("canvas"); c.width = c.height = px;
+    const ctx = c.getContext("2d")!; ctx.imageSmoothingEnabled = false; ctx.drawImage(img, 0, 0, px, px);
+    return new Promise((res) => c.toBlob((b) => res(b!), "image/png"));
+  }
+  async function update() {
+    const err = $("qr-err"), actions = $("qr-actions");
+    try {
+      const level = (document.querySelector('input[name="qr-level"]:checked') as HTMLInputElement).value as "L" | "M" | "Q" | "H";
+      svg = makeQr(payload(), { level }).svg;
+      const img = new Image(); img.alt = ""; img.src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      $("qr-code").replaceChildren(img);
+      err.hidden = true;
+      actions.replaceChildren(downloadLink(svg, "qr-code.svg", "image/svg+xml", "Download SVG"));
+      const png = downloadLink(await pngBlob(svg), "qr-code.png", "image/png", "Download PNG");
+      png.classList.add("line");
+      actions.append(png);
+    } catch (e) {
+      err.textContent = (e as Error).message; err.hidden = false;
+      $("qr-code").replaceChildren(); actions.replaceChildren();
+    }
+  }
+  document.querySelectorAll("#qr-in, #qr-ssid, #qr-pass").forEach((el) => el.addEventListener("input", update));
+  document.querySelectorAll('input[name="qr-kind"], input[name="qr-level"], #qr-hidden').forEach((el) => el.addEventListener("change", update));
+  update();
+</script>
+
+<style>
+  .qr-wifi { display: grid; gap: var(--s2); }
+  .qr-stage { display: grid; place-items: center; padding: var(--s5) var(--s3); border-radius: 6px; background: linear-gradient(#353a40 55%, #202328); }
+  .qr-code { width: min(100%, 260px); aspect-ratio: 1; border-radius: 10px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,.35); background: #fff; }
+  .qr-code :global(img) { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+</style>

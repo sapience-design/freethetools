@@ -1,0 +1,64 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+const CITIES = [
+  ["Europe/Oslo", "Oslo"], ["Europe/London", "London"], ["America/New_York", "New York"], ["America/Los_Angeles", "Los Angeles"],
+  ["Asia/Kolkata", "Mumbai"], ["Asia/Singapore", "Singapore"], ["Asia/Tokyo", "Tokyo"], ["Australia/Sydney", "Sydney"],
+  ["Europe/Berlin", "Berlin"], ["America/Sao_Paulo", "São Paulo"], ["Asia/Dubai", "Dubai"], ["UTC", "UTC"],
+];
+---
+<section class="tool" aria-label="Time zone converter">
+  <ToolShot toolId="everyday/time-zone-converter" category="everyday" name="Time Zone Converter" />
+  <div class="tz-row">
+    <label class="field"><span>Date and time</span><input type="datetime-local" id="tz-when" class="input"></label>
+    <label class="field"><span>In</span><select id="tz-from">{CITIES.map(([z, n]) => <option value={z}>{n}</option>)}</select></label>
+  </div>
+  <ul class="file-list" id="tz-list" aria-live="polite"></ul>
+  <label class="field"><span>Add a city or zone</span><select id="tz-add"><option value="">Choose…</option></select></label>
+</section>
+
+<script>
+  import { zonedToInstant, inZone, workingHour } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const when = $("tz-when") as HTMLInputElement, from = $("tz-from") as HTMLSelectElement, add = $("tz-add") as HTMLSelectElement;
+  const KEY = "ftt:tz";
+  const local = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  let zones: string[] = [];
+  try { zones = JSON.parse(localStorage.getItem(KEY) || "null") ?? []; } catch {}
+  if (!zones.length) zones = ["Europe/London", "America/New_York", "Asia/Tokyo", "Asia/Kolkata"];
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(zones)); } catch {} };
+  const label = (z: string) => z === "UTC" ? "UTC" : z.split("/").pop()!.replace(/_/g, " ");
+
+  if (![...from.options].some((o) => o.value === local)) from.prepend(new Option(label(local), local));
+  from.value = local;
+  const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
+  when.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const all = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [];
+  add.append(...all.map((z) => new Option(z.replace(/_/g, " "), z)));
+
+  function render() {
+    let t: Date;
+    try { t = zonedToInstant(when.value, from.value); } catch { $("tz-list").replaceChildren(); return; }
+    $("tz-list").replaceChildren(...zones.filter((z) => z !== from.value).map((z, i) => {
+      const r = inZone(t, z, from.value);
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname";
+      n.textContent = `${r.time}  ${label(z)}`;
+      const m = document.createElement("span"); m.className = "fmeta";
+      m.textContent = `${r.date}${r.dayShift ? (r.dayShift > 0 ? " · next day" : " · previous day") : ""} · ${r.offset}${workingHour(r.hour) ? "" : " · outside working hours"}`;
+      if (!workingHour(r.hour)) li.classList.add("tz-off");
+      const act = document.createElement("span"); act.className = "fact";
+      const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = "✕"; b.setAttribute("aria-label", `Remove ${label(z)}`);
+      b.onclick = () => { zones = zones.filter((x) => x !== z); save(); render(); };
+      act.append(b); li.append(n, m, act); return li;
+    }));
+  }
+  [when, from].forEach((el) => el.addEventListener("input", render));
+  add.addEventListener("change", () => { if (add.value && !zones.includes(add.value)) { zones.push(add.value); save(); } add.value = ""; render(); });
+  render();
+</script>
+
+<style>
+  .tz-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--s2); }
+  #tz-list :global(.fname) { font-family: var(--serif); font-weight: 400; font-size: var(--t-xl); line-height: var(--lh-xl); white-space: pre; font-variant-numeric: tabular-nums; }
+  #tz-list :global(.tz-off .fname) { color: var(--muted); }
+</style>

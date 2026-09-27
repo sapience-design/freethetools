@@ -1,0 +1,18 @@
+{
+  "name": "Hash Generator",
+  "short": "Hash generator",
+  "tagline": "SHA-256, SHA-512, SHA-1 and MD5 for text and files. Check a download against its checksum.",
+  "seoTitle": "SHA-256 and MD5 hash generator for text and files",
+  "description": "Get SHA-256, SHA-512, SHA-1 or MD5 hashes of text or files, and check them against a published checksum. Free, and files never leave your device.",
+  "section": "Encode",
+  "keywords": ["hash", "sha256", "md5", "sha1", "sha512", "checksum", "verify download", "digest"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Web Crypto API; MD5 in plain JavaScript", "Files": "Hashed on your device, never uploaded" },
+  "faq": [
+    { "q": "Is my file uploaded to be hashed?", "a": "No. The file is read and hashed in this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Should I use MD5?", "a": "Only to match a checksum someone published in MD5. It's broken for security uses; use SHA-256 for anything new." }
+  ]
+}

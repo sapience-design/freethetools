@@ -1,0 +1,43 @@
+---
+// The drop area for file tools: the tool's own product shot, with the prompt set on the floor.
+// Pair with wireDrop(prefix, handler) from src/lib/files.ts. Ids are prefixed so several tools
+// and the sidebar can share a page.
+import { artFor } from "../data/art";
+
+interface Props {
+  prefix: string;
+  toolId: string;
+  category: string;
+  name: string;
+  accept: string;
+  multiple?: boolean;
+  title: string;
+  hint: string;
+}
+const { prefix, toolId, category, name, accept, multiple = false, title, hint } = Astro.props;
+const shot = artFor(toolId, category, `${prefix}drop`, name);
+---
+<div class:list={["drop", { dark: category === "developer" }]} id={`${prefix}-drop`} tabindex="0" role="button" aria-label={title}>
+  <span class="shot" aria-hidden="true" set:html={shot} />
+  <strong>{title}</strong>
+  <span class="hint">{hint}</span>
+  <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
+</div>
+
+<style>
+  .drop {
+    position: relative; display: grid; place-items: center; align-content: end; gap: 4px; text-align: center;
+    aspect-ratio: 4 / 3; padding: 0 16px 28px; border-radius: 6px; overflow: hidden; cursor: pointer; isolation: isolate;
+  }
+  .shot { position: absolute; inset: 0; z-index: -1; }
+  .shot :global(svg) { width: 100%; height: 100%; display: block; }
+  .shot :global(.obj) { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+  .drop:hover .shot :global(.obj), .drop.over .shot :global(.obj) { transform: translateY(-8px); }
+  .drop::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
+  .drop.over::after { box-shadow: inset 0 0 0 2px var(--ink); }
+  strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; color: #111; }
+  .hint { color: #555a60; font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .dark strong { color: #f4f5f7; }
+  .dark .hint { color: #b6bcc5; }
+  @media (prefers-reduced-motion: reduce) { .shot :global(.obj) { transition: none; } }
+</style>

@@ -1,0 +1,18 @@
+{
+  "name": "UUID Generator",
+  "short": "UUID generator",
+  "tagline": "Random v4 and time-ordered v7 UUIDs, one or a thousand at a time.",
+  "seoTitle": "UUID generator (v4 and v7)",
+  "description": "Generate UUID v4 or time-sortable v7 IDs in bulk, upper or lower case, with or without hyphens. Free, made on your device with secure randomness.",
+  "section": "Generate",
+  "keywords": ["uuid", "guid", "v4", "v7", "unique id", "random id", "bulk"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "crypto.getRandomValues (secure random)", "Standard": "RFC 9562: v4 random, v7 time-ordered" },
+  "faq": [
+    { "q": "v4 or v7?", "a": "v4 is fully random. v7 starts with the time it was made, so IDs sort in creation order, which keeps database indexes fast." },
+    { "q": "Are these generated on a server?", "a": "No. They're made in this tab from your device's secure random number generator." }
+  ]
+}

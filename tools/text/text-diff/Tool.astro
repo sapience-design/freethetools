@@ -1,0 +1,54 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+---
+<section class="tool" aria-label="Text diff">
+  <ToolShot toolId="text/text-diff" category="text" name="Text Diff" />
+  <div class="td-grid">
+    <label class="field"><span>Original</span><textarea id="td-a" rows="8">Free the Tools runs in your browser.
+Files are never uploaded.
+It is open source.</textarea></label>
+    <label class="field"><span>Changed</span><textarea id="td-b" rows="8">Free the Tools runs entirely in your browser.
+Files are never uploaded.
+It is open source and free.
+Anyone can add a tool.</textarea></label>
+  </div>
+  <fieldset class="field">
+    <legend class="eyebrow">Compare by</legend>
+    <div class="seg">
+      <input type="radio" name="td-mode" id="td-lines" value="lines" checked><label for="td-lines">Lines</label>
+      <input type="radio" name="td-mode" id="td-words" value="words"><label for="td-words">Words</label>
+    </div>
+  </fieldset>
+  <div class="out">
+    <span class="eyebrow" id="td-summary"></span>
+    <div class="out-box td-out" id="td-out" aria-live="polite"></div>
+  </div>
+</section>
+
+<style>
+  .td-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: var(--s2); }
+  .td-out :global(ins) { text-decoration: none; background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ink-strong); border-radius: 3px; }
+  .td-out :global(del) { background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--ink-strong); border-radius: 3px; }
+</style>
+
+<script>
+  import { compare } from "./core.js";
+  const a = document.getElementById("td-a") as HTMLTextAreaElement;
+  const b = document.getElementById("td-b") as HTMLTextAreaElement;
+  const out = document.getElementById("td-out")!;
+  const summary = document.getElementById("td-summary")!;
+  function update() {
+    const mode = (document.querySelector('input[name="td-mode"]:checked') as HTMLInputElement).value as "lines" | "words";
+    const r = compare(a.value, b.value, mode);
+    out.replaceChildren(...r.parts.map((p) => {
+      const el = document.createElement(p.added ? "ins" : p.removed ? "del" : "span");
+      el.textContent = p.value;
+      return el;
+    }));
+    const u = mode === "words" ? "word" : "line";
+    summary.textContent = r.added + r.removed === 0 ? "No differences" : `${r.added} ${u}${r.added === 1 ? "" : "s"} added · ${r.removed} ${u}${r.removed === 1 ? "" : "s"} removed`;
+  }
+  [a, b].forEach((el) => el.addEventListener("input", update));
+  document.querySelectorAll('input[name="td-mode"]').forEach((r) => r.addEventListener("change", update));
+  update();
+</script>

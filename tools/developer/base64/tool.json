@@ -1,0 +1,18 @@
+{
+  "name": "Base64",
+  "short": "Base64",
+  "tagline": "Encode and decode Base64 for text and files, standard or URL-safe.",
+  "seoTitle": "Base64 encode and decode online",
+  "description": "Encode or decode Base64 for text and files, standard or URL-safe, with full UTF-8 support. Free, and nothing leaves your browser.",
+  "section": "Encode",
+  "keywords": ["base64", "encode", "decode", "url safe", "data uri", "btoa", "atob"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's built-in encoder", "Text": "UTF-8, so emoji and all languages work" },
+  "faq": [
+    { "q": "Is my data sent anywhere?", "a": "No. Encoding happens in this tab, and the page's security policy blocks it from sending data anywhere. Safe for tokens and keys." },
+    { "q": "What is URL-safe Base64?", "a": "The same encoding with - and _ instead of + and /, and no = padding, so it can sit in a web address or a JWT." }
+  ]
+}

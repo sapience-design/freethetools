@@ -1,0 +1,93 @@
+---
+// Images to PDF: add images, order them, choose page size and margin.
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Images to PDF">
+  <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · as many as you like" />
+
+  <div id="i2p-panel" hidden class="tool">
+    <div><p class="eyebrow">Pages, in order</p><ol class="file-list" id="i2p-list"></ol></div>
+    <fieldset class="field">
+      <legend class="eyebrow">Page size</legend>
+      <div class="seg">
+        <input type="radio" name="i2p-page" id="i2p-fit" value="fit" checked><label for="i2p-fit">Fit to image<small>each page matches its image</small></label>
+        <input type="radio" name="i2p-page" id="i2p-a4" value="a4"><label for="i2p-a4">A4<small>ready to print</small></label>
+      </div>
+    </fieldset>
+    <fieldset class="field">
+      <legend class="eyebrow">Margin</legend>
+      <div class="seg">
+        <input type="radio" name="i2p-margin" id="i2p-m0" value="none" checked><label for="i2p-m0">None</label>
+        <input type="radio" name="i2p-margin" id="i2p-m1" value="small"><label for="i2p-m1">Small</label>
+        <input type="radio" name="i2p-margin" id="i2p-m2" value="large"><label for="i2p-m2">Large</label>
+      </div>
+    </fieldset>
+    <div class="actions"><button class="btn" id="i2p-go" type="button">Create PDF</button></div>
+  </div>
+  <div id="i2p-result" aria-live="polite"></div>
+</section>
+
+<script>
+  import { imagesToPdf } from "./core.js";
+  import { wireDrop, fmtBytes, downloadLink, showError } from "../../../src/lib/files";
+
+  type Item = { file: File; bytes: ArrayBuffer; type: "image/jpeg" | "image/png" };
+  const items: Item[] = [];
+  const $ = (id: string) => document.getElementById(id)!;
+  const list = $("i2p-list"), result = $("i2p-result");
+
+  // JPG and PNG go in untouched; anything else the browser can decode is re-encoded as PNG.
+  async function toEmbeddable(file: File): Promise<Item> {
+    if (file.type === "image/jpeg" || file.type === "image/png") return { file, bytes: await file.arrayBuffer(), type: file.type };
+    const bmp = await createImageBitmap(file);
+    const canvas = document.createElement("canvas");
+    canvas.width = bmp.width; canvas.height = bmp.height;
+    canvas.getContext("2d")!.drawImage(bmp, 0, 0);
+    const blob: Blob = await new Promise((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error("Couldn't convert this image."))), "image/png"));
+    return { file, bytes: await blob.arrayBuffer(), type: "image/png" };
+  }
+
+  function render() {
+    $("i2p-panel").hidden = !items.length;
+    list.replaceChildren(...items.map((it, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = `${i + 1}. ${it.file.name}`;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(it.file.size);
+      const act = document.createElement("span"); act.className = "fact";
+      const btn = (label: string, title: string, fn: () => void, disabled = false) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = label;
+        b.setAttribute("aria-label", `${title} ${it.file.name}`); b.disabled = disabled; b.onclick = fn; return b;
+      };
+      act.append(
+        btn("↑", "Move up", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); }, i === 0),
+        btn("↓", "Move down", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); }, i === items.length - 1),
+        btn("✕", "Remove", () => { items.splice(i, 1); render(); }),
+      );
+      li.append(n, m, act);
+      return li;
+    }));
+  }
+
+  wireDrop("i2p", async (files) => {
+    result.replaceChildren();
+    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+      try { items.push(await toEmbeddable(f)); } catch (e) { showError(result, `${f.name}: ${(e as Error).message}`); }
+    }
+    render();
+  });
+
+  $("i2p-go").addEventListener("click", async () => {
+    const page = (document.querySelector('input[name="i2p-page"]:checked') as HTMLInputElement).value as "fit" | "a4";
+    const margin = (document.querySelector('input[name="i2p-margin"]:checked') as HTMLInputElement).value as "none" | "small" | "large";
+    try {
+      const out = await imagesToPdf(items.map((it) => ({ bytes: it.bytes.slice(0), type: it.type })), { page, margin });
+      const ul = document.createElement("ul"); ul.className = "file-list";
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = "images.pdf";
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${items.length} ${items.length === 1 ? "page" : "pages"} · ${fmtBytes(out.byteLength)}`;
+      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, "images.pdf", "application/pdf"));
+      li.append(n, m, a); ul.append(li);
+      result.replaceChildren(ul);
+    } catch (e) { showError(result, (e as Error).message); }
+  });
+</script>

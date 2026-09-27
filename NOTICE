@@ -20,9 +20,13 @@ Ghostscript 9.56
 @jspawn/ghostscript-wasm 0.0.2 (Ghostscript compiled to WebAssembly)
   License: AGPL-3.0 · https://www.npmjs.com/package/@jspawn/ghostscript-wasm
 
-Inter (typeface)
-  Copyright 2016 The Inter Project Authors
-  License: SIL Open Font License 1.1 · https://github.com/rsms/inter
+Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
+Instrument Serif (typeface) · Instrument · SIL Open Font License 1.1
+
+pdf-lib 1.17 · Copyright (c) 2019 Andrew Dillon · MIT · https://pdf-lib.js.org/
+Papa Parse 5.7 · Copyright (c) 2015 Matthew Holt · MIT · https://www.papaparse.com/
+qrcode-generator 2 · Copyright (c) 2009 Kazuhiko Arase · MIT
+jsdiff 9 · Copyright (c) 2009-2015 Kevin Decker · BSD-3-Clause
 
 IBM Plex Mono (typeface)
   Copyright IBM Corp.
