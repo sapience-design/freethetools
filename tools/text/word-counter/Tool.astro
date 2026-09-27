@@ -1,0 +1,31 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+---
+<section class="tool" aria-label="Word counter">
+  <ToolShot toolId="text/word-counter" category="text" name="Word Counter" />
+  <div class="stats" id="wc-stats" aria-live="polite">
+    <div><b id="wc-words">0</b><span>words</span></div>
+    <div><b id="wc-chars">0</b><span>characters</span></div>
+    <div><b id="wc-sent">0</b><span>sentences</span></div>
+    <div><b id="wc-read">0</b><span>min to read</span></div>
+  </div>
+  <label class="field"><span>Your text</span><textarea id="wc-in" class="prose" rows="10">Paste or type here. Everything is counted as you go, and nothing leaves this page.</textarea></label>
+  <p class="muted" id="wc-more"></p>
+</section>
+
+<script>
+  import { stats } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("wc-in") as HTMLTextAreaElement;
+  const nf = new Intl.NumberFormat();
+  function update() {
+    const s = stats(input.value);
+    $("wc-words").textContent = nf.format(s.words);
+    $("wc-chars").textContent = nf.format(s.characters);
+    $("wc-sent").textContent = nf.format(s.sentences);
+    $("wc-read").textContent = nf.format(s.readingMinutes);
+    $("wc-more").textContent = `${nf.format(s.charactersNoSpaces)} characters without spaces · ${nf.format(s.paragraphs)} ${s.paragraphs === 1 ? "paragraph" : "paragraphs"} · about ${s.speakingMinutes} min to say aloud`;
+  }
+  input.addEventListener("input", update);
+  update();
+</script>

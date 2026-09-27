@@ -1,0 +1,18 @@
+{
+  "name": "Time Zone Converter",
+  "short": "Time zones",
+  "tagline": "Pick a time in one city and see it everywhere else, with working hours marked.",
+  "seoTitle": "Time zone converter and meeting planner",
+  "description": "Convert a time between cities and time zones, with daylight saving handled exactly and working hours marked. Free, no sign-up, works offline.",
+  "section": "Time",
+  "keywords": ["time zone", "convert time", "meeting planner", "utc", "est to cet", "world clock", "daylight saving"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's time zone database (Intl)", "Daylight saving": "Handled for the exact date you pick" },
+  "faq": [
+    { "q": "Does it handle daylight saving?", "a": "Yes. It uses your browser's built-in time zone database, so the offset is right for the date you choose, not just today." },
+    { "q": "What counts as working hours?", "a": "08:00 to 18:00 local time. Times outside that are marked, so you can spot a bad meeting time at a glance." }
+  ]
+}

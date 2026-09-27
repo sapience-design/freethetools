@@ -1,0 +1,23 @@
+{
+  "name": "Merge PDFs",
+  "short": "Merge",
+  "tagline": "Combine several PDFs into one, in the order you choose. Nothing is uploaded.",
+  "seoTitle": "Merge PDF files without uploading",
+  "description": "Combine PDF files into one, free and right in your browser. Put them in any order. Nothing is uploaded, no sign-up, no watermark.",
+  "section": "Organize",
+  "keywords": ["merge", "combine", "join", "append", "pdf", "one file", "concatenate"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf-lib 1.17 (MIT), in your browser",
+    "Limits": "As many files as your device's memory allows",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my files uploaded?", "a": "No. The PDFs are read and combined inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Does it keep links and bookmarks?", "a": "Page content, links on the page and form fields are kept. The combined file doesn't carry over each file's bookmarks outline yet." },
+    { "q": "Can I merge password-protected PDFs?", "a": "Not yet. Remove the password in your PDF reader first, then merge." }
+  ]
+}

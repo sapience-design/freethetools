@@ -186,8 +186,8 @@ function frame(id: string, group: string, body: string) {
 }
 
 /** A finished tool's product shot. */
-export function artFor(toolId: string, category: string, id: string) {
-  const draw = PIECES[toolId] ?? PIECES[toolId.split("/")[1] ?? ""] ?? GROUP[category] ?? GROUP.pdf;
+export function artFor(toolId: string, category: string, id: string, name = "") {
+  const draw = PIECES[toolId] ?? (name ? PIECES[slugOf(name)] : undefined) ?? PIECES[toolId.split("/")[1] ?? ""] ?? GROUP[category] ?? GROUP.pdf;
   return frame(id, category, draw(FINISHED));
 }
 

@@ -1,0 +1,18 @@
+{
+  "name": "Unit Converter",
+  "short": "Unit converter",
+  "tagline": "Length, weight, temperature, volume, area, speed and data sizes, converted as you type.",
+  "seoTitle": "Unit converter: length, weight, temperature",
+  "description": "Convert length, weight, temperature, cooking volumes, area, speed and data sizes as you type. Exact factors, no ads, and it works offline.",
+  "section": "Convert",
+  "keywords": ["unit converter", "cm to inches", "kg to lbs", "celsius to fahrenheit", "cups to ml", "mph", "gb"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Groups": "Length, weight, temperature, volume, area, speed, data", "Accuracy": "Exact definitions where they exist (1959 yard and pound)" },
+  "faq": [
+    { "q": "Are cups and gallons US or UK?", "a": "Cups, pints and fluid ounces are US measures. Gallons come in both, labelled." },
+    { "q": "What's the difference between GB and GiB?", "a": "A gigabyte (GB) is 1,000,000,000 bytes, as used by drive makers. A gibibyte (GiB) is 1,073,741,824 bytes, which is what many operating systems show." }
+  ]
+}

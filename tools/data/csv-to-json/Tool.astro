@@ -1,0 +1,76 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+---
+<section class="tool" aria-label="CSV to JSON">
+  <ToolShot toolId="data/csv-to-json" category="data" name="CSV to JSON" />
+  <fieldset class="field">
+    <legend class="eyebrow">Direction</legend>
+    <div class="seg">
+      <input type="radio" name="cj-dir" id="cj-c2j" value="c2j" checked><label for="cj-c2j">CSV → JSON</label>
+      <input type="radio" name="cj-dir" id="cj-j2c" value="j2c"><label for="cj-j2c">JSON → CSV</label>
+    </div>
+  </fieldset>
+  <label class="field"><span id="cj-in-label">CSV</span><textarea id="cj-in" rows="8" spellcheck="false">name,city,tools
+Ada,London,3
+Linus,Helsinki,5</textarea></label>
+  <div class="actions">
+    <label class="check" id="cj-typed-wrap"><input type="checkbox" id="cj-typed"> Turn numbers and true/false into values</label>
+    <label class="btn line" for="cj-file">Open a file…</label><input type="file" id="cj-file" accept=".csv,.tsv,.txt,.json,text/csv,application/json" hidden>
+  </div>
+  <div class="out">
+    <span class="eyebrow" id="cj-status"></span>
+    <pre class="out-box" id="cj-out" aria-live="polite"></pre>
+    <div class="actions" id="cj-actions"><button class="btn line" id="cj-copy" type="button">Copy result</button></div>
+  </div>
+</section>
+
+<script>
+  import { csvToJson, jsonToCsv } from "./core.js";
+  import { downloadLink } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("cj-in") as HTMLTextAreaElement, out = $("cj-out"), status = $("cj-status");
+  let dl: HTMLAnchorElement | null = null;
+  const dir = () => (document.querySelector('input[name="cj-dir"]:checked') as HTMLInputElement).value;
+
+  function update() {
+    const c2j = dir() === "c2j";
+    $("cj-in-label").textContent = c2j ? "CSV" : "JSON";
+    $("cj-typed-wrap").hidden = !c2j;
+    dl?.remove(); dl = null;
+    try {
+      if (c2j) {
+        const r = csvToJson(input.value, { typed: ($("cj-typed") as HTMLInputElement).checked });
+        out.textContent = r.json;
+        status.textContent = `${r.rows} ${r.rows === 1 ? "row" : "rows"} · delimiter "${r.delimiter === "\t" ? "tab" : r.delimiter}"${r.warnings.length ? " · " + r.warnings[0] : ""}`;
+        dl = downloadLink(r.json, "data.json", "application/json", "Download .json");
+      } else {
+        const csv = jsonToCsv(input.value);
+        out.textContent = csv;
+        status.textContent = "CSV ready";
+        dl = downloadLink(csv, "data.csv", "text/csv", "Download .csv");
+      }
+      $("cj-actions").prepend(dl);
+      out.classList.remove("bad");
+    } catch (e) { out.textContent = (e as Error).message; status.textContent = "Needs fixing"; out.classList.add("bad"); }
+  }
+
+  input.addEventListener("input", update);
+  document.querySelectorAll('input[name="cj-dir"], #cj-typed').forEach((el) => el.addEventListener("change", update));
+  ($("cj-file") as HTMLInputElement).addEventListener("change", async (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
+    input.value = await f.text();
+    ($(/json$/i.test(f.name) ? "cj-j2c" : "cj-c2j") as HTMLInputElement).checked = true;
+    update();
+  });
+  const copy = $("cj-copy") as HTMLButtonElement;
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
+    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+  });
+  update();
+</script>
+
+<style>
+  pre.out-box { margin: 0; max-height: 420px; overflow: auto; }
+  pre.out-box.bad { color: var(--bad); }
+</style>

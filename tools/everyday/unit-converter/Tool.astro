@@ -1,0 +1,65 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+import { UNITS } from "./core.js";
+const cats = Object.keys(UNITS);
+---
+<section class="tool" aria-label="Unit converter">
+  <ToolShot toolId="everyday/unit-converter" category="everyday" name="Unit Converter" />
+  <fieldset class="field">
+    <legend class="eyebrow">Measure</legend>
+    <div class="seg">
+      {cats.map((c, i) => (<><input type="radio" name="uc-cat" id={`uc-${c}`} value={c} checked={i === 0} /><label for={`uc-${c}`}>{c[0].toUpperCase() + c.slice(1)}</label></>))}
+    </div>
+  </fieldset>
+  <div class="uc-row">
+    <label class="field"><span>Value</span><input type="number" id="uc-val" value="1" step="any"></label>
+    <label class="field"><span>From</span><select id="uc-from"></select></label>
+    <button class="icon-btn uc-swap" id="uc-swap" type="button" aria-label="Swap units">⇄</button>
+    <label class="field"><span>To</span><select id="uc-to"></select></label>
+  </div>
+  <p class="uc-result" id="uc-out" aria-live="polite"></p>
+  <ul class="file-list" id="uc-all"></ul>
+</section>
+
+<script>
+  import { UNITS, convert, pretty } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const from = $("uc-from") as HTMLSelectElement, to = $("uc-to") as HTMLSelectElement, val = $("uc-val") as HTMLInputElement;
+  const defaults: Record<string, [string, string]> = { length: ["cm", "in"], weight: ["kg", "lb"], temperature: ["C", "F"], volume: ["cup", "ml"], area: ["m2", "ft2"], speed: ["km/h", "mph"], data: ["GB", "GiB"] };
+  const cat = () => (document.querySelector('input[name="uc-cat"]:checked') as HTMLInputElement).value as keyof typeof UNITS;
+
+  function fill() {
+    const units = Object.entries(UNITS[cat()].units);
+    for (const sel of [from, to]) sel.replaceChildren(...units.map(([k, [label]]) => new Option(`${label} (${k})`, k)));
+    [from.value, to.value] = defaults[cat()];
+    update();
+  }
+  function update() {
+    const c = cat();
+    try {
+      const v = parseFloat(val.value);
+      const r = convert(v, c, from.value, to.value);
+      $("uc-out").textContent = `${pretty(v)} ${from.value} = ${pretty(r)} ${to.value}`;
+      $("uc-out").classList.remove("bad");
+      $("uc-all").replaceChildren(...Object.entries(UNITS[c].units).filter(([k]) => k !== from.value).map(([k, [label]]) => {
+        const li = document.createElement("li");
+        const n = document.createElement("span"); n.className = "fname"; n.textContent = `${pretty(convert(v, c, from.value, k))} ${k}`;
+        const m = document.createElement("span"); m.className = "fmeta"; m.textContent = label;
+        li.append(n, m); return li;
+      }));
+    } catch (e) { $("uc-out").textContent = (e as Error).message; $("uc-out").classList.add("bad"); $("uc-all").replaceChildren(); }
+  }
+  document.querySelectorAll('input[name="uc-cat"]').forEach((r) => r.addEventListener("change", fill));
+  [from, to].forEach((s) => s.addEventListener("change", update));
+  val.addEventListener("input", update);
+  $("uc-swap").addEventListener("click", () => { [from.value, to.value] = [to.value, from.value]; update(); });
+  fill();
+</script>
+
+<style>
+  .uc-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto minmax(0, 2fr); gap: var(--s2); align-items: end; }
+  .uc-swap { height: 40px; }
+  .uc-result { font-family: var(--serif); font-size: var(--t-3xl); line-height: var(--lh-3xl); color: var(--ink-strong); overflow-wrap: anywhere; }
+  .uc-result.bad { font-family: var(--sans); font-size: var(--t-sm); color: var(--bad); }
+  @media (max-width: 640px) { .uc-row { grid-template-columns: 1fr 1fr; } .uc-row .field:first-child { grid-column: 1 / -1; } .uc-swap { display: none; } }
+</style>

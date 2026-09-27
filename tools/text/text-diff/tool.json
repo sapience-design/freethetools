@@ -1,0 +1,18 @@
+{
+  "name": "Text Diff",
+  "short": "Text diff",
+  "tagline": "Paste two versions and see exactly what changed, line by line or word by word.",
+  "seoTitle": "Compare two texts online (diff checker)",
+  "description": "Compare two texts and see what changed, line by line or word by word. A free diff checker that keeps your text on the page.",
+  "section": "Count & Compare",
+  "keywords": ["diff", "compare text", "difference", "changes", "diff checker", "versions", "redline"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "jsdiff 9 (BSD-3-Clause), in your browser", "Modes": "By line or by word" },
+  "faq": [
+    { "q": "Are my texts sent anywhere?", "a": "No. The comparison runs in this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Lines or words?", "a": "Lines suits code and lists. Words suits prose, where a sentence changes by a word or two." }
+  ]
+}

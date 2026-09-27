@@ -7,6 +7,12 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Added
+
+- 15 new tools: Merge PDFs, Split PDF, Rotate Pages, Images to PDF, Word Counter, Case Converter, Text Diff, JSON Formatter, CSV to JSON, Base64, Hash Generator, UUID Generator, QR Code Maker, Unit Converter, Time Zone Converter.
+- Shared DropZone and ToolShot components and tool interface styles.
+- Browser tests for every tool page (clean load, no outside requests) and end-to-end file flows.
+
 ### Changed
 
 - Deploys now run on Cloudflare Workers Builds from `main`; the GitHub deploy workflow and its secret are removed, so no Cloudflare credentials live in GitHub. Branches in this repository get preview links.

@@ -1,0 +1,18 @@
+{
+  "name": "CSV to JSON",
+  "short": "CSV to JSON",
+  "tagline": "Turn spreadsheets into clean JSON, and JSON back into CSV. Nothing is uploaded.",
+  "seoTitle": "CSV to JSON converter (and JSON to CSV)",
+  "description": "Convert CSV to JSON or JSON to CSV for free in your browser. Detects commas and semicolons, handles quotes. Your data never leaves the page.",
+  "section": "Convert",
+  "keywords": ["csv", "json", "convert", "spreadsheet", "excel", "export", "parse", "tsv"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Papa Parse 5.7 (MIT), in your browser", "Delimiters": "Comma, semicolon, tab and pipe, detected automatically" },
+  "faq": [
+    { "q": "Is my data uploaded?", "a": "No. It's converted in this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Can I use an Excel file?", "a": "Save it as CSV first (File, Save as, CSV). Reading .xlsx directly is on the list." }
+  ]
+}

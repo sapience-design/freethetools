@@ -1,0 +1,73 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+---
+<section class="tool" aria-label="Base64">
+  <ToolShot toolId="developer/base64" category="developer" name="Base64" />
+  <fieldset class="field">
+    <legend class="eyebrow">Mode</legend>
+    <div class="seg">
+      <input type="radio" name="b64-mode" id="b64-enc" value="enc" checked><label for="b64-enc">Encode</label>
+      <input type="radio" name="b64-mode" id="b64-dec" value="dec"><label for="b64-dec">Decode</label>
+    </div>
+  </fieldset>
+  <label class="field"><span id="b64-in-label">Text</span><textarea id="b64-in" rows="6" spellcheck="false">Free the Tools 👍</textarea></label>
+  <div class="actions">
+    <label class="check" id="b64-url-wrap"><input type="checkbox" id="b64-url"> URL-safe</label>
+    <label class="btn line" for="b64-file">Encode a file…</label><input type="file" id="b64-file" hidden>
+  </div>
+  <div class="out">
+    <span class="eyebrow" id="b64-status">Result</span>
+    <pre class="out-box" id="b64-out" aria-live="polite"></pre>
+    <div class="actions" id="b64-actions"><button class="btn line" id="b64-copy" type="button">Copy result</button></div>
+  </div>
+</section>
+
+<script>
+  import { encodeText, decodeText, bytesToBase64, base64ToBytes } from "./core.js";
+  import { downloadLink, fmtBytes } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("b64-in") as HTMLTextAreaElement, out = $("b64-out"), status = $("b64-status");
+  const url = $("b64-url") as HTMLInputElement;
+  let dl: HTMLAnchorElement | null = null;
+  const mode = () => (document.querySelector('input[name="b64-mode"]:checked') as HTMLInputElement).value;
+
+  function update() {
+    dl?.remove(); dl = null;
+    const enc = mode() === "enc";
+    $("b64-in-label").textContent = enc ? "Text" : "Base64";
+    $("b64-url-wrap").hidden = !enc;
+    try {
+      out.textContent = enc ? encodeText(input.value, url.checked) : decodeText(input.value);
+      status.textContent = "Result"; out.classList.remove("bad");
+    } catch (e) {
+      out.textContent = (e as Error).message; status.textContent = "Needs fixing"; out.classList.add("bad");
+      if (!enc) {
+        try {
+          const bytes = base64ToBytes(input.value);
+          dl = downloadLink(bytes, "decoded.bin", "application/octet-stream", `Save ${fmtBytes(bytes.length)} as a file`);
+          $("b64-actions").prepend(dl);
+        } catch {}
+      }
+    }
+  }
+  input.addEventListener("input", update);
+  document.querySelectorAll('input[name="b64-mode"], #b64-url').forEach((el) => el.addEventListener("change", update));
+  ($("b64-file") as HTMLInputElement).addEventListener("change", async (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
+    const b64 = bytesToBase64(new Uint8Array(await f.arrayBuffer()), url.checked);
+    ($("b64-enc") as HTMLInputElement).checked = true;
+    out.textContent = b64; out.classList.remove("bad");
+    status.textContent = `${f.name} · ${fmtBytes(f.size)} → ${fmtBytes(b64.length)} of Base64`;
+  });
+  const copy = $("b64-copy") as HTMLButtonElement;
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
+    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+  });
+  update();
+</script>
+
+<style>
+  pre.out-box { margin: 0; max-height: 360px; overflow: auto; }
+  pre.out-box.bad { color: var(--bad); }
+</style>

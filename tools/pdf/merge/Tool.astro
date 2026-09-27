@@ -1,0 +1,92 @@
+---
+// Merge PDFs: add files, put them in order, combine.
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Merge PDFs">
+  <DropZone prefix="pdfm" toolId="pdf/merge" category="pdf" name="Merge PDFs" accept="application/pdf,.pdf" multiple title="Drop PDFs here" hint="or click to choose · add as many as you like" />
+
+  <div id="pdfm-panel" hidden>
+    <p class="eyebrow">Order</p>
+    <ol class="file-list" id="pdfm-list"></ol>
+  </div>
+
+  <div class="actions">
+    <button class="btn" id="pdfm-go" type="button" disabled>Merge PDFs</button>
+    <button class="btn line" id="pdfm-clear" type="button" hidden>Clear</button>
+  </div>
+  <div id="pdfm-result" aria-live="polite"></div>
+</section>
+
+<script>
+  import { mergePdfs, pageCount } from "./core.js";
+  import { wireDrop, fmtBytes, downloadLink, showError } from "../../../src/lib/files";
+
+  type Item = { file: File; bytes: ArrayBuffer; pages: number };
+  const items: Item[] = [];
+  const list = document.getElementById("pdfm-list")!;
+  const panel = document.getElementById("pdfm-panel")!;
+  const go = document.getElementById("pdfm-go") as HTMLButtonElement;
+  const clear = document.getElementById("pdfm-clear") as HTMLButtonElement;
+  const result = document.getElementById("pdfm-result")!;
+
+  function render() {
+    panel.hidden = !items.length;
+    clear.hidden = !items.length;
+    go.disabled = items.length < 2;
+    go.textContent = items.length < 2 ? "Add at least two PDFs" : `Merge ${items.length} PDFs`;
+    list.replaceChildren(...items.map((it, i) => {
+      const li = document.createElement("li");
+      const name = document.createElement("span"); name.className = "fname"; name.textContent = it.file.name;
+      const meta = document.createElement("span"); meta.className = "fmeta"; meta.textContent = `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`;
+      const act = document.createElement("span"); act.className = "fact";
+      const btn = (label: string, title: string, fn: () => void, disabled = false) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = label;
+        b.setAttribute("aria-label", `${title} ${it.file.name}`); b.disabled = disabled; b.onclick = fn; return b;
+      };
+      act.append(
+        btn("↑", "Move up", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); }, i === 0),
+        btn("↓", "Move down", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); }, i === items.length - 1),
+        btn("✕", "Remove", () => { items.splice(i, 1); render(); }),
+      );
+      li.append(name, meta, act);
+      return li;
+    }));
+  }
+
+  wireDrop("pdfm", async (files) => {
+    result.replaceChildren();
+    for (const file of files) {
+      if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") continue;
+      const bytes = await file.arrayBuffer();
+      try {
+        items.push({ file, bytes, pages: await pageCount(bytes.slice(0)) });
+      } catch (e) {
+        showError(result, `${file.name}: ${(e as Error).message}`);
+      }
+    }
+    render();
+  });
+
+  clear.onclick = () => { items.length = 0; result.replaceChildren(); render(); };
+
+  go.onclick = async () => {
+    go.disabled = true;
+    go.textContent = "Merging…";
+    try {
+      const out = await mergePdfs(items.map((it) => it.bytes.slice(0)));
+      const pages = items.reduce((n, it) => n + it.pages, 0);
+      const row = document.createElement("ul"); row.className = "file-list";
+      const li = document.createElement("li");
+      const name = document.createElement("span"); name.className = "fname"; name.textContent = "merged.pdf";
+      const meta = document.createElement("span"); meta.className = "fmeta"; meta.textContent = `${pages} pages · ${fmtBytes(out.byteLength)}`;
+      const act = document.createElement("span"); act.className = "fact"; act.append(downloadLink(out, "merged.pdf", "application/pdf"));
+      li.append(name, meta, act); row.append(li);
+      result.replaceChildren(row);
+    } catch (e) {
+      showError(result, (e as Error).message);
+    }
+    render();
+  };
+
+  render();
+</script>

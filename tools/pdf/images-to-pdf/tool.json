@@ -1,0 +1,23 @@
+{
+  "name": "Images to PDF",
+  "short": "Images to PDF",
+  "tagline": "Turn photos, scans and screenshots into one PDF, in the order you choose.",
+  "seoTitle": "JPG and PNG to PDF without uploading",
+  "description": "Convert JPG, PNG and WebP images into a single PDF for free in your browser. Fit to the image or A4, reorder pages. Nothing is uploaded.",
+  "section": "Convert",
+  "keywords": ["jpg to pdf", "png to pdf", "image to pdf", "photos", "scans", "convert", "webp to pdf"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf-lib 1.17 (MIT), in your browser",
+    "Formats": "JPG and PNG as they are; WebP, GIF and others converted to PNG first",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my images uploaded?", "a": "No. The images are placed into the PDF inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Will my photos lose quality?", "a": "JPG and PNG images are embedded exactly as they are. Other formats are converted to PNG, which is lossless." },
+    { "q": "Can I use iPhone HEIC photos?", "a": "Not directly yet. Most phones can share a photo as JPG; HEIC support is on the list." }
+  ]
+}

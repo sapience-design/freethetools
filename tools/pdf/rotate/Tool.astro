@@ -1,0 +1,75 @@
+---
+// Rotate Pages: choose a turn and which pages.
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Rotate PDF pages">
+  <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
+
+  <div id="pdfr-panel" hidden class="tool">
+    <ul class="file-list"><li><span class="fname" id="pdfr-name"></span><span class="fmeta" id="pdfr-meta"></span></li></ul>
+    <fieldset class="field">
+      <legend class="eyebrow">Turn</legend>
+      <div class="seg">
+        <input type="radio" name="pdfr-turn" id="pdfr-90" value="90" checked><label for="pdfr-90">Right<small>90° clockwise</small></label>
+        <input type="radio" name="pdfr-turn" id="pdfr-180" value="180"><label for="pdfr-180">Upside down<small>180°</small></label>
+        <input type="radio" name="pdfr-turn" id="pdfr-270" value="270"><label for="pdfr-270">Left<small>90° anticlockwise</small></label>
+      </div>
+    </fieldset>
+    <fieldset class="field">
+      <legend class="eyebrow">Pages</legend>
+      <div class="seg">
+        <input type="radio" name="pdfr-which" id="pdfr-all" value="all" checked><label for="pdfr-all">All pages</label>
+        <input type="radio" name="pdfr-which" id="pdfr-some" value="some"><label for="pdfr-some">Some pages</label>
+      </div>
+    </fieldset>
+    <label class="field" id="pdfr-range-field" hidden><span>Pages to turn</span><input type="text" id="pdfr-range" placeholder="2, 5-7" autocomplete="off"></label>
+    <div class="actions"><button class="btn" id="pdfr-go" type="button">Rotate</button></div>
+  </div>
+  <div id="pdfr-result" aria-live="polite"></div>
+</section>
+
+<script>
+  import { rotatePdf, pagesFromRanges } from "./core.js";
+  import { parseRanges } from "../split/core.js";
+  import { pageCount } from "../merge/core.js";
+  import { wireDrop, fmtBytes, downloadLink, showError, baseName } from "../../../src/lib/files";
+
+  let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
+  const $ = (id: string) => document.getElementById(id)!;
+  const result = $("pdfr-result");
+
+  document.querySelectorAll<HTMLInputElement>('input[name="pdfr-which"]').forEach((r) =>
+    r.addEventListener("change", () => { $("pdfr-range-field").hidden = !($("pdfr-some") as HTMLInputElement).checked; }));
+
+  wireDrop("pdfr", async (files) => {
+    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!f) return;
+    result.replaceChildren();
+    try {
+      bytes = await f.arrayBuffer();
+      total = await pageCount(bytes.slice(0));
+      file = f;
+      $("pdfr-name").textContent = f.name;
+      $("pdfr-meta").textContent = `${total} ${total === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
+      $("pdfr-panel").hidden = false;
+    } catch (e) { showError(result, (e as Error).message); }
+  });
+
+  $("pdfr-go").addEventListener("click", async () => {
+    if (!bytes || !file) return;
+    const turn = +(document.querySelector('input[name="pdfr-turn"]:checked') as HTMLInputElement).value as 90 | 180 | 270;
+    try {
+      const some = ($("pdfr-some") as HTMLInputElement).checked;
+      const pages = some ? pagesFromRanges(parseRanges(($("pdfr-range") as HTMLInputElement).value, total)) : null;
+      const out = await rotatePdf(bytes.slice(0), turn, pages);
+      const fname = `${baseName(file.name)}_rotated.pdf`;
+      const ul = document.createElement("ul"); ul.className = "file-list";
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = fname;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${pages ? pages.length : total} ${(pages ? pages.length : total) === 1 ? "page" : "pages"} turned · ${fmtBytes(out.byteLength)}`;
+      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, fname, "application/pdf"));
+      li.append(n, m, a); ul.append(li);
+      result.replaceChildren(ul);
+    } catch (e) { showError(result, (e as Error).message); }
+  });
+</script>

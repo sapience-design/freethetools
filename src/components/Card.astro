@@ -14,7 +14,7 @@ interface Props {
 }
 const { name, href, category, number, blurb, toolId, planned = false } = Astro.props;
 const uid = (toolId ?? `${category}-${name}`).replace(/[^a-z0-9]/gi, "");
-const shot = planned ? prototypeFor(name, category, uid) : artFor(toolId ?? "", category, uid);
+const shot = planned ? prototypeFor(name, category, uid) : artFor(toolId ?? "", category, uid, name);
 ---
 <li class:list={["card", { planned }]}>
   <a href={href}>

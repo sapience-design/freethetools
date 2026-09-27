@@ -1,0 +1,46 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+---
+<section class="tool" aria-label="UUID generator">
+  <ToolShot toolId="developer/uuid-generator" category="developer" name="UUID Generator" />
+  <fieldset class="field">
+    <legend class="eyebrow">Version</legend>
+    <div class="seg">
+      <input type="radio" name="uu-ver" id="uu-v4" value="v4" checked><label for="uu-v4">v4<small>random</small></label>
+      <input type="radio" name="uu-ver" id="uu-v7" value="v7"><label for="uu-v7">v7<small>sorts by time</small></label>
+    </div>
+  </fieldset>
+  <div class="uu-row">
+    <label class="field"><span>How many</span><input type="number" id="uu-n" value="5" min="1" max="1000"></label>
+    <label class="check"><input type="checkbox" id="uu-upper"> Upper case</label>
+    <label class="check"><input type="checkbox" id="uu-nohy"> No hyphens</label>
+    <label class="check"><input type="checkbox" id="uu-braces"> Braces</label>
+  </div>
+  <div class="actions"><button class="btn" id="uu-go" type="button">Generate</button><button class="btn line" id="uu-copy" type="button">Copy all</button></div>
+  <pre class="out-box" id="uu-out" aria-live="polite"></pre>
+</section>
+
+<script>
+  import { generate } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const out = $("uu-out");
+  const on = (id: string) => ($(id) as HTMLInputElement).checked;
+  function run() {
+    const ver = (document.querySelector('input[name="uu-ver"]:checked') as HTMLInputElement).value as "v4" | "v7";
+    out.textContent = generate(ver, +($("uu-n") as HTMLInputElement).value, { upper: on("uu-upper"), hyphens: !on("uu-nohy"), braces: on("uu-braces") }).join("\n");
+  }
+  $("uu-go").addEventListener("click", run);
+  document.querySelectorAll('input[name="uu-ver"], #uu-upper, #uu-nohy, #uu-braces, #uu-n').forEach((el) => el.addEventListener("change", run));
+  const copy = $("uu-copy") as HTMLButtonElement;
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
+    setTimeout(() => (copy.textContent = "Copy all"), 1600);
+  });
+  run();
+</script>
+
+<style>
+  .uu-row { display: flex; flex-wrap: wrap; align-items: end; gap: var(--s2) var(--s3); }
+  .uu-row .field { width: 120px; }
+  pre.out-box { margin: 0; max-height: 380px; overflow: auto; }
+</style>
