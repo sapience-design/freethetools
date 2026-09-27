@@ -1,12 +1,12 @@
 ---
-// The working area of the tool. The page around it (name, $0 tag, specs, FAQ, credits) is built
+// The working area of the tool. The page around it (name, specs, FAQ, credits) is built
 // from tool.json, so this file only needs the interface. Style with the tokens in src/styles/global.css.
 // Prefix every id with the tool slug: the sidebar shares the page, and the build fails on duplicate ids.
 ---
 <section class="tool" aria-label="__NAME__">
-  <label class="caps" for="__ID__-in">Input</label>
+  <label class="eyebrow" for="__ID__-in">Input</label>
   <textarea id="__ID__-in" rows="8" placeholder="Type or paste here">Free the tools</textarea>
-  <p class="caps">Result</p>
+  <p class="eyebrow">Result</p>
   <output id="__ID__-out" for="__ID__-in"></output>
 </section>
 
@@ -14,7 +14,7 @@
   .tool { display: grid; gap: 10px; }
   .caps { color: var(--muted); }
   textarea { width: 100%; font: inherit; padding: 14px; border: 0; background: var(--studio); color: var(--ink); resize: vertical; }
-  textarea:focus { outline: 2px solid var(--yellow); }
+  textarea:focus { outline: 2px solid var(--accent); }
   output { display: block; min-height: 3em; padding: 14px; border: 1px solid var(--line); white-space: pre-wrap; }
 </style>
 

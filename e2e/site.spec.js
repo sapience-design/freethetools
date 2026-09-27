@@ -27,7 +27,8 @@ test("home lists the live tool and wanted tools", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/Free the Tools/);
   await expect(page.getByRole("link", { name: /Compress PDF/ }).first()).toBeVisible();
-  await expect(page.locator(".card.wanted").first()).toBeVisible();
+  await expect(page.locator(".planned a").first()).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("$0");
   if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/home-${test.info().project.name}.png`, fullPage: true });
 });
 

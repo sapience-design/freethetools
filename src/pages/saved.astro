@@ -2,12 +2,11 @@
 import Base from "../layouts/Base.astro";
 ---
 <Base page="saved" title="Saved tools | Free the Tools" description="The tools you saved on this device." noindex>
-  <header class="head">
-    <div>
-      <h1>Saved</h1>
-      <span class="count">( kept in this browser only )</span>
-    </div>
-  </header>
+  <section class="opening">
+    <p class="eyebrow">Saved</p>
+    <h1 class="sm">Your tools.</h1>
+    <p>Kept in this browser only. Nothing is stored anywhere else.</p>
+  </section>
   <ul class="saved-list" id="saved-list"></ul>
   <div class="empty" id="saved-empty">
     <p>Nothing saved yet. Press <b>Save</b> on any tool to keep it here.</p>

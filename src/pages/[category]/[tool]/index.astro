@@ -20,11 +20,10 @@ const UI = uis[`../../../../tools/${tool.id}/Tool.astro`]?.default;
 if (!UI) throw new Error(`tools/${tool.id}/Tool.astro is missing`);
 const url = new URL(tool.url, Astro.site).href;
 const specs: [string, string][] = [
-  ["Price", "$0, free forever"],
   ["Runs", d.offline ? "In your browser. Nothing is uploaded." : "In your browser"],
   ...Object.entries(d.specs),
   ["Licence", "AGPL-3.0"],
-  ["Added", d.added],
+  ["Added", new Date(d.added).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })],
 ];
 ---
 <Base
@@ -50,24 +49,18 @@ const specs: [string, string][] = [
     ],
   }}
 >
-  <header class="head">
-    <div>
-      <p class="crumbs caps"><a href="/">All tools</a> / <a href={`/${tool.category.slug}/`}>{tool.category.name}</a></p>
-    </div>
-  </header>
-
   <div class="product">
     <div class="work">
       <UI />
     </div>
 
     <aside class="info">
+      <p class="eyebrow"><a href={`/${tool.category.slug}/`}>{tool.category.name}</a> · {d.section}</p>
       <h1>{d.name}</h1>
-      <p class="price mono"><span class="sticker">$0</span> Free, forever</p>
       <p class="tagline">{d.tagline}</p>
       <div class="actions">
         <button class="btn line" type="button" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
-          <span class="off">Save to my tools</span><span class="on">Saved</span>
+          <span class="off">Save</span><span class="on">Saved</span>
         </button>
       </div>
       <table class="specs">
@@ -84,33 +77,31 @@ const specs: [string, string][] = [
 
   {d.faq.length > 0 && (
     <section class="faq" aria-labelledby="faq">
-      <h2 id="faq" class="caps">Questions</h2>
+      <h2 id="faq">Questions</h2>
       {d.faq.map((f) => <details class="qa"><summary>{f.q}</summary><p>{f.a}</p></details>)}
     </section>
   )}
 </Base>
 
 <style>
-  .crumbs { color: var(--muted); }
-  .crumbs a { color: var(--muted); text-decoration: none; }
-  .crumbs a:hover { color: var(--ink); }
-  .product { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(280px, 1fr); gap: 40px clamp(24px, 4vw, 64px); align-items: start; }
-  .info { display: grid; gap: 18px; position: sticky; top: 28px; }
-  .info h1 { font-size: clamp(28px, 3.2vw, 38px); letter-spacing: -0.025em; line-height: 1.05; }
-  .price { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-  .sticker { background: var(--yellow); color: #111; padding: 3px 8px; border-radius: 999px; font-weight: 500; transform: rotate(-6deg); display: inline-block; }
-  .tagline { color: var(--ink-soft); max-width: 46ch; }
+  .product { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr); gap: var(--s5) clamp(var(--s4), 5vw, var(--s7)); align-items: start; }
+  .info { display: grid; gap: var(--s3); position: sticky; top: var(--s5); }
+  .info .eyebrow a { color: inherit; text-decoration: none; }
+  .info .eyebrow a:hover { color: var(--ink); }
+  .info h1 { font-size: clamp(34px, 3.6vw, 52px); letter-spacing: -0.03em; line-height: 1.02; }
+  .tagline { color: var(--ink-soft); font-size: var(--t-lg); max-width: 36ch; }
   .actions .on { display: none; }
   .actions [aria-pressed="true"] .on { display: inline; }
   .actions [aria-pressed="true"] .off { display: none; }
-  .actions [aria-pressed="true"] { background: var(--ink); color: var(--paper); }
-  .specs a { color: var(--ink); }
-  .report { font-size: 12.5px; }
+  .actions [aria-pressed="true"] { background: var(--ink); color: var(--paper); box-shadow: none; }
+  .report { font-size: var(--t-sm); }
   .report a { color: var(--muted); }
-  .faq { margin-top: 80px; max-width: 760px; }
-  .faq h2 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-  @media (max-width: 1000px) {
+  .report a:hover { color: var(--ink); }
+  .faq { margin-top: var(--s7); max-width: 760px; }
+  .faq h2 { font-size: var(--t-xl); letter-spacing: -0.015em; padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
+  @media (max-width: 1080px) {
     .product { grid-template-columns: 1fr; }
     .info { position: static; order: -1; }
+    .info h1 { font-size: var(--t-2xl); }
   }
 </style>
