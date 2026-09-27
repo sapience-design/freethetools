@@ -82,13 +82,13 @@ const aisle = aisles.find((a) => a.slug === category);
   .side { position: sticky; top: 0; height: 100vh; }
   .side-in { height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: var(--s4); padding: var(--s5) 0 var(--s3); }
   .top { display: flex; justify-content: space-between; align-items: center; }
-  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -0.02em; text-decoration: none; color: var(--ink); white-space: nowrap; }
+  .wordmark { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: var(--t-base); line-height: var(--lh-base); letter-spacing: -0.01em; text-decoration: none; color: var(--ink); white-space: nowrap; }
   .mark { width: 22px; height: 22px; border-radius: 6px; background: var(--ink); position: relative; flex: none; }
   .mark::after { content: ""; position: absolute; left: 5px; right: 5px; bottom: 5px; height: 3px; border-radius: 2px; background: var(--accent); }
   .close { display: none; border: 0; background: none; font: inherit; font-size: var(--t-sm); color: var(--muted); cursor: pointer; }
 
   .search { position: relative; }
-  .search input { width: 100%; height: 38px; font: inherit; font-size: var(--t-sm); padding: 0 32px 0 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
+  .search input { width: 100%; height: 36px; font: inherit; font-size: var(--t-sm); line-height: var(--lh-sm-ui); padding: 0 32px 0 12px; border: 1px solid var(--control-line); border-radius: 8px; background: var(--paper); color: var(--ink); transition: border-color .15s, box-shadow .15s; }
   .search input::placeholder { color: var(--muted); }
   .search input:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent); }
   .search kbd { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); }
@@ -98,21 +98,22 @@ const aisle = aisles.find((a) => a.slug === category);
   .nav-root { view-transition-name: nav-root; }
   .nav-sub { view-transition-name: nav-sub; }
   .nav { list-style: none; margin: 0 0 var(--s2); padding: 0; display: grid; gap: 1px; }
-  .nav a { position: relative; display: flex; align-items: center; gap: var(--s1); min-height: 34px; padding: 0 10px; margin: 0 -10px; border-radius: 8px; color: var(--ink-soft); text-decoration: none; font-size: var(--t-md); transition: background .15s, color .15s; }
+  .nav a { position: relative; display: flex; align-items: center; gap: var(--s1); min-height: 32px; padding: 0 10px; margin: 0 -10px; border-radius: 8px; color: var(--ink-soft); text-decoration: none; font-size: var(--t-sm); line-height: var(--lh-sm-ui); font-weight: 500; transition: background .15s, color .15s; }
   .nav a:hover { background: var(--studio); color: var(--ink); }
   .nav a.on { background: var(--studio); color: var(--ink); font-weight: 500; }
   .drill span { margin-left: auto; font-size: var(--t-xs); color: var(--muted); font-variant-numeric: tabular-nums; }
   .want { color: var(--muted) !important; }
-  .want::after { content: "planned"; margin-left: auto; font-size: 11px; color: var(--muted); }
+  .want { font-weight: 400 !important; }
+  .want::after { content: "planned"; margin-left: auto; font-size: var(--t-xs); line-height: var(--lh-xs); color: var(--muted); }
   .sec-name { padding: var(--s1) 0 2px; }
-  .group-title { font-size: var(--t-xl); font-weight: 500; letter-spacing: -0.02em; margin-bottom: var(--s1); }
+  .group-title { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; color: var(--ink-strong); margin-bottom: 4px; }
   .back { display: inline-flex; gap: 6px; font-size: var(--t-sm); color: var(--muted); text-decoration: none; margin-bottom: var(--s2); }
   .back:hover { color: var(--ink); }
   .sec { display: grid; gap: 2px; }
   .add { font-size: var(--t-sm); color: var(--muted); text-decoration: underline; text-decoration-color: var(--line); }
   .add:hover { color: var(--ink); text-decoration-color: currentColor; }
 
-  .results :global(a) { display: grid; min-height: 0; padding: 8px 10px; margin: 0 -10px; border-radius: 8px; font-size: var(--t-md); color: var(--ink); text-decoration: none; }
+  .results :global(a) { display: grid; min-height: 0; padding: 6px 10px; margin: 0 -10px; border-radius: 8px; font-size: var(--t-sm); line-height: var(--lh-sm-ui); font-weight: 500; color: var(--ink); text-decoration: none; }
   .results :global(a:hover), .results :global(a.sel) { background: var(--studio); }
   .results :global(small) { font-size: var(--t-xs); color: var(--muted); }
   .results :global(.empty) { font-size: var(--t-sm); color: var(--muted); }

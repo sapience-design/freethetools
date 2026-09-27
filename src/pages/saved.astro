@@ -18,8 +18,8 @@ import Base from "../layouts/Base.astro";
 <style>
   .saved-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 760px; }
   .saved-list :global(li) { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .saved-list :global(a) { text-decoration: none; font-size: 16px; }
-  .saved-list :global(button) { border: 0; background: none; font: inherit; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+  .saved-list :global(a) { text-decoration: none; font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
+  .saved-list :global(button) { border: 0; background: none; font: inherit; font-size: var(--t-sm); color: var(--muted); cursor: pointer; }
   .empty { display: grid; gap: 14px; max-width: 560px; color: var(--ink-soft); }
 </style>
 

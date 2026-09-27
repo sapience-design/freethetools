@@ -35,7 +35,7 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 
 ## The look
 
-White space, small uppercase navigation, and each tool shown as a studio "product shot" (`src/data/art.ts`). Planned tools are a quiet list, not placeholder cards. Sapience navy and the Outfit typeface tie it to Sapience Design. Colours are tokens in `src/styles/global.css` with a dark theme.
+White space, a sentence-case sidebar, and each tool shown as a studio "product shot" (`src/data/art.ts`). Planned tools are a quiet list, not placeholder cards. Type follows Cloudflare's open-source Kumo scale (12–30px) in Inter Variable, with Kumo's neutrals; the Sapience wordmark and a single yellow accent tie it to Sapience Design. Colours and sizes are tokens in `src/styles/global.css`, with a dark theme.
 
 ## Search engines and AI
 
