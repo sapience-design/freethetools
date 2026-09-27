@@ -1,2 +1,2 @@
-pymupdf>=1.25
+pymupdf>=1.28.2
 pytest>=8
