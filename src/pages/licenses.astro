@@ -1,0 +1,39 @@
+---
+import Base from "../layouts/Base.astro";
+import { REPO } from "../data/catalogue";
+
+// Keep in step with NOTICE. Shipped = sent to your browser; build = used only to make the site.
+const parts = [
+  { name: "Ghostscript 9.56", by: "Artifex Software", licence: "AGPL-3.0", use: "Shipped: PDF engine in Compress PDF", url: "https://www.ghostscript.com/" },
+  { name: "@jspawn/ghostscript-wasm 0.0.2", by: "jspawn", licence: "AGPL-3.0", use: "Shipped: Ghostscript compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/ghostscript-wasm" },
+  { name: "Outfit", by: "Rodrigo Fuenzalida", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://fonts.google.com/specimen/Outfit" },
+  { name: "IBM Plex Mono", by: "IBM", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/IBM/plex" },
+  { name: "Astro", by: "The Astro Technology Company", licence: "MIT", use: "Build: static site generator", url: "https://astro.build/" },
+  { name: "PyMuPDF", by: "Artifex Software", licence: "AGPL-3.0", use: "Command-line version of Compress PDF only", url: "https://pymupdf.readthedocs.io/" },
+];
+---
+<Base page="licenses" title="Licences | Free the Tools" description="Free the Tools is open source under AGPL-3.0. Here are the licences of the open-source projects it is built on.">
+  <header class="head"><div><h1>Licences</h1><span class="count">( open source, AGPL-3.0 )</span></div></header>
+
+  <section class="intro">
+    <h2>Built in the open, on the shoulders of others.</h2>
+    <p>Free the Tools is licensed under the GNU Affero General Public License v3.0. Copyright © Sapience Design and contributors. You can get the complete source code for everything this site runs at <a href={REPO}>{REPO.replace("https://", "")}</a>.</p>
+  </section>
+
+  <table class="specs parts">
+    <thead><tr><th>Project</th><th>By</th><th>Licence</th><th>Used for</th></tr></thead>
+    <tbody>
+      {parts.map((p) => <tr><td><a href={p.url}>{p.name}</a></td><td>{p.by}</td><td class="mono">{p.licence}</td><td>{p.use}</td></tr>)}
+    </tbody>
+  </table>
+
+  <p class="note">"Free the Tools" and the Sapience name and logo are trademarks of Sapience Design and are not licensed under AGPL-3.0. Forks are welcome to use the code under a different name. See <a href={`${REPO}/blob/main/TRADEMARKS.md`}>TRADEMARKS.md</a>.</p>
+</Base>
+
+<style>
+  .parts { max-width: 980px; }
+  .parts thead th { width: auto; padding-top: 0; }
+  .parts a { color: var(--ink); }
+  .note { margin-top: 32px; max-width: 70ch; color: var(--ink-soft); font-size: 14px; }
+  @media (max-width: 700px) { .parts thead { display: none; } .parts tr { display: grid; padding: 10px 0; border-bottom: 1px solid var(--line); } .parts td { border: 0; padding: 2px 0; } }
+</style>

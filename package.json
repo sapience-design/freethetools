@@ -1,0 +1,40 @@
+{
+  "name": "freethetools",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Free the Tools, a Sapience initiative: free, open-source tools that run in your browser. Nothing is uploaded.",
+  "license": "AGPL-3.0-only",
+  "author": "Sapience Design (https://sapience.design)",
+  "homepage": "https://freethetools.com",
+  "repository": "github:sapience-design/freethetools",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "sync": "node scripts/sync-tool-assets.mjs",
+    "dev": "npm run sync && astro dev",
+    "build": "npm run sync && astro build",
+    "preview": "wrangler pages dev dist --port 8788",
+    "test": "node --test \"tools/*/*/tests/*.test.js\"",
+    "test:site": "node --test \"tests/*.test.js\"",
+    "test:e2e": "playwright test",
+    "check": "npm run build && npm test && npm run test:site && npm run test:e2e",
+    "new-tool": "node scripts/new-tool.mjs",
+    "astro": "astro",
+    "test:py": "python -m pytest -q tools"
+  },
+  "dependencies": {
+    "@fontsource-variable/outfit": "^5.3.0",
+    "@fontsource/ibm-plex-mono": "^5.3.0",
+    "@jspawn/ghostscript-wasm": "0.0.2",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "wrangler": "^4.142.0"
+  },
+  "allowScripts": {
+    "esbuild": true
+  }
+}

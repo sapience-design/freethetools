@@ -1,0 +1,55 @@
+---
+import Base from "../layouts/Base.astro";
+---
+<Base page="saved" title="Saved tools | Free the Tools" description="The tools you saved on this device." noindex>
+  <header class="head">
+    <div>
+      <h1>Saved</h1>
+      <span class="count">( kept in this browser only )</span>
+    </div>
+  </header>
+  <ul class="saved-list" id="saved-list"></ul>
+  <div class="empty" id="saved-empty">
+    <p>Nothing saved yet. Press <b>Save</b> on any tool to keep it here.</p>
+    <p class="muted">To keep the whole site handy, bookmark it with <kbd>Ctrl</kbd> + <kbd>D</kbd> (<kbd>⌘</kbd> + <kbd>D</kbd> on a Mac), or install it as an app from your browser's address bar.</p>
+    <p><a class="btn" href="/">Browse all tools</a></p>
+  </div>
+</Base>
+
+<style>
+  .saved-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 760px; }
+  .saved-list :global(li) { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+  .saved-list :global(a) { text-decoration: none; font-size: 16px; }
+  .saved-list :global(button) { border: 0; background: none; font: inherit; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+  .empty { display: grid; gap: 14px; max-width: 560px; color: var(--ink-soft); }
+</style>
+
+<script>
+  const list = document.getElementById("saved-list")!;
+  const empty = document.getElementById("saved-empty")!;
+  type Saved = Record<string, { name: string; href: string }>;
+  const load = (): Saved => { try { return JSON.parse(localStorage.getItem("ftt:saved") || "{}"); } catch { return {}; } };
+  document.addEventListener("saved-change", (e) => render((e as CustomEvent).detail));
+  render(load());
+
+  function render(saved: Saved) {
+    const ids = Object.keys(saved);
+    empty.hidden = ids.length > 0;
+    list.replaceChildren(
+      ...ids.map((id) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = saved[id].href;
+        a.textContent = saved[id].name;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.dataset.save = id;
+        b.dataset.name = saved[id].name;
+        b.dataset.href = saved[id].href;
+        b.textContent = "Remove";
+        li.append(a, b);
+        return li;
+      }),
+    );
+  }
+</script>

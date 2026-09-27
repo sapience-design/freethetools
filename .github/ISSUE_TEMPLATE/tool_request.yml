@@ -1,0 +1,43 @@
+name: Request a tool
+description: Suggest a free tool that could run entirely in the browser.
+title: "Tool: "
+labels: ["tool-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! Before you ask, [search open requests](https://github.com/sapience-design/freethetools/issues?q=is%3Aissue+label%3Atool-request) and 👍 an existing one instead if it's there.
+        Tools must work entirely in the browser: no server, no account, no API key.
+  - type: input
+    id: name
+    attributes:
+      label: Tool name
+      placeholder: e.g. Merge PDFs
+    validations:
+      required: true
+  - type: dropdown
+    id: group
+    attributes:
+      label: Group
+      options: [PDF, Images, Text, Data, Developer, Everyday, Something new]
+    validations:
+      required: true
+  - type: textarea
+    id: job
+    attributes:
+      label: What should it do?
+      description: What goes in, what comes out, and who needs it.
+      placeholder: Combine several PDFs into one, in the order I choose.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What do you use today, and what's wrong with it?
+      placeholder: Online sites that make me upload private documents.
+  - type: checkboxes
+    id: build
+    attributes:
+      label: Building it
+      options:
+        - label: I'd like to build this myself

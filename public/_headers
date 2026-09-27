@@ -1,0 +1,15 @@
+# Cloudflare Pages response headers. Pages carry their own CSP in a <meta> tag (see astro.config.mjs).
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()
+  Cross-Origin-Opener-Policy: same-origin
+
+# Workers take their CSP from their own response. Scripts loaded by pages ignore this header.
+/_astro/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'
+  Cache-Control: public, max-age=31536000, immutable
+
+/:category/:tool/vendor/*
+  Cache-Control: public, max-age=86400

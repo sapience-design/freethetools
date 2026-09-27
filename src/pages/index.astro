@@ -1,0 +1,43 @@
+---
+import Base from "../layouts/Base.astro";
+import Card from "../components/Card.astro";
+import { loadCatalogue } from "../data/catalogue";
+
+const { tools, aisles } = await loadCatalogue();
+const wantedCount = aisles.reduce((n, a) => n + a.wanted.length, 0);
+---
+<Base
+  page="home"
+  title="Free the Tools – free browser tools, nothing uploaded"
+  description="Free, open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No sign-up, no ads. A Sapience initiative."
+  jsonLd={{ "@type": "WebSite", name: "Free the Tools", url: "https://freethetools.com/", description: "Free, open-source tools that run in your browser. Nothing is uploaded." }}
+>
+  <header class="head">
+    <div>
+      <h1>All tools</h1>
+      <span class="count">( {tools.length} on the shelf · {wantedCount} wanted )</span>
+    </div>
+    <ul class="filters">
+      <li><a href="/" aria-current="page">All</a></li>
+      {aisles.map((a) => <li><a href={`/${a.slug}/`}>{a.name}</a></li>)}
+    </ul>
+  </header>
+
+  <section class="intro">
+    <h2>Useful tools, priced at nothing.</h2>
+    <p>Everything here runs on your own device, so your files never leave it. No accounts, no limits, no ads. The code is open, and anyone can add the next tool.</p>
+  </section>
+
+  {aisles.map((a) => (
+    <section class="aisle" aria-labelledby={`a-${a.slug}`}>
+      <div class="aisle-head">
+        <h2 id={`a-${a.slug}`}>{a.name}</h2>
+        <a href={`/${a.slug}/`}>View {a.name} →</a>
+      </div>
+      <ul class="grid">
+        {a.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} toolId={t.id} />)}
+        {a.wanted.slice(0, Math.max(0, 3 - a.live.length)).map((w) => <Card name={w.name} href={w.url} category={a.slug} wanted />)}
+      </ul>
+    </section>
+  ))}
+</Base>

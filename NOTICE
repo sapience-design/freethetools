@@ -1,0 +1,38 @@
+Free the Tools
+Copyright (C) 2026 Sapience Design and contributors
+https://freethetools.com · https://github.com/sapience-design/freethetools
+
+This program is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free Software
+Foundation, version 3. See LICENSE.
+
+"Free the Tools" and the Sapience name and logo are trademarks of Sapience Design
+and are not licensed under AGPL-3.0. See TRADEMARKS.md.
+
+------------------------------------------------------------------------------
+Third-party software shipped to the browser
+------------------------------------------------------------------------------
+
+Ghostscript 9.56
+  Copyright (C) Artifex Software, Inc.
+  License: AGPL-3.0 · https://www.ghostscript.com/
+
+@jspawn/ghostscript-wasm 0.0.2 (Ghostscript compiled to WebAssembly)
+  License: AGPL-3.0 · https://www.npmjs.com/package/@jspawn/ghostscript-wasm
+
+Outfit (typeface)
+  Copyright 2021 The Outfit Project Authors
+  License: SIL Open Font License 1.1 · https://github.com/Outfitio/Outfit-Fonts
+
+IBM Plex Mono (typeface)
+  Copyright IBM Corp.
+  License: SIL Open Font License 1.1 · https://github.com/IBM/plex
+
+------------------------------------------------------------------------------
+Build and command-line tools (not shipped to the browser)
+------------------------------------------------------------------------------
+
+Astro · License: MIT · https://astro.build/
+PyMuPDF (used by tools/pdf/compress/cli) · Artifex Software · License: AGPL-3.0
+Playwright (tests) · Microsoft · License: Apache-2.0
+Wrangler (deploy) · Cloudflare · License: MIT OR Apache-2.0

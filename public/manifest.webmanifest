@@ -1,0 +1,15 @@
+{
+  "name": "Free the Tools",
+  "short_name": "Free Tools",
+  "description": "Free, open-source tools that run in your browser. Nothing is uploaded. A Sapience initiative.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#25303f",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

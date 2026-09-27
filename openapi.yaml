@@ -1,0 +1,96 @@
+openapi: 3.1.0
+info:
+  title: Free the Tools catalogue
+  version: 1.0.0
+  summary: Read-only catalogue of free, in-browser tools.
+  description: |
+    A static JSON file describing every tool on freethetools.com, for developers and AI agents.
+    The tools themselves run in the browser; this API lists them, it does not run them.
+  license:
+    name: AGPL-3.0-only
+    identifier: AGPL-3.0-only
+  contact:
+    name: Free the Tools
+    url: https://github.com/sapience-design/freethetools
+servers:
+  - url: https://freethetools.com
+paths:
+  /api/tools.json:
+    get:
+      operationId: getCatalogue
+      summary: Get the full catalogue
+      responses:
+        "200":
+          description: The catalogue
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Catalogue" }
+  /llms.txt:
+    get:
+      operationId: getLlmsTxt
+      summary: Plain-text summary for language models (llmstxt.org)
+      responses:
+        "200":
+          description: Markdown text
+          content:
+            text/plain: { schema: { type: string } }
+components:
+  schemas:
+    Catalogue:
+      type: object
+      required: [name, publisher, license, source, categories]
+      properties:
+        name: { type: string, example: Free the Tools }
+        publisher:
+          type: object
+          properties:
+            name: { type: string, example: Sapience Design }
+            url: { type: string, format: uri }
+        description: { type: string }
+        license: { type: string, example: AGPL-3.0-only }
+        source: { type: string, format: uri }
+        categories:
+          type: array
+          items: { $ref: "#/components/schemas/Category" }
+    Category:
+      type: object
+      required: [id, name, url, tools, wanted]
+      properties:
+        id: { type: string, example: pdf }
+        name: { type: string, example: PDF }
+        url: { type: string, format: uri }
+        description: { type: string }
+        tools:
+          type: array
+          items: { $ref: "#/components/schemas/Tool" }
+        wanted:
+          type: array
+          description: Tools that have been requested but not built yet.
+          items:
+            type: object
+            properties:
+              name: { type: string, example: Merge PDFs }
+              section: { type: string, example: Organize }
+              request: { type: string, format: uri }
+    Tool:
+      type: object
+      required: [id, name, url, description, status, offline]
+      properties:
+        id: { type: string, example: pdf/compress }
+        name: { type: string, example: Compress PDF }
+        url: { type: string, format: uri, example: "https://freethetools.com/pdf/compress/" }
+        description: { type: string }
+        section: { type: string, example: Optimize }
+        keywords: { type: array, items: { type: string } }
+        status: { type: string, enum: [live, beta] }
+        offline: { type: boolean, description: True if the tool works without a network connection once loaded. }
+        added: { type: string, format: date }
+        source: { type: string, format: uri }
+        cli: { type: [string, "null"], format: uri, description: Folder with a command-line version, if any. }
+        authors:
+          type: array
+          items:
+            type: object
+            properties:
+              name: { type: string }
+              github: { type: string }

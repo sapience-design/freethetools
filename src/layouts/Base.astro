@@ -1,0 +1,119 @@
+---
+import "../styles/global.css";
+import Sidebar from "../components/Sidebar.astro";
+import { loadCatalogue, REPO } from "../data/catalogue";
+
+interface Props {
+  title: string;
+  description: string;
+  jsonLd?: Record<string, unknown>;
+  noindex?: boolean;
+  category?: string;
+  tool?: string;
+  page?: "home" | "about" | "licenses" | "saved";
+}
+const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const publisher = { "@type": "Organization", name: "Sapience Design", url: "https://sapience.design" };
+const { aisles } = await loadCatalogue();
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{title}</title>
+  <meta name="description" content={description}>
+  <link rel="canonical" href={canonical}>
+  {noindex && <meta name="robots" content="noindex">}
+  <meta name="author" content="Sapience Design">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Free the Tools">
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:url" content={canonical}>
+  <meta name="theme-color" content="#ffffff">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
+  <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
+</head>
+<body>
+  <div class="shell">
+    <Sidebar category={category} tool={tool} page={page} />
+    <div class="main">
+      <div class="mobilebar">
+        <a class="mw" href="/">free<i>the</i>tools</a>
+        <button id="menu" type="button" class="caps">Menu</button>
+      </div>
+      <main>
+        <slot />
+      </main>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="colophon">
+        <p class="big">Every tool free.<br>Nothing uploaded.<br>Build the next one.</p>
+        <p>© {new Date().getFullYear()} Sapience Design. Free the Tools is a <a href="https://sapience.design">Sapience</a> initiative.</p>
+        <p><a href="/licenses/">Licences</a> · <a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a> · <a href={`${REPO}/security/policy`}>Security</a></p>
+      </div>
+      <ul>
+        {aisles.map((a) => <li><a class="caps" href={`/${a.slug}/`}>{a.name}</a></li>)}
+      </ul>
+      <ul>
+        <li><a class="caps" href="/about/">About</a></li>
+        <li><a class="caps" href={REPO}>Source code</a></li>
+        <li><a class="caps" href={`${REPO}/blob/main/CONTRIBUTING.md`}>Contribute</a></li>
+        <li><a class="caps" href="/api/tools.json">API</a></li>
+        <li><a class="caps" href="/llms.txt">llms.txt</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    // Saved tools live in this browser only (localStorage). The page works without it.
+    const KEY = "ftt:saved";
+    const read = (): Record<string, { name: string; href: string }> => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
+    const write = (v: object) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} };
+    function paint() {
+      const saved = read();
+      document.querySelectorAll<HTMLElement>("[data-saved-count]").forEach((el) => (el.textContent = String(Object.keys(saved).length)));
+      document.querySelectorAll<HTMLButtonElement>("[data-save]").forEach((b) => b.setAttribute("aria-pressed", String(!!saved[b.dataset.save!])));
+      document.dispatchEvent(new CustomEvent("saved-change", { detail: saved }));
+    }
+    document.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-save]");
+      if (!b) return;
+      const saved = read();
+      const id = b.dataset.save!;
+      if (saved[id]) delete saved[id]; else saved[id] = { name: b.dataset.name!, href: b.dataset.href! };
+      write(saved);
+      paint();
+    });
+    paint();
+  </script>
+</body>
+</html>
+
+<style>
+  .mobilebar { display: none; }
+  .foot { background: var(--foot); color: #d6d8db; margin-top: 40px; }
+  .foot-in { max-width: 1440px; margin: 0 auto; padding: 56px clamp(16px, 3.5vw, 48px) 64px; display: grid; grid-template-columns: minmax(0, 2fr) 1fr 1fr; gap: 32px; }
+  .foot a { color: inherit; text-decoration: none; }
+  .foot a:hover { color: #fff; }
+  .colophon { display: grid; gap: 12px; align-content: start; font-size: 12.5px; color: #9ea3aa; }
+  .colophon .big { font-size: clamp(22px, 2.6vw, 30px); line-height: 1.15; letter-spacing: -0.02em; color: #fff; margin-bottom: 16px; }
+  .colophon a { text-decoration: underline; text-underline-offset: 3px; }
+  .foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; align-content: start; }
+  @media (max-width: 900px) {
+    .mobilebar { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 22px; }
+    .mw { font-weight: 600; font-size: 21px; letter-spacing: -0.035em; text-decoration: none; }
+    .mw i { font-style: normal; font-weight: 300; color: var(--muted); }
+    #menu { border: 0; background: none; font: inherit; color: var(--ink); cursor: pointer; padding: 8px 0; }
+    .foot-in { grid-template-columns: 1fr 1fr; }
+    .colophon { grid-column: 1 / -1; }
+  }
+</style>

@@ -1,0 +1,5 @@
+# Every change needs a review from a maintainer. See GOVERNANCE.md.
+*                     @sapience-design
+/.github/             @sapience-design
+/astro.config.mjs     @sapience-design
+/public/_headers      @sapience-design

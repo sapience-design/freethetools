@@ -1,0 +1,110 @@
+/* Free the Tools: tokens and shared components. Tools add their own rules in a <style> block. */
+@import "@fontsource-variable/outfit";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+:root {
+  --paper: #ffffff;
+  --studio: #ededed;       /* product-shot backdrop */
+  --studio-2: #e4e4e4;
+  --ink: #111418;
+  --ink-soft: #3d434b;
+  --muted: #7a8089;
+  --line: #e6e6e6;
+  --yellow: #f2c200;       /* the one loud colour: $0 stickers, focus, active dot */
+  --navy: #25303f;         /* Sapience */
+  --foot: #2a2c2f;
+  --bad: #b3261e;
+  --ok: #1f7a4d;
+  --side-w: 220px;
+  --sans: "Outfit Variable", "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #121314; --studio: #1c1d1f; --studio-2: #232427; --ink: #f1f1f1; --ink-soft: #c9ccd1; --muted: #8c929b;
+    --line: #2a2c2f; --foot: #0b0b0c; --ok: #5fcf8f; --bad: #ff8a80;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #121314; --studio: #1c1d1f; --studio-2: #232427; --ink: #f1f1f1; --ink-soft: #c9ccd1; --muted: #8c929b;
+  --line: #2a2c2f; --foot: #0b0b0c; --ok: #5fcf8f; --bad: #ff8a80;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font: 400 15px/1.55 var(--sans); }
+img, svg { max-width: 100%; }
+a { color: inherit; text-underline-offset: 3px; }
+:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+[hidden] { display: none !important; }
+h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 500; }
+p { margin: 0; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.muted { color: var(--muted); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.caps { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; }
+kbd { font-family: var(--mono); font-size: 10.5px; padding: 0 5px; border: 1px solid var(--line); border-radius: 3px; color: var(--muted); }
+
+/* ---- Frame ---- */
+.shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); gap: 0 clamp(24px, 4vw, 56px); max-width: 1440px; margin: 0 auto; padding: 0 clamp(16px, 3.5vw, 48px); }
+.main { min-width: 0; padding: 36px 0 96px; }
+
+/* Title row: CATALOG (12 items) ........ filters */
+.head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 16px 32px; margin-bottom: 32px; }
+.head h1 { font-size: 22px; letter-spacing: .02em; text-transform: uppercase; font-weight: 500; line-height: 1.1; }
+.head .count { display: block; margin-top: 6px; font-size: 12px; color: var(--muted); letter-spacing: .02em; }
+.filters { display: flex; flex-wrap: wrap; gap: 6px 26px; list-style: none; margin: 4px 0 0; padding: 0; }
+.filters a { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+.filters a:hover, .filters a[aria-current] { color: var(--ink); }
+.filters a[aria-current] { font-weight: 600; }
+
+.intro { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 24px 48px; margin: 8px 0 56px; }
+.intro h2 { font-size: clamp(26px, 3.4vw, 40px); line-height: 1.1; letter-spacing: -0.02em; font-weight: 500; }
+.intro p { color: var(--ink-soft); max-width: 52ch; font-size: 15.5px; align-self: end; }
+@media (max-width: 760px) { .intro { grid-template-columns: 1fr; } }
+
+/* Product grid */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 44px 16px; list-style: none; margin: 0; padding: 0; }
+.aisle + .aisle { margin-top: 72px; }
+.aisle-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+.aisle-head h2 { font-size: 13px; letter-spacing: .05em; text-transform: uppercase; font-weight: 600; }
+.aisle-head a { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); text-decoration: none; }
+.aisle-head a:hover { color: var(--ink); }
+
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 18px; border: 0; border-radius: 0; font: inherit; font-size: 12.5px; letter-spacing: .05em; text-transform: uppercase; font-weight: 500; background: var(--ink); color: var(--paper); text-decoration: none; cursor: pointer; }
+.btn.line { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* Specs table, like a product page */
+.specs { width: 100%; border-collapse: collapse; font-size: 14px; }
+.specs th, .specs td { text-align: left; padding: 11px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.specs th { width: 38%; font-weight: 400; color: var(--muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; padding-top: 13px; }
+
+details.qa { border-bottom: 1px solid var(--line); }
+details.qa summary { cursor: pointer; list-style: none; padding: 14px 0; display: flex; justify-content: space-between; gap: 16px; font-weight: 500; }
+details.qa summary::after { content: "+"; color: var(--muted); font-weight: 300; font-size: 20px; line-height: 1; }
+details.qa[open] summary::after { content: "–"; }
+details.qa p { padding: 0 0 16px; color: var(--ink-soft); max-width: 64ch; }
+
+/* Sidebar levels slide between pages */
+@view-transition { navigation: auto; }
+@keyframes out-left { to { transform: translateX(-16px); opacity: 0; } }
+@keyframes in-right { from { transform: translateX(16px); opacity: 0; } }
+@keyframes out-right { to { transform: translateX(16px); opacity: 0; } }
+@keyframes in-left { from { transform: translateX(-16px); opacity: 0; } }
+::view-transition-old(nav-root):only-child { animation: out-left .2s ease both; }
+::view-transition-new(nav-sub):only-child { animation: in-right .2s ease both; }
+::view-transition-old(nav-sub):only-child { animation: out-right .2s ease both; }
+::view-transition-new(nav-root):only-child { animation: in-left .2s ease both; }
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+  .main { padding-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; transition: none !important; }
+}

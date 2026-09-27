@@ -1,0 +1,23 @@
+[
+  { "name": "Merge PDFs", "category": "pdf", "section": "Organize" },
+  { "name": "Split PDF", "category": "pdf", "section": "Organize" },
+  { "name": "Rotate Pages", "category": "pdf", "section": "Organize" },
+  { "name": "Images to PDF", "category": "pdf", "section": "Convert" },
+  { "name": "PDF to Images", "category": "pdf", "section": "Convert" },
+  { "name": "Compress Images", "category": "images", "section": "Optimize" },
+  { "name": "Resize Images", "category": "images", "section": "Optimize" },
+  { "name": "Convert Image Format", "category": "images", "section": "Convert" },
+  { "name": "HEIC to JPG", "category": "images", "section": "Convert" },
+  { "name": "Remove Photo Location", "category": "images", "section": "Privacy" },
+  { "name": "Word Counter", "category": "text", "section": "Count & Compare" },
+  { "name": "Text Diff", "category": "text", "section": "Count & Compare" },
+  { "name": "Case Converter", "category": "text", "section": "Transform" },
+  { "name": "CSV to JSON", "category": "data", "section": "Convert" },
+  { "name": "JSON Formatter", "category": "data", "section": "Format" },
+  { "name": "Base64", "category": "developer", "section": "Encode" },
+  { "name": "Hash Generator", "category": "developer", "section": "Encode" },
+  { "name": "QR Code Maker", "category": "developer", "section": "Generate" },
+  { "name": "UUID Generator", "category": "developer", "section": "Generate" },
+  { "name": "Unit Converter", "category": "everyday", "section": "Convert" },
+  { "name": "Time Zone Converter", "category": "everyday", "section": "Time" }
+]

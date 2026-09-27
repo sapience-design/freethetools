@@ -1,0 +1,30 @@
+{
+  "name": "Compress PDF",
+  "short": "Compress",
+  "tagline": "Make PDFs smaller, or keep only the first page. Your files never leave this device.",
+  "seoTitle": "Compress PDF without uploading",
+  "description": "Make a PDF smaller for free, right in your browser. Files are never uploaded. Pick the quality, or keep only the first page. No sign-up.",
+  "section": "Optimize",
+  "keywords": ["compress", "reduce size", "shrink", "smaller", "file size", "optimize", "first page", "ghostscript"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "cli": "shrink_pdf.py",
+  "specs": {
+    "Engine": "Ghostscript 9.56, compiled to WebAssembly",
+    "First load": "16 MB, then cached by your browser",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my files uploaded anywhere?", "a": "No. The compressor is Ghostscript compiled to WebAssembly, served from this site and run inside your browser tab. The page's security policy blocks it from sending data anywhere. Once the page has loaded you can go offline and it still works." },
+    { "q": "Which quality should I pick?", "a": "Balanced suits email and sharing. Smallest suits reading on screen. Print keeps images sharp enough for paper. Prepress keeps colour profiles for professional printing." },
+    { "q": "Why did my file get bigger?", "a": "PDFs made mostly of text and vector drawings are often already compact. Ghostscript rewrites the whole file, so the result can come out slightly larger. Keep the original in that case." },
+    { "q": "Can it open password-protected PDFs?", "a": "Not yet. Remove the password in your PDF reader first." },
+    { "q": "Is there a command-line version?", "a": "Yes. shrink_pdf.py in the source folder does the same job with PyMuPDF, for example: python shrink_pdf.py file.pdf --first-page" }
+  ],
+  "vendor": [
+    { "from": "@jspawn/ghostscript-wasm/gs.js", "to": "gs.js" },
+    { "from": "@jspawn/ghostscript-wasm/gs.wasm", "to": "gs.wasm" }
+  ]
+}

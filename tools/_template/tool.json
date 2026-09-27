@@ -1,0 +1,20 @@
+{
+  "name": "__NAME__",
+  "short": "__SHORT__",
+  "tagline": "TODO: one sentence on what it does for the person using it. Say that nothing is uploaded.",
+  "seoTitle": "TODO: the words people type into Google, e.g. Count words online",
+  "description": "TODO: 50 to 160 characters for search results. Say what it does, that it is free, and that nothing is uploaded.",
+  "section": "__SECTION__",
+  "keywords": ["TODO", "words people", "search for"],
+  "authors": [{ "name": "Your Name", "github": "your-github-username" }],
+  "status": "beta",
+  "added": "__DATE__",
+  "offline": true,
+  "specs": {
+    "Engine": "TODO: plain JavaScript, or the library you use"
+  },
+  "faq": [
+    { "q": "Is my data uploaded anywhere?", "a": "No. Everything runs in your browser tab, and the page's security policy blocks it from sending data anywhere." }
+  ],
+  "vendor": []
+}

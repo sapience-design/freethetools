@@ -1,0 +1,35 @@
+name: Report a problem
+description: Something on the site or in a tool doesn't work as it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Please don't attach private files. If a file triggers the problem, describe it or share one you're happy to make public. Security problems go to the [security policy](https://github.com/sapience-design/freethetools/security/policy) instead.
+  - type: input
+    id: tool
+    attributes:
+      label: Page or tool
+      placeholder: https://freethetools.com/pdf/compress/
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Drop a 40-page scanned PDF
+        3. …
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: Firefox 142 on Windows 11
+    validations:
+      required: true

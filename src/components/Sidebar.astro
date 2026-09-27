@@ -1,0 +1,191 @@
+---
+// Two-level sidebar: the top level lists tool groups; inside a group it swaps to that group's
+// own list with a back link. Typing in search replaces the list with results.
+import { loadCatalogue, REPO } from "../data/catalogue";
+
+interface Props { category?: string; tool?: string; page?: "home" | "about" | "licenses" | "saved" }
+const { category, tool, page } = Astro.props;
+const { aisles, searchIndex } = await loadCatalogue();
+const aisle = aisles.find((a) => a.slug === category);
+---
+<aside class="side" id="side" aria-label="Site navigation">
+  <div class="side-in">
+    <div class="top">
+      <a class="wordmark" href="/" aria-label="Free the Tools, home">free<i>the</i>tools<sup>$0</sup></a>
+      <button class="close" id="side-close" type="button" aria-label="Close menu">Close</button>
+    </div>
+
+    <form class="search" role="search" action="/" method="get">
+      <label for="find" class="sr-only">Search tools</label>
+      <input id="find" name="q" type="search" placeholder="Search" autocomplete="off">
+      <kbd id="find-key">/</kbd>
+    </form>
+
+    <nav class="panels">
+      <ul class="nav results" id="side-results" hidden aria-live="polite"></ul>
+
+      {aisle ? (
+        <div class="panel nav-sub" id="panel">
+          <a class="back caps" href="/">← All tools</a>
+          <ul class="nav">
+            <li><a class:list={["caps", { on: !tool }]} href={`/${aisle.slug}/`} aria-current={!tool ? "page" : undefined}>{aisle.name}</a></li>
+          </ul>
+          {aisle.sectionsUsed.map((s) => (
+            <div class="sec">
+              <p class="sec-name">{s.name}</p>
+              <ul class="nav">
+                {s.live.map((t) => (
+                  <li><a class:list={["caps", { on: tool === t.slug }]} href={t.url} aria-current={tool === t.slug ? "page" : undefined}>{t.data.short}</a></li>
+                ))}
+                {s.wanted.map((w) => (
+                  <li><a class="caps want" href={w.url} title="Not built yet. Open the request on GitHub.">{w.name}</a></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          <a class="caps add" href={`${REPO}/issues/new?template=tool_request.yml`}>+ Request a {aisle.name} tool</a>
+        </div>
+      ) : (
+        <div class="panel nav-root" id="panel">
+          <ul class="nav">
+            <li><a class:list={["caps", { on: page === "home" }]} href="/" aria-current={page === "home" ? "page" : undefined}>All tools</a></li>
+            {aisles.map((a) => (
+              <li><a class="caps drill" href={`/${a.slug}/`}>{a.name}<span>{a.live.length ? a.live.length : ""}</span></a></li>
+            ))}
+          </ul>
+          <ul class="nav gap">
+            <li><a class:list={["caps", { on: page === "about" }]} href="/about/">About</a></li>
+            <li><a class="caps" href={`${REPO}/issues/new?template=tool_request.yml`}>Request a tool</a></li>
+            <li><a class="caps" href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
+          </ul>
+        </div>
+      )}
+
+      <ul class="nav gap">
+        <li><a class:list={["caps", { on: page === "saved" }]} href="/saved/">Saved (<span data-saved-count>0</span>)</a></li>
+      </ul>
+    </nav>
+
+    <a class="initiative" href="https://sapience.design">
+      <span>A Sapience initiative</span>
+      <img src="/brand/sapience-wordmark.webp" alt="Sapience" width="76" height="14">
+    </a>
+  </div>
+  <script type="application/json" id="search-index" set:html={JSON.stringify(searchIndex)} />
+</aside>
+<div class="scrim" id="scrim" hidden></div>
+
+<style>
+  .side { position: sticky; top: 0; height: 100vh; }
+  .side-in { height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 28px; padding: 34px 0 24px; }
+  .top { display: flex; justify-content: space-between; align-items: center; }
+  .wordmark { font-weight: 600; font-size: 25px; letter-spacing: -0.035em; text-decoration: none; color: var(--ink); line-height: 1; white-space: nowrap; }
+  .wordmark i { font-style: normal; font-weight: 300; color: var(--muted); }
+  .wordmark sup { font: 500 9.5px var(--mono); letter-spacing: 0; background: var(--yellow); color: #111; padding: 2px 4px; border-radius: 3px; margin-left: 4px; vertical-align: 12px; }
+  .close { display: none; border: 0; background: none; font: inherit; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
+
+  .search { position: relative; }
+  .search input { width: 100%; font: inherit; font-size: 13px; padding: 7px 26px 7px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 0; }
+  .search input::placeholder { text-transform: uppercase; letter-spacing: .04em; font-size: 12px; color: var(--muted); }
+  .search input:focus { outline: none; border-bottom-color: var(--ink); }
+  .search kbd { position: absolute; right: 0; top: 50%; transform: translateY(-50%); }
+
+  .panels { flex: 1; display: grid; align-content: start; gap: 28px; }
+  .nav-root { view-transition-name: nav-root; display: grid; gap: 28px; }
+  .nav-sub { view-transition-name: nav-sub; display: grid; gap: 18px; }
+  .nav { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+  .nav a { position: relative; display: flex; align-items: center; gap: 8px; color: var(--ink-soft); text-decoration: none; padding-left: 16px; }
+  .nav a:hover { color: var(--ink); }
+  .nav a.on { color: var(--ink); font-weight: 600; }
+  .nav a.on::before { content: ""; position: absolute; left: 0; top: 50%; width: 7px; height: 7px; border-radius: 50%; background: var(--ink); transform: translateY(-50%); }
+  .drill span { margin-left: auto; font: 400 11px var(--mono); color: var(--muted); }
+  .want { color: var(--muted) !important; }
+  .want::after { content: "wanted"; margin-left: auto; font: 400 10px var(--mono); letter-spacing: 0; text-transform: none; color: var(--muted); }
+  .back { color: var(--muted); text-decoration: none; }
+  .back:hover { color: var(--ink); }
+  .sec { display: grid; gap: 8px; }
+  .sec-name { font-size: 11px; color: var(--muted); padding-left: 16px; }
+  .add { color: var(--muted); text-decoration: none; padding-left: 16px; }
+  .add:hover { color: var(--ink); }
+
+  .results :global(a) { display: grid; padding-left: 0; font-size: 13.5px; color: var(--ink); text-decoration: none; }
+  .results :global(a.sel) { font-weight: 600; }
+  .results :global(small) { font-size: 11.5px; color: var(--muted); }
+  .results :global(.empty) { font-size: 13px; color: var(--muted); }
+
+  .initiative { display: grid; gap: 6px; font-size: 11px; color: var(--muted); text-decoration: none; letter-spacing: .02em; }
+  .initiative img { height: 14px; width: auto; opacity: .85; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .initiative img { filter: invert(1); } }
+
+  .scrim { display: none; }
+  @media (max-width: 900px) {
+    .side { position: fixed; inset: 0 auto 0 0; z-index: 30; width: min(84vw, 300px); height: 100%; background: var(--paper); padding: 0 24px; transform: translateX(-100%); transition: transform .22s ease; }
+    .side.open { transform: none; box-shadow: 0 0 60px rgba(0,0,0,.18); }
+    .close { display: block; }
+    .scrim { display: block; position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.25); }
+  }
+</style>
+
+<script>
+  type Item = { n: string; c: string; u: string; k: string; w?: 1 };
+  const index: Item[] = JSON.parse(document.getElementById("search-index")!.textContent!);
+  const input = document.getElementById("find") as HTMLInputElement;
+  const key = document.getElementById("find-key")!;
+  const results = document.getElementById("side-results")!;
+  const panel = document.getElementById("panel")!;
+  const side = document.getElementById("side")!;
+  const scrim = document.getElementById("scrim")!;
+
+  function search() {
+    const words = input.value.toLowerCase().split(/\s+/).filter(Boolean);
+    results.hidden = !words.length;
+    panel.hidden = !!words.length;
+    if (!words.length) return;
+    const hits = index
+      .filter((i) => words.every((w) => `${i.n} ${i.c} ${i.k}`.toLowerCase().includes(w)))
+      .sort((a, b) => (a.w ?? 0) - (b.w ?? 0));
+    results.replaceChildren(
+      ...hits.map((h, i) => {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = h.u;
+        if (i === 0) a.className = "sel";
+        a.append(h.n);
+        const small = document.createElement("small");
+        small.textContent = h.w ? `${h.c} · wanted, not built yet` : `${h.c} · $0`;
+        a.append(small);
+        li.append(a);
+        return li;
+      }),
+    );
+    if (!hits.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "No tool matches yet. Press Enter to request it.";
+      results.append(li);
+    }
+  }
+
+  input.addEventListener("input", search);
+  input.form!.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const first = results.querySelector("a") as HTMLAnchorElement | null;
+    location.href = first ? first.href : "https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml";
+  });
+  input.addEventListener("focus", () => (key.hidden = true));
+  input.addEventListener("blur", () => (key.hidden = !!input.value));
+  document.addEventListener("keydown", (e) => {
+    const t = e.target as HTMLElement;
+    if (e.key === "/" && t.tagName !== "INPUT" && t.tagName !== "TEXTAREA") { e.preventDefault(); openSide(); input.focus(); }
+    if (e.key === "Escape") { input.value = ""; search(); closeSide(); }
+  });
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { input.value = q; search(); }
+
+  // Phone: the sidebar is a drawer.
+  function openSide() { side.classList.add("open"); scrim.hidden = false; }
+  function closeSide() { side.classList.remove("open"); scrim.hidden = true; }
+  document.getElementById("menu")?.addEventListener("click", openSide);
+  document.getElementById("side-close")!.addEventListener("click", closeSide);
+  scrim.addEventListener("click", closeSide);
+</script>

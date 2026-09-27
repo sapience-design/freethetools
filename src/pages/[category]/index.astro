@@ -1,0 +1,51 @@
+---
+import Base from "../../layouts/Base.astro";
+import Card from "../../components/Card.astro";
+import { CATEGORIES } from "../../data/categories";
+import { loadCatalogue } from "../../data/catalogue";
+
+export function getStaticPaths() {
+  return CATEGORIES.map((c) => ({ params: { category: c.slug } }));
+}
+
+const { category } = Astro.params;
+const { aisles } = await loadCatalogue();
+const a = aisles.find((x) => x.slug === category)!;
+---
+<Base
+  category={a.slug}
+  title={`${a.title} that run in your browser | Free the Tools`}
+  description={`${a.blurb} Free, open source, and nothing is uploaded.`}
+  jsonLd={{
+    "@type": "CollectionPage",
+    name: a.title,
+    description: a.blurb,
+    hasPart: a.live.map((t) => ({ "@type": "WebApplication", name: t.data.name, url: new URL(t.url, Astro.site).href })),
+  }}
+>
+  <header class="head">
+    <div>
+      <h1>{a.name}</h1>
+      <span class="count">( {a.live.length} on the shelf · {a.wanted.length} wanted )</span>
+    </div>
+    <ul class="filters">
+      <li><a href={`/${a.slug}/`} aria-current="page">All</a></li>
+      {a.sectionsUsed.map((s) => <li><a href={`#${s.name.toLowerCase().replace(/[^a-z]+/g, "-")}`}>{s.name}</a></li>)}
+    </ul>
+  </header>
+
+  <section class="intro">
+    <h2>{a.title}.</h2>
+    <p>{a.blurb} Each one runs on your device, costs nothing, and never uploads your files. Tools marked wanted are open requests that anyone can build.</p>
+  </section>
+
+  {a.sectionsUsed.map((s) => (
+    <section class="aisle" id={s.name.toLowerCase().replace(/[^a-z]+/g, "-")}>
+      <div class="aisle-head"><h2>{s.name}</h2></div>
+      <ul class="grid">
+        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} toolId={t.id} />)}
+        {s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} wanted />)}
+      </ul>
+    </section>
+  ))}
+</Base>

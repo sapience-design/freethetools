@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+__pycache__/
+.pytest_cache/
+*.pyc
+.venv/
+test-results/
+playwright-report/
+# Copied from node_modules at build time by scripts/sync-tool-assets.mjs
+public/**/vendor/
