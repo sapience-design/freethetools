@@ -197,3 +197,54 @@ test.describe("image tools", () => {
     expect(out.toString("hex")).not.toContain("ffe1");
   });
 });
+
+test.describe("PDF to images", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+  test("renders every page as a PNG", async ({ page }) => {
+    await page.goto("/pdf/to-images/");
+    await page.setInputFiles("#p2i-file", PDF);
+    await page.click("#p2i-go");
+    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3, { timeout: 30_000 });
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+    expect(out.subarray(1, 4).toString()).toBe("PNG");
+  });
+});
+
+test.describe("fill form and developer tools", () => {
+  test.skip(({ isMobile }) => isMobile, "interaction checks run once, on desktop");
+
+  test("Fill PDF Form fills and saves the answers", async ({ page }) => {
+    const doc = await PDFDocument.create();
+    const p = doc.addPage([595, 842]);
+    doc.getForm().createTextField("full_name").addToPage(p, { x: 50, y: 700, width: 200, height: 20 });
+    doc.getForm().createCheckBox("agree").addToPage(p, { x: 50, y: 650, width: 15, height: 15 });
+    const buffer = Buffer.from(await doc.save());
+    await page.goto("/pdf/fill-form/");
+    await page.setInputFiles("#pff-file", { name: "form.pdf", mimeType: "application/pdf", buffer });
+    await page.fill("#pff-f0", "Ada Lovelace");
+    await page.check("#pff-f1");
+    await page.click("#pff-go");
+    const out = await pdf(await download(page, () => page.getByRole("link", { name: "Download" }).click()));
+    expect(out.getForm().getTextField("full_name").getText()).toBe("Ada Lovelace");
+    expect(out.getForm().getCheckBox("agree").isChecked()).toBe(true);
+  });
+
+  test("Password Generator makes a password of the chosen length", async ({ page }) => {
+    await page.goto("/developer/password-generator/");
+    await expect(page.locator("#pw-out")).toHaveText(/^.{20}$/);
+    await expect(page.locator("#pw-meta")).toContainText("bits");
+  });
+
+  test("JWT Decoder decodes and verifies the example", async ({ page }) => {
+    await page.goto("/developer/jwt-decoder/");
+    await expect(page.locator("#jwt-body")).toContainText('"sub": "user-42"');
+    await page.fill("#jwt-secret", "free-the-tools");
+    await expect(page.locator("#jwt-verdict")).toHaveText("Signature is valid for this secret.");
+  });
+
+  test("Regex Tester highlights matches", async ({ page }) => {
+    await page.goto("/developer/regex-tester/");
+    await expect(page.locator("#rx-count")).toHaveText("2 matches");
+    await expect(page.locator("#rx-view mark").first()).toHaveText("ada@example.com");
+  });
+});

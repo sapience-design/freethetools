@@ -1,0 +1,93 @@
+---
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Fill PDF form">
+  <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop a PDF form here" hint="or click to choose" />
+  <div id="pff-panel" hidden class="tool">
+    <ul class="file-list"><li><span class="fname" id="pff-name"></span><span class="fmeta" id="pff-meta"></span></li></ul>
+    <form id="pff-form" class="pff-fields" novalidate></form>
+    <label class="check"><input type="checkbox" id="pff-flat"> Lock the answers so they can't be changed</label>
+    <div class="actions"><button class="btn" id="pff-go" type="button">Save filled PDF</button></div>
+  </div>
+  <div id="pff-result" aria-live="polite"></div>
+</section>
+
+<script>
+  import { listFields, fillForm } from "./core.js";
+  import { wireDrop, fmtBytes, downloadLink, showError, baseName } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  let bytes: ArrayBuffer | null = null, file: File | null = null;
+  type Field = Awaited<ReturnType<typeof listFields>>[number];
+  let fields: Field[] = [];
+
+  const pretty = (name: string) => name.replace(/[._]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").trim();
+
+  function control(f: Field, i: number): HTMLElement {
+    const id = `pff-f${i}`;
+    const wrap = document.createElement(f.type === "checkbox" ? "label" : "div");
+    wrap.className = f.type === "checkbox" ? "check" : "field";
+    if (f.type === "checkbox") {
+      const c = document.createElement("input"); c.type = "checkbox"; c.id = id; c.checked = !!f.value; c.disabled = f.readOnly;
+      wrap.append(c, document.createTextNode(" " + pretty(f.name)));
+      return wrap;
+    }
+    const label = document.createElement("label"); label.htmlFor = id; label.textContent = pretty(f.name) + (f.readOnly ? " (read-only)" : "");
+    const span = document.createElement("span"); span.append(label);
+    let input: HTMLElement;
+    if (f.type === "text") {
+      const el = document.createElement(f.multiline ? "textarea" : "input") as HTMLInputElement;
+      if (!f.multiline) el.type = "text";
+      el.value = String(f.value ?? ""); input = el;
+    } else {
+      const sel = document.createElement("select"); sel.multiple = f.type === "list";
+      if (f.type !== "list") sel.append(new Option("—", ""));
+      for (const o of f.options ?? []) sel.append(new Option(o, o, false, Array.isArray(f.value) ? f.value.includes(o) : f.value === o));
+      input = sel;
+    }
+    input.id = id; (input as HTMLInputElement).disabled = f.readOnly;
+    wrap.append(span, input);
+    return wrap;
+  }
+
+  wireDrop("pff", async (files) => {
+    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!f) return;
+    $("pff-result").replaceChildren();
+    try {
+      bytes = await f.arrayBuffer();
+      fields = await listFields(bytes.slice(0));
+      file = f;
+      $("pff-name").textContent = f.name;
+      $("pff-meta").textContent = fields.length ? `${fields.length} ${fields.length === 1 ? "field" : "fields"} to fill · ${fmtBytes(f.size)}` : "No fillable fields in this PDF.";
+      $("pff-form").replaceChildren(...fields.map(control));
+      $("pff-panel").hidden = false;
+      ($("pff-go") as HTMLButtonElement).disabled = !fields.length;
+      if (!fields.length) showError($("pff-result"), "This PDF has no form fields. It may be a scan or have only printed lines to write on.");
+    } catch (e) { showError($("pff-result"), (e as Error).message); }
+  });
+
+  $("pff-go").addEventListener("click", async () => {
+    if (!bytes || !file) return;
+    const values: Record<string, string | boolean | string[]> = {};
+    fields.forEach((f, i) => {
+      const el = document.getElementById(`pff-f${i}`) as HTMLInputElement & HTMLSelectElement;
+      values[f.name] = f.type === "checkbox" ? el.checked : f.type === "list" ? [...el.selectedOptions].map((o) => o.value) : el.value;
+    });
+    try {
+      const out = await fillForm(bytes.slice(0), values, { flatten: ($("pff-flat") as HTMLInputElement).checked });
+      const name = `${baseName(file.name)}_filled.pdf`;
+      const ul = document.createElement("ul"); ul.className = "file-list";
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(out.byteLength);
+      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, name, "application/pdf"));
+      li.append(n, m, a); ul.append(li);
+      $("pff-result").replaceChildren(ul);
+    } catch (e) { showError($("pff-result"), (e as Error).message); }
+  });
+</script>
+
+<style>
+  .pff-fields { display: grid; gap: var(--s2); }
+  .pff-fields :global(select[multiple]) { min-height: 110px; }
+</style>

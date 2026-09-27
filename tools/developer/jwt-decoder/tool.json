@@ -1,0 +1,18 @@
+{
+  "name": "JWT Decoder",
+  "short": "JWT decoder",
+  "tagline": "See what's inside a JSON Web Token, check its expiry, and verify HMAC signatures.",
+  "seoTitle": "JWT decoder that never sends your token anywhere",
+  "description": "Decode a JWT's header and claims, see when it expires, and verify HS256 signatures with your secret. Your token never leaves the page.",
+  "section": "Inspect",
+  "keywords": ["jwt", "decode jwt", "json web token", "jwt debugger", "claims", "hs256", "bearer token"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-28",
+  "offline": true,
+  "specs": { "Engine": "Web Crypto API", "Verifies": "HS256, HS384, HS512 with a shared secret" },
+  "faq": [
+    { "q": "Is it safe to paste a real token?", "a": "Safer than most: it's decoded in this tab and the page's security policy blocks any outside connection. Still, treat live tokens like passwords and revoke any you've shared." },
+    { "q": "Can it verify RS256 tokens?", "a": "Not yet. Those need the issuer's public key; HMAC tokens (HS256 and friends) can be checked with your secret now." }
+  ]
+}
