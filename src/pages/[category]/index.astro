@@ -2,7 +2,7 @@
 import Base from "../../layouts/Base.astro";
 import Card from "../../components/Card.astro";
 import { CATEGORIES } from "../../data/categories";
-import { loadCatalogue } from "../../data/catalogue";
+import { loadCatalogue, REPO } from "../../data/catalogue";
 
 export function getStaticPaths() {
   return CATEGORIES.map((c) => ({ params: { category: c.slug } }));
@@ -15,7 +15,7 @@ const a = aisles.find((x) => x.slug === category)!;
 <Base
   category={a.slug}
   title={`${a.title} that run in your browser | Free the Tools`}
-  description={`${a.blurb} Free, open source, and nothing is uploaded.`}
+  description={`${a.blurb} Open source, no accounts, and nothing is uploaded.`}
   jsonLd={{
     "@type": "CollectionPage",
     name: a.title,
@@ -23,29 +23,35 @@ const a = aisles.find((x) => x.slug === category)!;
     hasPart: a.live.map((t) => ({ "@type": "WebApplication", name: t.data.name, url: new URL(t.url, Astro.site).href })),
   }}
 >
-  <header class="head">
-    <div>
-      <h1>{a.name}</h1>
-      <span class="count">( {a.live.length} on the shelf · {a.wanted.length} wanted )</span>
-    </div>
-    <ul class="filters">
-      <li><a href={`/${a.slug}/`} aria-current="page">All</a></li>
-      {a.sectionsUsed.map((s) => <li><a href={`#${s.name.toLowerCase().replace(/[^a-z]+/g, "-")}`}>{s.name}</a></li>)}
-    </ul>
-  </header>
-
-  <section class="intro">
-    <h2>{a.title}.</h2>
-    <p>{a.blurb} Each one runs on your device, costs nothing, and never uploads your files. Tools marked wanted are open requests that anyone can build.</p>
+  <section class="opening">
+    <p class="eyebrow">{a.name} tools</p>
+    <h1 class="sm">{a.blurb}</h1>
+    <p>Each tool runs in your browser and never uploads your files.</p>
   </section>
 
-  {a.sectionsUsed.map((s) => (
-    <section class="aisle" id={s.name.toLowerCase().replace(/[^a-z]+/g, "-")}>
-      <div class="aisle-head"><h2>{s.name}</h2></div>
+  {a.live.length > 0 && (
+    <section class="sect first" aria-labelledby="now">
+      <div class="sect-head"><h2 id="now">Available now</h2><span>{a.live.length}</span></div>
       <ul class="grid">
-        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} toolId={t.id} />)}
-        {s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} wanted />)}
+        {a.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} toolId={t.id} blurb={t.data.tagline} group={t.data.section} />)}
       </ul>
     </section>
-  ))}
+  )}
+
+  {a.wanted.length > 0 && (
+    <section class:list={["sect", { first: !a.live.length }]} aria-labelledby="planned">
+      <div class="sect-head"><h2 id="planned">In the works</h2><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build one</a></div>
+      <ul class="list">
+        {a.wanted.map((w) => <li><a href={w.url}><span>{w.name}</span><span class="meta">{w.section} · open request</span></a></li>)}
+      </ul>
+      <p class="more"><a href={`${REPO}/issues/new?template=tool_request.yml`}>Missing something? Request a {a.name === a.name.toUpperCase() ? a.name : a.name.toLowerCase()} tool</a></p>
+    </section>
+  )}
 </Base>
+
+<style>
+  .first { margin-top: 0; }
+  .more { margin-top: var(--s3); font-size: var(--t-sm); }
+  .more a { color: var(--muted); }
+  .more a:hover { color: var(--ink); }
+</style>
