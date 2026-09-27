@@ -248,3 +248,14 @@ test.describe("fill form and developer tools", () => {
     await expect(page.locator("#rx-view mark").first()).toHaveText("ada@example.com");
   });
 });
+
+test.describe("phone layout", () => {
+  test.skip(({ isMobile }) => !isMobile, "phone only");
+  for (const path of ["/", "/pdf/", "/about/", ...TOOLS]) {
+    test(`${path} doesn't scroll sideways`, async ({ page }) => {
+      await page.goto(path);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+  }
+});
