@@ -1,0 +1,38 @@
+---
+import DropZone from "../../../src/components/DropZone.astro";
+---
+<section class="tool" aria-label="Remove photo location">
+  <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop photos here" hint="JPG, PNG or WebP · several at once is fine" />
+  <ul class="file-list" id="rml-list" aria-live="polite"></ul>
+</section>
+
+<script>
+  import { stripMetadata } from "./core.js";
+  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  const list = document.getElementById("rml-list")!;
+  const MIME: Record<string, string> = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+  const EXT: Record<string, string> = { jpeg: "jpg", png: "png", webp: "webp" };
+
+  wireDrop("rml", async (files) => {
+    for (const f of files) {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta";
+      const act = document.createElement("span"); act.className = "fact";
+      try {
+        const r = stripMetadata(new Uint8Array(await f.arrayBuffer()));
+        const removed = [r.found.gps && "GPS location", r.found.exif && "camera and date details", r.found.xmp && "XMP", r.found.iptc && "IPTC", r.found.comment && "comments"].filter(Boolean);
+        m.textContent = removed.length ? `Removed ${removed.join(", ")} · ${fmtBytes(f.size)} → ${fmtBytes(r.bytes.length)}` : "No location or camera data found. This copy is clean.";
+        if (r.found.gps) li.classList.add("rml-gps");
+        act.append(downloadLink(r.bytes, `${baseName(f.name)}_clean.${EXT[r.format]}`, MIME[r.format]));
+      } catch (e) { m.textContent = (e as Error).message; m.classList.add("bad"); }
+      li.append(n, m, act);
+      list.prepend(li);
+    }
+  });
+</script>
+
+<style>
+  #rml-list :global(.rml-gps .fmeta) { color: var(--ink); }
+  #rml-list :global(.bad) { color: var(--bad); }
+</style>

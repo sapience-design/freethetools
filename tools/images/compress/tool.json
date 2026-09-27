@@ -1,0 +1,19 @@
+{
+  "name": "Compress Images",
+  "short": "Compress",
+  "tagline": "Smaller photos with no visible loss, one or a whole batch. Nothing is uploaded.",
+  "seoTitle": "Compress images without uploading (JPG, PNG, WebP)",
+  "description": "Make JPG, PNG and WebP images smaller for free in your browser, one or many at once. Choose the quality. Photos never leave your device.",
+  "section": "Optimize",
+  "keywords": ["compress image", "reduce image size", "optimize", "jpg", "png", "webp", "smaller photo", "tinypng"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's own image encoders", "PNG": "Converted to WebP (keeps transparency) unless you choose otherwise" },
+  "faq": [
+    { "q": "Are my images uploaded?", "a": "No. They're re-encoded inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Why did one image not get smaller?", "a": "Some images are already well compressed. If the new file isn't smaller, the tool tells you and you can keep the original." },
+    { "q": "Does it remove location data too?", "a": "Yes, re-encoded images don't carry the original EXIF metadata. For lossless removal without re-encoding, use Remove Photo Location." }
+  ]
+}

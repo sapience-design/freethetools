@@ -1,0 +1,18 @@
+{
+  "name": "Resize Images",
+  "short": "Resize",
+  "tagline": "Exact sizes for one image or a whole batch, by pixels or percentage. Nothing is uploaded.",
+  "seoTitle": "Resize images online without uploading",
+  "description": "Resize JPG, PNG and WebP images to exact pixels or a percentage, one or many at once. Free, private, and your photos never leave your device.",
+  "section": "Optimize",
+  "keywords": ["resize image", "resize photo", "change size", "pixels", "scale", "batch resize", "dimensions"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's canvas, high-quality smoothing", "Batch": "Resize many images at once" },
+  "faq": [
+    { "q": "Are my photos uploaded?", "a": "No. They're resized inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Why is the result a little blurry when I make it bigger?", "a": "Enlarging has to invent pixels that weren't there. Shrinking looks sharp; enlarging much past the original size always softens." }
+  ]
+}

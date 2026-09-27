@@ -1,0 +1,23 @@
+{
+  "name": "Remove Photo Location",
+  "short": "Remove location",
+  "tagline": "Strip GPS location, camera details and dates from photos before you share them.",
+  "seoTitle": "Remove GPS location and EXIF data from photos",
+  "description": "Remove GPS location, camera and date data from JPG, PNG and WebP photos, without losing quality. Free, and photos never leave your device.",
+  "section": "Privacy",
+  "keywords": ["remove exif", "gps", "location", "metadata", "privacy", "strip", "photo", "geotag"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": {
+    "Engine": "Plain JavaScript, no re-encoding",
+    "Removes": "EXIF (GPS, camera, dates), XMP, IPTC and comments",
+    "Quality": "Lossless: the picture data is copied byte for byte"
+  },
+  "faq": [
+    { "q": "Why remove location from photos?", "a": "Phones record where each photo was taken. Anyone you send the original file to can see that, which can reveal your home, school or routine." },
+    { "q": "Are my photos uploaded to do this?", "a": "No. It works inside this tab, and the page's security policy blocks it from sending data anywhere. That's the point of a privacy tool." },
+    { "q": "Will the photo lose quality?", "a": "No. Only the metadata sections are removed; the picture itself is copied exactly. Rotation from the camera may be lost, so check sideways photos." }
+  ]
+}

@@ -1,0 +1,46 @@
+---
+import DropZone from "../../../src/components/DropZone.astro";
+import { FORMATS } from "./core.js";
+---
+<section class="tool" aria-label="Convert image format">
+  <DropZone prefix="cvi" toolId="images/convert" category="images" name="Convert Image Format" accept="image/*" multiple title="Drop images here" hint="PNG, JPG, WebP, GIF or BMP · one or many" />
+  <fieldset class="field">
+    <legend class="eyebrow">Convert to</legend>
+    <div class="seg">
+      {FORMATS.map((f, i) => (<><input type="radio" name="cvi-to" id={`cvi-${f.ext}`} value={f.type} checked={i === 0} /><label for={`cvi-${f.ext}`}>{f.label}<small>{f.note}</small></label></>))}
+    </div>
+  </fieldset>
+  <ul class="file-list" id="cvi-list" aria-live="polite"></ul>
+</section>
+
+<script>
+  import { FORMATS, renameTo, qualityFor } from "./core.js";
+  import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
+  import { wireDrop, fmtBytes, downloadLink } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  canEncode("image/avif").then((ok) => {
+    if (ok) return;
+    const input = $("cvi-avif") as HTMLInputElement;
+    input.disabled = true;
+    const label = document.querySelector('label[for="cvi-avif"] small');
+    if (label) label.textContent = "this browser can't write AVIF";
+  });
+
+  wireDrop("cvi", async (files) => {
+    const type = (document.querySelector('input[name="cvi-to"]:checked') as HTMLInputElement).value as Format;
+    const fmt = FORMATS.find((f) => f.type === type)!;
+    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Converting…";
+      const act = document.createElement("span"); act.className = "fact";
+      li.append(n, m, act); $("cvi-list").prepend(li);
+      try {
+        const bmp = await decode(f);
+        const blob = await encode(bmp, bmp.width, bmp.height, type, qualityFor(type));
+        m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
+        act.append(downloadLink(blob, renameTo(f.name, fmt.ext), type));
+      } catch (e) { m.textContent = (e as Error).message; }
+    }
+  });
+</script>

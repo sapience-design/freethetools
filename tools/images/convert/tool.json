@@ -1,0 +1,18 @@
+{
+  "name": "Convert Image Format",
+  "short": "Convert format",
+  "tagline": "PNG, JPG, WebP and AVIF, back and forth, one or a batch. Nothing is uploaded.",
+  "seoTitle": "Convert PNG, JPG and WebP images without uploading",
+  "description": "Convert images between PNG, JPG, WebP and AVIF for free in your browser, one or many at once. Your images never leave your device.",
+  "section": "Convert",
+  "keywords": ["png to jpg", "webp to png", "jpg to webp", "avif", "convert image", "image format", "webp to jpg"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-09-27",
+  "offline": true,
+  "specs": { "Engine": "Your browser's own image encoders", "AVIF": "Offered when your browser can write it" },
+  "faq": [
+    { "q": "Are my images uploaded?", "a": "No. They're converted inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Which format should I choose?", "a": "JPG for photos you'll share anywhere, PNG for screenshots and graphics with transparency, WebP for websites. AVIF is smallest but not every app opens it yet." }
+  ]
+}
