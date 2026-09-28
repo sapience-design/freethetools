@@ -312,6 +312,35 @@ test.describe("theme, search, sorting, likes and stats", () => {
     await expect(page.locator("#st-table tbody tr").first()).toBeVisible();
   });
 
+  test("a visit is counted once, with only a source name, country and device type", async ({ page, request, baseURL }) => {
+    const visit = page.waitForRequest((r) => r.url().endsWith("/api/stats/visit") && r.method() === "POST");
+    await page.goto("/");
+    expect(Object.keys((await visit).postDataJSON()).sort()).toEqual(["device", "ref"]);
+    let again = false;
+    page.on("request", (r) => { if (r.url().endsWith("/api/stats/visit")) again = true; });
+    await page.goto("/pdf/");
+    await page.waitForLoadState("networkidle");
+    expect(again).toBe(false);
+
+    const res = await request.post("/api/stats/visit", { headers: { Origin: baseURL }, data: { ref: "news.ycombinator.com", device: "tablet" } });
+    expect(res.status()).toBe(204);
+    const { site } = await (await request.get(`/api/stats/summary?fresh=${Date.now()}`)).json();
+    expect(site.visits30).toBeGreaterThan(0);
+    expect(site.referrers.map(([k]) => k)).toContain("Hacker News");
+    expect(site.devices.map(([k]) => k)).toContain("tablet");
+    await page.goto("/stats/");
+    await expect(page.locator("#st-referrers li").first()).not.toHaveText("");
+    await expect(page.locator("#st-visits")).toHaveText(/\d+ visits?/);
+  });
+
+  test("copying a result counts a success for that tool", async ({ page }) => {
+    await page.goto("/text/case-converter/");
+    await page.fill("#cc-in", "hello there");
+    const ev = page.waitForRequest((r) => r.url().endsWith("/api/stats/event") && r.postDataJSON()?.kind === "success");
+    await page.click("#cc-copy");
+    expect((await ev).postDataJSON()).toEqual({ tool: "text/case-converter", kind: "success" });
+  });
+
   test("unknown pages get the 404 page", async ({ request }) => {
     const res = await request.get("/no-such-tool/");
     expect(res.status()).toBe(404);

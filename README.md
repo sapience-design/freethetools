@@ -2,7 +2,7 @@
 
 **Every tool free. Nothing uploaded. Build the next one.**
 
-[freethetools.com](https://freethetools.com) is a growing shelf of everyday tools, such as compressing a PDF, that run entirely in your browser. There are no accounts, no limits and no ads, and nothing tracks you: the site keeps only anonymous totals of how often each tool is used and liked ([what's counted](https://freethetools.com/stats/)). Every page carries a Content Security Policy that stops it from sending your data to any other server, and the automated tests fail if a tool tries.
+[freethetools.com](https://freethetools.com) is a growing shelf of everyday tools, such as compressing a PDF, that run entirely in your browser. There are no accounts, no limits and no ads, and nothing tracks you: the site keeps only anonymous daily totals, such as how often each tool is used and liked ([what's counted](https://freethetools.com/stats/)). Every page carries a Content Security Policy that stops it from sending your data to any other server, and the automated tests fail if a tool tries.
 
 Free the Tools is a [Sapience](https://sapience.design) initiative, built in the open with anyone who wants to help.
 

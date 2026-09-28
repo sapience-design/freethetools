@@ -7,6 +7,11 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Added (extended stats)
+
+- Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
+- Per-tool outcomes: results downloaded or copied, and errors when a tool can't process something; /stats/ shows a "Worked" rate. See ADR 0007.
+
 ### Added (theme, search, stats)
 
 - Light, Dark and System themes with a switch in the sidebar, remembered per browser and applied before the first paint.

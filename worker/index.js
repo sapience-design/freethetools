@@ -1,9 +1,13 @@
 // The only server code on freethetools.com: anonymous usage totals and likes, at /api/stats/*.
 // Everything else is a static file served by Cloudflare without running this Worker.
 //
-// Stored: per tool, per UTC day, counts of views, uses and likes. Not stored: IP addresses,
-// cookies, user agents, or anything that could identify a person. See /stats/ on the site.
-import { dayKey, parseBody, sameOrigin, summarize } from "./logic.js";
+// Stored: per tool, per UTC day, counts of views, uses, successes, errors and likes; and per
+// UTC day, site-wide counts of visits (one per browser session), countries, referring sites
+// and device types. Each breakdown is a separate counter, never linked to another or to a tool. Not stored: IP addresses, cookies,
+// user agents, full referrer links, or anything that could identify a person. See /stats/.
+import { dayKey, normalizeCountry, parseBody, sameOrigin, summarize } from "./logic.js";
+
+const COLUMNS = { view: "views", use: "uses", success: "successes", error: "errors" };
 
 const JSON_HEADERS = { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" };
 let knownTools = null; // cached per isolate
@@ -32,10 +36,14 @@ async function stats(request, env, ctx, url) {
     const cached = await cache.match(request);
     if (cached) return cached;
     const since = dayKey(new Date(Date.now() - 30 * 86400000));
-    const { results } = await env.DB.prepare(
-      "SELECT tool, SUM(views) AS views, SUM(uses) AS uses, SUM(likes) AS likes, SUM(CASE WHEN day >= ? THEN uses ELSE 0 END) AS uses30 FROM counts GROUP BY tool",
-    ).bind(since).all();
-    const res = new Response(JSON.stringify(summarize(results)), { headers: { ...JSON_HEADERS, "Cache-Control": "public, max-age=60" } });
+    const [counts, dims] = await env.DB.batch([
+      env.DB.prepare(
+        "SELECT tool, SUM(views) AS views, SUM(uses) AS uses, SUM(likes) AS likes, SUM(successes) AS successes, SUM(errors) AS errors, SUM(CASE WHEN day >= ? THEN uses ELSE 0 END) AS uses30 FROM counts GROUP BY tool",
+      ).bind(since),
+      env.DB.prepare("SELECT dim, key, SUM(n) AS n FROM dims WHERE day >= ? GROUP BY dim, key").bind(since),
+    ]);
+    const body = summarize(counts.results, dims.results);
+    const res = new Response(JSON.stringify(body), { headers: { ...JSON_HEADERS, "Cache-Control": "public, max-age=60" } });
     ctx.waitUntil(cache.put(request, res.clone()));
     return res;
   }
@@ -47,11 +55,20 @@ async function stats(request, env, ctx, url) {
     const known = await tools(env, url);
     if (path === "/api/stats/event") {
       const { tool, kind } = parseBody(await readBody(request), known, "event");
-      const col = kind === "view" ? "views" : "uses";
+      const col = COLUMNS[kind];
       ctx.waitUntil(
         env.DB.prepare(`INSERT INTO counts (tool, day, ${col}) VALUES (?, ?, 1) ON CONFLICT(tool, day) DO UPDATE SET ${col} = ${col} + 1`)
           .bind(tool, dayKey()).run(),
       );
+      return new Response(null, { status: 204 });
+    }
+    if (path === "/api/stats/visit") {
+      // One per browser session. Each breakdown is its own counter, so they can't be combined.
+      const { ref, device } = parseBody(await readBody(request), known, "visit");
+      const day = dayKey();
+      const dims = [["visit", "all"], ["country", normalizeCountry(request.cf?.country)], ["referrer", ref], ["device", device]];
+      const upsert = env.DB.prepare("INSERT INTO dims (day, dim, key, n) VALUES (?, ?, ?, 1) ON CONFLICT(day, dim, key) DO UPDATE SET n = n + 1");
+      ctx.waitUntil(env.DB.batch(dims.filter(([, key]) => key).map(([dim, key]) => upsert.bind(day, dim, key))));
       return new Response(null, { status: 204 });
     }
     if (path === "/api/stats/like") {

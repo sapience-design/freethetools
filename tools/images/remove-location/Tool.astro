@@ -8,7 +8,7 @@ import DropZone from "../../../src/components/DropZone.astro";
 
 <script>
   import { stripMetadata } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, baseName, reportFailure } from "../../../src/lib/files";
   const list = document.getElementById("rml-list")!;
   const MIME: Record<string, string> = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
   const EXT: Record<string, string> = { jpeg: "jpg", png: "png", webp: "webp" };
@@ -25,7 +25,7 @@ import DropZone from "../../../src/components/DropZone.astro";
         m.textContent = removed.length ? `Removed ${removed.join(", ")} · ${fmtBytes(f.size)} → ${fmtBytes(r.bytes.length)}` : "No location or camera data found. This copy is clean.";
         if (r.found.gps) li.classList.add("rml-gps");
         act.append(downloadLink(r.bytes, `${baseName(f.name)}_clean.${EXT[r.format]}`, MIME[r.format]));
-      } catch (e) { m.textContent = (e as Error).message; m.classList.add("bad"); }
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; m.classList.add("bad"); }
       li.append(n, m, act);
       list.prepend(li);
     }

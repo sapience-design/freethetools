@@ -90,7 +90,7 @@ const specs: [string, string][] = [
 </Base>
 
 <script>
-  import { trackView, watchUse, isLiked, setLiked, summary, fmtCount } from "../../../lib/stats";
+  import { trackView, watchUse, watchOutcomes, isLiked, setLiked, summary, fmtCount } from "../../../lib/stats";
   const work = document.getElementById("tool-work")!;
   const tool = work.dataset.tool!;
   const like = document.getElementById("tool-like") as HTMLButtonElement;
@@ -100,6 +100,7 @@ const specs: [string, string][] = [
 
   trackView(tool);
   watchUse(tool, work);
+  watchOutcomes(tool, work);
 
   function paint(on: boolean) {
     like.setAttribute("aria-pressed", String(on));
