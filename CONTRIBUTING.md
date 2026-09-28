@@ -41,7 +41,7 @@ The step-by-step [tutorial](docs/tutorial/first-tool.md) builds a word counter f
 
 These are checked automatically where possible, and by a reviewer otherwise.
 
-- **Nothing leaves the device.** No `fetch` to other sites, no analytics, no third-party scripts, fonts or images. The Content Security Policy blocks them, and the browser tests fail if anything tries.
+- **Nothing leaves the device.** No `fetch` to other sites, no analytics of your own (the site's anonymous usage totals are handled centrally in `worker/`), no third-party scripts, fonts or images. The Content Security Policy blocks them, and the browser tests fail if anything tries.
 - **Libraries are vendored.** If you need a library at runtime, add it to `package.json` with an exact version and list its files under `vendor` in `tool.json`. See [how to vendor a library](docs/how-to/vendor-a-library.md).
 - **Accessible.** Keyboard usable, visible focus, labels on every control, WCAG 2.2 AA contrast. Use native elements (`button`, `input`, `details`) before custom widgets.
 - **Plain language.** Write for someone who has never heard of the tool. Errors say what went wrong and how to fix it.

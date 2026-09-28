@@ -11,19 +11,20 @@ interface Props {
   blurb: string;
   toolId?: string;
   planned?: boolean;
+  added?: string;
 }
-const { name, href, category, number, blurb, toolId, planned = false } = Astro.props;
+const { name, href, category, number, blurb, toolId, planned = false, added = "" } = Astro.props;
 const uid = (toolId ?? `${category}-${name}`).replace(/[^a-z0-9]/gi, "");
 const shot = planned ? prototypeFor(name, category, uid) : artFor(toolId ?? "", category, uid, name);
 ---
-<li class:list={["card", { planned }]}>
+<li class:list={["card", { planned }]} data-tool={planned ? undefined : toolId} data-added={added} data-name={name}>
   <a href={href}>
     <span class="shot" set:html={shot} />
     <span class="body">
       <span class="no">{number}</span>
       <span class="name">{name}</span>
       <span class="blurb">{blurb}</span>
-      <span class="stock">{planned ? "Made to order" : "In stock"}</span>
+      <span class="stock">{planned ? "Made to order" : "In stock"}<span class="stat" data-stat hidden></span></span>
     </span>
   </a>
   {!planned && toolId && (
@@ -50,6 +51,8 @@ const shot = planned ? prototypeFor(name, category, uid) : artFor(toolId ?? "", 
   .blurb { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); max-width: 40ch; }
   .stock { margin-top: 8px; font-size: var(--t-xs); line-height: var(--lh-xs); font-weight: 500; color: var(--ink); letter-spacing: .01em; }
   .planned .stock { color: var(--muted); font-weight: 400; }
+  .stat { color: var(--muted); font-weight: 400; }
+  .stat::before { content: " · "; }
   .planned .name { color: var(--ink-soft); }
   .card a:hover .name { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 4px; }
 

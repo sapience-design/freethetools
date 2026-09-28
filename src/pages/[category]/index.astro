@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import Card from "../../components/Card.astro";
+import SortBar from "../../components/SortBar.astro";
 import { CATEGORIES } from "../../data/categories";
 import { loadCatalogue, REPO } from "../../data/catalogue";
 
@@ -29,11 +30,13 @@ const a = aisles.find((x) => x.slug === category)!;
     <p>Each tool runs in your browser and never uploads your files.</p>
   </section>
 
+  <SortBar />
+
   {a.sectionsUsed.map((s) => (
     <section class="shelf" aria-labelledby={`sec-${s.name.replace(/\W+/g, "-")}`}>
       <div class="shelf-head"><h2 id={`sec-${s.name.replace(/\W+/g, "-")}`}>{s.name}</h2></div>
       <ul class="grid">
-        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} />)}
+        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} added={t.data.added} />)}
         {s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />)}
       </ul>
     </section>

@@ -1,10 +1,12 @@
-// Cloudflare Workers static assets: serves dist/ as plain files. There is no Worker code,
-// so nothing runs on the server and requests to static assets are free and unmetered.
+// Cloudflare Workers static assets: serves dist/ as plain files, free and unmetered. The only
+// code is worker/index.js, which answers /api/stats/* (anonymous usage totals and likes) and
+// serves the 404 page; every existing file is served without running it.
 // _headers in dist/ (from public/_headers) sets the security headers.
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "freethetools",
   "compatibility_date": "2026-09-26",
+  "main": "worker/index.js",
   // Preview URLs let pull requests from this repo get their own link. Canonical tags keep
   // search engines on freethetools.com.
   "workers_dev": true,
@@ -14,9 +16,13 @@
   "previews": {},
   "assets": {
     "directory": "./dist",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
   },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "freethetools-stats", "database_id": "a53387a5-0d88-47ff-9b85-48065abf0fd8", "migrations_dir": "migrations" }
+  ],
   "routes": [
     { "pattern": "freethetools.com", "custom_domain": true },
     { "pattern": "www.freethetools.com", "custom_domain": true }

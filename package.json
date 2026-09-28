@@ -32,6 +32,7 @@
     "@jspawn/ghostscript-wasm": "0.0.2",
     "astro": "^7.3.5",
     "diff": "9.0.0",
+    "minisearch": "7.2.0",
     "papaparse": "5.7.0",
     "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.3.289",

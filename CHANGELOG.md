@@ -7,6 +7,18 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Added (theme, search, stats)
+
+- Light, Dark and System themes with a switch in the sidebar, remembered per browser and applied before the first paint.
+- Search with typo tolerance, partial words, synonyms ("combine" finds Merge) and arrow-key navigation (MiniSearch, MIT).
+- Sorting on every shelf: Featured, Most used, Most liked, Newest, A–Z.
+- Anonymous usage totals (views, uses) and likes per tool, via a small Worker and Cloudflare D1; a public /stats/ page shows the numbers and what is and isn't collected. See ADR 0006.
+
+### Changed
+
+- The sidebar is a full-height panel with its own surface, pinned theme switch, and a scrollbar only on hover; the footer moved into the content column; thin theme-coloured scrollbars everywhere; dark mode lifted off black.
+- Pledge wording: "no tracking" became "no tracking of you; only anonymous totals".
+
 ### Added
 
 - 15 new tools: Merge PDFs, Split PDF, Rotate Pages, Images to PDF, Word Counter, Case Converter, Text Diff, JSON Formatter, CSV to JSON, Base64, Hash Generator, UUID Generator, QR Code Maker, Unit Converter, Time Zone Converter.

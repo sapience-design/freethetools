@@ -13,7 +13,8 @@ export default defineConfig({
     { name: "phone", use: { ...devices["Pixel 7"] } },
   ],
   webServer: process.env.BASE_URL ? undefined : {
-    command: "npx wrangler dev --port 8788",
+    // The real Worker with a local copy of the stats database, migrated first.
+    command: "npx wrangler d1 migrations apply DB --local && npx wrangler dev --port 8788",
     url: "http://localhost:8788",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

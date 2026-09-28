@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { CATEGORIES, CATEGORY_SLUGS, type Category } from "./categories";
 import wanted from "./wanted.json";
+import { expand } from "./synonyms.js";
 
 export const REPO = "https://github.com/sapience-design/freethetools";
 export const SITE_NAME = "Free the Tools";
@@ -44,8 +45,8 @@ export async function loadCatalogue() {
   for (const a of aisles) for (const sec of a.sectionsUsed) for (const item of [...sec.live, ...sec.wanted]) item.number = `No. ${String(++n).padStart(3, "0")}`;
 
   const searchIndex = [
-    ...tools.map((t) => ({ n: t.data.name, c: t.category.name, u: t.url, k: `${t.data.short} ${t.data.keywords.join(" ")} ${t.data.tagline}` })),
-    ...aisles.flatMap((a) => a.wanted.map((w) => ({ n: w.name, c: a.name, u: w.url, k: w.section, w: 1 }))),
+    ...tools.map((t) => ({ n: t.data.name, c: t.category.name, u: t.url, k: expand(`${t.data.name} ${t.data.short} ${t.data.keywords.join(" ")} ${t.data.tagline}`) })),
+    ...aisles.flatMap((a) => a.wanted.map((w) => ({ n: w.name, c: a.name, u: w.url, k: expand(`${w.name} ${w.blurb} ${w.section}`), w: 1 as const }))),
   ];
 
   return { tools, aisles, searchIndex };

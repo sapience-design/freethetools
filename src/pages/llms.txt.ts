@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ site }) => {
   const lines = [
     "# Free the Tools",
     "",
-    "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no tracking. A Sapience initiative (https://sapience.design), licensed AGPL-3.0.",
+    "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no tracking of people; only anonymous per-tool usage totals. A Sapience initiative (https://sapience.design), licensed AGPL-3.0.",
     "",
     `Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Source code: ${REPO}.`,
     "",

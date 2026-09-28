@@ -259,3 +259,62 @@ test.describe("phone layout", () => {
     });
   }
 });
+
+test.describe("theme, search, sorting, likes and stats", () => {
+  test.skip(({ isMobile }) => isMobile, "run once, on desktop");
+
+  test("theme choice sticks across pages", async ({ page }) => {
+    await page.goto("/");
+    await page.click('[data-theme-set="dark"]');
+    await page.goto("/pdf/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+    await page.click('[data-theme-set="system"]');
+    await page.reload();
+    await expect(page.locator("html")).not.toHaveAttribute("data-theme", /.+/);
+  });
+
+  test("search understands other words and typos", async ({ page }) => {
+    await page.goto("/");
+    await page.fill("#find", "combine pdf");
+    await expect(page.locator("#side-results a").first()).toContainText("Merge PDFs");
+    await page.fill("#find", "compres");
+    await expect(page.locator("#side-results a").first()).toContainText("Compress");
+  });
+
+  test("A–Z sorts each shelf, made-to-order last", async ({ page }) => {
+    await page.goto("/pdf/");
+    await page.click('label[for="sort-az"]');
+    const names = await page.locator("main .grid").first().locator("li:not(.planned)").evaluateAll((els) => els.map((e) => e.dataset.name));
+    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+  });
+
+  test("liking a tool is remembered and counted", async ({ page }) => {
+    await page.goto("/text/case-converter/");
+    await page.click("#tool-like");
+    await expect(page.locator("#tool-like")).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("#tool-like-count")).toHaveText(/^[1-9]/);
+    await page.reload();
+    await expect(page.locator("#tool-like")).toHaveAttribute("aria-pressed", "true");
+    await page.click("#tool-like"); // leave the shared test database as we found it
+  });
+
+  test("stats API accepts events from the site and rejects other origins", async ({ page, request, baseURL }) => {
+    const ok = await request.post("/api/stats/event", { headers: { Origin: baseURL }, data: { tool: "pdf/merge", kind: "view" } });
+    expect(ok.status()).toBe(204);
+    const foreign = await request.post("/api/stats/event", { headers: { Origin: "https://evil.example" }, data: { tool: "pdf/merge", kind: "view" } });
+    expect(foreign.status()).toBe(403);
+    const unknown = await request.post("/api/stats/event", { headers: { Origin: baseURL }, data: { tool: "nope/nope", kind: "view" } });
+    expect(unknown.status()).toBe(400);
+    const summary = await request.get("/api/stats/summary");
+    expect(summary.ok()).toBe(true);
+    expect((await summary.json()).tools).toBeTruthy();
+    await page.goto("/stats/");
+    await expect(page.locator("#st-table tbody tr").first()).toBeVisible();
+  });
+
+  test("unknown pages get the 404 page", async ({ request }) => {
+    const res = await request.get("/no-such-tool/");
+    expect(res.status()).toBe(404);
+    expect(await res.text()).toContain("isn't here");
+  });
+});
