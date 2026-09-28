@@ -34,24 +34,39 @@
   /* Space (8pt) */
   --s1: 8px; --s2: 16px; --s3: 24px; --s4: 32px; --s5: 48px; --s6: 64px; --s7: 96px;
 
-  --side-w: 232px;
+  --side-w: 248px;
+  --side-bg: oklch(98.5% 0 0);             /* sidebar panel, one step off the page */
+  --scroll: oklch(80% 0 0);               /* scrollbar thumb */
+  --logo-filter: none;                    /* Sapience wordmark is dark ink; inverted in dark mode */
   --sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: light;
 }
+/* Dark: a soft charcoal page, a lifted sidebar panel, and surfaces a step above the page
+   (not below it), so nothing reads as a black hole. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: oklch(17% 0 0); --studio: oklch(15% 0 0); --studio-2: oklch(26.9% 0 0); --ink: oklch(97% 0 0); --ink-strong: oklch(98.5% 0 0); --ink-soft: oklch(87% 0 0); --muted: oklch(70.8% 0 0);
-    --line: oklch(26.9% 0 0); --control-line: oklch(32% 0 0); --foot: oklch(12% 0 0); --ok: oklch(72.3% 0.219 149.579); --bad: oklch(70.4% 0.191 22.216);
+    --paper: oklch(17% 0 0); --side-bg: oklch(20% 0 0); --studio: oklch(22% 0 0); --studio-2: oklch(27% 0 0);
+    --ink: oklch(96% 0 0); --ink-strong: oklch(98.5% 0 0); --ink-soft: oklch(85% 0 0); --muted: oklch(68% 0 0);
+    --line: oklch(27% 0 0); --control-line: oklch(33% 0 0); --foot: oklch(17% 0 0); --scroll: oklch(38% 0 0);
+    --ok: oklch(72.3% 0.219 149.579); --bad: oklch(70.4% 0.191 22.216); --logo-filter: invert(1);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: oklch(17% 0 0); --studio: oklch(15% 0 0); --studio-2: oklch(26.9% 0 0); --ink: oklch(97% 0 0); --ink-strong: oklch(98.5% 0 0); --ink-soft: oklch(87% 0 0); --muted: oklch(70.8% 0 0);
-  --line: oklch(26.9% 0 0); --control-line: oklch(32% 0 0); --foot: oklch(12% 0 0); --ok: oklch(72.3% 0.219 149.579); --bad: oklch(70.4% 0.191 22.216);
+  --paper: oklch(17% 0 0); --side-bg: oklch(20% 0 0); --studio: oklch(22% 0 0); --studio-2: oklch(27% 0 0);
+  --ink: oklch(96% 0 0); --ink-strong: oklch(98.5% 0 0); --ink-soft: oklch(85% 0 0); --muted: oklch(68% 0 0);
+  --line: oklch(27% 0 0); --control-line: oklch(33% 0 0); --foot: oklch(17% 0 0); --scroll: oklch(38% 0 0);
+  --ok: oklch(72.3% 0.219 149.579); --bad: oklch(70.4% 0.191 22.216); --logo-filter: invert(1);
   color-scheme: dark;
 }
+
+/* Thin scrollbars in the theme's colours, everywhere. */
+* { scrollbar-width: thin; scrollbar-color: var(--scroll) transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll); border-radius: 999px; border: 3px solid transparent; background-clip: padding-box; }
 
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
@@ -69,8 +84,10 @@ p { margin: 0; text-wrap: pretty; }
 kbd { font-family: var(--sans); font-size: var(--t-xs); line-height: var(--lh-xs); padding: 1px 5px; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
 
 /* ---- Frame ---- */
-.shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); gap: 0 var(--s6); max-width: 1480px; margin: 0 auto; padding: 0 clamp(var(--s2), 4vw, var(--s5)); }
-.main { min-width: 0; padding: var(--s5) 0 var(--s7); }
+/* App shell: a full-height sidebar panel on the left edge, the content column beside it. */
+.shell { display: grid; grid-template-columns: var(--side-w) minmax(0, 1fr); min-height: 100vh; min-height: 100dvh; }
+.main { min-width: 0; display: flex; flex-direction: column; padding: var(--s5) clamp(var(--s3), 4vw, var(--s6)) 0; }
+.main-in { width: 100%; max-width: 1200px; margin: 0 auto; flex: 1; }
 
 /* Page opening: eyebrow, big statement, supporting line */
 .opening { display: grid; gap: 12px; max-width: 760px; margin-bottom: var(--s6); }

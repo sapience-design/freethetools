@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Card from "../components/Card.astro";
+import SortBar from "../components/SortBar.astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
 
 const { tools, aisles } = await loadCatalogue();
@@ -9,7 +10,7 @@ const planned = aisles.reduce((n, a) => n + a.wanted.length, 0);
 <Base
   page="home"
   title="Free the Tools – everyday tools that never leave your device"
-  description="Open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No accounts, no ads, no tracking. A Sapience initiative."
+  description="Open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No accounts, no ads, nothing uploaded. A Sapience initiative."
   jsonLd={{ "@type": "WebSite", name: "Free the Tools", url: "https://freethetools.com/", description: "Open-source tools that run in your browser. Nothing is uploaded." }}
 >
   <section class="opening">
@@ -17,6 +18,8 @@ const planned = aisles.reduce((n, a) => n + a.wanted.length, 0);
     <h1>Everyday tools, made to <em>stay with you.</em></h1>
     <p>Every tool here works inside your browser, so your files never leave your device. {tools.length} in stock, {planned} made to order, and anyone can make the next one.</p>
   </section>
+
+  <SortBar />
 
   {aisles.map((a) => (
     <section class="shelf" aria-labelledby={`s-${a.slug}`}>
@@ -26,7 +29,7 @@ const planned = aisles.reduce((n, a) => n + a.wanted.length, 0);
       </div>
       <ul class="grid">
         {a.sectionsUsed.flatMap((s) => [
-          ...s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} />),
+          ...s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} added={t.data.added} />),
           ...s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />),
         ])}
       </ul>

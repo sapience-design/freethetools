@@ -30,4 +30,4 @@ Anyone can step back at any time. Maintainers who have been inactive for 12 mont
 
 ## The name and the pledge
 
-The pledge (free, private, open, no tracking) is what makes this project worth contributing to. It can only change through the decision process above, and Sapience Design will not change it to add paid features or tracking. If Sapience Design ever stops maintaining the project, it will hand the repository and domain to a new maintainer group or a non-profit foundation rather than let it lapse.
+The pledge (free, private, open, no tracking of people) is what makes this project worth contributing to. It can only change through the decision process above, and Sapience Design will not change it to add paid features or tracking of individuals. If Sapience Design ever stops maintaining the project, it will hand the repository and domain to a new maintainer group or a non-profit foundation rather than let it lapse.

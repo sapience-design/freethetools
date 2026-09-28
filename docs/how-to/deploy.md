@@ -45,7 +45,7 @@ freethetools.com uses Cloudflare Email Routing: `hello@`, `security@`, `conduct@
 
 ## Zone settings that must stay off
 
-Cloudflare features that inject scripts into pages clash with the Content Security Policy (the browser blocks them) and with the no-tracking pledge. Keep these **off** for freethetools.com:
+Cloudflare features that inject scripts into pages clash with the Content Security Policy (the browser blocks them) and with the privacy pledge. Keep these **off** for freethetools.com:
 
 - Security → Settings → **Bot Fight Mode** (on the free plan it also switches on JavaScript Detections, which cannot be disabled separately)
 - **AI Labyrinth**, and **AI bot policies** set to allow (we want AI assistants to find the site)

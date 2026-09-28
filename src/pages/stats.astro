@@ -1,0 +1,68 @@
+---
+import Base from "../layouts/Base.astro";
+import { loadCatalogue, REPO } from "../data/catalogue";
+const { tools } = await loadCatalogue();
+const rows = tools.map((t) => ({ id: t.id, name: t.data.name, url: t.url, group: t.category.name })).sort((a, b) => a.name.localeCompare(b.name));
+---
+<Base page="stats" title="Usage stats | Free the Tools" description="How often each tool is used and liked, counted anonymously. Exactly what we count, and what we never collect.">
+  <section class="opening">
+    <p class="eyebrow">Usage stats</p>
+    <h1 class="sm">Counted in totals, never about you.</h1>
+    <p>These numbers help people find the tools that work well, and help us decide what to build next. Here is exactly what's counted.</p>
+  </section>
+
+  <div class="counted">
+    <div><h3>What we count</h3><ul>
+      <li><b>Views:</b> a tool's page was opened. Once per browser session.</li>
+      <li><b>Uses:</b> someone actually worked with the tool (dropped a file, typed, pressed a button). Once per visit.</li>
+      <li><b>Likes:</b> the Like button. One per browser; you can take it back.</li>
+    </ul></div>
+    <div><h3>What we never collect</h3><ul>
+      <li>No cookies, no IDs, no fingerprinting.</li>
+      <li>No IP addresses stored, no location, no device details.</li>
+      <li>Nothing you put into a tool. Your files never leave your device.</li>
+      <li>If your browser sends Global Privacy Control or Do Not Track, views and uses aren't sent at all.</li>
+    </ul></div>
+  </div>
+
+  <table class="specs stats-table" id="st-table">
+    <thead><tr><th>Tool</th><th class="n">Uses</th><th class="n">Last 30 days</th><th class="n">Views</th><th class="n">Likes</th></tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr data-tool={r.id}><td><a href={r.url}>{r.name}</a> <span class="muted">{r.group}</span></td><td class="n" data-k="uses">–</td><td class="n" data-k="uses30">–</td><td class="n" data-k="views">–</td><td class="n" data-k="likes">–</td></tr>
+      ))}
+    </tbody>
+  </table>
+  <p class="muted note" id="st-note">Totals are stored per tool per day in a Cloudflare D1 database. The code is <a href={`${REPO}/tree/main/worker`}>in the open</a>.</p>
+</Base>
+
+<style>
+  .counted { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--s4) var(--s5); margin-bottom: var(--s6); }
+  .counted h3 { font-size: var(--t-base); line-height: var(--lh-base); margin-bottom: 8px; }
+  .counted ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-soft); font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
+  .counted b { color: var(--ink); font-weight: 500; }
+  .stats-table { max-width: 900px; }
+  .stats-table th { width: auto; }
+  .stats-table .n { text-align: right; font-variant-numeric: tabular-nums; }
+  .stats-table a { color: var(--ink); text-decoration: none; font-weight: 500; }
+  .stats-table a:hover { text-decoration: underline; }
+  .note { margin-top: var(--s3); font-size: var(--t-sm); }
+  .note a { color: inherit; }
+</style>
+
+<script>
+  import { summary } from "../lib/stats";
+  const nf = new Intl.NumberFormat();
+  summary().then((s) => {
+    if (!s) { document.getElementById("st-note")!.textContent = "Stats aren't available right now."; return; }
+    const tbody = document.querySelector("#st-table tbody")!;
+    const trs = [...tbody.querySelectorAll<HTMLTableRowElement>("tr")];
+    for (const tr of trs) {
+      const t = s[tr.dataset.tool!] ?? { uses: 0, uses30: 0, views: 0, likes: 0 };
+      tr.querySelectorAll<HTMLElement>("[data-k]").forEach((td) => (td.textContent = nf.format(t[td.dataset.k as keyof typeof t])));
+      tr.dataset.uses = String(t.uses);
+    }
+    trs.sort((a, b) => +b.dataset.uses! - +a.dataset.uses!);
+    tbody.append(...trs);
+  });
+</script>
