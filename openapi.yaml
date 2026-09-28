@@ -1,11 +1,15 @@
 openapi: 3.1.0
 info:
   title: Free the Tools catalogue
-  version: 1.0.0
-  summary: Read-only catalogue of free, in-browser tools.
+  version: 1.1.0
+  summary: Read-only catalogue of free, in-browser tools, and their anonymous usage totals.
   description: |
-    A static JSON file describing every tool on freethetools.com, for developers and AI agents.
+    A static JSON file describing every tool on freethetools.com, for developers and AI agents,
+    and a summary of anonymous usage totals (see https://freethetools.com/stats/).
     The tools themselves run in the browser; this API lists them, it does not run them.
+    The site's own pages also write counts to /api/stats/event, /api/stats/like and
+    /api/stats/visit. Those accept only same-origin requests from freethetools.com and are
+    not part of the public API.
   license:
     name: AGPL-3.0-only
     identifier: AGPL-3.0-only
@@ -34,8 +38,55 @@ paths:
           description: Markdown text
           content:
             text/plain: { schema: { type: string } }
+  /api/stats/summary:
+    get:
+      operationId: getStatsSummary
+      summary: Anonymous usage totals per tool, and site-wide visit breakdowns for the last 30 days
+      description: Cached for up to 60 seconds. Returns 503 on branch previews, which have no database.
+      responses:
+        "200":
+          description: The totals
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StatsSummary" }
+        "503":
+          description: Stats are not available on this deployment
 components:
   schemas:
+    StatsSummary:
+      type: object
+      required: [tools, site, generated]
+      properties:
+        tools:
+          type: object
+          description: Keyed by tool id (for example "pdf/compress"). Tools with no counts yet are absent.
+          additionalProperties:
+            type: object
+            properties:
+              views: { type: integer, description: Page opens, once per browser session }
+              uses: { type: integer, description: Times someone worked with the tool, once per visit }
+              uses30: { type: integer, description: Uses in the last 30 days }
+              likes: { type: integer, minimum: 0 }
+              successes: { type: integer, description: Results downloaded or copied }
+              errors: { type: integer, description: Times the tool could not process something }
+        site:
+          type: object
+          description: Last 30 days. Each list is a separate counter, sorted by count, as [key, count] pairs.
+          properties:
+            visits30: { type: integer, description: Visits, one per browser session }
+            referrers:
+              type: array
+              description: Referring site names such as "Google" or a bare domain; "Direct" when none. At most 20.
+              items: { type: array, prefixItems: [{ type: string }, { type: integer }] }
+            countries:
+              type: array
+              description: ISO 3166-1 alpha-2 codes; "XX" when unknown. At most 20.
+              items: { type: array, prefixItems: [{ type: string }, { type: integer }] }
+            devices:
+              type: array
+              description: phone, tablet or desktop.
+              items: { type: array, prefixItems: [{ type: string }, { type: integer }] }
+        generated: { type: string, format: date-time }
     Catalogue:
       type: object
       required: [name, publisher, license, source, categories]
