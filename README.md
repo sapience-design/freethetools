@@ -39,10 +39,11 @@ npm run dev          # http://localhost:4321/text/word-counter/
 | `tools/<group>/<tool>/` | One folder per tool: `tool.json` (name, search text, specs, questions), `Tool.astro` (the interface), `core.js` (the logic) and tests |
 | `src/` | The site: sidebar, catalogue, product pages, API and search files, all built from the tool folders |
 | `astro.config.mjs` | The Content Security Policy that keeps every page on its own origin |
+| `worker/`, `migrations/` | The only server code: anonymous usage totals at `/api/stats/*`, stored in Cloudflare D1 |
 | `e2e/`, `tests/` | Browser tests and checks on the built site |
 | `docs/` | Tutorials, how-to guides, reference and design decisions |
 
-The site is static [Astro](https://astro.build), hosted as static files on Cloudflare Workers, which builds and deploys every merge to `main`. Read [docs/explanation/architecture.md](docs/explanation/architecture.md) for the reasoning.
+The site is static [Astro](https://astro.build) plus one small Worker for anonymous totals, hosted on Cloudflare Workers, which builds and deploys every merge to `main`. Read [docs/explanation/architecture.md](docs/explanation/architecture.md) for the reasoning.
 
 ## Project
 

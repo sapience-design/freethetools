@@ -28,6 +28,14 @@ GitHub Actions still runs the full checks (CI with browser tests, CodeQL, DCO, S
 npm run deploy        # build, then wrangler deploy, using your own `wrangler login`
 ```
 
+## Database changes (stats)
+
+The stats database (D1 `freethetools-stats`) changes only through numbered files in `migrations/`. Workers Builds does not apply them. When a pull request adds one:
+
+1. Make the migration additive: new columns with defaults, or new tables, so the live Worker keeps working.
+2. Apply it before merging: `npx wrangler d1 migrations apply DB --remote`.
+3. Merge. The new Worker then finds the columns it expects.
+
 ## Rolling back
 
 Workers & Pages → freethetools → Deployments → pick an earlier version → Rollback. Or:
