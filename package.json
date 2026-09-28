@@ -19,6 +19,7 @@
     "test": "node --test \"tools/*/*/tests/*.test.js\"",
     "test:site": "node --test \"tests/*.test.js\"",
     "test:e2e": "playwright test",
+    "check:live": "node scripts/live-check.mjs",
     "check": "npm run build && npm test && npm run test:site && npm run test:e2e",
     "new-tool": "node scripts/new-tool.mjs",
     "astro": "astro",

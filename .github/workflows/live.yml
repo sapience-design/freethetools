@@ -1,0 +1,42 @@
+name: Live check
+
+# Read-only check of freethetools.com: every page in the sitemap, on desktop and phone, must load
+# with no page errors, CSP violations, requests to other origins, or sideways scroll. Runs daily,
+# on demand, and after each production deploy by Cloudflare Workers Builds. Writes no stats
+# (the browser sends Global Privacy Control). See scripts/live-check.mjs.
+on:
+  schedule:
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+  check_run:
+    types: [completed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-check
+  cancel-in-progress: true
+
+jobs:
+  live:
+    name: Live site is clean
+    # For check runs, only a successful production build of main (branch previews report too).
+    if: >-
+      github.event_name != 'check_run' || (
+        startsWith(github.event.check_run.name, 'Workers Builds') &&
+        github.event.check_run.conclusion == 'success' &&
+        github.event.check_run.check_suite.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with: { persist-credentials: false }
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Give the new version a minute to reach every edge
+        if: github.event_name == 'check_run'
+        run: sleep 60
+      - name: Check every page
+        run: node scripts/live-check.mjs https://freethetools.com
