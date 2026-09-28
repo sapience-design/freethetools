@@ -73,6 +73,7 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
 
 <script>
   import { reportFailure } from "../../../src/lib/files";
+  import { buildArgs } from "./core.js";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const drop = $("#pdfc-drop"), input = $<HTMLInputElement>("#pdfc-file"), results = $("#pdfc-results");
   const worker = new Worker(new URL("./worker.js", import.meta.url));
@@ -84,9 +85,12 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
   const labels: Record<string, string> = { screen: "smallest", ebook: "balanced", printer: "print", prepress: "prepress" };
   const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".meta") as HTMLElement).innerHTML = html);
 
+  const LOAD_ERROR = '<span class="err">The compressor could not load. Reload the page and try again.</span>';
+  let broken = false; // the worker failed to start; files dropped later must not wait forever
   worker.onerror = () => {
+    broken = true;
     reportFailure();
-    for (const { row } of jobs.values()) setMeta(row, '<span class="err">The compressor could not load. Reload the page and try again.</span>');
+    for (const { row } of jobs.values()) setMeta(row, LOAD_ERROR);
     jobs.clear();
   };
 
@@ -127,10 +131,11 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
       row.innerHTML = `<div class="name"></div><div class="meta mono"><span class="spin"></span>compressing ${fmt(file.size)}…</div><div class="act"></div>`;
       row.querySelector(".name")!.textContent = file.name;
       results.prepend(row);
+      if (broken) { setMeta(row, LOAD_ERROR); continue; }
       const id = nextId++;
       jobs.set(id, { row, file, preset, firstPage });
       const bytes = await file.arrayBuffer();
-      worker.postMessage({ id, bytes, preset, firstPage }, [bytes]);
+      worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage }) }, [bytes]);
     }
   }
 
