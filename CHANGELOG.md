@@ -12,6 +12,10 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
 - Per-tool outcomes: results downloaded or copied, and errors when a tool can't process something; /stats/ shows a "Worked" rate. See ADR 0007.
 
+### Added (share images)
+
+- Link previews: every page has a 1200×630 share image (`og:image`, `twitter:card`), drawn at build time from the tool's product shot, name and tagline (`src/lib/og.js`, `src/pages/og/`). Text is converted to outlines from the site's own fonts, so images are the same on every machine.
+
 ### Fixed
 
 - Compress PDF works in `npm run dev`: the worker is a plain script and receives its Ghostscript arguments from the page. If the worker can't load, files added afterwards show the error instead of spinning.

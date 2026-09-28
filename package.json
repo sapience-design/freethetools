@@ -41,6 +41,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
+    "opentype.js": "^2.0.0",
+    "sharp": "^0.35.5",
     "wrangler": "^4.142.0"
   },
   "allowScripts": {

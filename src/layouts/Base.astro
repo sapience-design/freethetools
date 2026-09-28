@@ -16,6 +16,11 @@ const { title, description, jsonLd, noindex = false, category, tool, page } = As
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const publisher = { "@type": "Organization", name: "Sapience Design", url: "https://sapience.design" };
 const { aisles } = await loadCatalogue();
+// Share image, drawn at build time by src/pages/og/[...slug].png.ts. Groups with no tools yet use the site's.
+const ogPath = category && tool ? `/og/${category}/${tool}.png`
+  : category && aisles.some((a) => a.slug === category && a.live.length) ? `/og/${category}.png`
+  : "/og/site.png";
+const ogImage = new URL(ogPath, Astro.site).href;
 ---
 <!doctype html>
 <html lang="en">
@@ -34,6 +39,12 @@ const { aisles } = await loadCatalogue();
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
+  <meta property="og:image" content={ogImage}>
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content={title.replace(/ \| Free the Tools$/, "") + ", on Free the Tools"}>
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">

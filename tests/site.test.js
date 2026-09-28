@@ -46,6 +46,14 @@ for (const page of pages) {
       .filter((tag) => !/<link[^>]+rel="canonical"/.test(tag));
     assert.deepEqual(external, []);
   });
+
+  test(`${page}: share image exists and is 1200×630`, () => {
+    const m = /<meta property="og:image" content="https:\/\/freethetools\.com\/([^"]+\.png)"/.exec(html(page));
+    assert.ok(m, "og:image missing");
+    const png = readFileSync(join(DIST, m[1]));
+    assert.equal(png.toString("latin1", 1, 4), "PNG");
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [1200, 630]);
+  });
 }
 
 for (const t of tools) {
