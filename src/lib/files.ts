@@ -34,8 +34,14 @@ export function wireDrop(prefix: string, onFiles: (files: File[]) => void) {
   drop.addEventListener("drop", (e) => onFiles([...((e as DragEvent).dataTransfer?.files ?? [])]));
 }
 
+/** Tell the page a tool could not process something (counted anonymously on /stats; no details are sent). */
+export function reportFailure() {
+  document.dispatchEvent(new CustomEvent("ftt:outcome", { detail: { ok: false } }));
+}
+
 /** Show a plain-language error in an element. */
 export function showError(el: HTMLElement, message: string) {
+  reportFailure();
   el.replaceChildren();
   const p = document.createElement("p");
   p.className = "tool-error";

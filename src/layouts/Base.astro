@@ -89,6 +89,9 @@ const { aisles } = await loadCatalogue();
   </div>
 
   <script>
+    import { trackVisit } from "../lib/stats";
+    trackVisit();
+
     // Saved tools live in this browser only (localStorage). The page works without it.
     const KEY = "ftt:saved";
     const read = (): Record<string, { name: string; href: string }> => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };

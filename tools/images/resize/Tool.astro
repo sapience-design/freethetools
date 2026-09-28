@@ -23,7 +23,7 @@ import DropZone from "../../../src/components/DropZone.astro";
 <script>
   import { targetSize, checkSize } from "./core.js";
   import { decode, encode, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, baseName, reportFailure } from "../../../src/lib/files";
   const $ = (id: string) => document.getElementById(id)!;
   const num = (id: string) => +($(id) as HTMLInputElement).value;
   const mode = () => (document.querySelector('input[name="rsz-mode"]:checked') as HTMLInputElement).value;
@@ -51,7 +51,7 @@ import DropZone from "../../../src/components/DropZone.astro";
         const blob = await encode(bmp, size.width, size.height, type, 0.9);
         m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
         act.append(downloadLink(blob, `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`, type));
-      } catch (e) { m.textContent = (e as Error).message; }
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
   });
   fields();

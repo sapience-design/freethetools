@@ -3,8 +3,13 @@ import Base from "../layouts/Base.astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
 const { tools } = await loadCatalogue();
 const rows = tools.map((t) => ({ id: t.id, name: t.data.name, url: t.url, group: t.category.name })).sort((a, b) => a.name.localeCompare(b.name));
+const breakdowns = [
+  { id: "referrers", title: "Where visitors come from" },
+  { id: "countries", title: "Countries" },
+  { id: "devices", title: "Devices" },
+];
 ---
-<Base page="stats" title="Usage stats | Free the Tools" description="How often each tool is used and liked, counted anonymously. Exactly what we count, and what we never collect.">
+<Base page="stats" title="Usage stats | Free the Tools" description="How often each tool is used and liked, where visitors come from, and how reliably each tool works, counted anonymously. Exactly what we count, and what we never collect.">
   <section class="opening">
     <p class="eyebrow">Usage stats</p>
     <h1 class="sm">Counted in totals, never about you.</h1>
@@ -13,27 +18,39 @@ const rows = tools.map((t) => ({ id: t.id, name: t.data.name, url: t.url, group:
 
   <div class="counted">
     <div><h3>What we count</h3><ul>
+      <li><b>Visits:</b> one per browser session. With it: the name of the site that sent you ("Google", never the link), your country as Cloudflare's network sees it, and phone, tablet or desktop. Each is a separate total, so they can't be combined into a picture of anyone.</li>
       <li><b>Views:</b> a tool's page was opened. Once per browser session.</li>
       <li><b>Uses:</b> someone actually worked with the tool (dropped a file, typed, pressed a button). Once per visit.</li>
+      <li><b>Results:</b> a result was downloaded or copied, or a tool couldn't process something. Only the count, never the file or the error.</li>
       <li><b>Likes:</b> the Like button. One per browser; you can take it back.</li>
     </ul></div>
     <div><h3>What we never collect</h3><ul>
       <li>No cookies, no IDs, no fingerprinting.</li>
-      <li>No IP addresses stored, no location, no device details.</li>
+      <li>No IP addresses stored, no city or precise location, no browser or device details beyond phone, tablet or desktop.</li>
       <li>Nothing you put into a tool. Your files never leave your device.</li>
-      <li>If your browser sends Global Privacy Control or Do Not Track, views and uses aren't sent at all.</li>
+      <li>If your browser sends Global Privacy Control or Do Not Track, nothing is counted except likes you press yourself.</li>
     </ul></div>
   </div>
 
+  <section class="site" id="st-site" hidden>
+    <h2>Last 30 days <span class="muted" id="st-visits"></span></h2>
+    <div class="breakdowns">
+      {breakdowns.map((b) => (
+        <div class="bd"><h3>{b.title}</h3><ol class="bars" id={`st-${b.id}`}></ol></div>
+      ))}
+    </div>
+  </section>
+
+  <h2>Tools</h2>
   <table class="specs stats-table" id="st-table">
-    <thead><tr><th>Tool</th><th class="n">Uses</th><th class="n">Last 30 days</th><th class="n">Views</th><th class="n">Likes</th></tr></thead>
+    <thead><tr><th>Tool</th><th class="n">Uses</th><th class="n">Last 30 days</th><th class="n">Views</th><th class="n" title="Share of outcomes that ended in a downloaded or copied result">Worked</th><th class="n">Likes</th></tr></thead>
     <tbody>
       {rows.map((r) => (
-        <tr data-tool={r.id}><td><a href={r.url}>{r.name}</a> <span class="muted">{r.group}</span></td><td class="n" data-k="uses">–</td><td class="n" data-k="uses30">–</td><td class="n" data-k="views">–</td><td class="n" data-k="likes">–</td></tr>
+        <tr data-tool={r.id}><td><a href={r.url}>{r.name}</a> <span class="muted">{r.group}</span></td><td class="n" data-k="uses">–</td><td class="n" data-k="uses30">–</td><td class="n" data-k="views">–</td><td class="n" data-k="worked">–</td><td class="n" data-k="likes">–</td></tr>
       ))}
     </tbody>
   </table>
-  <p class="muted note" id="st-note">Totals are stored per tool per day in a Cloudflare D1 database. The code is <a href={`${REPO}/tree/main/worker`}>in the open</a>.</p>
+  <p class="muted note" id="st-note">Totals are stored per day in a Cloudflare D1 database. "Worked" is the share of outcomes that ended in a downloaded or copied result, for tools that produce one. The code is <a href={`${REPO}/tree/main/worker`}>in the open</a>.</p>
 </Base>
 
 <style>
@@ -41,25 +58,82 @@ const rows = tools.map((t) => ({ id: t.id, name: t.data.name, url: t.url, group:
   .counted h3 { font-size: var(--t-base); line-height: var(--lh-base); margin-bottom: 8px; }
   .counted ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-soft); font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
   .counted b { color: var(--ink); font-weight: 500; }
+  h2 { font-size: var(--t-lg); line-height: var(--lh-lg); margin-bottom: var(--s3); }
+  h2 .muted { font-weight: 400; font-size: var(--t-sm); margin-left: 6px; }
+  .site { margin-bottom: var(--s6); max-width: 900px; }
+  .breakdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s4) var(--s5); }
+  .bd h3 { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .bars { list-style: none; margin: 0; padding: 0; }
+  .bars :global(li) { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: var(--t-sm); line-height: var(--lh-sm); border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+  .bars :global(li)::before { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--w, 0%); background: var(--accent); }
+  .bars :global(.n) { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .bars :global(.empty) { color: var(--muted); }
   .stats-table { max-width: 900px; }
   .stats-table th { width: auto; }
   .stats-table .n { text-align: right; font-variant-numeric: tabular-nums; }
   .stats-table a { color: var(--ink); text-decoration: none; font-weight: 500; }
   .stats-table a:hover { text-decoration: underline; }
-  .note { margin-top: var(--s3); font-size: var(--t-sm); }
+  .note { margin-top: var(--s3); font-size: var(--t-sm); max-width: 900px; }
   .note a { color: inherit; }
 </style>
 
 <script>
-  import { summary } from "../lib/stats";
+  import { fullSummary, type ToolStats } from "../lib/stats";
   const nf = new Intl.NumberFormat();
-  summary().then((s) => {
+  const pct = new Intl.NumberFormat(undefined, { style: "percent" });
+  let region: Intl.DisplayNames | null = null;
+  try { region = new Intl.DisplayNames(undefined, { type: "region" }); } catch {}
+  const DEVICES: Record<string, string> = { phone: "Phone", tablet: "Tablet", desktop: "Desktop" };
+  const label = {
+    referrers: (k: string) => k,
+    countries: (k: string) => (k === "XX" ? "Unknown" : (region?.of(k) ?? k)),
+    devices: (k: string) => DEVICES[k] ?? k,
+  };
+
+  function bars(id: keyof typeof label, list: [string, number][]) {
+    const ol = document.getElementById(`st-${id}`)!;
+    if (!list.length) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "Nothing yet";
+      ol.replaceChildren(li);
+      return;
+    }
+    const max = Math.max(...list.map(([, n]) => n));
+    ol.replaceChildren(...list.map(([k, n]) => {
+      const li = document.createElement("li");
+      const name = document.createElement("span");
+      name.textContent = label[id](k);
+      const num = document.createElement("span");
+      num.className = "n";
+      num.textContent = nf.format(n);
+      li.append(name, num);
+      // Set through CSSOM, which the content security policy allows (style attributes it doesn't).
+      li.style.setProperty("--w", `${(100 * n) / max}%`);
+      return li;
+    }));
+  }
+
+  fullSummary().then((s) => {
     if (!s) { document.getElementById("st-note")!.textContent = "Stats aren't available right now."; return; }
+    if (s.site) {
+      document.getElementById("st-visits")!.textContent = `${nf.format(s.site.visits30)} ${s.site.visits30 === 1 ? "visit" : "visits"}`;
+      bars("referrers", s.site.referrers);
+      bars("countries", s.site.countries);
+      bars("devices", s.site.devices);
+      document.getElementById("st-site")!.hidden = false;
+    }
     const tbody = document.querySelector("#st-table tbody")!;
     const trs = [...tbody.querySelectorAll<HTMLTableRowElement>("tr")];
+    const zero: ToolStats = { uses: 0, uses30: 0, views: 0, likes: 0, successes: 0, errors: 0 };
     for (const tr of trs) {
-      const t = s[tr.dataset.tool!] ?? { uses: 0, uses30: 0, views: 0, likes: 0 };
-      tr.querySelectorAll<HTMLElement>("[data-k]").forEach((td) => (td.textContent = nf.format(t[td.dataset.k as keyof typeof t])));
+      const t = { ...zero, ...s.tools[tr.dataset.tool!] };
+      const outcomes = t.successes + t.errors;
+      const cells: Record<string, string> = {
+        uses: nf.format(t.uses), uses30: nf.format(t.uses30), views: nf.format(t.views), likes: nf.format(t.likes),
+        worked: outcomes ? pct.format(t.successes / outcomes) : "–",
+      };
+      tr.querySelectorAll<HTMLElement>("[data-k]").forEach((td) => (td.textContent = cells[td.dataset.k!]));
       tr.dataset.uses = String(t.uses);
     }
     trs.sort((a, b) => +b.dataset.uses! - +a.dataset.uses!);

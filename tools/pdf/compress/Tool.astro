@@ -72,6 +72,7 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
 </style>
 
 <script>
+  import { reportFailure } from "../../../src/lib/files";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const drop = $("#pdfc-drop"), input = $<HTMLInputElement>("#pdfc-file"), results = $("#pdfc-results");
   const worker = new Worker(new URL("./worker.js", import.meta.url));
@@ -84,6 +85,7 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
   const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".meta") as HTMLElement).innerHTML = html);
 
   worker.onerror = () => {
+    reportFailure();
     for (const { row } of jobs.values()) setMeta(row, '<span class="err">The compressor could not load. Reload the page and try again.</span>');
     jobs.clear();
   };
@@ -94,6 +96,7 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
     jobs.delete(data.id);
     const { row, file, preset, firstPage } = job;
     if (!data.ok) {
+      reportFailure();
       setMeta(row, "");
       const err = document.createElement("span");
       err.className = "err";

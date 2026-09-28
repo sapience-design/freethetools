@@ -16,7 +16,7 @@ import { FORMATS } from "./core.js";
 <script>
   import { FORMATS, renameTo, qualityFor } from "./core.js";
   import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, reportFailure } from "../../../src/lib/files";
   const $ = (id: string) => document.getElementById(id)!;
   canEncode("image/avif").then((ok) => {
     if (ok) return;
@@ -40,7 +40,7 @@ import { FORMATS } from "./core.js";
         const blob = await encode(bmp, bmp.width, bmp.height, type, qualityFor(type));
         m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
         act.append(downloadLink(blob, renameTo(f.name, fmt.ext), type));
-      } catch (e) { m.textContent = (e as Error).message; }
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
   });
 </script>

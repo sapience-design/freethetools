@@ -18,7 +18,7 @@ import DropZone from "../../../src/components/DropZone.astro";
 <script>
   import { PRESETS, outputType, worthIt, saving } from "./core.js";
   import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, baseName, reportFailure } from "../../../src/lib/files";
   const $ = (id: string) => document.getElementById(id)!;
   const webpOk = canEncode("image/webp");
 
@@ -41,7 +41,7 @@ import DropZone from "../../../src/components/DropZone.astro";
         } else {
           m.textContent = `Already compact: ${fmtBytes(f.size)}. Keep the original, or try Smallest.`;
         }
-      } catch (e) { m.textContent = (e as Error).message; }
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
   });
 </script>
