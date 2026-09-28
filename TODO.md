@@ -8,7 +8,6 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | # | Task | Why | Status |
 |---|---|---|---|
 | B2 | Share image (`og:image`) for the site and every tool | Links in Slack, LinkedIn, X and iMessage show no preview | Ready |
-| B5 | Compress PDF in `npm run dev`: its worker only runs in the built site | Contributors should be able to test it locally | Ready |
 | B6 | Accessibility (WCAG 2.2 AA) and speed (Lighthouse) audit of home, a group page and three tools; fix what's found | Never formally done | Ready |
 | B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Prompt written 2026-09-28 |
 
@@ -35,6 +34,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | What | PR | Date |
 |---|---|---|
+| Compress PDF works in `npm run dev` (its worker no longer imports modules); a worker that fails to load no longer leaves later files spinning | #38 | 2026-09-28 |
 | Live check in CI: every sitemap page on desktop and phone, daily and after each production deploy; fails on page errors, enforced CSP violations, outside requests, stats writes or sideways scroll (`npm run check:live`) | #36 | 2026-09-28 |
 | Docs brought up to date: architecture, OpenAPI stats summary, llms.txt, commands, deploy (database migrations) | #35 | 2026-09-28 |
 | Python dev dependencies bumped (pymupdf 1.28.2, pytest 9.1.1); Dependabot #1 and #2 closed as superseded | #34 | 2026-09-28 |
