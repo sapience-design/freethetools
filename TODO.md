@@ -10,7 +10,6 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | B2 | Share image (`og:image`) for the site and every tool | Links in Slack, LinkedIn, X and iMessage show no preview | Ready |
 | B5 | Compress PDF in `npm run dev`: its worker only runs in the built site | Contributors should be able to test it locally | Ready |
 | B6 | Accessibility (WCAG 2.2 AA) and speed (Lighthouse) audit of home, a group page and three tools; fix what's found | Never formally done | Ready |
-| B7 | Read-only live check in CI: every page on freethetools.com, no page errors, CSP violations or outside requests (stats writes stubbed) | Would have caught Cloudflare's injected script automatically | In progress |
 | B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Prompt written 2026-09-28 |
 
 ## Owner (Sapience Design)
@@ -23,6 +22,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | O6 | Launch posts when happy: Show HN, r/opensource, Product Hunt | — | Open |
 | O7 | Optional: sign up for the OpenSSF Best Practices badge | bestpractices.dev | Open |
 | O8 | Decide whether Dependabot PRs skip the sign-off check. If yes, add `if: github.event.pull_request.user.login != 'dependabot[bot]'` to the `signoff` job in `.github/workflows/dco.yml`. Until then, a maintainer re-applies each bump in a signed-off PR, as #34 did. | GitHub (CI changes need the owner) | Open |
+| O9 | Turn off Cloudflare's client-side script monitoring. On about 1 in 14 page views it adds a report-only CSP that makes the visitor's browser send reports (page and script URLs) to csp-reporting.cloudflare.com. It blocks nothing, but the pledge says pages contact no other server. The live check warns while it is on. | Cloudflare → freethetools.com → Security → Client-side security (Page Shield) → settings | Open |
 
 ## Parked
 
@@ -34,6 +34,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | What | PR | Date |
 |---|---|---|
+| Live check in CI: every sitemap page on desktop and phone, daily and after each production deploy; fails on page errors, enforced CSP violations, outside requests, stats writes or sideways scroll (`npm run check:live`) | #36 | 2026-09-28 |
 | Docs brought up to date: architecture, OpenAPI stats summary, llms.txt, commands, deploy (database migrations) | #35 | 2026-09-28 |
 | Python dev dependencies bumped (pymupdf 1.28.2, pytest 9.1.1); Dependabot #1 and #2 closed as superseded | #34 | 2026-09-28 |
 | Extended anonymous stats: visits with referring site, country and device; per-tool results and errors; /stats breakdowns (ADR 0007). Production D1 migrated. | #32 | 2026-09-28 |

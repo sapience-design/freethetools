@@ -12,6 +12,10 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
 - Per-tool outcomes: results downloaded or copied, and errors when a tool can't process something; /stats/ shows a "Worked" rate. See ADR 0007.
 
+### Added (checks)
+
+- Live check (`npm run check:live`, `.github/workflows/live.yml`): every page on freethetools.com, on desktop and phone, daily and after each production deploy. It fails on page errors, enforced CSP violations, requests to other origins, stats writes or sideways scroll, and warns about report-only policies added by Cloudflare.
+
 ### Documentation
 
 - Architecture explanation brought up to date: the stats Worker, themes, search, fonts and all pages.
