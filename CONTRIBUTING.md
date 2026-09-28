@@ -60,7 +60,7 @@ npm run test:e2e     # browser tests; run `npx playwright install chromium` once
 
 ## Commit and open a pull request
 
-- **Sign off every commit** with `git commit -s`. This adds a `Signed-off-by` line certifying the [Developer Certificate of Origin](https://developercertificate.org/): that you wrote the change or have the right to submit it under the project's licence. A check blocks pull requests with unsigned commits. Forgot? `git rebase --signoff main`, then force-push your branch.
+- **Sign off every commit** with `git commit -s`. This adds a `Signed-off-by` line certifying the [Developer Certificate of Origin](https://developercertificate.org/): that you wrote the change or have the right to submit it under the project's licence. A check blocks pull requests with unsigned commits. Forgot? `git rebase --signoff main`, then force-push your branch. (Dependabot's dependency bumps are the one exemption.)
 - **Write commit messages as [Conventional Commits](https://www.conventionalcommits.org/)**: `feat(text): add word counter`, `fix(pdf/compress): keep bookmarks`, `docs: clarify vendoring`. The type drives the changelog and version numbers.
 - **One tool or one fix per pull request.** Fill in the template, including a screenshot for anything visible.
 
