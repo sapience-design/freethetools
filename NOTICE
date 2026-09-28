@@ -43,4 +43,5 @@ opentype.js (share images) · Frederik De Bleser and contributors · License: MI
 sharp (share images) · Lovell Fuller · License: Apache-2.0; bundled libvips · License: LGPL-3.0
 PyMuPDF (used by tools/pdf/compress/cli) · Artifex Software · License: AGPL-3.0
 Playwright (tests) · Microsoft · License: Apache-2.0
+axe-core and @axe-core/playwright (tests) · Deque Systems · License: MPL-2.0
 Wrangler (deploy) · Cloudflare · License: MIT OR Apache-2.0
