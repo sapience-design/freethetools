@@ -13,7 +13,7 @@
   --ink: oklch(21% 0.006 285.885);        /* kumo default text */
   --ink-strong: oklch(14.5% 0 0);         /* kumo strong */
   --ink-soft: oklch(37.1% 0 0);
-  --muted: oklch(55.6% 0 0);              /* kumo subtle */
+  --muted: oklch(52% 0 0);                /* kumo subtle, a step darker: 4.5:1 on grey surfaces (WCAG AA) */
   --line: oklch(93.5% 0 0);               /* kumo hairline */
   --control-line: oklch(14.5% 0 0 / 0.1); /* kumo line */
   --accent: #f2c200;

@@ -57,10 +57,10 @@ const ogImage = new URL(ogPath, Astro.site).href;
   <div class="shell">
     <Sidebar category={category} tool={tool} page={page} />
     <div class="main">
-      <div class="mobilebar">
+      <header class="mobilebar">
         <a class="mw" href="/">Free <i>the</i> Tools</a>
         <button id="menu" type="button" aria-label="Open menu">Menu</button>
-      </div>
+      </header>
       <main class="main-in">
         <slot />
       </main>

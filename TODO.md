@@ -7,8 +7,8 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | # | Task | Why | Status |
 |---|---|---|---|
-| B6 | Accessibility (WCAG 2.2 AA) and speed (Lighthouse) audit of home, a group page and three tools; fix what's found | Never formally done | Ready |
 | B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Prompt written 2026-09-28 |
+| B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Ready |
 
 ## Owner (Sapience Design)
 
@@ -33,6 +33,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | What | PR | Date |
 |---|---|---|
+| Accessibility and speed audit: Lighthouse 99–100 on mobile; axe (WCAG 2.2 AA) on every page, both themes, desktop and phone, now in CI; contrast, label-in-name and landmark fixes | #40 | 2026-09-28 |
 | Share images: a 1200×630 PNG for the site, each group and each tool, drawn at build time from the product shots; `og:image` and `summary_large_image` on every page | #39 | 2026-09-28 |
 | Compress PDF works in `npm run dev` (its worker no longer imports modules); a worker that fails to load no longer leaves later files spinning | #38 | 2026-09-28 |
 | Live check in CI: every sitemap page on desktop and phone, daily and after each production deploy; fails on page errors, enforced CSP violations, outside requests, stats writes or sideways scroll (`npm run check:live`) | #36 | 2026-09-28 |

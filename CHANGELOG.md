@@ -12,6 +12,11 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
 - Per-tool outcomes: results downloaded or copied, and errors when a tool can't process something; /stats/ shows a "Worked" rate. See ADR 0007.
 
+### Accessibility
+
+- Every page, in light and dark, on desktop and phone, is checked against WCAG 2.2 AA with axe-core in CI (`e2e/a11y.spec.js`).
+- Fixed: muted text contrast on grey surfaces, the faded Compress PDF example, drop zones whose spoken name didn't match their visible text, Regex Tester highlights in dark mode, and the phone header bar is now a landmark. Audit: `docs/research/2026-09-28-accessibility-speed-audit.md`.
+
 ### Added (share images)
 
 - Link previews: every page has a 1200×630 share image (`og:image`, `twitter:card`), drawn at build time from the tool's product shot, name and tagline (`src/lib/og.js`, `src/pages/og/`). Text is converted to outlines from the site's own fonts, so images are the same on every machine.
