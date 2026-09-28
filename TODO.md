@@ -22,6 +22,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | O6 | Launch posts when happy: Show HN, r/opensource, Product Hunt | — | Open |
 | O7 | Optional: sign up for the OpenSSF Best Practices badge | bestpractices.dev | Open |
 | O8 | Decide whether Dependabot PRs skip the sign-off check. If yes, add `if: github.event.pull_request.user.login != 'dependabot[bot]'` to the `signoff` job in `.github/workflows/dco.yml`. Until then, a maintainer re-applies each bump in a signed-off PR, as #34 did. | GitHub (CI changes need the owner) | Open |
+| O10 | **Urgent:** turn off Cloudflare Web Analytics automatic setup for freethetools.com. Outside the EU, Cloudflare injects `static.cloudflareinsights.com/beacon.min.js` into every page. The CSP blocks it, so nothing is collected, but every page shows a CSP error and makes an outside request. The live check fails on all 68 page checks from a US runner and is clean from Norway, which matches the setting "Enable, excluding visitor data in the EU". | Cloudflare → Analytics & Logs → Web Analytics → freethetools.com → Manage site → Disable | Open |
 | O9 | Turn off Cloudflare's client-side script monitoring. On about 1 in 14 page views it adds a report-only CSP that makes the visitor's browser send reports (page and script URLs) to csp-reporting.cloudflare.com. It blocks nothing, but the pledge says pages contact no other server. The live check warns while it is on. | Cloudflare → freethetools.com → Security → Client-side security (Page Shield) → settings | Open |
 
 ## Parked
