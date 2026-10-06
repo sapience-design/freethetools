@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Sidebar from "../components/Sidebar.astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
+import originTrials from "../data/origin-trials.json";
 
 interface Props {
   title: string;
@@ -10,7 +11,7 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "licenses" | "saved" | "stats";
+  page?: "home" | "about" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -49,6 +50,7 @@ const ogImage = new URL(ogPath, Astro.site).href;
   <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon-192.png">
+  {originTrials.map((token) => <meta http-equiv="origin-trial" content={token}>)}
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />

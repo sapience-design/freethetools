@@ -4,7 +4,7 @@
 // the Sapience mark sit in a footer pinned to the bottom of the panel.
 import { loadCatalogue, REPO } from "../data/catalogue";
 
-interface Props { category?: string; tool?: string; page?: "home" | "about" | "licenses" | "saved" | "stats" }
+interface Props { category?: string; tool?: string; page?: "home" | "about" | "licenses" | "saved" | "library" | "stats" }
 const { category, tool, page } = Astro.props;
 const { aisles, searchIndex } = await loadCatalogue();
 const aisle = aisles.find((a) => a.slug === category);
@@ -60,6 +60,7 @@ const icon = {
           <ul class="nav">
             <li><a class:list={[{ on: page === "home" }]} href="/" aria-current={page === "home" ? "page" : undefined}>All tools</a></li>
             <li><a class:list={["drill", { on: page === "saved" }]} href="/saved/">Saved<span data-saved-count>0</span></a></li>
+            <li><a class:list={["drill", { on: page === "library" }]} href="/library/">Library</a></li>
           </ul>
         </div>
         <div class="sec">

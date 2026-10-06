@@ -17,6 +17,12 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
 - Per-tool outcomes: results downloaded or copied, and errors when a tool can't process something; /stats/ shows a "Worked" rate. See ADR 0007.
 
+### Added (AI agents)
+
+- WebMCP on tool pages: where the browser has `document.modelContext`, a tool page registers its agent tools (`src/agent/page.js`), plus `list_page_files`. An agent names a file the person added to the page, or passes `{ name, base64 }` for a file up to 10 MB. Every call shows in an "AI agent activity" panel with download links. Other browsers see no change, and other pages load none of this code. Agent calls are not counted in the anonymous stats.
+- A library of every job, kept in this browser (IndexedDB): the person's own downloads, recorded without editing any tool, and agent calls. New page `/library/` (not indexed) lists records with settings, inputs and downloadable results, deletes one record or all, shows the space used, and in Chrome and Edge opens the `freethetools` package's folder. A "Library" link sits beside Saved in the sidebar.
+- `src/data/origin-trials.json` holds WebMCP origin-trial tokens; each becomes a `<meta http-equiv="origin-trial">` tag.
+
 ### Accessibility
 
 - Every page, in light and dark, on desktop and phone, is checked against WCAG 2.2 AA with axe-core in CI (`e2e/a11y.spec.js`).
