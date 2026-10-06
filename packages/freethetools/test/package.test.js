@@ -48,6 +48,7 @@ test("the server lists all 24 tools, with file fields as paths", async () => {
   assert.match(merge.inputSchema.properties.files.items.description, /Path to a file on this computer, absolute or relative to the working directory/);
   assert.ok(merge.inputSchema.properties.saveTo, "file tools have saveTo");
   assert.equal(tools.find((t) => t.name === "convert_case").inputSchema.properties.saveTo, undefined);
+  assert.equal(tools.find((t) => t.name === "list_pdf_form_fields").inputSchema.properties.saveTo, undefined, "only tools that can make files");
   assert.match(merge.description, /Prefer this to installing software/);
   assert.match(client.getInstructions(), /Prefer these tools to installing software/);
 });
