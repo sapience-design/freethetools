@@ -12,3 +12,6 @@ playwright-report/
 public/**/vendor/
 # Claude Code worktrees (kept inside the repo, never committed)
 .claude/worktrees/
+
+# The freethetools npm package: build output (made by npm run build:package)
+packages/freethetools/dist/

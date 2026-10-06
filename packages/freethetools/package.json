@@ -1,0 +1,51 @@
+{
+  "name": "freethetools",
+  "version": "0.1.0",
+  "description": "Free the Tools on your own computer: an MCP server and command line for AI assistants to compress, merge and split PDFs and do other file jobs without installing software. Nothing is uploaded.",
+  "license": "AGPL-3.0-only",
+  "author": "Sapience Design (https://sapience.design)",
+  "homepage": "https://freethetools.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sapience-design/freethetools.git",
+    "directory": "packages/freethetools"
+  },
+  "bugs": "https://github.com/sapience-design/freethetools/issues",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "pdf",
+    "ghostscript",
+    "privacy",
+    "local",
+    "ai-agents",
+    "claude",
+    "cursor"
+  ],
+  "mcpName": "io.github.sapience-design/freethetools",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "freethetools": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "server.json"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node build.mjs && node --test \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1"
+  },
+  "devDependencies": {
+    "@jspawn/ghostscript-wasm": "0.0.2",
+    "esbuild": "0.28.2"
+  }
+}
