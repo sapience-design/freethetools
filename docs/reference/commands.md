@@ -5,7 +5,8 @@
 | `npm run dev` | Copies vendored files, then starts the site at http://localhost:4321 with live reload |
 | `npm run build` | Copies vendored files, validates every `tool.json`, builds the static site into `dist/` |
 | `npm run preview` | Serves `dist/` and the stats Worker with Cloudflare's local server at http://localhost:8788, including `_headers`. For working stats, run `npx wrangler d1 migrations apply DB --local` once first. |
-| `npm test` | Unit tests in `tools/*/*/tests/` and `src/agent/`, then the build and tests of the `freethetools` npm package (installs its dependencies first if they are missing) |
+| `npm test` | Unit tests in `tools/*/*/tests/` and `src/agent/` |
+| `npm run test:package` | Builds the `freethetools` npm package and runs its tests (installs its dependencies first if they are missing). Kept out of `npm test` so production deploys never depend on it. |
 | `npm run build:package` | Builds the `freethetools` npm package into `packages/freethetools/dist/` |
 | `npm run setup:package` | Installs the package's own dependencies (`npm ci` in `packages/freethetools/`) |
 | `npm run test:site` | Checks the built site (titles, descriptions, canonical links, CSP, unique ids, sitemap), plus search and stats-rule unit tests |

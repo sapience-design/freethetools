@@ -20,13 +20,11 @@ const ids = readdirSync(toolsDir)
   .sort();
 if (!ids.length) throw new Error("No tools/*/*/agent.js found. Run this from inside the repository.");
 
-// A tool "makes files" if its result can carry files. Marked here so the server can offer `saveTo`.
-const makesFiles = (id) => /\bfiles:\s*(?!files\()/.test(readFileSync(join(toolsDir, id, "agent.js"), "utf8"));
 
 const generated = [
   ...ids.map((id, i) => `import * as m${i} from ${JSON.stringify(join(toolsDir, id, "agent.js").replaceAll("\\", "/"))};`),
   `export const tools = [`,
-  ...ids.map((id, i) => `  ...[m${i}.default].flat().map((def) => ({ id: ${JSON.stringify(id)}, def, makesFiles: ${makesFiles(id)} })),`),
+  ...ids.map((id, i) => `  ...[m${i}.default].flat().map((def) => ({ id: ${JSON.stringify(id)}, def, makesFiles: def.makesFiles === true })),`),
   `];`,
 ].join("\n");
 
