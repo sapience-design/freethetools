@@ -159,6 +159,7 @@ const PIECES: Record<string, Draw> = {
   // Everyday
   "unit-converter": (c) => { const [x, y] = at(0); return box(x, y, 176, 34, 8, c.accent) + top(x, y, 8, Array.from({ length: 17 }, (_, i) => `<rect x="${-84 + i * 10.5}" y="-17" width="2" height="${i % 4 ? 8 : 14}" fill="${c.ink}"/>`).join("")) + cube(c, x + 10, y - 44, 40, c.paper); },
   "time-zone-converter": (c) => { const [x, y] = at(0); return dial(c, x - 46, y - 10, 46, 30, -40) + dial(c, x + 46, y + 18, 46, 30, 70); },
+  "file-converter": (c) => { const [x, y] = at(0); return stack(c, x - 64, y - 14, 3, 64, 84, false) + box(x, y, 56, 70, 52, c.navy) + box(x, y, 62, 76, 8, c.accent, 52) + print(c, x + 62, y + 24, 62, 76); },
 };
 
 // Group fallbacks for tools that don't have their own composition yet.

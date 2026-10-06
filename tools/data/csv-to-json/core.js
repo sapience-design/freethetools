@@ -3,13 +3,13 @@ import Papa from "papaparse";
 
 /**
  * @param {string} csv
- * @param {{ header?: boolean, typed?: boolean }} [opts]
+ * @param {{ header?: boolean, typed?: boolean, delimiter?: string }} [opts] delimiter: leave out to detect it
  * @returns {{ json: string, rows: number, delimiter: string, warnings: string[] }}
  */
 export function csvToJson(csv, opts = {}) {
-  const { header = true, typed = false } = opts;
+  const { header = true, typed = false, delimiter } = opts;
   if (!csv.trim()) throw new Error("Paste some CSV, or drop a .csv file.");
-  const r = Papa.parse(csv.trim(), { header, dynamicTyping: typed, skipEmptyLines: true });
+  const r = Papa.parse(csv.trim(), { header, dynamicTyping: typed, skipEmptyLines: true, ...(delimiter ? { delimiter } : {}) });
   const warnings = r.errors.slice(0, 5).map((e) => `Row ${(e.row ?? 0) + 1}: ${e.message}`);
   return { json: JSON.stringify(r.data, null, 2), rows: r.data.length, delimiter: r.meta.delimiter, warnings };
 }
