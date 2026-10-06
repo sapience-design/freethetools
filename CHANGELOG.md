@@ -16,6 +16,8 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 - Every page, in light and dark, on desktop and phone, is checked against WCAG 2.2 AA with axe-core in CI (`e2e/a11y.spec.js`).
 - Fixed: muted text contrast on grey surfaces, the faded Compress PDF example, drop zones whose spoken name didn't match their visible text, Regex Tester highlights in dark mode, and the phone header bar is now a landmark. Audit: `docs/research/2026-09-28-accessibility-speed-audit.md`.
+- Browser tests now cover the manual accessibility pass (`e2e/a11y-manual.spec.js`): a keyboard-only walk, roles and live regions, reflow at 320 and 640 px, text spacing, and focus not hidden by sticky bars.
+- Fixed: on phones the closed menu drawer is out of the tab order, the open drawer takes and keeps focus and returns it on close, search results and sorting are announced to screen readers, and the JWT, QR and Regex error boxes are announced.
 
 ### Added (share images)
 
