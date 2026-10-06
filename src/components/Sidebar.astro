@@ -26,8 +26,11 @@ const icon = {
     <kbd id="find-key">/</kbd>
   </form>
 
+  <!-- Always in the page, so a screen reader hears each change. The results list below is hidden until you type. -->
+  <p class="sr-only" id="side-status" role="status"></p>
+
   <nav class="side-scroll" aria-label="Tools">
-    <ul class="nav results" id="side-results" hidden aria-live="polite"></ul>
+    <ul class="nav results" id="side-results" hidden></ul>
 
     {aisle ? (
       <div class="panel nav-sub" id="panel">
@@ -187,12 +190,13 @@ const icon = {
   const side = document.getElementById("side")!;
   const scrim = document.getElementById("scrim")!;
 
+  const status = document.getElementById("side-status")!;
   const find = makeSearch(index);
   function search() {
     const q = input.value;
     results.hidden = !q.trim();
     panel.hidden = !!q.trim();
-    if (!q.trim()) return;
+    if (!q.trim()) { status.textContent = ""; return; }
     const hits = find(q).slice(0, 12);
     results.replaceChildren(
       ...hits.map((h, i) => {
@@ -214,6 +218,7 @@ const icon = {
       li.textContent = "No tool matches yet. Press Enter to request it.";
       results.append(li);
     }
+    status.textContent = hits.length ? `${hits.length} ${hits.length === 1 ? "result" : "results"}. Use the up and down arrow keys, then Enter.` : "No tool matches yet. Press Enter to request it.";
   }
 
   // Arrow keys move through results; Enter opens the highlighted one.
@@ -226,6 +231,8 @@ const icon = {
     const next = (at + (e.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
     links.forEach((l, i) => l.classList.toggle("sel", i === next));
     links[next].scrollIntoView({ block: "nearest" });
+    // The highlight is visual only, so say which result is selected.
+    status.textContent = `${links[next].textContent}, ${next + 1} of ${links.length}`;
   });
 
   input.addEventListener("input", search);
@@ -244,10 +251,41 @@ const icon = {
   const q = new URLSearchParams(location.search).get("q");
   if (q) { input.value = q; search(); }
 
-  // Phone: the sidebar is a drawer.
-  function openSide() { side.classList.add("open"); scrim.hidden = false; }
-  function closeSide() { side.classList.remove("open"); scrim.hidden = true; }
-  document.getElementById("menu")?.addEventListener("click", openSide);
+  // Phone: the sidebar is a drawer. Closed, it is inert (off screen, so out of the tab order).
+  // Open, it takes focus, keeps Tab inside it and makes the page behind it inert.
+  const phone = window.matchMedia("(max-width: 960px)");
+  const menu = document.getElementById("menu");
+  const main = document.querySelector<HTMLElement>(".main");
+  const isOpen = () => side.classList.contains("open");
+  function syncInert() {
+    side.inert = phone.matches && !isOpen();
+    if (main) main.inert = phone.matches && isOpen();
+  }
+  function openSide() {
+    side.classList.add("open");
+    scrim.hidden = false;
+    syncInert();
+    if (phone.matches && document.activeElement !== input) document.getElementById("side-close")!.focus();
+  }
+  function closeSide() {
+    const wasOpen = isOpen();
+    const hadFocus = side.contains(document.activeElement);
+    side.classList.remove("open");
+    scrim.hidden = true;
+    syncInert();
+    // Give focus back to the button that opened the drawer.
+    if (wasOpen && phone.matches && (hadFocus || document.activeElement === document.body)) menu?.focus();
+  }
+  menu?.addEventListener("click", openSide);
   document.getElementById("side-close")!.addEventListener("click", closeSide);
   scrim.addEventListener("click", closeSide);
+  side.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab" || !phone.matches || !isOpen()) return;
+    const stops = [...side.querySelectorAll<HTMLElement>("a[href], button, input")].filter((el) => !el.hidden && !el.closest("[hidden]") && el.getClientRects().length);
+    const first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  phone.addEventListener("change", () => { side.classList.remove("open"); scrim.hidden = true; syncInert(); });
+  syncInert();
 </script>
