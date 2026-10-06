@@ -10,6 +10,7 @@ const options = [
   <div class="seg sort">
     {options.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
   </div>
+  <p class="sr-only" id="sort-status" role="status"></p>
 </div>
 
 <style>
@@ -50,7 +51,7 @@ const options = [
     }
   }
   const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="sort"]')];
-  radios.forEach((r) => r.addEventListener("change", () => { sort(r.value); try { localStorage.setItem(KEY, r.value); } catch {} }));
+  radios.forEach((r) => r.addEventListener("change", () => { sort(r.value); document.getElementById("sort-status")!.textContent = `Sorted by ${r.nextElementSibling!.textContent}.`; try { localStorage.setItem(KEY, r.value); } catch {} }));
   let saved = "featured";
   try { saved = localStorage.getItem(KEY) || "featured"; } catch {}
   const start = radios.find((r) => r.value === saved);

@@ -9,7 +9,7 @@ const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsi
 <section class="tool" aria-label="JWT decoder">
   <ToolShot toolId="developer/jwt-decoder" category="developer" name="JWT Decoder" />
   <label class="field"><span>Token</span><textarea id="jwt-in" rows="4" spellcheck="false">{sample}</textarea></label>
-  <p class="tool-error" id="jwt-err" hidden></p>
+  <p class="tool-error" id="jwt-err" role="alert" hidden></p>
   <div class="jwt-grid">
     <div class="out"><span class="eyebrow">Header</span><pre class="out-box" id="jwt-head"></pre></div>
     <div class="out"><span class="eyebrow">Payload</span><pre class="out-box" id="jwt-body"></pre></div>
