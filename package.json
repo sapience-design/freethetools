@@ -16,7 +16,7 @@
     "dev": "npm run sync && astro dev",
     "build": "npm run sync && astro build",
     "preview": "wrangler dev --port 8788",
-    "test": "node --test \"tools/*/*/tests/*.test.js\"",
+    "test": "node --test \"tools/*/*/tests/*.test.js\" \"src/agent/*.test.js\"",
     "test:site": "node --test \"tests/*.test.js\"",
     "test:e2e": "playwright test",
     "check:live": "node scripts/live-check.mjs",

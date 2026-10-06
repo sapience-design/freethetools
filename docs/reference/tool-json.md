@@ -30,6 +30,7 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `core.js` | recommended | Logic without page code |
 | `tests/*.test.js` | recommended | Run by `npm test` with Node's test runner |
 | `README.md` | recommended | Notes for maintainers and reviewers |
+| `agent.js` | recommended | The tool for AI agents: name, description, inputs and a `run` function built on `core.js`. See [ADR 0008](../adr/0008-tools-for-ai-agents.md) and `src/agent/contract.js`. Checked by `npm test`. |
 | `cli/` | no | A command-line version |
 
 Tools can also have a custom product-shot drawing: add it to `TOOL_ART` in `src/data/art.ts`, keyed by the tool id (`"<group>/<slug>"`).
