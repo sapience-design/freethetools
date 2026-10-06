@@ -26,6 +26,7 @@ export default defineTools(
   },
   {
     name: "base64_decode",
+    makesFiles: true,
     title: "Base64",
     description:
       "Decode Base64 (standard or URL-safe, padding optional) to text, or to a file when the result is binary. Runs on this device; nothing is uploaded.",

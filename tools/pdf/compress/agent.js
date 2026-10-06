@@ -5,6 +5,7 @@ const QUALITY = { smallest: "screen", balanced: "ebook", print: "printer", prepr
 
 export default defineTools({
   name: "compress_pdf",
+  makesFiles: true,
   title: "Compress PDF",
   description:
     "Make a PDF smaller with Ghostscript, at a chosen quality: smallest (screen reading), balanced (email and sharing, default), print, or prepress (keeps colour profiles). Can keep only the first page. Text-only PDFs may not shrink; the result then says so. Runs on this device; nothing is uploaded.",

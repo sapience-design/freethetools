@@ -6,6 +6,7 @@ const MIME = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
 
 export default defineTools({
   name: "remove_photo_metadata",
+  makesFiles: true,
   title: "Remove Photo Location",
   description:
     "Strip location (GPS), camera details, time, XMP and IPTC metadata from JPEG, PNG and WebP photos before sharing them. The picture itself is not re-encoded, so it is unchanged byte for byte. Reports what each photo contained. Runs on this device; nothing is uploaded.",

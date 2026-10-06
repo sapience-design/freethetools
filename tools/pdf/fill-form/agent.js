@@ -23,6 +23,7 @@ export default defineTools(
   },
   {
     name: "fill_pdf_form",
+    makesFiles: true,
     title: "Fill PDF Form",
     description:
       "Fill a PDF form's fields by name and save a new PDF. Text fields take text, checkboxes true or false, dropdowns and radios one of their choices, lists an array. Optionally flatten so the answers can no longer be edited. Get field names with list_pdf_form_fields first. Runs on this device; nothing is uploaded.",

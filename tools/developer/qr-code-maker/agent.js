@@ -3,6 +3,7 @@ import { makeQr, wifiPayload } from "./core.js";
 
 export default defineTools({
   name: "make_qr_code",
+  makesFiles: true,
   title: "QR Code Maker",
   description:
     "Make a QR code as an SVG file, for a link, any text, or a Wi-Fi network (phones join it by scanning). Runs on this device; nothing is uploaded.",

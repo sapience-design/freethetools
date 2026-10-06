@@ -17,11 +17,13 @@
  *   title: string,
  *   description: string,
  *   input: Record<string, any>,
+ *   makesFiles?: boolean,
  *   needs?: (keyof Context)[],
  *   example?: Record<string, unknown>,
  *   run: (args: any, ctx: Context) => Promise<Result> | Result,
  * }} AgentTool
  *
+ * `makesFiles` is true when a result can carry files, so a channel can offer to save them elsewhere.
  * `input` is a JSON Schema object. A file is `{ type: "string", format: "file", accept?: string[] }`,
  * or an array of those. Channels replace file fields with their own form (a path on disk, or a file
  * added to the page) and hand `run` a FileIn instead.
@@ -45,6 +47,7 @@ export function defineTools(...defs) {
     if (d.input?.type !== "object" || typeof d.input.properties !== "object") throw new Error(`${where}: input must be an object schema.`);
     for (const r of d.input.required ?? []) if (!(r in d.input.properties)) throw new Error(`${where}: required "${r}" is not a property.`);
     if (typeof d.run !== "function") throw new Error(`${where}: run must be a function.`);
+    if (d.makesFiles !== undefined && typeof d.makesFiles !== "boolean") throw new Error(`${where}: makesFiles must be true or false.`);
   }
   return defs;
 }
