@@ -18,6 +18,7 @@ const d = tool.data;
 const uis = import.meta.glob<{ default: any }>("../../../../tools/*/*/Tool.astro", { eager: true });
 const UI = uis[`../../../../tools/${tool.id}/Tool.astro`]?.default;
 if (!UI) throw new Error(`tools/${tool.id}/Tool.astro is missing`);
+const hasAgent = `../../../../tools/${tool.id}/agent.js` in import.meta.glob("../../../../tools/*/*/agent.js");
 const url = new URL(tool.url, Astro.site).href;
 const specs: [string, string][] = [
   ["Runs", d.offline ? "In your browser. Nothing is uploaded." : "In your browser"],
@@ -81,6 +82,15 @@ const specs: [string, string][] = [
     </aside>
   </div>
 
+  {hasAgent && (
+    <section class="agent-activity" id="agent-activity" aria-labelledby="agent-activity-h" hidden>
+      <h2 id="agent-activity-h">AI agent activity</h2>
+      <p class="muted">An AI agent used this tool on this page. The files stay on this device and are saved in your <a href="/library/">library</a>.</p>
+      <ul class="agent-log" id="agent-log"></ul>
+    </section>
+  )}
+  {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
+
   {d.faq.length > 0 && (
     <section class="faq" aria-labelledby="faq">
       <h2 id="faq">Questions</h2>
@@ -98,9 +108,11 @@ const specs: [string, string][] = [
   const label = document.getElementById("tool-like-label")!;
   const usage = document.getElementById("tool-usage")!;
 
+  import { startAgentPage } from "../../../agent/page.js";
   trackView(tool);
   watchUse(tool, work);
   watchOutcomes(tool, work);
+  startAgentPage(work, tool);
 
   function paint(on: boolean) {
     like.setAttribute("aria-pressed", String(on));
@@ -144,6 +156,15 @@ const specs: [string, string][] = [
   .report a:hover { color: var(--ink); }
   .faq { margin-top: var(--s7); max-width: 760px; }
   .faq h2 { font-size: var(--t-lg); line-height: var(--lh-lg); padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
+  .agent-activity { margin-top: var(--s6); max-width: 760px; display: grid; gap: var(--s2); }
+  .agent-activity h2 { font-size: var(--t-lg); line-height: var(--lh-lg); padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
+  .agent-activity[hidden] { display: none; }
+  .agent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+  .agent-log :global(.agent-call) { display: grid; gap: 6px; padding: var(--s2) 0; border-bottom: 1px solid var(--line); font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .agent-log :global(.agent-call p) { margin: 0; }
+  .agent-log :global(.agent-call.bad .agent-head + p) { color: var(--bad); }
+  .agent-log :global(.agent-data) { color: var(--ink-soft); overflow-wrap: anywhere; }
+  .agent-log :global(.agent-files) { display: flex; flex-wrap: wrap; gap: var(--s1); }
   @media (max-width: 1080px) {
     .product { grid-template-columns: 1fr; }
     .info { position: static; order: -1; }

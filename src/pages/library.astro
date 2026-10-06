@@ -1,0 +1,239 @@
+---
+import Base from "../layouts/Base.astro";
+import { loadCatalogue } from "../data/catalogue";
+
+// Tool id -> name and address, and each agent tool's name -> its tool id, so a record from the
+// browser or from the freethetools package links to the right page.
+const { tools } = await loadCatalogue();
+const byId = Object.fromEntries(tools.map((t) => [t.id, { name: t.data.name, url: t.url }]));
+const agents = import.meta.glob("../../tools/*/*/agent.js", { eager: true }) as Record<string, { default: { name: string } | { name: string }[] }>;
+const byAgentName: Record<string, string> = {};
+for (const [path, mod] of Object.entries(agents)) {
+  const id = path.split("/").slice(-3, -1).join("/");
+  for (const def of [mod.default].flat()) byAgentName[def.name] = id;
+}
+---
+<Base page="library" title="Library | Free the Tools" description="What the tools on this device did, and the files they made." noindex>
+  <section class="opening">
+    <p class="eyebrow">Library</p>
+    <h1 class="sm">What was done here.</h1>
+    <p>Every job from this browser, whether you or an AI agent ran it. The library stays in this browser. Nothing is sent anywhere.</p>
+  </section>
+
+  <p class="space muted" id="lib-space"></p>
+  <p class="tool-error" id="lib-note" hidden></p>
+
+  <div class="bar">
+    <button class="btn line" type="button" id="lib-folder">Open the package's folder</button>
+    <button class="btn line" type="button" id="lib-clear" disabled>Clear library</button>
+  </div>
+  <p class="muted fine" id="lib-folder-help">The freethetools package for AI assistants keeps its own library in a folder on your computer. Open that folder to see its jobs here. This works in Chrome and Edge.</p>
+
+  <div class="confirm" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
+    <p id="lib-confirm-text">Delete every record and file in this browser's library? This cannot be undone.</p>
+    <div class="bar">
+      <button class="btn" type="button" id="lib-confirm-yes">Yes, clear library</button>
+      <button class="btn line" type="button" id="lib-confirm-no">Keep it</button>
+    </div>
+  </div>
+
+  <p class="sr-only" id="lib-status" role="status"></p>
+
+  <ul class="records" id="lib-list"></ul>
+  <div class="empty" id="lib-empty" hidden>
+    <p>Nothing here yet. Download a result from a tool, or let an AI agent use one, and the job appears here.</p>
+    <p><a class="btn" href="/">Browse all tools</a></p>
+  </div>
+
+  <script type="application/json" id="lib-tools" set:html={JSON.stringify({ byId, byAgentName })} />
+</Base>
+
+<style>
+  .space { margin: 0 0 var(--s2); font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .bar { display: flex; flex-wrap: wrap; gap: var(--s1); margin-bottom: var(--s2); }
+  .fine { font-size: var(--t-sm); line-height: var(--lh-sm); max-width: 60ch; margin: 0 0 var(--s4); }
+  #lib-note { max-width: 760px; margin-bottom: var(--s2); }
+  .confirm { max-width: 760px; display: grid; gap: var(--s2); padding: var(--s2) var(--s3); margin-bottom: var(--s3); box-shadow: inset 0 0 0 1px var(--ink); border-radius: 8px; }
+  .confirm p { margin: 0; }
+  .confirm[hidden], .empty[hidden], #lib-note[hidden] { display: none; }
+  .records { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 760px; }
+  .records :global(.rec) { display: grid; gap: 8px; padding: var(--s3) 0; border-bottom: 1px solid var(--line); font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .records :global(.rec p), .records :global(.rec ul) { margin: 0; }
+  .records :global(.rec-head) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--s2); }
+  .records :global(.rec-head a), .records :global(.rec-head strong) { font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
+  .records :global(.rec-head .who) { color: var(--muted); }
+  .records :global(.rec-head .del) { margin-left: auto; border: 0; background: none; font: inherit; color: var(--muted); cursor: pointer; padding: 4px 0; }
+  .records :global(.rec-head .del:hover) { color: var(--ink); }
+  .records :global(.bad) { color: var(--bad); }
+  .records :global(.rec dl) { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px var(--s2); margin: 0; }
+  .records :global(.rec dt) { color: var(--muted); }
+  .records :global(.rec dd) { margin: 0; overflow-wrap: anywhere; }
+  .records :global(.rec dd ul) { list-style: none; padding: 0; display: grid; gap: 6px; }
+  .records :global(.rec dd li) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--s1); }
+  .empty { display: grid; gap: 14px; max-width: 560px; color: var(--ink-soft); }
+  .empty p { margin: 0; }
+</style>
+
+<script>
+  import { LOG_FILE, parseLog, type LibraryEntry } from "../agent/library.js";
+  import { clearAll, deleteEntry, getBlob, getNote, keptKeys, listEntries, usage } from "../agent/db.js";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const list = $("lib-list"), empty = $("lib-empty"), status = $("lib-status"), note = $("lib-note");
+  const clearBtn = $<HTMLButtonElement>("lib-clear"), confirmBox = $("lib-confirm"), folderBtn = $<HTMLButtonElement>("lib-folder");
+  const maps = JSON.parse($("lib-tools").textContent || "{}") as { byId: Record<string, { name: string; url: string }>; byAgentName: Record<string, string> };
+
+  type Row = { entry: LibraryEntry; kept: Set<string> | null; folder: any | null };
+  let local: Row[] = [];
+  let fromFolder: Row[] = [];
+
+  const fmt = (n: number) => (n >= 1073741824 ? `${(n / 1073741824).toFixed(1)} GB` : n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : n >= 1024 ? `${Math.round(n / 1024)} KB` : `${n} B`);
+  const say = (s: string) => { status.textContent = s; };
+
+  async function refresh() {
+    try {
+      const [entries, kept] = await Promise.all([listEntries(), keptKeys()]);
+      local = entries.map((entry) => ({ entry, kept, folder: null }));
+    } catch (e) {
+      local = [];
+      showNote(`The library could not be read in this browser: ${(e as Error).message}`);
+    }
+    const n = getNote();
+    if (n) showNote(n.text);
+    render();
+    const u = await usage();
+    $("lib-space").textContent = u ? `Space used by this site in this browser: ${fmt(u.used)} of about ${fmt(u.quota)}.` : "";
+  }
+
+  function showNote(text: string) { note.textContent = text; note.hidden = false; }
+
+  function render() {
+    const rows = [...local, ...fromFolder].sort((a, b) => (a.entry.time < b.entry.time ? 1 : -1));
+    empty.hidden = rows.length > 0;
+    clearBtn.disabled = local.length === 0;
+    list.replaceChildren(...rows.map(row));
+  }
+
+  const toolOf = (e: LibraryEntry) => {
+    const id = maps.byId[e.tool] ? e.tool : maps.byAgentName[e.tool];
+    return id ? maps.byId[id] : null;
+  };
+
+  function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", cls = "") {
+    const n = document.createElement(tag);
+    if (text) n.textContent = text;
+    if (cls) n.className = cls;
+    return n;
+  }
+
+  function row({ entry: e, kept, folder }: Row) {
+    const li = el("li", "", "rec");
+    const head = el("p", "", "rec-head");
+    const tool = toolOf(e);
+    const title = tool?.name ?? e.title;
+    if (tool) { const a = el("a", title); a.href = tool.url; head.append(a); } else head.append(el("strong", title));
+    const when = el("time", new Date(e.time).toLocaleString());
+    when.dateTime = e.time;
+    const who = e.by === "agent" ? "by AI agent" : "by you";
+    head.append(when, el("span", folder ? `${who}, via the freethetools package` : who, "who"));
+    if (!folder) {
+      const del = el("button", "Delete", "del");
+      del.type = "button";
+      del.setAttribute("aria-label", `Delete the record: ${title}, ${when.textContent}`);
+      del.addEventListener("click", async () => {
+        await deleteEntry(e.id);
+        say(`Deleted the record for ${title}.`);
+        await refresh();
+        (list.querySelector(".del") as HTMLElement | null)?.focus();
+      });
+      head.append(del);
+    }
+    li.append(head);
+    li.append(el("p", e.ok ? e.summary : `Failed: ${e.error ?? e.summary}`, e.ok ? "" : "bad"));
+
+    const dl = el("dl");
+    const add = (k: string, v: Node | string) => { dl.append(el("dt", k)); const dd = el("dd"); dd.append(v); dl.append(dd); };
+    const settings = Object.entries(e.settings ?? {});
+    if (settings.length) add("Settings", settings.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join("; "));
+    if (e.inputs.length) add("Inputs", e.inputs.map((f) => `${f.name} (${fmt(f.size)})`).join(", "));
+    if (e.outputs.length) {
+      const ul = el("ul");
+      e.outputs.forEach((f, i) => {
+        const item = el("li");
+        item.append(`${f.name} (${fmt(f.size)}) `);
+        const have = folder ? !!f.path : !!kept?.has(`${e.id}/${i}`);
+        if (have) {
+          const b = el("button", "Download", "btn line");
+          b.type = "button";
+          b.setAttribute("aria-label", `Download ${f.name}`);
+          b.addEventListener("click", () => save(f.name, f.type, () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i))));
+          item.append(b);
+        } else item.append(el("span", "file not kept", "muted"));
+        ul.append(item);
+      });
+      add("Outputs", ul);
+    }
+    if (dl.childElementCount) li.append(dl);
+    return li;
+  }
+
+  async function save(name: string, type: string, get: () => Promise<Blob | File | undefined>) {
+    try {
+      const blob = await get();
+      if (!blob) { say(`${name} is no longer in the library.`); return; }
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob.type ? blob : new Blob([blob], { type }));
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+      say(`Downloading ${name}.`);
+    } catch (e) {
+      say(`Could not get ${name}: ${(e as Error).message}`);
+    }
+  }
+
+  // ---- Clear, with a confirm step -----------------------------------------------------------
+  clearBtn.addEventListener("click", () => { confirmBox.hidden = false; $("lib-confirm-yes").focus(); });
+  $("lib-confirm-no").addEventListener("click", () => { confirmBox.hidden = true; clearBtn.focus(); });
+  $("lib-confirm-yes").addEventListener("click", async () => {
+    await clearAll();
+    confirmBox.hidden = true;
+    note.hidden = true;
+    say("The library is clear.");
+    await refresh();
+    folderBtn.focus();
+  });
+
+  // ---- The package's folder (File System Access API: Chrome and Edge) -----------------------
+  async function readFromFolder(dir: any, path: string) {
+    const parts = path.split("/").filter(Boolean);
+    const last = parts.pop()!;
+    for (const p of parts) dir = await dir.getDirectoryHandle(p);
+    return (await dir.getFileHandle(last)).getFile() as Promise<File>;
+  }
+
+  folderBtn.addEventListener("click", async () => {
+    const pick = (window as any).showDirectoryPicker;
+    if (!pick) {
+      say("This browser can't open a folder. Use Chrome or Edge, or read library.jsonl in the folder yourself.");
+      $("lib-folder-help").textContent = "This browser can't open a folder from a page. Use Chrome or Edge, or open library.jsonl in the package's folder with any text editor.";
+      return;
+    }
+    try {
+      const dir = await pick.call(window, { mode: "read" });
+      const text = await (await (await dir.getFileHandle(LOG_FILE)).getFile()).text();
+      const entries = parseLog(text);
+      fromFolder = entries.map((entry) => ({ entry, kept: null, folder: dir }));
+      render();
+      say(`Opened ${entries.length} ${entries.length === 1 ? "job" : "jobs"} from the folder.`);
+    } catch (e) {
+      const err = e as DOMException;
+      if (err.name === "AbortError") return;
+      say(err.name === "NotFoundError" ? `That folder has no ${LOG_FILE}. Pick the "Free the Tools" folder in your home folder.` : `Could not open the folder: ${err.message}`);
+    }
+  });
+
+  refresh();
+</script>
