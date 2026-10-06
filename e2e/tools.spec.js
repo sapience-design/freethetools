@@ -135,6 +135,49 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#md-preview li")).toHaveCount(2);
   });
 
+  test("File Converter converts a PNG to BMP and ICO, and a CSV to JSON", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    // The example file is converted on load.
+    await expect(page.locator("#fc-list li").first()).toContainText("example.csv");
+    await expect(page.locator("#fc-list li").first().locator("a[download]")).toHaveAttribute("download", "example.json");
+
+    await page.setInputFiles("#fc-file", { name: "pic.png", mimeType: "image/png", buffer: PNG });
+    const row = page.locator("#fc-list li").filter({ hasText: "pic.png" });
+    await expect(row).toContainText("PNG image");
+    await row.getByRole("combobox").selectOption("bmp");
+    await expect(row.locator("a[download]")).toHaveAttribute("download", "pic.bmp");
+    const bmp = await download(page, () => row.locator("a[download]").click());
+    expect(bmp.subarray(0, 2).toString()).toBe("BM");
+    expect([bmp.readInt32LE(18), bmp.readInt32LE(22)]).toEqual([2, 1]);
+    expect(bmp.length).toBe(54 + 8); // one row of 2 pixels: 6 bytes, padded to 8
+
+    await row.getByRole("combobox").selectOption("ico");
+    await expect(row.locator("a[download]")).toHaveAttribute("download", "pic.ico");
+    const ico = await download(page, () => row.locator("a[download]").click());
+    expect([...ico.subarray(0, 6)]).toEqual([0, 0, 1, 0, 1, 0]);
+    expect(ico.subarray(22, 26).toString("latin1")).toBe("\x89PNG");
+
+    await page.setInputFiles("#fc-file", { name: "people.csv", mimeType: "text/csv", buffer: Buffer.from("name,age\nAda,36\nAlan,41") });
+    const csv = page.locator("#fc-list li").filter({ hasText: "people.csv" });
+    const json = JSON.parse((await download(page, () => csv.locator("a[download]").click())).toString());
+    expect(json).toEqual([{ name: "Ada", age: "36" }, { name: "Alan", age: "41" }]);
+  });
+
+  test("File Converter says plainly when it can't convert a file, and points to other tools", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    await page.setInputFiles("#fc-file", [
+      { name: "mystery.xyz", mimeType: "application/octet-stream", buffer: Buffer.from([1, 2, 0, 3, 4, 5, 6, 7]) },
+      { name: "scan.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.4\n%%EOF\n") },
+    ]);
+    const unknown = page.locator("#fc-list li").filter({ hasText: "mystery.xyz" });
+    await expect(unknown).toContainText("can't convert it yet");
+    await expect(unknown.getByRole("link", { name: "Request this conversion" })).toHaveAttribute("href", /issues\/new\?template=tool_request\.yml/);
+    await expect(unknown.locator("a[download]")).toHaveCount(0);
+    const pdf = page.locator("#fc-list li").filter({ hasText: "scan.pdf" });
+    await expect(pdf.getByRole("link", { name: "PDF to Images" })).toHaveAttribute("href", "/pdf/to-images/");
+    await expect(pdf.getByRole("link", { name: "Compress PDF" })).toHaveAttribute("href", "/pdf/compress/");
+  });
+
   test("Hash Generator matches the SHA-256 test vector", async ({ page }) => {
     await page.goto("/developer/hash-generator/");
     await page.fill("#hg-in", "abc");

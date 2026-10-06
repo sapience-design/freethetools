@@ -10,6 +10,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 ### Added (tools)
 
 - Markdown to HTML (text): Markdown to HTML and HTML to Markdown, with a live, cleaned preview, Copy and Download. Uses marked, Turndown and DOMPurify.
+- File Converter (everyday): drop any files, it detects each type from its first bytes and converts in the browser, one row per file. Images (PNG, JPEG, WebP, GIF, BMP, ICO, SVG, AVIF) to PNG, JPEG, WebP, BMP or ICO; audio to 16-bit WAV; CSV, TSV and JSON to each other; Markdown and HTML to each other or to plain text. Links to the specialised tools, and to the tool request form for anything it can't convert yet.
 
 ### Added (extended stats)
 

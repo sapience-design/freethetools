@@ -1,0 +1,28 @@
+{
+  "name": "File Converter",
+  "short": "File Converter",
+  "tagline": "Drop any files. It finds out what they are and shows what they can become. Nothing is uploaded.",
+  "seoTitle": "Free file converter: images, audio, CSV, Markdown",
+  "description": "Convert images, audio, CSV, JSON, Markdown and HTML in your browser, one file or many. It detects each file's type. Nothing is uploaded.",
+  "section": "Convert",
+  "keywords": ["file converter", "convert files", "png to bmp", "png to ico", "svg to png", "webp to jpg", "csv to json", "audio to wav", "mp3 to wav", "markdown to html"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-06",
+  "offline": true,
+  "specs": {
+    "Images": "PNG, JPEG, WebP, GIF (first frame), BMP, ICO, SVG and AVIF (where your browser can open it) to PNG, JPEG, WebP, BMP or ICO",
+    "Audio": "Anything your browser can play, to 16-bit WAV at 44.1 kHz",
+    "Data": "CSV, TSV and JSON (a list of objects) to each other",
+    "Documents": "Markdown to HTML, HTML to Markdown, and either to plain text",
+    "Detection": "By the file's first bytes, then its name"
+  },
+  "faq": [
+    { "q": "Are my files uploaded?", "a": "No. Each file is converted inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "How does it know what a file is?", "a": "It reads the first bytes of the file, where most formats sign themselves, and only then looks at the name. A PNG renamed to .txt is still treated as a PNG." },
+    { "q": "Why can't it convert my file?", "a": "It handles images, audio, CSV, JSON, Markdown and HTML so far. PDFs, Word and Excel files, video and HEIC photos are not supported yet. Request the conversion you need and it goes on the list." },
+    { "q": "Why did my transparent PNG get a white background?", "a": "JPEG and BMP can't store transparency, so those areas are filled with white. Choose PNG, WebP or ICO to keep it." },
+    { "q": "What does the ICO file contain?", "a": "Your picture at the standard icon sizes that fit inside it, from 16 to 256 pixels, fitted into squares without stretching. Windows and browsers pick the size they need." },
+    { "q": "Why is the WAV file so large?", "a": "WAV is uncompressed 16-bit audio. It opens everywhere and suits editing, but it's about ten times the size of an MP3." }
+  ]
+}
