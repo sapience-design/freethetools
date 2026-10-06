@@ -140,6 +140,7 @@ const PIECES: Record<string, Draw> = {
   "word-counter": (c) => { const [x, y] = at(0); return pad(c, x, y) + box(x + 34, y - 20, 132, 8, 8, c.accent, 10) + box(x + 34 - 66 * 0.866 - 3, y - 20 - 66 * 0.5 - 2, 9, 8, 8, c.navy, 10); },
   "text-diff": (c) => { const [x, y] = at(0); return pad(c, x - 40, y - 16, 80, 104) + pad(c, x + 44, y + 18, 80, 104); },
   "case-converter": (c) => { const [x, y] = at(0); return cube(c, x - 40, y - 8, 54, c.paper, "A") + cube(c, x + 34, y + 20, 42, c.accent, "a", c.ink); },
+  "markdown-to-html": (c) => { const [x, y] = at(0); return pad(c, x - 38, y - 12, 82, 106) + cube(c, x + 46, y + 22, 52, c.accent, "&lt;/&gt;", c.ink); },
   // Data
   "csv-to-json": (c) => { const [x, y] = at(0); return box(x - 30, y - 10, 104, 128, 6, c.paper, 0, c.line) + top(x - 30, y - 10, 6, [-44, -26, -8, 10, 28].map((b) => `<rect x="-44" y="${b}" width="88" height="2" fill="${c.line}"/>`).join("") + `<rect x="-14" y="-52" width="2" height="104" fill="${c.line}"/>`) + cube(c, x + 60, y + 30, 48, c.accent, "{ }", c.ink); },
   "json-formatter": (c) => { const [x, y] = at(0); return cube(c, x - 36, y + 6, 58, c.paper, "{", c.ink) + cube(c, x + 40, y + 6, 58, c.accent, "}", c.ink); },

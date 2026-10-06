@@ -1,0 +1,113 @@
+---
+import ToolShot from "../../../src/components/ToolShot.astro";
+import { EXAMPLE_MARKDOWN } from "./core.js";
+---
+<section class="tool" aria-label="Markdown to HTML">
+  <ToolShot toolId="text/markdown-to-html" category="text" name="Markdown to HTML" />
+  <fieldset class="field">
+    <legend class="eyebrow">Direction</legend>
+    <div class="seg">
+      <input type="radio" name="md-dir" id="md-m2h" value="m2h" checked><label for="md-m2h">Markdown → HTML</label>
+      <input type="radio" name="md-dir" id="md-h2m" value="h2m"><label for="md-h2m">HTML → Markdown</label>
+    </div>
+  </fieldset>
+  <label class="field"><span id="md-in-label">Markdown</span><textarea id="md-in" rows="10" spellcheck="false">{EXAMPLE_MARKDOWN}</textarea></label>
+  <div class="actions">
+    <label class="check" id="md-clean-wrap"><input type="checkbox" id="md-clean" checked> Remove scripts and unsafe markup from the HTML</label>
+    <label class="btn line" for="md-file">Open a file…</label><input type="file" id="md-file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden>
+  </div>
+  <div class="out">
+    <span class="eyebrow" id="md-status"></span>
+    <pre class="out-box" id="md-out" tabindex="0" role="region" aria-label="Result" aria-live="polite"></pre>
+    <div class="actions" id="md-actions"><button class="btn line" id="md-copy" type="button">Copy result</button></div>
+  </div>
+  <div class="out">
+    <span class="eyebrow">Preview</span>
+    <div class="md-preview" id="md-preview" tabindex="0" role="region" aria-label="Rendered preview"></div>
+  </div>
+</section>
+
+<script>
+  import { markdownToHtml, htmlToMarkdown, sanitizeHtml } from "./core.js";
+  import { downloadLink, baseName, reportFailure } from "../../../src/lib/files";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("md-in") as HTMLTextAreaElement, out = $("md-out"), status = $("md-status"), preview = $("md-preview");
+  let dl: HTMLAnchorElement | null = null;
+  let stem = "document";
+  const dir = () => (document.querySelector('input[name="md-dir"]:checked') as HTMLInputElement).value;
+
+  function update() {
+    const m2h = dir() === "m2h";
+    $("md-in-label").textContent = m2h ? "Markdown" : "HTML";
+    $("md-clean-wrap").hidden = !m2h;
+    dl?.remove(); dl = null;
+    try {
+      let result: string, html: string;
+      if (m2h) {
+        const clean = ($("md-clean") as HTMLInputElement).checked;
+        result = html = markdownToHtml(input.value, { sanitize: clean });
+        status.textContent = clean ? "HTML ready, cleaned" : "HTML ready, exactly as written";
+        dl = downloadLink(result, `${stem}.html`, "text/html", "Download .html");
+      } else {
+        result = htmlToMarkdown(input.value);
+        html = markdownToHtml(result);
+        status.textContent = "Markdown ready";
+        dl = downloadLink(result, `${stem}.md`, "text/markdown", "Download .md");
+      }
+      out.textContent = result;
+      // The preview is always cleaned, and never loads images from other sites.
+      preview.innerHTML = sanitizeHtml(html, { preview: true });
+      // Headings in the preview are styled text, so they never compete with the page's own headings.
+      preview.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
+        const d = document.createElement("div");
+        d.className = `md-h md-${h.tagName.toLowerCase()}`;
+        d.append(...h.childNodes);
+        h.replaceWith(d);
+      });
+      $("md-actions").prepend(dl);
+      out.classList.remove("bad");
+    } catch (e) {
+      reportFailure();
+      out.textContent = (e as Error).message; status.textContent = "Needs fixing"; out.classList.add("bad");
+      preview.replaceChildren();
+    }
+  }
+
+  input.addEventListener("input", update);
+  document.querySelectorAll('input[name="md-dir"], #md-clean').forEach((el) => el.addEventListener("change", update));
+  ($("md-file") as HTMLInputElement).addEventListener("change", async (e) => {
+    const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
+    input.value = await f.text();
+    stem = baseName(f.name) || "document";
+    ($(/\.html?$/i.test(f.name) ? "md-h2m" : "md-m2h") as HTMLInputElement).checked = true;
+    update();
+  });
+  const copy = $("md-copy") as HTMLButtonElement;
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
+    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+  });
+  update();
+</script>
+
+<style>
+  pre.out-box { margin: 0; max-height: 360px; overflow: auto; }
+  pre.out-box.bad { color: var(--bad); }
+  .md-preview { padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; max-height: 480px; overflow: auto; overflow-wrap: anywhere; }
+  .md-preview :global(> :first-child) { margin-top: 0; }
+  .md-preview :global(> :last-child) { margin-bottom: 0; }
+  .md-preview :global(.md-h) { margin: 1em 0 .4em; font-weight: 600; line-height: 1.2; }
+  .md-preview :global(.md-h1) { font-size: 1.5rem; }
+  .md-preview :global(.md-h2) { font-size: var(--t-lg); }
+  .md-preview :global(p), .md-preview :global(ul), .md-preview :global(ol), .md-preview :global(blockquote), .md-preview :global(pre), .md-preview :global(table) { margin: 0 0 .8em; }
+  .md-preview :global(ul), .md-preview :global(ol) { padding-left: 1.4em; }
+  .md-preview :global(blockquote) { padding-left: 12px; border-left: 3px solid var(--line); color: var(--muted); }
+  .md-preview :global(code), .md-preview :global(pre) { font-family: var(--mono); font-size: var(--t-sm); background: var(--studio); border-radius: 4px; }
+  .md-preview :global(code) { padding: 1px 4px; }
+  .md-preview :global(pre) { padding: 10px 12px; overflow: auto; }
+  .md-preview :global(pre code) { padding: 0; background: none; }
+  .md-preview :global(table) { border-collapse: collapse; }
+  .md-preview :global(th), .md-preview :global(td) { padding: 6px 10px; border: 1px solid var(--line); text-align: left; }
+  .md-preview :global(a) { color: var(--ink); }
+  .md-preview :global(img) { max-width: 100%; height: auto; }
+</style>

@@ -114,6 +114,27 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#cj-out")).toContainText('"a": "1"');
   });
 
+  test("Markdown to HTML converts, previews, copies and downloads", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]).catch(() => {});
+    await page.goto("/text/markdown-to-html/");
+    // The example is converted on load.
+    await expect(page.locator("#md-out")).toContainText("<h1>Free the Tools</h1>");
+    await page.fill("#md-in", "# Hello\n\nSome **bold** text <script>window.__x = 1</script>");
+    await expect(page.locator("#md-out")).toContainText("<strong>bold</strong>");
+    await expect(page.locator("#md-out")).not.toContainText("<script");
+    await expect(page.locator("#md-preview .md-h1")).toHaveText("Hello");
+    await expect(page.locator("#md-preview strong")).toHaveText("bold");
+    await page.click("#md-copy");
+    await expect(page.locator("#md-copy")).toHaveText(/Copied|Select the text/);
+    const html = (await download(page, () => page.getByRole("link", { name: "Download .html" }).click())).toString();
+    expect(html).toContain("<h1>Hello</h1>");
+    // And back again.
+    await page.click('label[for="md-h2m"]');
+    await page.fill("#md-in", "<h2>Title</h2><ul><li>one</li><li>two</li></ul>");
+    await expect(page.locator("#md-out")).toContainText("## Title");
+    await expect(page.locator("#md-preview li")).toHaveCount(2);
+  });
+
   test("Hash Generator matches the SHA-256 test vector", async ({ page }) => {
     await page.goto("/developer/hash-generator/");
     await page.fill("#hg-in", "abc");

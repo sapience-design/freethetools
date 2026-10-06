@@ -7,6 +7,10 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Added (tools)
+
+- Markdown to HTML (text): Markdown to HTML and HTML to Markdown, with a live, cleaned preview, Copy and Download. Uses marked, Turndown and DOMPurify.
+
 ### Added (extended stats)
 
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.
