@@ -5,6 +5,7 @@ const ACCEPT = ["image/jpeg", "image/png"];
 
 export default defineTools({
   name: "images_to_pdf",
+  makesFiles: true,
   title: "Images to PDF",
   description:
     "Put JPEG and PNG images into one PDF, one page per image, in the order given. Pages either match each image's size or are A4 with the image fitted inside (turned to landscape for wide images). Runs on this device; nothing is uploaded.",

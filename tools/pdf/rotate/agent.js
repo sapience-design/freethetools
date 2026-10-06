@@ -5,6 +5,7 @@ import { pagesFromRanges, rotatePdf } from "./core.js";
 
 export default defineTools({
   name: "rotate_pdf",
+  makesFiles: true,
   title: "Rotate Pages",
   description:
     "Turn pages of a PDF clockwise by 90, 180 or 270 degrees: every page, or chosen pages such as \"1-3, 5\". Runs on this device; nothing is uploaded.",

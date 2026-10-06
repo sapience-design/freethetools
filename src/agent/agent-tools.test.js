@@ -36,7 +36,9 @@ async function call(name, args, ctx = {}) {
   const wire = Object.fromEntries(Object.entries(args).map(([k, v]) => [k, Array.isArray(v) ? v.map((x) => x?.bytes ? x.name : x) : v?.bytes ? v.name : v]));
   const problems = checkArgs(wireSchema(def.input, () => ({ type: "string" })), wire);
   assert.deepEqual(problems, [], `${name}: ${problems.join(" ")}`);
-  return def.run(args, ctx);
+  const result = await def.run(args, ctx);
+  if (result.files?.length) assert.equal(def.makesFiles, true, `${name} returned files, so it needs makesFiles: true`);
+  return result;
 }
 
 test("there are definitions, and names are unique", () => {

@@ -3,6 +3,7 @@ import { mergePdfs, pageCount } from "./core.js";
 
 export default defineTools({
   name: "merge_pdfs",
+  makesFiles: true,
   title: "Merge PDFs",
   description:
     "Combine PDFs into one, keeping every page, in the order given. Password-protected PDFs must be unlocked first. Runs on this device; nothing is uploaded.",

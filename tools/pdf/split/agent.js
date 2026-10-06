@@ -4,6 +4,7 @@ import { everyPage, parseRanges, splitPdf } from "./core.js";
 
 export default defineTools({
   name: "split_pdf",
+  makesFiles: true,
   title: "Split PDF",
   description:
     "Split a PDF into separate files: one per page, or one per range such as \"1-3, 5, 8-\" (8- means page 8 to the end). Runs on this device; nothing is uploaded.",

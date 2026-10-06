@@ -3,6 +3,7 @@ import { formatJson } from "./core.js";
 
 export default defineTools({
   name: "format_json",
+  makesFiles: true,
   title: "JSON Formatter",
   description:
     "Check JSON and pretty-print it, minify it, or sort its keys. If it isn't valid, say where: line and column. Give text to get text back, or a file to get a file. Runs on this device; nothing is uploaded.",

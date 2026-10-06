@@ -4,6 +4,7 @@ import { csvToJson, jsonToCsv } from "./core.js";
 export default defineTools(
   {
     name: "csv_to_json",
+    makesFiles: true,
     title: "CSV to JSON",
     description:
       "Turn CSV into JSON: an array of objects keyed by the header row, or an array of arrays. Detects the delimiter (comma, semicolon, tab). Give text to get text back, or a file to get a .json file. Runs on this device; nothing is uploaded.",
@@ -29,6 +30,7 @@ export default defineTools(
   },
   {
     name: "json_to_csv",
+    makesFiles: true,
     title: "CSV to JSON",
     description:
       "Turn a JSON array (of objects, or of arrays) into CSV. Give text to get text back, or a file to get a .csv file. Runs on this device; nothing is uploaded.",
