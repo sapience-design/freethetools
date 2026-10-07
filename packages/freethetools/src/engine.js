@@ -3,10 +3,16 @@
 import { readFile, stat } from "node:fs/promises";
 import { basename, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { Worker } from "node:worker_threads";
-import { checkArgs, detectType, fileFields, settingsOf, wireSchema } from "../../../src/agent/contract.js";
+import { checkArgs, cleanArgs, detectType, fileFields, settingsOf, wireSchema } from "../../../src/agent/contract.js";
 import { libraryEntry, newId } from "../../../src/agent/library.js";
 import { appendEntry, safeName, writeNew } from "./library.js";
 import { byName, tools } from "./registry.js";
+import { checkFileName, checkReadable, checkSaveTo, foldersFor, realish } from "./safety.js";
+
+/** The most text or data a call returns inline. More goes to a file in the library. */
+export const MAX_INLINE_BYTES = 1_000_000;
+/** Tool workers running at once. Others wait their turn, so many calls cannot use up the memory. */
+const MAX_WORKERS = 2;
 
 // FREETHETOOLS_MAX_BYTES lets the tests check the size limit without a 2 GB file.
 export const MAX_FILE_BYTES = Number(process.env.FREETHETOOLS_MAX_BYTES) > 0 ? Number(process.env.FREETHETOOLS_MAX_BYTES) : 2_000_000_000;
@@ -20,7 +26,7 @@ const SAVE_TO = {
   type: "string",
   minLength: 1,
   description:
-    "Optional. A folder on this computer where the result files are also saved, in addition to the Free the Tools library. Existing files are never overwritten.",
+    "Optional. A folder where the result files are also saved, in addition to the Free the Tools library. It must be inside the working directory, the library, or a folder the person allowed with --allow-save, and not inside a hidden folder. Files that can run programs, such as .bat or .exe, are never saved. Existing files are never overwritten.",
 };
 
 const fileToPath = (s) => ({
@@ -43,21 +49,23 @@ export const describe = (t) =>
 
 const fail = (message) => Object.assign(new Error(message), { plain: true });
 
-async function readInputs(t, args) {
+async function readInputs(t, args, folders) {
   const inputs = [];
   let total = 0;
   const load = async (p) => {
     if (typeof p !== "string" || !p) throw fail("A file path is empty.");
-    const path = isAbsolute(p) ? p : resolve(process.cwd(), p);
-    let info;
-    try { info = await stat(path); } catch { throw fail(`I can't find the file ${path}.`); }
+    const given = isAbsolute(p) ? p : resolve(process.cwd(), p);
+    let path;
+    try { path = await realish(given); await stat(path); } catch { throw fail(`I can't find the file ${given}.`); }
+    checkReadable(path, folders);
+    const info = await stat(path);
     if (!info.isFile()) throw fail(`${path} is not a file.`);
     total += info.size;
     if (info.size > MAX_FILE_BYTES || total > MAX_FILE_BYTES)
       throw fail(`${basename(path)} is too large. The limit is 2 GB for each call. Split the job into smaller files.`);
     let buf;
     try { buf = await readFile(path); } catch (e) { throw fail(`I can't read ${path}: ${e.code === "EACCES" ? "permission denied" : e.message}.`); }
-    const bytes = new Uint8Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+    const bytes = new Uint8Array(buf.buffer, buf.byteOffset, buf.length);
     const name = basename(path);
     const f = { name, type: detectType(bytes, name), bytes };
     inputs.push({ name, type: f.type, size: bytes.length });
@@ -71,7 +79,22 @@ async function readInputs(t, args) {
   return { run, inputs };
 }
 
-function inWorker(name, args, seconds) {
+let running = 0;
+const waiting = [];
+/** Run a tool in a worker, at most MAX_WORKERS at a time. The time limit starts when the worker does. */
+async function inWorker(name, args, seconds) {
+  if (running >= MAX_WORKERS) await new Promise((go) => waiting.push(go));
+  else running++;
+  try {
+    return await startWorker(name, args, seconds);
+  } finally {
+    const next = waiting.shift();
+    if (next) next();
+    else running--;
+  }
+}
+
+function startWorker(name, args, seconds) {
   return new Promise((resolveRun, reject) => {
     const bufs = [];
     const walk = (v) => {
@@ -108,24 +131,25 @@ function inWorker(name, args, seconds) {
  * @returns {Promise<{ ok: boolean, tool: string, summary: string, data?: unknown, error?: string,
  *   files: { name: string, type: string, size: number, path: string }[], saved: string[], id?: string, warning?: string }>}
  */
-export async function callTool(name, rawArgs, { library, via = "mcp", by = "agent" }) {
+export async function callTool(name, rawArgs, { library, allowSave = [], via = "mcp", by = "agent" }) {
   const t = byName.get(name);
   if (!t) {
     const close = tools.map((x) => x.def.name).filter((n) => n.includes(name.split("_")[0])).slice(0, 5);
     const hint = close.length ? ` Did you mean ${close.join(", ")}?` : ' Run "freethetools list" to see them.';
     return { ok: false, tool: name, summary: "", error: `There is no tool named ${name}.${hint}`, files: [], saved: [] };
   }
-  const args = rawArgs ?? {};
   let inputs = [];
   let settings = {};
-  let result, error, saveTo;
+  let result, error, saveDir;
   try {
-    const problems = checkArgs(toolSchema(t), args);
+    const problems = checkArgs(toolSchema(t), rawArgs ?? {});
     if (problems.length) throw fail(problems.join(" "));
-    ({ saveTo } = args);
-    const { saveTo: _drop, ...toolArgs } = args;
-    settings = settingsOf(t.def.input, args);
-    const read = await readInputs(t, toolArgs);
+    const args = cleanArgs(rawArgs); // options sent as null get their defaults
+    const folders = await foldersFor({ library, allowSave });
+    const { saveTo, ...toolArgs } = args;
+    if (saveTo !== undefined) saveDir = await checkSaveTo(saveTo, folders);
+    settings = settingsOf(t.def.input, args); // options only: never text, secrets or saveTo
+    const read = await readInputs(t, toolArgs, folders);
     inputs = read.inputs;
     result = await inWorker(name, read.run, t.def.needs?.length ? SECONDS_WITH_ENGINE : SECONDS);
   } catch (e) {
@@ -139,13 +163,26 @@ export async function callTool(name, rawArgs, { library, via = "mcp", by = "agen
   if (result) {
     try {
       const dir = join(library, "files", id);
-      for (const f of result.files) {
+      const outFiles = [...result.files];
+      // Large data does not travel through the conversation: it goes to a file, and the result gives its path.
+      const data = result.data === undefined ? undefined : JSON.stringify(result.data, null, 2);
+      if (data !== undefined && Buffer.byteLength(data) > MAX_INLINE_BYTES) {
+        outFiles.push({ name: `${name}-data.json`, type: "application/json", bytes: new TextEncoder().encode(data) });
+        result = {
+          ...result,
+          data: undefined,
+          summary: `${result.summary} The data is ${(Buffer.byteLength(data) / 1e6).toFixed(1)} MB, too large to return here, so it is saved as the file ${name}-data.json.`,
+        };
+      }
+      if (result.summary.length > MAX_INLINE_BYTES) result = { ...result, summary: `${result.summary.slice(0, 1000)}... (cut: the text was too long to return here)` };
+      for (const f of outFiles) checkFileName(safeName(f.name)); // all names first, so a refusal leaves no partial results
+      for (const f of outFiles) {
         const path = await writeNew(dir, safeName(f.name), f.bytes);
         files.push({ name: basename(path), type: f.type, size: f.bytes.length, path });
-        if (saveTo) saved.push(await writeNew(resolve(process.cwd(), saveTo), safeName(f.name), f.bytes));
+        if (saveDir) saved.push(await writeNew(saveDir, safeName(f.name), f.bytes));
       }
     } catch (e) {
-      error = `The tool finished, but I could not save the result files: ${e?.message ?? e}`;
+      error = e.plain ? e.message : `The tool finished, but I could not save the result files: ${e?.message ?? e}`;
     }
   }
   const ok = !error;

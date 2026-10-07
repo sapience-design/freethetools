@@ -3,8 +3,8 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -12,16 +12,20 @@ import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { PDFDocument } from "pdf-lib";
 import { parseLog } from "../../../src/agent/library.js";
+import { safeName } from "../src/library.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const CLI = join(here, "../dist/cli.js");
-const SAMPLE = join(here, "../../../tools/pdf/compress/tests/fixtures/sample.pdf");
+const FIXTURE = join(here, "../../../tools/pdf/compress/tests/fixtures/sample.pdf");
 const run = promisify(execFile);
 
 const tmp = mkdtempSync(join(tmpdir(), "ftt-test-"));
 const library = join(tmp, "library");
 const saveTo = join(tmp, "out");
-const env = { ...process.env, FREETHETOOLS_LIBRARY: library, FREETHETOOLS_TIMEOUT_SECONDS: "3", FREETHETOOLS_MAX_BYTES: "300000" };
+// A copy in the temporary folder: the repository itself may sit inside a hidden folder, such as .claude/worktrees.
+const SAMPLE = join(tmp, "sample.pdf");
+copyFileSync(FIXTURE, SAMPLE);
+const env = { ...process.env, FREETHETOOLS_LIBRARY: library, FREETHETOOLS_ALLOW_SAVE: tmp, FREETHETOOLS_TIMEOUT_SECONDS: "3", FREETHETOOLS_MAX_BYTES: "300000" };
 
 let client;
 before(async () => {
@@ -143,4 +147,180 @@ test("the command line lists tools and runs one", async () => {
   assert.equal(r.ok, true);
   assert.match(JSON.stringify(r), /ABC/);
   await assert.rejects(run(process.execPath, [CLI, "run", "convert_case", "{}"], { env }), (e) => JSON.parse(e.stdout).ok === false);
+});
+
+// ---- Safety: what the package may write and read ----------------------------------------------
+
+const other = mkdtempSync(join(tmpdir(), "ftt-other-")); // a folder nobody allowed
+after(() => rmSync(other, { recursive: true, force: true }));
+const B64 = "RnJlZSB0aGUgVG9vbHM="; // "Free the Tools"
+const decodeToFile = (args) => call("base64_decode", { base64: B64, output: "file", ...args });
+const cli = (args, opts = {}) => run(process.execPath, [CLI, ...args], { env, maxBuffer: 20_000_000, ...opts });
+const linkDir = (target, path) => symlinkSync(target, path, "junction"); // a junction needs no privileges on Windows
+const listDir = (dir) => {
+  try { return readdirSync(dir); } catch { return []; }
+};
+
+test("saveTo outside the allowed folders is refused, and nothing is written", async () => {
+  const r = await decodeToFile({ fileName: "note.txt", saveTo: other });
+  assert.equal(r.isError, true);
+  assert.match(text(r), /won't save to/);
+  assert.match(text(r), /--allow-save/);
+  assert.deepEqual(listDir(other), []);
+  const home = join(homedir(), "Free the Tools Test Never Made");
+  const inHome = await decodeToFile({ fileName: "note.txt", saveTo: home });
+  assert.equal(inHome.isError, true);
+  assert.equal(existsSync(home), false);
+});
+
+test("saveTo cannot escape through a link", async () => {
+  const link = join(tmp, "escape-link");
+  linkDir(other, link);
+  const r = await decodeToFile({ fileName: "note.txt", saveTo: link });
+  assert.equal(r.isError, true, text(r));
+  assert.match(text(r), /won't save to/);
+  const through = await decodeToFile({ fileName: "note.txt", saveTo: join(link, "deeper") });
+  assert.equal(through.isError, true);
+  assert.deepEqual(listDir(other), []);
+});
+
+test("saveTo never goes into a hidden folder", async () => {
+  for (const dir of [join(tmp, ".git", "hooks"), join(tmp, "project", ".hidden")]) {
+    const r = await decodeToFile({ fileName: "note.txt", saveTo: dir });
+    assert.equal(r.isError, true, dir);
+    assert.match(text(r), /hidden folder/);
+    assert.equal(existsSync(dir), false);
+  }
+});
+
+test("saveTo works in an allowed folder, the working directory and a folder given with --allow-save", async () => {
+  const ok = await decodeToFile({ fileName: "note.txt", saveTo: join(tmp, "allowed-by-env") });
+  assert.ok(!ok.isError, text(ok));
+  assert.ok(section(ok, "Also saved to").every(existsSync));
+
+  const cwd = join(tmp, "work");
+  mkdirSync(cwd);
+  const noAllow = { ...env, FREETHETOOLS_ALLOW_SAVE: "" };
+  const args = JSON.stringify({ base64: B64, output: "file", fileName: "note.txt", saveTo: "results" });
+  const inCwd = JSON.parse((await cli(["run", "base64_decode", args], { cwd, env: noAllow })).stdout);
+  assert.equal(inCwd.saved.length, 1);
+  assert.ok(existsSync(join(cwd, "results", "note.txt")));
+
+  const elsewhere = JSON.stringify({ base64: B64, output: "file", fileName: "note.txt", saveTo: other });
+  const refused = await cli(["run", "base64_decode", elsewhere], { cwd, env: noAllow }).catch((e) => e);
+  assert.equal(JSON.parse(refused.stdout).ok, false);
+  const allowed = await cli(["run", "base64_decode", elsewhere, "--allow-save", other], { cwd, env: noAllow });
+  assert.equal(JSON.parse(allowed.stdout).ok, true);
+  assert.ok(existsSync(join(other, "note.txt")));
+  rmSync(join(other, "note.txt"));
+});
+
+test("names that can run a program, hidden names and names without an extension are refused", async () => {
+  const refused = ["evil.bat", "RUN.PS1", "x.js", "tool.exe", "a.sh", "evil.bat.", "evil.lnk", "installer.msi", "noextension", ".hidden.txt", ".env"];
+  for (const fileName of refused) {
+    const before = entries().length;
+    const r = await decodeToFile({ fileName, saveTo: join(tmp, "names") });
+    assert.equal(r.isError, true, fileName);
+    assert.match(text(r), /I won't save a file named/, fileName);
+    assert.match(text(r), /Use another name/, fileName);
+    assert.ok(text(r).includes(fileName.replace(/[. ]+$/, "")), `${fileName}: ${text(r)}`);
+    assert.equal(entries().length, before + 1, "the refusal is recorded");
+  }
+  assert.deepEqual(listDir(join(tmp, "names")), [], "nothing was written to the folder");
+  for (const fileName of ["note.txt", "data.json", "picture.png"]) assert.ok(!(await decodeToFile({ fileName })).isError, fileName);
+});
+
+test("safeName keeps the extension when it cuts a long name", () => {
+  const long = safeName(`${"a".repeat(300)}.pdf`);
+  assert.equal(long.length, 180);
+  assert.ok(long.endsWith("a.pdf"));
+  assert.equal(safeName(`${"b".repeat(179)} .pdf`).endsWith(".pdf"), true);
+  assert.equal(safeName("short.pdf"), "short.pdf");
+  assert.equal(safeName("..\\..\\evil.txt"), "evil.txt");
+  assert.equal(safeName(`${"c".repeat(200)}.${"x".repeat(40)}`).length, 180);
+});
+
+test("secrets and saveTo never reach library.jsonl", async () => {
+  const jwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.c2ln";
+  const a = await call("decode_jwt", { token: jwt, secret: "SUPERSECRET" });
+  assert.ok(!a.isError, text(a));
+  const b = await call("make_qr_code", { wifi: { ssid: "HomeNet", password: "WIFIPASS" }, fileName: "wifi.svg", saveTo: join(tmp, "qr-copies") });
+  assert.ok(!b.isError, text(b));
+  const raw = readFileSync(join(library, "library.jsonl"), "utf8");
+  assert.ok(!raw.includes("SUPERSECRET"), "the JWT secret is not recorded");
+  assert.ok(!raw.includes("WIFIPASS"), "the Wi-Fi password is not recorded");
+  assert.ok(!raw.includes("qr-copies"), "saveTo is not recorded");
+  assert.deepEqual(entries().find((e) => e.tool === "make_qr_code").settings, { fileName: "wifi.svg" });
+  assert.deepEqual(entries().find((e) => e.tool === "decode_jwt").settings, {});
+});
+
+test("hidden files and files in hidden folders are never read", async () => {
+  mkdirSync(join(tmp, ".ssh"));
+  writeFileSync(join(tmp, ".ssh", "id_rsa"), "PRIVATEKEY");
+  writeFileSync(join(tmp, ".env"), "TOKEN=PRIVATEVALUE");
+  writeFileSync(join(tmp, "plain.txt"), "plain");
+  mkdirSync(join(tmp, ".git"));
+  writeFileSync(join(tmp, ".git", "config"), "PRIVATEGIT");
+  const leaked = (r) => text(r).includes(Buffer.from("PRIVATE").toString("base64").slice(0, 8));
+  for (const file of [join(tmp, ".ssh", "id_rsa"), join(tmp, ".env"), join(tmp, ".git", "config")]) {
+    const r = await call("base64_encode", { file });
+    assert.equal(r.isError, true, file);
+    assert.match(text(r), /hidden/);
+    assert.ok(!leaked(r));
+  }
+  const ok = await call("base64_encode", { file: join(tmp, "plain.txt") });
+  assert.ok(!ok.isError, text(ok));
+  // a link in a normal folder that points into a hidden one
+  linkDir(join(tmp, ".ssh"), join(tmp, "innocent"));
+  const viaLink = await call("base64_encode", { file: join(tmp, "innocent", "id_rsa") });
+  assert.equal(viaLink.isError, true);
+  assert.match(text(viaLink), /hidden/);
+  assert.ok(!leaked(viaLink));
+});
+
+test("data over 1 MB goes to a file in the library, and the whole result reaches the command line", async () => {
+  const big = join(tmp, "big.bin");
+  writeFileSync(big, Buffer.alloc(1_500_000, 7));
+  const bigEnv = { ...env, FREETHETOOLS_MAX_BYTES: "5000000" };
+  const r = JSON.parse((await cli(["run", "base64_encode", JSON.stringify({ file: big })], { env: bigEnv })).stdout);
+  assert.equal(r.ok, true);
+  assert.equal(r.data, undefined, "the data is not returned inline");
+  assert.match(r.summary, /saved as the file base64_encode-data\.json/);
+  const file = r.files.find((f) => f.name === "base64_encode-data.json");
+  assert.ok(file && existsSync(file.path) && file.path.startsWith(library));
+  assert.equal(JSON.parse(readFileSync(file.path, "utf8")).base64.length, 2_000_000);
+
+  // Under the cap: returned inline, and the command line prints all of it before it exits.
+  const mid = join(tmp, "mid.bin");
+  writeFileSync(mid, Buffer.alloc(600_000, 9));
+  const out = await cli(["run", "base64_encode", JSON.stringify({ file: mid })], { env: bigEnv });
+  assert.ok(out.stdout.length > 800_000);
+  assert.equal(JSON.parse(out.stdout).data.base64.length, 800_000);
+});
+
+test("options sent as null get their defaults", async () => {
+  const r = await call("compress_pdf", { file: SAMPLE, quality: null, firstPageOnly: null });
+  assert.ok(!r.isError, text(r));
+  assert.match(text(r), /"quality": "balanced"/);
+  assert.deepEqual(entries().filter((e) => e.tool === "compress_pdf").pop().settings, {});
+});
+
+test("calls queued behind the worker limit all finish", async () => {
+  const results = await Promise.all(Array.from({ length: 8 }, (_, i) => call("count_words", { text: `one two ${i}` })));
+  assert.ok(results.every((r) => !r.isError));
+});
+
+test("each tool says whether it only reads or also makes files", async () => {
+  const { tools } = await client.listTools();
+  for (const t of tools) {
+    assert.equal(t.annotations.openWorldHint, false, t.name);
+    if (t.inputSchema.properties.saveTo) {
+      assert.equal(t.annotations.readOnlyHint, false, t.name);
+      assert.equal(t.annotations.destructiveHint, false, t.name);
+    } else {
+      assert.equal(t.annotations.readOnlyHint, true, t.name);
+    }
+  }
+  assert.equal(tools.find((t) => t.name === "convert_case").annotations.readOnlyHint, true);
+  assert.equal(tools.find((t) => t.name === "merge_pdfs").annotations.readOnlyHint, false);
 });

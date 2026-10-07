@@ -11,12 +11,17 @@ export function libraryDir(option) {
 }
 
 /** A name that is safe as one file name on Windows, macOS and Linux. */
-export function safeName(name) {
+export function safeName(name, max = 180) {
   const cleaned = basename(String(name).replaceAll("\\", "/"))
     .replace(/[\u0000-\u001f<>:"/\\|?*]/g, "_")
-    .replace(/[. ]+$/, "")
-    .slice(0, 180);
-  return cleaned && cleaned !== "." && cleaned !== ".." ? cleaned : "file";
+    .replace(/[. ]+$/, "");
+  if (!cleaned || cleaned === "." || cleaned === "..") return "file";
+  if (cleaned.length <= max) return cleaned;
+  // Cut the name, not the extension.
+  const ext = extname(cleaned);
+  const keep = ext.length <= 20 ? ext : "";
+  const stem = cleaned.slice(0, cleaned.length - keep.length).slice(0, max - keep.length).replace(/[. ]+$/, "");
+  return (stem || "file") + keep;
 }
 
 /**
