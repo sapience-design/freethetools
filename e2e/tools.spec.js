@@ -135,6 +135,28 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#md-preview li")).toHaveCount(2);
   });
 
+  test("Markdown to HTML shows Preview or Code in one place, and remembers the choice", async ({ page }) => {
+    await page.goto("/text/markdown-to-html/");
+    await expect(page.locator("#md-preview")).toBeVisible();
+    await expect(page.locator("#md-out")).toBeHidden();
+    await expect(page.locator("#md-view-preview")).toBeChecked();
+    // Keyboard: the arrow keys move between the two views, like any radio group.
+    await page.locator("#md-view-preview").focus();
+    await page.keyboard.press("ArrowRight");
+    await expect(page.locator("#md-view-code")).toBeChecked();
+    await expect(page.locator("#md-out")).toBeVisible();
+    await expect(page.locator("#md-preview")).toBeHidden();
+    await expect(page.locator("#md-out")).toContainText("<h1>Free the Tools</h1>");
+    await page.reload();
+    await expect(page.locator("#md-view-code")).toBeChecked();
+    await expect(page.locator("#md-out")).toBeVisible();
+    await page.click('label[for="md-view-preview"]');
+    await expect(page.locator("#md-preview")).toBeVisible();
+    // An error shows in the open view too.
+    await page.fill("#md-in", "");
+    await expect(page.locator("#md-preview .md-err")).toBeVisible();
+  });
+
   test("File Converter converts a PNG to BMP and ICO, and a CSV to JSON", async ({ page }) => {
     await page.goto("/everyday/file-converter/");
     // The example file is converted on load.
