@@ -7,7 +7,7 @@ import DOMPurify from "dompurify";
 
 export const EXAMPLE_MARKDOWN = `# Free the Tools
 
-Write **Markdown** on the left. The *HTML* appears on the right, and nothing is uploaded.
+Write **Markdown** above. The *HTML* appears below, as a preview or as code, and nothing is uploaded.
 
 - Lists, [links](https://freethetools.com) and \`code\`
 - Tables and ~~strikethrough~~
