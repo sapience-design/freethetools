@@ -654,3 +654,29 @@ test.describe("phone drawer without JavaScript", () => {
     }
   });
 });
+
+test.describe("a click opens the file picker", () => {
+  test.skip(({ isMobile }) => isMobile, "runs once, on desktop");
+  // Every drop area shows a Choose button; tools without one have an "Open a file" button.
+  const PICKERS = [
+    ["/pdf/merge/", ".drop .pick"], ["/pdf/split/", ".drop .pick"], ["/pdf/rotate/", ".drop .pick"],
+    ["/pdf/fill-form/", ".drop .pick"], ["/pdf/images-to-pdf/", ".drop .pick"], ["/pdf/to-images/", ".drop .pick"],
+    ["/pdf/compress/", ".drop .pick"], ["/images/compress/", ".drop .pick"], ["/images/convert/", ".drop .pick"],
+    ["/images/resize/", ".drop .pick"], ["/images/remove-location/", ".drop .pick"], ["/everyday/file-converter/", ".drop .pick"],
+    ["/text/markdown-to-html/", "#md-open"], ["/data/csv-to-json/", "#cj-open"], ["/developer/base64/", "#b64-open"], ["/developer/hash-generator/", "#hg-open"],
+  ];
+  for (const [path, button] of PICKERS) {
+    test(`${path}: clicking ${button} opens the file picker`, async ({ page }) => {
+      await page.goto(path);
+      await page.waitForLoadState("networkidle");
+      await expect(page.locator(button)).toBeVisible();
+      // One listener for every try: a picker can open after a short wait gives up.
+      const chooser = page.waitForEvent("filechooser", { timeout: 20000 });
+      for (let i = 0; i < 3; i++) {
+        await page.locator(button).click();
+        if (await Promise.race([chooser.then(() => true, () => false), page.waitForTimeout(4000).then(() => false)])) break;
+      }
+      expect(await chooser).toBeTruthy();
+    });
+  }
+});
