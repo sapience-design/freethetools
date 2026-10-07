@@ -4,7 +4,7 @@ import ToolShot from "../../../src/components/ToolShot.astro";
 <section class="tool" aria-label="Hash generator">
   <ToolShot toolId="developer/hash-generator" category="developer" name="Hash Generator" />
   <label class="field"><span>Text</span><textarea id="hg-in" rows="4" spellcheck="false">Free the Tools</textarea></label>
-  <div class="actions"><label class="btn line" for="hg-file">Hash a file instead…</label><input type="file" id="hg-file" hidden></div>
+  <div class="actions"><button type="button" class="btn line" id="hg-open">Hash a file instead…</button><input type="file" id="hg-file" hidden></div>
   <p class="muted" id="hg-source">Hashing the text above</p>
   <ul class="file-list" id="hg-list" aria-live="polite"></ul>
   <label class="field"><span>Check against a checksum (optional)</span><input type="text" id="hg-check" placeholder="Paste the expected hash" autocomplete="off" spellcheck="false"></label>
@@ -46,6 +46,7 @@ import ToolShot from "../../../src/components/ToolShot.astro";
   }
   input.addEventListener("input", () => { $("hg-source").textContent = "Hashing the text above"; run(new TextEncoder().encode(input.value)); });
   check.addEventListener("input", verdict);
+  $("hg-open").addEventListener("click", () => ($("hg-file") as HTMLInputElement).click());
   ($("hg-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     $("hg-source").textContent = `Hashing ${f.name} (${fmtBytes(f.size)})`;
