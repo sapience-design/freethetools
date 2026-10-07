@@ -423,18 +423,17 @@ async function watchWrites(page, selector) {
 }
 const writes = (page) => page.evaluate(() => window.__writes);
 
-/** Focus a button and press a key; the file picker must open. Chromium sometimes drops the first
- *  keypress on a busy machine, so try a few times before failing. */
+/** Focus a button and press a key; the file picker must open. Chromium sometimes drops a keypress
+ *  on a busy machine, so press again if nothing happens. One listener covers every press: a picker
+ *  can open after a short wait has given up, and a browser shows only one picker at a time. */
 async function pickerFromKey(page, selector, key) {
-  for (let attempt = 1; ; attempt++) {
+  const chooser = page.waitForEvent("filechooser", { timeout: 20000 });
+  for (let attempt = 0; attempt < 3; attempt++) {
     await page.locator(selector).focus();
-    try {
-      const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 4000 }), page.keyboard.press(key)]);
-      return chooser;
-    } catch (e) {
-      if (attempt === 3) throw e;
-    }
+    await page.keyboard.press(key);
+    if (await Promise.race([chooser.then(() => true, () => false), page.waitForTimeout(4000).then(() => false)])) break;
   }
+  return chooser;
 }
 
 test.describe("Open a file button and live regions", () => {

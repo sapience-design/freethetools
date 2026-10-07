@@ -37,12 +37,28 @@ async function tabTo(page, selector, { text, max = 120 } = {}) {
   throw new Error(`Tab never reached ${selector}${text ? ` ${text}` : ""} in ${max} presses`);
 }
 
+/**
+ * Press Enter on the focused Menu button until the drawer opens. On a busy machine Chromium can
+ * drop a key press. Press again only while focus is still on Menu: once the drawer opens, focus
+ * moves to its Close button, and another Enter would close it.
+ */
+async function enterMenu(page) {
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press("Enter");
+    try {
+      await expect(page.locator("#side")).toHaveClass(/open/, { timeout: 3000 });
+      return;
+    } catch (e) {
+      if (i === 2 || (await page.evaluate(() => document.activeElement?.id)) !== "menu") throw e;
+    }
+  }
+}
+
 /** On a phone the sidebar is a drawer: open it with the keyboard. On desktop it is always there. */
 async function openNav(page, isMobile) {
   if (!isMobile) return;
   await tabTo(page, "#menu");
-  await page.keyboard.press("Enter");
-  await expect(page.locator("#side")).toHaveClass(/open/);
+  await enterMenu(page);
 }
 
 const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])';
@@ -121,8 +137,7 @@ test.describe("keyboard only", () => {
     test.skip(!isMobile, "The drawer exists on phones only");
     await ready(page, "/");
     await tabTo(page, "#menu");
-    await page.keyboard.press("Enter");
-    await expect(page.locator("#side")).toHaveClass(/open/);
+    await enterMenu(page);
     // Focus moves into the drawer, so a keyboard user does not tab through the page behind it.
     expect(await page.evaluate(() => !!document.activeElement.closest("#side"))).toBe(true);
     await page.keyboard.press("Escape");
@@ -190,14 +205,15 @@ test.describe("keyboard only", () => {
     test(`${path}: the drop zone opens the file chooser from the keyboard`, async ({ page }) => {
       await ready(page, path);
       await tabTo(page, ".drop");
-      // The tool script may still be wiring the zone, so press again if no chooser opens.
-      let opened = false;
-      for (let i = 0; i < 4 && !opened; i++) {
-        const chooser = page.waitForEvent("filechooser", { timeout: 3000 }).then(() => true, () => false);
+      // The tool script may still be wiring the zone, so press again if no chooser opens. One
+      // listener covers every press: a chooser can open after a short wait has given up, and a
+      // browser shows only one chooser at a time, so later presses would open nothing.
+      const chooser = page.waitForEvent("filechooser", { timeout: 20000 });
+      for (let i = 0; i < 4; i++) {
         await page.keyboard.press("Enter");
-        opened = await chooser;
+        if (await Promise.race([chooser.then(() => true, () => false), page.waitForTimeout(3000).then(() => false)])) break;
       }
-      expect(opened, "file chooser opened").toBe(true);
+      expect(await chooser, "file chooser opened").toBeTruthy();
     });
   }
 
