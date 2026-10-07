@@ -14,11 +14,12 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
   <label class="field"><span id="md-in-label">Markdown</span><textarea id="md-in" rows="10" spellcheck="false">{EXAMPLE_MARKDOWN}</textarea></label>
   <div class="actions">
     <label class="check" id="md-clean-wrap"><input type="checkbox" id="md-clean" checked> Remove scripts and unsafe markup from the HTML</label>
-    <label class="btn line" for="md-file">Open a file…</label><input type="file" id="md-file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden>
+    <button type="button" class="btn line" id="md-open">Open a file…</button><input type="file" id="md-file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden>
   </div>
   <div class="out">
     <span class="eyebrow" id="md-status"></span>
-    <pre class="out-box" id="md-out" tabindex="0" role="region" aria-label="Result" aria-live="polite"></pre>
+    <pre class="out-box" id="md-out" tabindex="0" role="region" aria-label="Result"></pre>
+    <p class="sr-only" id="md-live" role="status"></p>
     <div class="actions" id="md-actions"><button class="btn line" id="md-copy" type="button">Copy result</button></div>
   </div>
   <div class="out">
@@ -33,6 +34,10 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("md-in") as HTMLTextAreaElement, out = $("md-out"), status = $("md-status"), preview = $("md-preview");
   let dl: HTMLAnchorElement | null = null;
+  // The result box is rewritten on every keystroke, so it is not a live region. This short message is,
+  // and it is written only when it changes.
+  const live = $("md-live");
+  const announce = (text: string) => { if (live.textContent !== text) live.textContent = text; };
   let stem = "document";
   const dir = () => (document.querySelector('input[name="md-dir"]:checked') as HTMLInputElement).value;
 
@@ -47,11 +52,13 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
         const clean = ($("md-clean") as HTMLInputElement).checked;
         result = html = markdownToHtml(input.value, { sanitize: clean });
         status.textContent = clean ? "HTML ready, cleaned" : "HTML ready, exactly as written";
+        announce(status.textContent);
         dl = downloadLink(result, `${stem}.html`, "text/html", "Download .html");
       } else {
         result = htmlToMarkdown(input.value);
         html = markdownToHtml(result);
         status.textContent = "Markdown ready";
+        announce(status.textContent);
         dl = downloadLink(result, `${stem}.md`, "text/markdown", "Download .md");
       }
       out.textContent = result;
@@ -68,13 +75,14 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
       out.classList.remove("bad");
     } catch (e) {
       reportFailure();
-      out.textContent = (e as Error).message; status.textContent = "Needs fixing"; out.classList.add("bad");
+      out.textContent = (e as Error).message; status.textContent = "Needs fixing"; announce((e as Error).message); out.classList.add("bad");
       preview.replaceChildren();
     }
   }
 
   input.addEventListener("input", update);
   document.querySelectorAll('input[name="md-dir"], #md-clean').forEach((el) => el.addEventListener("change", update));
+  $("md-open").addEventListener("click", () => ($("md-file") as HTMLInputElement).click());
   ($("md-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     input.value = await f.text();

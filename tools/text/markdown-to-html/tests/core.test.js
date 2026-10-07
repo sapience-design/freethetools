@@ -51,7 +51,7 @@ test("HTML to Markdown", () => {
 
 test("HTML tables become Markdown tables", () => {
   const md = htmlToMarkdown("<table><tr><th>A</th><th>B</th></tr><tr><td>1</td><td>2|3</td></tr></table>");
-  assert.equal(md.trim(), "| A | B |\n| --- | --- |\n| 1 | 2\|3 |");
+  assert.equal(md.trim(), "| A | B |\n| --- | --- |\n| 1 | 2\\|3 |");
 });
 
 test("Markdown survives a round trip", () => {
@@ -75,4 +75,32 @@ test("plain text drops tags and keeps lists and paragraphs", () => {
 test("empty input says what to do", () => {
   assert.throws(() => markdownToHtml("  "), /Markdown/);
   assert.throws(() => htmlToMarkdown(""), /HTML/);
+});
+
+test("HTML to Markdown drops script, style, noscript, template and head contents", () => {
+  assert.equal(htmlToMarkdown("<script>alert(1)</script><p>x</p>"), "x\n");
+  const md = htmlToMarkdown("<head><title>T</title><style>p{color:red}</style></head><noscript>no js</noscript><template><b>tpl</b></template><p>x</p>");
+  assert.equal(md, "x\n");
+});
+
+test("HTML to Markdown escapes a pipe inside a table cell", () => {
+  const md = htmlToMarkdown("<table><tr><th>a|b</th><th>c</th></tr><tr><td>1|2</td><td>3</td></tr></table>");
+  assert.equal(md, "| a\\|b | c |\n| --- | --- |\n| 1\\|2 | 3 |\n");
+});
+
+test("the preview blocks remote srcset, video, audio, source, track, poster and backslash URLs", () => {
+  const html = [
+    '<img src="/ok.png" srcset="https://evil.test/a.png 2x">',
+    '<img src="\\\\evil.test/x.png" alt="slash">',
+    '<video src="https://evil.test/v.mp4" poster="//evil.test/p.png"><source src="http://evil.test/v.webm"><track src="\\\\evil.test/t.vtt"></video>',
+    '<audio src="https://evil.test/a.mp3"></audio>',
+    '<form action="/x"><input name="q"><button>go</button></form>',
+  ].join("");
+  const out = sanitizeHtml(html, { purify, preview: true });
+  assert.doesNotMatch(out, /evil\.test|<form|<input|<button/i);
+  assert.match(out, /\[slash\]/);
+  // Outside the preview nothing is rewritten.
+  assert.match(sanitizeHtml('<video src="https://evil.test/v.mp4"></video>', { purify }), /evil\.test/);
+  // Local images survive.
+  assert.match(sanitizeHtml('<img src="/ok.png" alt="a">', { purify, preview: true }), /src="\/ok\.png"/);
 });
