@@ -251,7 +251,7 @@ for (const [path, mod] of Object.entries(agents)) {
     } catch (e) {
       const err = e as DOMException;
       if (err.name === "AbortError") return;
-      say(err.name === "NotFoundError" ? `That folder has no ${LOG_FILE}. Pick the "Free the Tools" folder in your home folder.` : `Could not open the folder: ${err.message}`);
+      say(err.name === "NotFoundError" ? `That folder has no ${LOG_FILE}. Pick the "freethetools" folder in your home folder.` : `Could not open the folder: ${err.message}`);
     }
   });
 

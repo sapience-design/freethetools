@@ -96,7 +96,7 @@ Every tool that makes files also takes an optional `saveTo`: a folder where the 
 
 | What | Where |
 |---|---|
-| Library folder | A folder named `Free the Tools` in your home folder |
+| Library folder | A folder named `freethetools` in your home folder |
 | Another folder | `freethetools mcp --library <folder>`, or set `FREETHETOOLS_LIBRARY` |
 | Result files | `<library>/files/<id>/<name>` |
 | Record of every job | `<library>/library.jsonl`, one JSON record per line |

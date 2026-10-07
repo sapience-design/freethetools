@@ -27,7 +27,7 @@ Options
                                         Without it, "saveTo" must be inside the working directory or the library.
                                         You can also set FREETHETOOLS_ALLOW_SAVE (folders separated by "${delimiter}").
   --library <folder>                    Where results and the record of jobs are kept.
-                                        Default: the "Free the Tools" folder in your home folder.
+                                        Default: the "freethetools" folder in your home folder.
                                         You can also set the FREETHETOOLS_LIBRARY environment variable.
 
 Where results go

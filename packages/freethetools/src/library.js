@@ -4,10 +4,10 @@ import { homedir } from "node:os";
 import { basename, extname, join, resolve } from "node:path";
 import { LOG_FILE, logLine } from "../../../src/agent/library.js";
 
-/** The library folder: --library, then FREETHETOOLS_LIBRARY, then "Free the Tools" in the home folder. */
+/** The library folder: --library, then FREETHETOOLS_LIBRARY, then "freethetools" in the home folder. */
 export function libraryDir(option) {
   const chosen = option || process.env.FREETHETOOLS_LIBRARY;
-  return chosen ? resolve(chosen) : join(homedir(), "Free the Tools");
+  return chosen ? resolve(chosen) : join(homedir(), "freethetools");
 }
 
 /** A name that is safe as one file name on Windows, macOS and Linux. */

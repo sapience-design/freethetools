@@ -55,7 +55,7 @@ On Windows, if the app cannot start `npx`, use `"command": "cmd"` and `"args": [
 
 ## Find the results
 
-1. Open the `Free the Tools` folder in your home folder. Results are in `files/`, one folder for each job.
+1. Open the `freethetools` folder in your home folder. Results are in `files/`, one folder for each job.
 2. Open `library.jsonl` to see every job, including failed ones.
 3. To use another folder, add `--library <folder>` to the command, or set the `FREETHETOOLS_LIBRARY` environment variable.
 4. To see the folder as a list, open the library page on freethetools.com in Chrome or Edge and choose the folder.

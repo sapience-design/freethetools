@@ -167,7 +167,7 @@ test("saveTo outside the allowed folders is refused, and nothing is written", as
   assert.match(text(r), /won't save to/);
   assert.match(text(r), /--allow-save/);
   assert.deepEqual(listDir(other), []);
-  const home = join(homedir(), "Free the Tools Test Never Made");
+  const home = join(homedir(), "freethetools-test-never-made");
   const inHome = await decodeToFile({ fileName: "note.txt", saveTo: home });
   assert.equal(inHome.isError, true);
   assert.equal(existsSync(home), false);
