@@ -25,12 +25,22 @@ The owner wants AI assistants to use Free the Tools instead. The owner also want
 | WebMCP on each tool page (`document.modelContext.registerTool`) | AI agents in the browser: Chrome and Edge (origin trials), ChatGPT Desktop, Brave | Files the person added to the page, or small files passed in the call |
 | An MCP server in the npm package `freethetools` | Claude Code, Claude Desktop, Cursor and other MCP clients | Paths on the person's computer |
 
+**The package is careful with the person's computer**, because an AI drives it:
+
+- It never reads or writes hidden files or folders, such as `.ssh`, `.env` or `.git`.
+- It writes results only to its library folder, the working folder, or folders the person allows with `--allow-save`. It never overwrites a file.
+- It refuses file names that could run as programs, such as `.bat`, `.ps1` or `.sh`, and names without an extension.
+- Data over 1 MB goes to a file in the library instead of into the conversation.
+- Each call runs in a worker with a time limit, at most two at a time.
+
 **No hosted MCP server.** A server on freethetools.com would need no install, but the agent would have to upload the files. That breaks the promise.
 
 **A library of every job, on the device.**
 
 - Every job is recorded, whether a person or an agent ran it. The library is on by default, shown in the sidebar, and easy to clear.
-- Each record keeps the tool, the time, who ran it, the settings, the input names and sizes, and the result files.
+- A person's job is recorded when they download a result, not each time a tool draws one. An agent's job is recorded when the call finishes.
+- Each record keeps the tool, the time, who ran it, the options used, the input names and sizes, and the result files.
+- Options are an allowlist: on/off choices, numbers, choices from a fixed list, and strings a definition marks `"x-setting": true`, such as a page range. Text the person typed, secrets such as a Wi-Fi password or a JWT secret, and form answers are never kept.
 - The site keeps records in the browser (IndexedDB).
 - The package keeps them in a "Free the Tools" folder in the person's home folder: `library.jsonl`, one record per line, and result files under `files/<id>/`.
 - Both use one format, `src/agent/library.js`. In Chrome and Edge, the site's library page can open the package's folder.

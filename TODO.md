@@ -7,8 +7,12 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | # | Task | Why | Status |
 |---|---|---|---|
-| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Prompt written 2026-09-28 |
-| B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Ready |
+| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Waiting for the owner to finalise the theme |
+| B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Automated part done on `feat/agents-and-tools`; the screen-reader pass is O17 |
+| B10 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
+| B11 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
+| B12 | A way to turn off the "/" search shortcut (WCAG 2.1.4), and a styled "Skip to content" link | Found in the accessibility pass; both change how the site looks or behaves | After the theme |
+| B13 | Rewrite the tutorial around a tool that doesn't exist yet | `docs/tutorial/first-tool.md` builds Word Counter, which now exists, so its scaffold step fails | Ready |
 
 ## Owner (Sapience Design)
 
@@ -21,6 +25,12 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | O7 | Optional: sign up for the OpenSSF Best Practices badge | bestpractices.dev | Open |
 | O8 | Decide whether Dependabot PRs skip the sign-off check. If yes, add `if: github.event.pull_request.user.login != 'dependabot[bot]'` to the `signoff` job in `.github/workflows/dco.yml`. Until then, a maintainer re-applies each bump in a signed-off PR, as #34 did. | GitHub (CI changes need the owner) | Open |
 | O11 | Two-factor login on GitHub and Cloudflare with an authenticator app or security key (not SMS), and check that no old API tokens remain | github.com/settings/security; Cloudflare → My Profile → Authentication and API Tokens | Open |
+| O12 | Register freethetools.com for the WebMCP origin trial in Chrome, and paste the token into `src/data/origin-trials.json` | developer.chrome.com/origintrials | After merge |
+| O13 | The same for Edge | Microsoft Edge origin trials portal | After merge |
+| O14 | Publish the package: `npm login`, then `npm publish` in `packages/freethetools` (prepack builds it) | npmjs.com, with two-factor login | After merge |
+| O15 | List the MCP server in the official MCP Registry, from `packages/freethetools/server.json` | registry.modelcontextprotocol.io | After O14 |
+| O16 | Decide whether agent jobs count in the anonymous usage totals (ADR 0007, ADR 0008) | — | Open |
+| O17 | Screen-reader pass with NVDA (Windows) and VoiceOver (iOS), using the checklist in the accessibility audit | `docs/research/2026-09-28-accessibility-speed-audit.md` | Open |
 
 ## Parked
 
