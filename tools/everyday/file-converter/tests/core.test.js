@@ -4,7 +4,7 @@ import { JSDOM } from "jsdom";
 import createDOMPurify from "dompurify";
 import {
   detectType, outputsFor, relatedTools, renameTo, encodeBmp, encodeIco, icoSizes, svgRasterSize, encodeWav,
-  convertData, convertDocument, htmlPage,
+  convertData, convertDocument, htmlPage, decodeText, textToHtml, delimiterName, estimateAudio, longAudioWarning,
 } from "../core.js";
 
 const { window } = new JSDOM("");
@@ -218,4 +218,70 @@ test("HTML to Markdown and plain text", () => {
   assert.equal(convertDocument("# Title\n\n- a\n- b", "markdown", "text"), "Title\n\n- a\n- b\n");
   assert.throws(() => convertDocument("  ", "markdown", "html"), /empty/);
   assert.throws(() => convertDocument("x", "txt", "markdown"), /isn't available/);
+});
+
+// ---- Review fixes ----
+
+test("a semicolon CSV is detected and read as columns", () => {
+  const r = convertData("name;age\nAda;36", "csv", "json");
+  assert.deepEqual(JSON.parse(r.text), [{ name: "Ada", age: "36" }]);
+  assert.equal(r.delimiter, ";");
+  assert.equal(delimiterName(r.delimiter), "semicolon");
+  assert.equal(convertData("a;b\n1;2", "csv", "tsv").text, "a\tb\r\n1\t2");
+  assert.equal(convertData("a\tb\n1\t2", "csv", "json").delimiter, "\t");
+  assert.equal(convertData("a,b\n1,2", "csv", "json").delimiter, ",");
+});
+
+test("JSON with different keys per row keeps every column", () => {
+  assert.equal(convertData('[{"a":1,"b":2},{"a":3,"c":4}]', "json", "csv").text, "a,b,c\r\n1,2,\r\n3,,4");
+  assert.throws(() => convertData('[{"a":1},[1]]', "json", "csv"), /mixes objects and arrays/);
+});
+
+test("TSV keeps empty cells on the last row", () => {
+  assert.equal(convertData("a\tb\tc\n1\t2\t3\n4\t\t\n", "tsv", "csv").text, "a,b,c\r\n1,2,3\r\n4,,");
+  assert.deepEqual(JSON.parse(convertData("a\tb\n1\t2\n4\t", "tsv", "json").text)[1], { a: "4", b: "" });
+});
+
+test("data conversion reports repeated column names", () => {
+  const r = convertData("a,a\n1,2", "csv", "json");
+  assert.match(r.warnings.join(" "), /renamed/);
+  assert.deepEqual(convertData("a,b\n1,2", "csv", "json").warnings, []);
+  assert.deepEqual(convertData("a\n1", "csv", "json").warnings, []);
+  assert.match(convertData("a,b\n1,2,3", "csv", "tsv").warnings.join(" "), /Row 2/);
+});
+
+test("text is decoded as UTF-8, then windows-1252, and UTF-16 by its byte order mark", () => {
+  assert.deepEqual(decodeText(new TextEncoder().encode("café")), { text: "café", encoding: "utf-8" });
+  assert.deepEqual(decodeText(bytes(0x63, 0x61, 0x66, 0xe9)), { text: "café", encoding: "windows-1252" });
+  assert.equal(decodeText(bytes(0xef, 0xbb, 0xbf, 0x61)).text, "a");
+  assert.deepEqual(decodeText(bytes(0xff, 0xfe, 0x61, 0x00, 0xe9, 0x00)), { text: "aé", encoding: "utf-16le" });
+  assert.deepEqual(decodeText(bytes(0xfe, 0xff, 0x00, 0x61, 0x00, 0xe9)), { text: "aé", encoding: "utf-16be" });
+  const csv = convertData(decodeText(bytes(...Buffer.from("name;city\nAda;Zürich", "latin1"))).text, "csv", "json").text;
+  assert.deepEqual(JSON.parse(csv), [{ name: "Ada", city: "Zürich" }]);
+});
+
+test("UTF-16 text with a byte order mark is text, not audio or binary", () => {
+  const le = Uint8Array.from([0xff, 0xfe, ...Buffer.from("a,b\n1,2", "utf16le")]);
+  assert.equal(detectType(le, "t.csv").format, "csv");
+  const be = Uint8Array.from([0xfe, 0xff, ...Buffer.from("a,b\n1,2", "utf16le").swap16()]);
+  assert.equal(detectType(be, "t.txt").format, "txt");
+  assert.equal(detectType(new TextEncoder().encode("<?xml version='1.0'?><svg></svg>"), "x.txt").format, "svg");
+});
+
+test("plain text becomes escaped paragraphs, not Markdown", () => {
+  assert.equal(textToHtml("* star\nnext <b>\n\nsecond & last"), "<p>* star<br>\nnext &lt;b&gt;</p>\n<p>second &amp; last</p>");
+  const page = convertDocument("* star\nline two", "txt", "html", "T");
+  assert.match(page, /<p>\* star<br>\nline two<\/p>/);
+  assert.doesNotMatch(page, /<li>/);
+});
+
+test("audio length is checked before decoding", () => {
+  const wav = new Uint8Array(44);
+  new DataView(wav.buffer).setUint32(28, 176400, true); // 44.1 kHz, stereo, 16-bit
+  assert.equal(longAudioWarning(estimateAudio(wav, 44 + 176400 * 60, "wav")), "");
+  const long = estimateAudio(wav, 44 + 176400 * 3600, "wav");
+  assert.equal(long.exact, true);
+  assert.match(longAudioWarning(long), /about 60 minutes/);
+  assert.match(longAudioWarning(estimateAudio(new Uint8Array(0), 40 * 1024 * 1024, "mp3")), /roughly/);
+  assert.equal(longAudioWarning(estimateAudio(new Uint8Array(0), 3 * 1024 * 1024, "mp3")), "");
 });

@@ -57,6 +57,11 @@ export function detectType(bytes, name = "") {
 
   if (b.length >= 8 && b[0] === 0x89 && ascii(b, 1, 3) === "PNG") return image("png");
   if (b.length >= 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return image("jpeg");
+  // UTF-16 text starts with a byte order mark, which looks like an MP3 frame, so check it first.
+  if (bomOf(b) === "utf-16le" || bomOf(b) === "utf-16be") {
+    if (!TEXT_BY_EXT[ext]) return { kind: "unknown", format: "text", label: "file we don't recognise", mime: "application/octet-stream" };
+    return textType(decodeText(b.subarray(0, 65536)).text, ext);
+  }
   if (ascii(b, 0, 4) === "GIF8") return image("gif");
   if (ascii(b, 0, 4) === "RIFF" && ascii(b, 8, 4) === "WEBP") return image("webp");
   if (ascii(b, 0, 4) === "RIFF" && ascii(b, 8, 4) === "WAVE") return audio("wav");
@@ -84,15 +89,51 @@ export function detectType(bytes, name = "") {
   // No signature: it has to be text.
   const head = b.subarray(0, 65536);
   if (head.includes(0)) return { kind: "unknown", format: "binary", label: "binary file", mime: "application/octet-stream" };
-  const text = new TextDecoder("utf-8").decode(head).replace(/^﻿/, "");
-  const start = text.trimStart().slice(0, 2000);
-  if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!doctype svg[^>]*>\s*)?<svg[\s>]/i.test(start)) return image("svg");
+  return textType(decodeText(head).text, ext);
+}
+
+/** What a text file is, from its start and its extension. */
+function textType(text, ext) {
+  const start = text.replace(/^﻿/, "").trimStart().slice(0, 2000);
+  if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!doctype svg[^>]*>\s*)?<svg[\s>]/i.test(start)) return { kind: "image", format: "svg", ...IMAGES.svg };
   const known = TEXT_BY_EXT[ext];
   if (known) {
     if (known === "txt" && /^<(!doctype html|html[\s>])/i.test(start)) return { ...TEXTS.html, format: "html", mime: "text/html" };
     return { ...TEXTS[known], format: known, mime: "text/plain" };
   }
   return { kind: "unknown", format: "text", label: "file we don't recognise", mime: "application/octet-stream" };
+}
+
+// ---- Text encodings -----------------------------------------------------------------------------
+
+/** The byte order mark at the start of a file, if any. */
+function bomOf(b) {
+  if (b.length >= 3 && b[0] === 0xef && b[1] === 0xbb && b[2] === 0xbf) return "utf-8";
+  if (b.length >= 2 && b[0] === 0xff && b[1] === 0xfe) return "utf-16le";
+  if (b.length >= 2 && b[0] === 0xfe && b[1] === 0xff) return "utf-16be";
+  return "";
+}
+
+/**
+ * Turn the bytes of a text file into a string. A byte order mark decides first (UTF-8, UTF-16 LE
+ * or BE). Otherwise strict UTF-8 is tried, and a file that isn't valid UTF-8 is read as
+ * windows-1252, the usual encoding of older Windows and Excel files.
+ * @param {Uint8Array} bytes
+ * @returns {{ text: string, encoding: "utf-8"|"utf-16le"|"utf-16be"|"windows-1252" }}
+ */
+export function decodeText(bytes) {
+  const b = bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  const bom = bomOf(b);
+  if (bom === "utf-16le" || bom === "utf-16be") {
+    // A cut-off last character (when only the start of a file is given) is dropped, not an error.
+    const even = b.subarray(0, b.length - (b.length % 2));
+    return { text: new TextDecoder(bom).decode(even).replace(/^﻿/, ""), encoding: bom };
+  }
+  try {
+    return { text: new TextDecoder("utf-8", { fatal: true }).decode(b).replace(/^﻿/, ""), encoding: "utf-8" };
+  } catch {
+    return { text: new TextDecoder("windows-1252").decode(b), encoding: "windows-1252" };
+  }
 }
 
 // ---- What can it become? ----------------------------------------------------------------------
@@ -285,38 +326,85 @@ export function encodeWav(channels, sampleRate) {
   return out;
 }
 
+const LONG_AUDIO_SECONDS = 30 * 60;
+const LONG_AUDIO_BYTES = 200 * 1024 * 1024;
+// Typical bit rates, in kilobits per second, used only to guess the length of compressed audio.
+const GUESS_KBPS = { mp3: 128, aac: 128, m4a: 128, ogg: 96, webm: 96, flac: 700 };
+
+/**
+ * Guess how long a sound is and how much memory it needs once decoded (32-bit floats, stereo,
+ * 44.1 kHz), before decoding it. A WAV file says its own length; for other formats the length
+ * comes from the file size and a typical bit rate, so it is a rough guess.
+ * @param {Uint8Array} head the first bytes of the file (64 KB is enough)
+ * @param {number} fileSize bytes in the whole file
+ * @param {string} format a detected audio format such as "wav" or "mp3"
+ * @returns {{ seconds: number, decodedBytes: number, exact: boolean }}
+ */
+export function estimateAudio(head, fileSize, format) {
+  let seconds = 0, exact = false;
+  if (format === "wav" && head.length >= 44) {
+    const v = new DataView(head.buffer, head.byteOffset, head.byteLength);
+    const byteRate = v.getUint32(28, true);
+    if (byteRate > 0) { seconds = Math.max(0, fileSize - 44) / byteRate; exact = true; }
+  }
+  if (!seconds) seconds = (fileSize * 8) / ((GUESS_KBPS[format] ?? 128) * 1000);
+  return { seconds, decodedBytes: Math.round(seconds * 44100 * 2 * 4), exact };
+}
+
+/** A warning to show before decoding very long audio, or "" when it is fine to go ahead. */
+export function longAudioWarning(est) {
+  if (est.seconds <= LONG_AUDIO_SECONDS && est.decodedBytes <= LONG_AUDIO_BYTES) return "";
+  const minutes = Math.round(est.seconds / 60);
+  const mb = Math.round(est.decodedBytes / (1024 * 1024));
+  return `This sound is ${est.exact ? "about" : "roughly"} ${minutes} minutes long and needs about ${mb} MB of memory to convert. It may be slow, or the tab may run out of memory.`;
+}
+
 // ---- Data: CSV, TSV and JSON ------------------------------------------------------------------
 
 const DELIMITER = { csv: ",", tsv: "\t" };
-const cellText = (v) => (v !== null && typeof v === "object" ? JSON.stringify(v) : v);
 
 /**
  * Convert between CSV, TSV and JSON (a list of objects).
  * @param {string} text
  * @param {"csv"|"tsv"|"json"} from
  * @param {"csv"|"tsv"|"json"} to
- * @returns {{ text: string, rows: number }}
+ * @returns {{ text: string, rows: number, delimiter?: string, warnings: string[] }} delimiter: what a CSV was read with
  */
 export function convertData(text, from, to) {
   const src = text.replace(/^﻿/, "");
   if (!src.trim()) throw new Error("This file is empty.");
-  if (from === to) return { text: src, rows: 0 };
+  if (from === to) return { text: src, rows: 0, warnings: [] };
   if (from === "json") {
     let data;
     try { data = JSON.parse(src); } catch (e) { throw new Error(`This isn't valid JSON (${e.message}). Check for a missing comma or quote.`); }
     if (!Array.isArray(data) || !data.length) throw new Error('Use a JSON list of objects, for example [{"name": "Ada"}].');
     if (!data.every((r) => r !== null && typeof r === "object")) throw new Error('Every item in the list must be an object, for example {"name": "Ada"}.');
-    const rows = data.map((r) => (Array.isArray(r) ? r.map(cellText) : Object.fromEntries(Object.entries(r).map(([k, v]) => [k, cellText(v)]))));
-    return { text: jsonToCsv(JSON.stringify(rows), { delimiter: DELIMITER[to] }), rows: rows.length };
+    // jsonToCsv uses every key from every row and rejects a list that mixes objects and arrays.
+    return { text: jsonToCsv(src, { delimiter: DELIMITER[to] }), rows: data.length, warnings: [] };
   }
+  // A .csv file may use semicolons (Excel in much of Europe) or tabs, so let Papa find the
+  // delimiter. A .tsv file is always tab separated.
+  const delimiter = DELIMITER[from] === "\t" ? "\t" : undefined;
   if (to === "json") {
-    const r = csvToJson(src, { delimiter: DELIMITER[from] });
-    return { text: r.json, rows: r.rows };
+    const r = csvToJson(src, { delimiter });
+    return { text: r.json, rows: r.rows, delimiter: r.delimiter, warnings: r.warnings.filter(notDelimiterGuess) };
   }
-  // CSV <-> TSV: re-write every row, keeping the header as an ordinary row.
-  const parsed = Papa.parse(src.replace(/^\s+|\s+$/g, ""), { delimiter: DELIMITER[from], skipEmptyLines: true });
-  return { text: Papa.unparse(parsed.data, { delimiter: DELIMITER[to] }), rows: Math.max(0, parsed.data.length - 1) };
+  // CSV <-> TSV: re-write every row, keeping the header as an ordinary row. Only newlines are
+  // stripped from the ends: trimming a tab would drop empty cells on the last row.
+  const parsed = Papa.parse(src.replace(/^[\r\n]+/, "").replace(/[\r\n]+$/, ""), { delimiter, skipEmptyLines: true });
+  const warnings = parsed.errors.slice(0, 5).map((e) => `Row ${(e.row ?? 0) + 1}: ${e.message}`).filter(notDelimiterGuess);
+  const width = parsed.data[0]?.length ?? 0;
+  const ragged = parsed.data.findIndex((r) => r.length !== width);
+  if (ragged > 0) warnings.push(`Row ${ragged + 1} has ${parsed.data[ragged].length} columns, but the first row has ${width}.`);
+  return { text: Papa.unparse(parsed.data, { delimiter: DELIMITER[to] }), rows: Math.max(0, parsed.data.length - 1), delimiter: parsed.meta.delimiter, warnings };
 }
+
+// A one-column file has no delimiter to find, which is not worth a warning.
+const notDelimiterGuess = (w) => !/auto-detect/i.test(w);
+
+const DELIMITER_NAME = { ",": "comma", ";": "semicolon", "\t": "tab", "|": "pipe" };
+/** "," -> "comma", for the row's text. */
+export const delimiterName = (d) => DELIMITER_NAME[d] ?? `"${d}"`;
 
 // ---- Text documents ---------------------------------------------------------------------------
 
@@ -324,6 +412,16 @@ export function convertData(text, from, to) {
 export function htmlPage(body, title = "Document") {
   const esc = (s) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
   return `<!doctype html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<title>${esc(title)}</title>\n</head>\n<body>\n${body.trim()}\n</body>\n</html>\n`;
+}
+
+/**
+ * Plain text as HTML: escaped, a paragraph per blank-line break, and a line break for a single
+ * newline. Markdown is not applied, so "* star" stays a line of text.
+ */
+export function textToHtml(text) {
+  const esc = (s) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  return text.replace(/\r\n?/g, "\n").split(/\n[ \t]*\n/).map((p) => p.replace(/^\n+|\n+$/g, "")).filter((p) => p.trim())
+    .map((p) => `<p>${esc(p).replace(/\n/g, "<br>\n")}</p>`).join("\n");
 }
 
 /**
@@ -337,7 +435,7 @@ export function htmlPage(body, title = "Document") {
 export function convertDocument(text, from, to, title = "Document", opts = {}) {
   const src = text.replace(/^﻿/, "");
   if (!src.trim()) throw new Error("This file is empty.");
-  if (to === "html") return htmlPage(markdownToHtml(src, { purify: opts.purify }), title);
+  if (to === "html") return htmlPage(from === "txt" ? textToHtml(src) : markdownToHtml(src, { purify: opts.purify }), title);
   if (to === "markdown" && from === "html") return htmlToMarkdown(src);
   if (to === "text") return from === "html" ? htmlToText(src) : markdownToText(src);
   throw new Error("That conversion isn't available.");
