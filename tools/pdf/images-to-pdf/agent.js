@@ -15,7 +15,7 @@ export default defineTools({
       files: files("Images in page order: JPEG or PNG.", ACCEPT),
       page: { type: "string", enum: ["fit", "a4"], description: "fit: page matches the image (default); a4: A4 pages." },
       margin: { type: "string", enum: ["none", "small", "large"], description: "White space around each image (default none)." },
-      fileName: { type: "string", description: "Name of the PDF (default images.pdf)." },
+      fileName: { type: "string", "x-setting": true, description: "Name of the PDF (default images.pdf)." },
     },
     required: ["files"],
     additionalProperties: false,

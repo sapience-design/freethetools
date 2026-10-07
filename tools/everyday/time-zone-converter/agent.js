@@ -14,9 +14,9 @@ export default defineTools({
   input: {
     type: "object",
     properties: {
-      time: { type: "string", description: "Local date and time in the source zone, as YYYY-MM-DDTHH:mm, e.g. 2026-10-06T09:00." },
-      from: { type: "string", description: "Source time zone, IANA name, e.g. Europe/Oslo." },
-      to: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 50, description: "Target time zones, IANA names." },
+      time: { type: "string", "x-setting": true, description: "Local date and time in the source zone, as YYYY-MM-DDTHH:mm, e.g. 2026-10-06T09:00." },
+      from: { type: "string", "x-setting": true, description: "Source time zone, IANA name, e.g. Europe/Oslo." },
+      to: { type: "array", "x-setting": true, items: { type: "string" }, minItems: 1, maxItems: 50, description: "Target time zones, IANA names." },
     },
     required: ["time", "from", "to"],
     additionalProperties: false,

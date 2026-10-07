@@ -12,7 +12,7 @@ export default defineTools({
     type: "object",
     properties: {
       file: file("The PDF to split.", ["application/pdf"]),
-      ranges: { type: "string", description: "Ranges, one file each, e.g. \"1-3, 5, 8-\". Default one file per page." },
+      ranges: { type: "string", "x-setting": true, description: "Ranges, one file each, e.g. \"1-3, 5, 8-\". Default one file per page." },
     },
     required: ["file"],
     additionalProperties: false,

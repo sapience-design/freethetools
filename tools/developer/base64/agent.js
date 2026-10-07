@@ -35,7 +35,7 @@ export default defineTools(
       properties: {
         base64: { type: "string", description: "The Base64 to decode." },
         output: { type: "string", enum: ["text", "file"], description: "Decode to UTF-8 text (default) or save as a file." },
-        fileName: { type: "string", description: "Name for the file when output is \"file\" (default decoded.bin)." },
+        fileName: { type: "string", "x-setting": true, description: "Name for the file when output is \"file\" (default decoded.bin)." },
       },
       required: ["base64"],
       additionalProperties: false,
