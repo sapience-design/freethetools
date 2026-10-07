@@ -27,6 +27,11 @@ function purifier(purify) {
   return p;
 }
 
+const MEDIA = new Set(["VIDEO", "AUDIO", "SOURCE", "TRACK"]);
+/** An address on another site. Backslashes count as slashes, as browsers read them. */
+const isRemote = (url) => /^(https?:)?\/\//i.test((url || "").trim().replace(/\\/g, "/"));
+const remoteSrcset = (set) => !!set && set.split(",").some((c) => isRemote(c.trim().split(/\s+/)[0]));
+
 const hooked = new WeakSet();
 let previewMode = false;
 function install(p) {
@@ -34,13 +39,17 @@ function install(p) {
   hooked.add(p);
   p.addHook("afterSanitizeAttributes", (node) => {
     if (!previewMode || !node.tagName) return;
-    // Preview only: never load images from other sites, and open links in a new tab.
-    if (node.tagName === "IMG") {
-      const src = node.getAttribute("src") || "";
-      if (/^(https?:)?\/\//i.test(src)) {
+    // Preview only: never load media from other sites, and open links in a new tab.
+    // The page's Content Security Policy blocks these requests too; this is a second layer.
+    const tag = node.tagName;
+    if (tag === "IMG") {
+      if (isRemote(node.getAttribute("src")) || remoteSrcset(node.getAttribute("srcset"))) {
         const alt = node.getAttribute("alt") || "image";
         node.replaceWith(node.ownerDocument.createTextNode(`[${alt}]`));
-      }
+      } else node.removeAttribute("srcset");
+    } else if (MEDIA.has(tag)) {
+      for (const a of ["src", "poster"]) if (isRemote(node.getAttribute(a))) node.removeAttribute(a);
+      if (remoteSrcset(node.getAttribute("srcset"))) node.removeAttribute("srcset");
     } else if (node.tagName === "A" && node.hasAttribute("href")) {
       node.setAttribute("target", "_blank");
       node.setAttribute("rel", "noopener noreferrer");
@@ -58,7 +67,9 @@ export function sanitizeHtml(html, opts = {}) {
   install(p);
   previewMode = !!opts.preview;
   try {
-    return p.sanitize(html, { USE_PROFILES: { html: true } });
+    // The preview has no use for forms or fields.
+    const forbid = opts.preview ? { FORBID_TAGS: ["form", "input", "textarea", "select", "button"] } : {};
+    return p.sanitize(html, { USE_PROFILES: { html: true }, ...forbid });
   } finally {
     previewMode = false;
   }
@@ -75,10 +86,11 @@ export function markdownToHtml(md, opts = {}) {
   return opts.sanitize === false ? html : sanitizeHtml(html, opts);
 }
 
-const cell = (el) => el.textContent.replace(/\s+/g, " ").replace(/\|/g, "\|").trim();
+const cell = (el) => el.textContent.replace(/\s+/g, " ").replace(/\|/g, "\\|").trim();
 
 function turndownService() {
   const td = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced", bulletListMarker: "-", emDelimiter: "*" });
+  td.remove(["script", "style", "noscript", "template", "head", "title"]);
   td.addRule("strike", { filter: ["del", "s", "strike"], replacement: (c) => `~~${c}~~` });
   td.addRule("table", {
     filter: "table",
