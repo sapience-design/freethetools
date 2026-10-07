@@ -3,7 +3,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 ---
 <section class="tool" aria-label="Images to PDF">
-  <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · as many as you like" />
+  <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · as many as you like" pick="Choose images" />
 
   <div id="i2p-panel" hidden class="tool">
     <div><p class="eyebrow">Pages, in order</p><ol class="file-list" id="i2p-list"></ol></div>

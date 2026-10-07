@@ -3,7 +3,7 @@ import DropZone from "../../../src/components/DropZone.astro";
 import { RESOLUTIONS } from "./core.js";
 ---
 <section class="tool" aria-label="PDF to images">
-  <DropZone prefix="p2i" toolId="pdf/to-images" category="pdf" name="PDF to Images" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
+  <DropZone prefix="p2i" toolId="pdf/to-images" category="pdf" name="PDF to Images" accept="application/pdf,.pdf" title="Drop a PDF here" pick="Choose a PDF" />
   <div id="p2i-panel" hidden class="tool">
     <ul class="file-list"><li><span class="fname" id="p2i-name"></span><span class="fmeta" id="p2i-meta"></span></li></ul>
     <fieldset class="field">

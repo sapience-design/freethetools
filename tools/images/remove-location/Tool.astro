@@ -2,7 +2,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 ---
 <section class="tool" aria-label="Remove photo location">
-  <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop photos here" hint="JPG, PNG or WebP · several at once is fine" />
+  <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop photos here" hint="JPG, PNG or WebP · several at once is fine" pick="Choose photos" />
   <ul class="file-list" id="rml-list" aria-live="polite"></ul>
 </section>
 

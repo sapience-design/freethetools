@@ -3,7 +3,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 ---
 <section class="tool" aria-label="Rotate PDF pages">
-  <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
+  <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop a PDF here" pick="Choose a PDF" />
 
   <div id="pdfr-panel" hidden class="tool">
     <ul class="file-list"><li><span class="fname" id="pdfr-name"></span><span class="fmeta" id="pdfr-meta"></span></li></ul>

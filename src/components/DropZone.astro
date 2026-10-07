@@ -12,14 +12,16 @@ interface Props {
   accept: string;
   multiple?: boolean;
   title: string;
-  hint: string;
+  hint?: string;
+  /** Text of the visible button, e.g. "Choose PDFs". The whole area opens the file picker; the button says so. */
+  pick?: string;
 }
-const { prefix, toolId, category, name, accept, multiple = false, title, hint } = Astro.props;
+const { prefix, toolId, category, name, accept, multiple = false, title, hint, pick = multiple ? "Choose files" : "Choose a file" } = Astro.props;
 const shot = artFor(toolId, category, `${prefix}drop`, name);
 ---
 <div class:list={["drop", { dark: category === "developer" }]} id={`${prefix}-drop`} tabindex="0" role="button">
   <span class="shot" aria-hidden="true" set:html={shot} />
-  <span class="label"><strong>{title}</strong><span class="hint">{hint}</span></span>
+  <span class="label"><strong>{title}</strong>{hint && <span class="hint">{hint}</span>}<span class="btn pick">{pick}</span></span>
   <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
 </div>
 
@@ -40,5 +42,10 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
   .hint { color: #555a60; font-size: var(--t-sm); line-height: var(--lh-sm); }
   .dark strong { color: #f4f5f7; }
   .dark .hint { color: #b6bcc5; }
+  /* Looks like a button; the whole drop area is the real one, so clicking anywhere opens the picker. */
+  /* The label is always light (dark for developer tools), whatever the theme, so the button is fixed too. */
+  .pick { justify-self: center; margin-top: 6px; min-height: 32px; padding: 0 14px; background: #111; color: #fff; }
+  .dark .pick { background: #f4f5f7; color: #111; }
+  .drop:hover .pick, .drop:focus-visible .pick { opacity: .86; }
   @media (prefers-reduced-motion: reduce) { .shot :global(.obj) { transition: none; } }
 </style>
