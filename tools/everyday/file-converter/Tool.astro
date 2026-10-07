@@ -10,6 +10,7 @@ import DropZone from "../../../src/components/DropZone.astro";
   import {
     detectType, outputsFor, relatedTools, renameTo, REQUEST_URL,
     encodeBmp, encodeIco, icoSizes, svgRasterSize, encodeWav, convertData, convertDocument,
+    decodeText, delimiterName, estimateAudio, longAudioWarning,
   } from "./core.js";
   import { decode, encode, type Format } from "../../../src/lib/images";
   import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName } from "../../../src/lib/files";
@@ -71,6 +72,12 @@ import DropZone from "../../../src/components/DropZone.astro";
 
   async function convertImage(bytes: Uint8Array, det: Det, out: Out): Promise<Blob> {
     const bmp = await toBitmap(bytes, det);
+    try {
+      return await writeImage(bmp, out);
+    } finally { bmp.close(); } // free the decoded pixels now, not when the garbage collector gets to it
+  }
+
+  async function writeImage(bmp: ImageBitmap, out: Out): Promise<Blob> {
     const { width: w, height: h } = bmp;
     if (out.id === "bmp") {
       const data = flatCanvas(bmp, w, h, "#fff").getContext("2d")!.getImageData(0, 0, w, h).data;
@@ -112,12 +119,20 @@ import DropZone from "../../../src/components/DropZone.astro";
 
   // ---- One row per file -------------------------------------------------------------------
 
-  async function convertFile(file: File, bytes: Uint8Array, det: Det, out: Out): Promise<Blob> {
-    if (det.kind === "image") return convertImage(bytes, det, out);
-    if (det.kind === "audio") return convertAudio(bytes, out);
-    const text = new TextDecoder("utf-8").decode(bytes);
-    if (det.kind === "data") return new Blob([convertData(text, det.format as "csv" | "tsv" | "json", out.id as "csv" | "tsv" | "json").text], { type: out.mime });
-    return new Blob([convertDocument(text, det.format as "markdown" | "html" | "txt", out.id as "html" | "markdown" | "text", baseName(file.name))], { type: out.mime });
+  /** Reads the whole file only now, when converting; the list keeps just its first 64 KB. */
+  async function convertFile(file: File, det: Det, out: Out): Promise<{ blob: Blob; notes: string }> {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (det.kind === "image") return { blob: await convertImage(bytes, det, out), notes: "" };
+    if (det.kind === "audio") return { blob: await convertAudio(bytes, out), notes: "" };
+    const { text, encoding } = decodeText(bytes);
+    const enc = encoding === "windows-1252" ? "read as Windows-1252 (not UTF-8)" : encoding.startsWith("utf-16") ? "read as UTF-16" : "";
+    if (det.kind === "data") {
+      const r = convertData(text, det.format as "csv" | "tsv" | "json", out.id as "csv" | "tsv" | "json");
+      const notes = [r.delimiter && det.format === "csv" ? `${delimiterName(r.delimiter)} separated` : "", enc, ...r.warnings].filter(Boolean);
+      return { blob: new Blob([r.text], { type: out.mime }), notes: notes.join(" · ") };
+    }
+    const doc = convertDocument(text, det.format as "markdown" | "html" | "txt", out.id as "html" | "markdown" | "text", baseName(file.name));
+    return { blob: new Blob([doc], { type: out.mime }), notes: enc };
   }
 
   async function addRow(file: File, before: ChildNode | null) {
@@ -128,10 +143,10 @@ import DropZone from "../../../src/components/DropZone.astro";
     li.append(name, meta, act);
     list.insertBefore(li, before);
 
-    let bytes: Uint8Array, det: Det;
+    let head: Uint8Array, det: Det;
     try {
-      bytes = new Uint8Array(await file.arrayBuffer());
-      det = detectType(bytes.subarray(0, 65536), file.name);
+      head = new Uint8Array(await file.slice(0, 65536).arrayBuffer());
+      det = detectType(head, file.name);
     } catch {
       reportFailure();
       meta.textContent = "The browser couldn't read this file. Check that it still exists, then add it again.";
@@ -173,25 +188,45 @@ import DropZone from "../../../src/components/DropZone.astro";
     for (const o of outputs) select.add(new Option(`${o.label} · ${o.note}`, o.id));
     act.append(select);
     let download: HTMLAnchorElement | null = null;
+    const notes = el("span", "fmeta");
+    notes.hidden = true;
+    li.append(notes);
+    const setNotes = (t: string) => { notes.textContent = t; notes.hidden = !t; };
+    let proceed: HTMLButtonElement | null = null;
 
-    async function run() {
+    async function run(confirmed = false) {
       const out = outputs.find((o) => o.id === select.value)!;
       if (download) { URL.revokeObjectURL(download.href); download.remove(); download = null; }
+      proceed?.remove(); proceed = null;
+      setNotes("");
+      if (det.kind === "audio" && !confirmed) {
+        const warning = longAudioWarning(estimateAudio(head, file.size, det.format));
+        if (warning) {
+          meta.textContent = warning;
+          proceed = el("button", "icon-btn", "Convert anyway");
+          proceed.type = "button";
+          proceed.setAttribute("aria-label", `Convert ${file.name} anyway`);
+          proceed.addEventListener("click", () => run(true));
+          act.append(proceed);
+          return;
+        }
+      }
       meta.textContent = "Converting…";
       select.disabled = true;
       try {
-        const blob = await convertFile(file, bytes, det, out);
+        const { blob, notes: note } = await convertFile(file, det, out);
         const newName = renameTo(file.name, out.ext);
         download = downloadLink(blob, newName, out.mime);
         download.setAttribute("aria-label", `Download ${newName}`);
         act.append(download);
         meta.textContent = `${det.label} → ${out.label} · ${size} → ${fmtBytes(blob.size)}`;
+        setNotes(note);
       } catch (e) {
         reportFailure();
         meta.textContent = (e as Error).message;
       } finally { select.disabled = false; }
     }
-    select.addEventListener("change", run);
+    select.addEventListener("change", () => run());
     await run(); // convert to the first choice straight away; change the format to redo it
   }
 
