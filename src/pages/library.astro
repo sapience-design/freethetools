@@ -111,12 +111,15 @@ for (const [path, mod] of Object.entries(agents)) {
     const rows = [...local, ...fromFolder].sort((a, b) => (a.entry.time < b.entry.time ? 1 : -1));
     empty.hidden = rows.length > 0;
     clearBtn.disabled = local.length === 0;
-    list.replaceChildren(...rows.map(row));
+    // One record that can't be shown must not hide the others.
+    list.replaceChildren(...rows.flatMap((r) => { try { return [row(r)]; } catch { return []; } }));
   }
 
+  // Records from the package's folder are untrusted text: look names up as own keys only.
   const toolOf = (e: LibraryEntry) => {
-    const id = maps.byId[e.tool] ? e.tool : maps.byAgentName[e.tool];
-    return id ? maps.byId[id] : null;
+    const id = Object.hasOwn(maps.byId, e.tool) ? e.tool : Object.hasOwn(maps.byAgentName, e.tool) ? maps.byAgentName[e.tool] : null;
+    const t = id && Object.hasOwn(maps.byId, id) ? maps.byId[id] : null;
+    return t && typeof t.url === "string" && t.url.startsWith("/") ? t : null;
   };
 
   function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", cls = "") {
@@ -141,10 +144,16 @@ for (const [path, mod] of Object.entries(agents)) {
       del.type = "button";
       del.setAttribute("aria-label", `Delete the record: ${title}, ${when.textContent}`);
       del.addEventListener("click", async () => {
-        await deleteEntry(e.id);
+        try {
+          await deleteEntry(e.id);
+        } catch (err) {
+          say(`Could not delete the record: ${(err as Error).message}`);
+          return;
+        }
         say(`Deleted the record for ${title}.`);
         await refresh();
-        (list.querySelector(".del") as HTMLElement | null)?.focus();
+        // Keep focus in the list; when it's empty, move it to the next thing to do.
+        ((list.querySelector(".del") as HTMLElement | null) ?? folderBtn).focus();
       });
       head.append(del);
     }
@@ -195,13 +204,24 @@ for (const [path, mod] of Object.entries(agents)) {
   }
 
   // ---- Clear, with a confirm step -----------------------------------------------------------
+  const closeConfirm = () => { confirmBox.hidden = true; clearBtn.focus(); };
   clearBtn.addEventListener("click", () => { confirmBox.hidden = false; $("lib-confirm-yes").focus(); });
-  $("lib-confirm-no").addEventListener("click", () => { confirmBox.hidden = true; clearBtn.focus(); });
+  $("lib-confirm-no").addEventListener("click", closeConfirm);
+  confirmBox.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); closeConfirm(); } });
   $("lib-confirm-yes").addEventListener("click", async () => {
-    await clearAll();
+    try {
+      await clearAll();
+    } catch (err) {
+      confirmBox.hidden = true;
+      say(`Could not clear the library: ${(err as Error).message}`);
+      clearBtn.focus();
+      return;
+    }
     confirmBox.hidden = true;
     note.hidden = true;
-    say("The library is clear.");
+    say(fromFolder.length
+      ? "Cleared this browser's records. The jobs shown from the package's folder stay in that folder."
+      : "The library is clear.");
     await refresh();
     folderBtn.focus();
   });

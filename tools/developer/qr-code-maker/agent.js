@@ -34,7 +34,7 @@ export default defineTools({
     const payload = wifi ? wifiPayload(wifi) : text;
     const { svg, modules } = makeQr(payload, { level });
     return {
-      summary: `QR code of ${modules}×${modules} modules${wifi ? ` for the Wi-Fi network "${wifi.ssid}"` : ""}.`,
+      summary: `QR code of ${modules}×${modules} modules${wifi ? " for a Wi-Fi network" : ""}.`,
       data: { modules },
       files: [textFile(/\.svg$/i.test(fileName) ? fileName : `${fileName}.svg`, "image/svg+xml", svg)],
     };

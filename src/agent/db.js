@@ -27,8 +27,9 @@ function open() {
 
 const done = (tx) => new Promise((resolve, reject) => {
   tx.oncomplete = () => resolve(undefined);
-  tx.onerror = () => reject(tx.error);
-  tx.onabort = () => reject(tx.error ?? new Error("The write was cancelled."));
+  // tx.error is only set once the transaction aborts, so read the failing request's error too.
+  tx.onerror = (e) => reject(tx.error ?? e?.target?.error ?? new Error("The write failed."));
+  tx.onabort = (e) => reject(tx.error ?? e?.target?.error ?? new Error("The write was cancelled."));
 });
 const wait = (req) => new Promise((resolve, reject) => {
   req.onsuccess = () => resolve(req.result);
@@ -48,8 +49,9 @@ export function getNote() {
   try { return JSON.parse(localStorage.getItem(NOTE_KEY) || "null"); } catch { return null; }
 }
 
+const isQuota = (e) => e?.name === "QuotaExceededError" || /quota/i.test(String(e?.message ?? ""));
 const quotaMessage = (e) =>
-  e?.name === "QuotaExceededError"
+  isQuota(e)
     ? "The library is full, so the last job's files were not kept. Clear some records to make room."
     : `The library could not save the last job (${e?.message || e?.name || "unknown error"}).`;
 
@@ -63,6 +65,11 @@ const quotaMessage = (e) =>
 export async function saveEntry(entry, blobs = []) {
   try {
     const db = await open();
+    const bytes = blobs.reduce((n, b) => n + b.size, 0);
+    if (bytes && !(await roomFor(bytes))) {
+      setNote("The library is nearly full, so the last job's files were not kept. Delete some records to make room.");
+      blobs = [];
+    }
     try {
       const tx = db.transaction(["entries", "blobs"], "readwrite");
       tx.objectStore("entries").put(entry);
@@ -79,6 +86,16 @@ export async function saveEntry(entry, blobs = []) {
   } catch (e) {
     setNote(quotaMessage(e));
     return false;
+  }
+}
+
+/** Leave a fifth of the browser's storage for the rest of the site and other tabs. */
+async function roomFor(bytes) {
+  try {
+    const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+    return !quota || usage + bytes < quota * 0.8;
+  } catch {
+    return true;
   }
 }
 
