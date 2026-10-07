@@ -6,11 +6,11 @@
 //      definitions so an AI agent can call them, shows each call in the activity panel, and
 //      records it in the library.
 // Nothing here is sent anywhere. Agent calls are not counted in the anonymous stats.
-import { checkArgs, detectType, settingsOf, wireSchema } from "./contract.js";
+import { checkArgs, cleanArgs, detectType, settingsOf, wireSchema } from "./contract.js";
 import { factsOf, libraryEntry } from "./library.js";
 import { saveEntry } from "./db.js";
 import { blobsByUrl, installBlobCapture, plainUrl } from "./blob-capture.js";
-import { fileKey, groupBursts, resolveArgs, snapshotSettings, successText, wireFile } from "./page-helpers.js";
+import { fileKey, resolveArgs, snapshotSettings, successText, wireFile } from "./page-helpers.js";
 
 installBlobCapture();
 
@@ -18,6 +18,9 @@ installBlobCapture();
 const agentModules = import.meta.glob("../../tools/*/*/agent.js");
 
 const MAX_FILES = 50;
+/** Agent results kept on the page for later calls: at most this many, and this many bytes. */
+const MAX_MADE = 20;
+const MAX_MADE_BYTES = 200 * 1024 * 1024;
 
 /** @param {HTMLElement} work the #tool-work element @param {string} toolId e.g. "pdf/merge" */
 export function startAgentPage(work, toolId) {
@@ -27,11 +30,16 @@ export function startAgentPage(work, toolId) {
   // ---- 1. Files the person added -------------------------------------------------------------
   /** @type {{ name: string, size: number, type: string, lastModified: number, file: File }[]} */
   const added = [];
+  /** Files added since the last result appeared: the inputs of the next job. */
+  let fresh = [];
   const remember = (list) => {
     for (const f of list ?? []) {
       if (!(f instanceof File) || added.some((a) => fileKey(a.file) === fileKey(f))) continue;
-      added.push({ name: f.name, size: f.size, type: f.type, lastModified: f.lastModified, file: f });
+      const item = { name: f.name, size: f.size, type: f.type, lastModified: f.lastModified, file: f };
+      added.push(item);
+      fresh.push(item);
       if (added.length > MAX_FILES) added.shift();
+      if (fresh.length > MAX_FILES) fresh.shift();
     }
   };
   // Capture phase on the work area: runs before the tool's own handlers, which may clear the input.
@@ -42,24 +50,31 @@ export function startAgentPage(work, toolId) {
   work.addEventListener("drop", (e) => remember(e.dataTransfer?.files ? [...e.dataTransfer.files] : []), true);
 
   // ---- 2. The person's own jobs --------------------------------------------------------------
-  const controlsOf = () => {
-    const out = [];
-    for (const el of work.querySelectorAll("input, select")) {
-      const type = el instanceof HTMLSelectElement ? "select" : el.type;
-      if (["file", "password", "hidden", "button", "submit", "reset", "image"].includes(type)) continue;
+  // Settings are the option controls in the tool's own markup: checkboxes, radios, selects and
+  // number inputs present when the page loads. Text fields and controls a tool draws later (Fill
+  // PDF Form draws the PDF's own fields) hold the person's content, so they are never recorded.
+  const settingControls = [...work.querySelectorAll("input, select")].filter(
+    (el) => el instanceof HTMLSelectElement || ["checkbox", "radio", "number", "range"].includes(el.type),
+  );
+  const controlsOf = () =>
+    settingControls.filter((el) => el.isConnected).map((el) => {
       const label = labelOf(el);
-      if (type === "select") out.push({ type, label, value: el.selectedOptions[0]?.textContent ?? "" });
-      else if (type === "radio") out.push({ type, label, group: groupOf(el), checked: el.checked });
-      else if (type === "checkbox") out.push({ type, label, checked: el.checked });
-      else out.push({ type, label, value: el.value });
-    }
-    return out;
-  };
+      if (el instanceof HTMLSelectElement) return { type: "select", label, value: el.selectedOptions[0]?.textContent ?? "" };
+      if (el.type === "radio") return { type: "radio", label, group: groupOf(el), checked: el.checked };
+      if (el.type === "checkbox") return { type: "checkbox", label, checked: el.checked };
+      return { type: el.type, label, value: el.value };
+    });
 
+  // A result is recorded when the person downloads it, not each time the tool draws it: some
+  // tools redraw their result on every keystroke. Links drawn within 300 ms of each other are one
+  // job (Split PDF draws a link per file); downloading any of them records the whole job, once.
+  /** @typedef {{ t: number, links: Map<HTMLAnchorElement, { name: string, blob: Blob }>, settings: Record<string, unknown>, inputs: typeof added, recorded: boolean }} Job */
+  /** @type {WeakMap<HTMLAnchorElement, Job>} */
+  const jobOf = new WeakMap();
+  /** @type {Job | null} */
+  let current = null;
+  let lastInputs = [];
   const seenHref = new WeakMap();
-  let pending = [];
-  let timer = 0;
-  let lastKey = "";
   const consider = (a) => {
     if (!(a instanceof HTMLAnchorElement) || !a.hasAttribute("download")) return;
     const href = a.getAttribute("href") || "";
@@ -67,29 +82,38 @@ export function startAgentPage(work, toolId) {
     const blob = blobsByUrl.get(href);
     if (!blob) return;
     seenHref.set(a, href);
-    pending.push({ t: performance.now(), name: a.getAttribute("download") || "download", blob });
-    clearTimeout(timer);
-    timer = setTimeout(flush, 300);
-  };
-  async function flush() {
-    const batch = pending;
-    pending = [];
-    for (const group of groupBursts(batch, 300)) {
-      const settings = snapshotSettings(controlsOf());
-      const key = JSON.stringify([group.map((g) => [g.name, g.blob.size]), settings]);
-      if (key === lastKey) continue; // the tool drew the same result again
-      lastKey = key;
-      const outputs = group.map((g) => ({ name: g.name, type: g.blob.type || detectType(new Uint8Array(0), g.name), size: g.blob.size }));
-      const names = outputs.map((o) => o.name);
-      const entry = libraryEntry({
-        tool: toolId, title, by: "you", via: "site", ok: true,
-        summary: outputs.length === 1 ? `Made ${names[0]}.` : `Made ${outputs.length} files: ${names.slice(0, 3).join(", ")}${outputs.length > 3 ? ", …" : ""}.`,
-        settings,
-        inputs: added.map((a) => ({ name: a.name, size: a.size, type: a.type || detectType(new Uint8Array(0), a.name) })),
-        outputs,
-      });
-      await saveEntry(entry, group.map((g) => g.blob));
+    const now = performance.now();
+    if (!current || current.recorded || now - current.t > 300) {
+      if (fresh.length) { lastInputs = fresh; fresh = []; }
+      current = { t: now, links: new Map(), settings: snapshotSettings(controlsOf()), inputs: lastInputs, recorded: false };
     }
+    current.t = now;
+    current.settings = snapshotSettings(controlsOf()); // the settings of the latest draw
+    current.links.set(a, { name: a.getAttribute("download") || "download", blob });
+    jobOf.set(a, current);
+  };
+  work.addEventListener("click", (e) => {
+    const a = e.target instanceof Element ? e.target.closest("a[download]") : null;
+    const job = a ? jobOf.get(a) : undefined;
+    if (!job || job.recorded) return;
+    job.recorded = true;
+    record(job);
+  }, true);
+
+  async function record(job) {
+    // Only the links still on the page: a tool that redraws replaces its old links.
+    const live = [...job.links].filter(([a]) => a.isConnected).map(([, v]) => v);
+    const items = live.length ? live : [...job.links.values()];
+    const outputs = items.map((g) => ({ name: g.name, type: g.blob.type || detectType(new Uint8Array(0), g.name), size: g.blob.size }));
+    const names = outputs.map((o) => o.name);
+    const entry = libraryEntry({
+      tool: toolId, title, by: "you", via: "site", ok: true,
+      summary: outputs.length === 1 ? `Made ${names[0]}.` : `Made ${outputs.length} files: ${names.slice(0, 3).join(", ")}${outputs.length > 3 ? ", …" : ""}.`,
+      settings: job.settings,
+      inputs: job.inputs.map((a) => ({ name: a.name, size: a.size, type: a.type || detectType(new Uint8Array(0), a.name) })),
+      outputs,
+    });
+    await saveEntry(entry, items.map((g) => g.blob));
   }
   const scan = (node) => {
     if (!(node instanceof Element)) return;
@@ -102,9 +126,6 @@ export function startAgentPage(work, toolId) {
       else m.addedNodes.forEach(scan);
     }
   }).observe(work, { childList: true, subtree: true, attributes: true, attributeFilter: ["href", "download"] });
-
-  // Leaving right after a download must not lose the record.
-  addEventListener("pagehide", () => { clearTimeout(timer); flush(); });
 
   // ---- 3. WebMCP ------------------------------------------------------------------------------
   registerWithAgents(toolId, title, added);
@@ -186,20 +207,27 @@ async function registerWithAgents(toolId, pageTitle, added) {
       name: def.name,
       description: def.description,
       inputSchema: wire,
-      async execute(rawArgs) {
+      async execute(rawArgs, options) {
         const args = rawArgs && typeof rawArgs === "object" ? rawArgs : {};
+        const signal = options?.signal;
+        const stopIfCancelled = () => { if (signal?.aborted) throw new Error("The call was cancelled."); };
         const call = { tool: def.title, time: new Date() };
         let inputs = [];
         try {
           const problems = checkArgs(wire, args);
           if (problems.length) throw new Error(problems.join(" "));
-          const resolved = await resolveArgs(def.input, args, onPage());
+          stopIfCancelled();
+          const resolved = await resolveArgs(def.input, cleanArgs(args), onPage());
           inputs = resolved.inputs;
           const ctx = {};
           if (def.needs?.includes("ghostscript")) ctx.ghostscript = (await import("./gs.js")).ghostscript;
           const result = await def.run(resolved.args, ctx);
+          stopIfCancelled();
           const outFiles = (result.files ?? []).map((f) => ({ name: f.name, type: f.type, size: f.bytes.length, blob: new Blob([f.bytes], { type: f.type }) }));
           for (const f of outFiles) made.push(f);
+          // An agent that loops must not fill the page's memory: keep the newest results only.
+          let bytes = made.reduce((n, f) => n + f.size, 0);
+          while (made.length > MAX_MADE || (made.length > 1 && bytes > MAX_MADE_BYTES)) bytes -= made.shift().size;
           const entry = libraryEntry({
             tool: toolId, title: def.title, by: "agent", via: "webmcp", ok: true, summary: result.summary,
             settings: settingsOf(def.input, args), inputs, outputs: outFiles,

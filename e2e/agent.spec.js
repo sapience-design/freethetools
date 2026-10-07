@@ -161,6 +161,9 @@ test("Split PDF's several files become one record, and a record can be deleted",
   await page.setInputFiles("#pdfs-file", PDF);
   await page.click("#pdfs-go");
   await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+  // Nothing is recorded until the person takes a result; then the whole job is recorded once.
+  await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+  await download(page, () => page.getByRole("link", { name: "Download" }).nth(1).click());
   await page.waitForTimeout(700);
   await page.goto("/library/");
   await expect(page.locator("#lib-list li.rec")).toHaveCount(1);
@@ -205,4 +208,51 @@ test("the library and the agent panel meet WCAG 2.2 AA, in both themes", async (
     await expect(page.locator("#lib-empty")).toBeVisible();
     await axe(`${theme}: empty library`);
   }
+});
+
+test("a result redrawn as you type is recorded once, when you download it", async ({ page }) => {
+  await page.addInitScript(() => { delete document.modelContext; });
+  await page.goto("/developer/qr-code-maker/");
+  for (const t of ["https://a.example", "https://ab.example", "https://abc.example"]) {
+    await page.fill("#qr-in", t);
+    await page.waitForTimeout(400);
+  }
+  await page.goto("/library/");
+  await expect(page.locator("#lib-empty")).toBeVisible();
+  await expect(page.locator("#lib-list li.rec")).toHaveCount(0);
+
+  await page.goto("/developer/qr-code-maker/");
+  await page.fill("#qr-in", "https://freethetools.com/about/");
+  await download(page, () => page.getByRole("link", { name: "Download SVG" }).click());
+  await page.waitForTimeout(700);
+  await page.goto("/library/");
+  await expect(page.locator("#lib-list li.rec")).toHaveCount(1);
+  // The text typed into the tool is content, not a setting: it is never kept.
+  await expect(page.locator("#lib-list")).not.toContainText("freethetools.com/about");
+});
+
+test("secrets never reach the library, from the person or from an agent", async ({ page }) => {
+  await page.goto("/developer/qr-code-maker/");
+  await page.click('label[for="qr-wifi"]');
+  await page.fill("#qr-ssid", "HomeNet");
+  await page.fill("#qr-pass", "WIFIPASS-person");
+  await download(page, () => page.getByRole("link", { name: "Download SVG" }).click());
+  await expect.poll(() => page.evaluate(() => Object.keys(window.__registered))).toContain("make_qr_code");
+  const r = await page.evaluate(() => window.__call("make_qr_code", { wifi: { ssid: "HomeNet", password: "WIFIPASS-agent" }, level: "H" }));
+  expect(r.isError).toBeUndefined();
+  await page.waitForTimeout(700);
+  await page.goto("/library/");
+  await expect(page.locator("#lib-list li.rec")).toHaveCount(2);
+  const all = await page.locator("#lib-list").textContent();
+  expect(all).not.toContain("WIFIPASS");
+  expect(all).not.toContain("HomeNet");
+  await expect(page.locator("#lib-list")).toContainText("level: H");
+});
+
+test("an agent's null options get their defaults", async ({ page }) => {
+  await page.goto("/developer/uuid-generator/");
+  await expect.poll(() => page.evaluate(() => Object.keys(window.__registered))).toContain("generate_uuids");
+  const r = await page.evaluate(() => window.__call("generate_uuids", { version: null, count: null }));
+  expect(r.isError).toBeUndefined();
+  expect(text(r)).toMatch(/1 v4 UUID/);
 });

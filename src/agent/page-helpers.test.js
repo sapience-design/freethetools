@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { checkArgs, wireSchema, files, file } from "./contract.js";
 import { groupBursts, resolveArgs, resolveFileArg, snapshotSettings, wireFile, MAX_INLINE_BYTES } from "./page-helpers.js";
 
-test("settings snapshot keys by label and skips long text and passwords", () => {
+test("settings snapshot keys by label and never keeps text", () => {
   const s = snapshotSettings([
     { type: "checkbox", label: "Keep page 1 only", checked: true },
     { type: "checkbox", label: "Strip metadata", checked: false },
@@ -17,7 +17,7 @@ test("settings snapshot keys by label and skips long text and passwords", () => 
     { type: "password", label: "Password", value: "secret" },
     { type: "text", label: "Prefix", value: "again" },
   ]);
-  assert.deepEqual(s, { "Keep page 1 only": true, "Strip metadata": false, Quality: "Balanced", Format: "PNG", Width: 800, Prefix: "scan", "Prefix 2": "again" });
+  assert.deepEqual(s, { "Keep page 1 only": true, "Strip metadata": false, Quality: "Balanced", Format: "PNG", Width: 800 });
 });
 
 test("bursts group downloads made close together", () => {

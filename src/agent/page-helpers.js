@@ -13,12 +13,10 @@ export const MAX_INLINE_BYTES = 10 * 1024 * 1024;
  * `group` the question it answers.
  */
 
-const TEXTY = new Set(["text", "search", "number", "range", "url", "email", "tel", "date", "time", "datetime-local", "month", "week", "color"]);
-
 /**
  * The settings of a tool's form, keyed by label text. Checkboxes give true or false, radios the
- * label of the chosen option, selects the chosen option's text, numbers a number and short text
- * inputs their text. Long text and passwords are left out.
+ * label of the chosen option, selects the chosen option's text and numbers a number. Text of any
+ * kind is left out: it is the person's content, not a setting.
  * @param {Control[]} controls
  * @returns {Record<string, string | number | boolean>}
  */
@@ -40,9 +38,6 @@ export function snapshotSettings(controls) {
     } else if (c.type === "number" || c.type === "range") {
       const n = Number(c.value);
       if (c.value !== "" && Number.isFinite(n)) put(c.label, n);
-    } else if (TEXTY.has(c.type)) {
-      const v = (c.value ?? "").trim();
-      if (v && v.length <= 80) put(c.label, v);
     }
   }
   return out;
