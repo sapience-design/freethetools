@@ -15,3 +15,6 @@ public/**/vendor/
 
 # The freethetools npm package: build output (made by npm run build:package)
 packages/freethetools/dist/
+
+# Git worktrees for parallel work
+.claude/worktrees/

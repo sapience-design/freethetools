@@ -39,6 +39,7 @@
   ],
   "scripts": {
     "build": "node build.mjs",
+    "prepack": "node build.mjs",
     "test": "node build.mjs && node --test \"test/*.test.js\""
   },
   "dependencies": {
