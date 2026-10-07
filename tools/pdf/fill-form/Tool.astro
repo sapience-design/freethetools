@@ -2,7 +2,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 ---
 <section class="tool" aria-label="Fill PDF form">
-  <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop a PDF form here" hint="or click to choose" />
+  <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop a PDF form here" hint="One PDF with fillable fields" pick="Choose a PDF" />
   <div id="pff-panel" hidden class="tool">
     <ul class="file-list"><li><span class="fname" id="pff-name"></span><span class="fmeta" id="pff-meta"></span></li></ul>
     <form id="pff-form" class="pff-fields" novalidate></form>

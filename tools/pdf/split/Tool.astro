@@ -3,7 +3,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 ---
 <section class="tool" aria-label="Split PDF">
-  <DropZone prefix="pdfs" toolId="pdf/split" category="pdf" name="Split PDF" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
+  <DropZone prefix="pdfs" toolId="pdf/split" category="pdf" name="Split PDF" accept="application/pdf,.pdf" title="Drop a PDF here" pick="Choose a PDF" />
 
   <div id="pdfs-panel" hidden class="tool">
     <ul class="file-list"><li><span class="fname" id="pdfs-name"></span><span class="fmeta" id="pdfs-meta"></span></li></ul>
