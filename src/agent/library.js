@@ -1,6 +1,6 @@
 // The library: a record of every job a tool did, kept only on the device that did it.
 // The site keeps records in the browser (IndexedDB); the freethetools package appends them, one
-// JSON object per line, to library.jsonl in its "Free the Tools" folder, with result files under
+// JSON object per line, to library.jsonl in its "freethetools" folder, with result files under
 // files/<id>/. Both use this one format, so the site's library page can also open the package's
 // folder. Nothing in a record is ever sent anywhere.
 

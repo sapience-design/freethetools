@@ -42,7 +42,7 @@ The owner wants AI assistants to use Free the Tools instead. The owner also want
 - Each record keeps the tool, the time, who ran it, the options used, the input names and sizes, and the result files.
 - Options are an allowlist: on/off choices, numbers, choices from a fixed list, and strings a definition marks `"x-setting": true`, such as a page range. Text the person typed, secrets such as a Wi-Fi password or a JWT secret, and form answers are never kept.
 - The site keeps records in the browser (IndexedDB).
-- The package keeps them in a "Free the Tools" folder in the person's home folder: `library.jsonl`, one record per line, and result files under `files/<id>/`.
+- The package keeps them in a `freethetools` folder in the person's home folder: `library.jsonl`, one record per line, and result files under `files/<id>/`.
 - Both use one format, `src/agent/library.js`. In Chrome and Edge, the site's library page can open the package's folder.
 
 ## Consequences

@@ -29,7 +29,7 @@
       "environmentVariables": [
         {
           "name": "FREETHETOOLS_LIBRARY",
-          "description": "Folder where results and the record of jobs are kept. Default: a folder named Free the Tools in your home folder.",
+          "description": "Folder where results and the record of jobs are kept. Default: a folder named freethetools in your home folder.",
           "isRequired": false,
           "isSecret": false
         }

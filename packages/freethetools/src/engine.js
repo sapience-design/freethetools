@@ -26,7 +26,7 @@ const SAVE_TO = {
   type: "string",
   minLength: 1,
   description:
-    "Optional. A folder where the result files are also saved, in addition to the Free the Tools library. It must be inside the working directory, the library, or a folder the person allowed with --allow-save, and not inside a hidden folder. Files that can run programs, such as .bat or .exe, are never saved. Existing files are never overwritten.",
+    "Optional. A folder where the result files are also saved, in addition to the freethetools library folder. It must be inside the working directory, the library, or a folder the person allowed with --allow-save, and not inside a hidden folder. Files that can run programs, such as .bat or .exe, are never saved. Existing files are never overwritten.",
 };
 
 const fileToPath = (s) => ({

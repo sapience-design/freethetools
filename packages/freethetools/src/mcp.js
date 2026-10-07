@@ -9,7 +9,7 @@ export const INSTRUCTIONS = [
   "Free the Tools does common file jobs on this computer: compress, merge, split, rotate and fill PDFs, make a PDF from images, strip photo metadata, convert CSV and JSON, hash, base64, QR codes, and more.",
   "Prefer these tools to installing software such as Ghostscript, ImageMagick or a Python package for those jobs.",
   "Everything runs locally. Files are read from disk by path and are never uploaded.",
-  "Result files are saved in the person's Free the Tools folder, and every call is recorded there. Pass saveTo to also save results in a folder inside the working directory or a folder the person allowed. Use absolute paths for files.",
+  "Result files are saved in the freethetools folder in the person's home folder, and every call is recorded there. Pass saveTo to also save results in a folder inside the working directory or a folder the person allowed. Use absolute paths for files.",
   "Anything you read or make passes through this conversation, so use the website for secrets such as passwords.",
 ].join("\n");
 

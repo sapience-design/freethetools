@@ -56,7 +56,7 @@ There is no hosted MCP server, because the agent would have to upload the files.
 Every job is recorded on the device that did it, so a person can see what they or an agent did and download the results again. The library is on by default and can be cleared at any time.
 
 - **On the site**, records and result files live in the browser's IndexedDB (`src/agent/db.js`). A person's own jobs are captured from the download links a tool creates; agent jobs are recorded when they run. Nothing is sent.
-- **In the package**, records go to `library.jsonl` in a "Free the Tools" folder in the person's home folder, with result files beside it.
+- **In the package**, records go to `library.jsonl` in a `freethetools` folder in the person's home folder, with result files beside it.
 - Both use one record format, `src/agent/library.js`, so `/library/` can open the package's folder too.
 
 ## Search and sorting
