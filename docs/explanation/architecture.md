@@ -33,9 +33,31 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 | `/<group>/` | `src/pages/[category]/index.astro`: every tool and wanted tool in the group |
 | `/<group>/<tool>/` | `src/pages/[category]/[tool]/index.astro` wrapping the tool's `Tool.astro`, with Like, usage count and FAQ |
 | `/saved/` | Tools the visitor saved, from their own `localStorage` |
+| `/library/` | `src/pages/library.astro`: every job done in this browser, by the visitor or an AI agent, with the results to download again. It can also open the package's library folder (Chrome and Edge). |
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
 | `/api/tools.json`, `/llms.txt`, `/sitemap.xml`, `/robots.txt` | Endpoints in `src/pages/` |
+
+## Tools for AI agents
+
+AI assistants can use the tools instead of installing software to do a file job. Each tool folder can have an `agent.js`: a name, a description, an input schema and a `run` function built on the tool's `core.js`. The contract is in `src/agent/contract.js`, and the reasoning in [ADR 0008](../adr/0008-tools-for-ai-agents.md).
+
+The same definitions serve two channels. Neither sends files anywhere.
+
+| Channel | Code | How it works |
+|---|---|---|
+| WebMCP on tool pages | `src/agent/page.js` | When the browser supports WebMCP (Chrome and Edge origin trials), the page registers its tools. An AI agent in the browser calls them on files the person added to the page, or on small files passed in the call. Each call shows in an "AI agent activity" panel on the page. |
+| MCP server in the npm package `freethetools` | `packages/freethetools/` | `npx freethetools mcp` runs the same definitions in Node on the person's computer, for Claude Code, Claude Desktop, Cursor and other MCP clients. Files are paths on disk. Ghostscript runs as WebAssembly, as on the site. |
+
+There is no hosted MCP server, because the agent would have to upload the files.
+
+## The library
+
+Every job is recorded on the device that did it, so a person can see what they or an agent did and download the results again. The library is on by default and can be cleared at any time.
+
+- **On the site**, records and result files live in the browser's IndexedDB (`src/agent/db.js`). A person's own jobs are captured from the download links a tool creates; agent jobs are recorded when they run. Nothing is sent.
+- **In the package**, records go to `library.jsonl` in a "Free the Tools" folder in the person's home folder, with result files beside it.
+- Both use one record format, `src/agent/library.js`, so `/library/` can open the package's folder too.
 
 ## Search and sorting
 

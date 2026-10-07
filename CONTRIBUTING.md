@@ -34,6 +34,7 @@ npm run dev
 2. **`core.js`**: put the logic here, with no page code, so it can be tested and reused.
 3. **`Tool.astro`**: the working area of the page. Show a working example when the page first loads, not an empty box. Prefix every `id` with your slug; the build fails on duplicate ids.
 4. **`tests/`**: test `core.js` with real inputs.
+5. **`agent.js`** (recommended): describe the tool for AI agents, so assistants can use it instead of installing software. It holds a name, a description, an input schema and a `run` function that calls `core.js`, with no page code. Copy the pattern from [`tools/text/word-counter/agent.js`](tools/text/word-counter/agent.js), or [`tools/pdf/merge/agent.js`](tools/pdf/merge/agent.js) for a tool that takes files. `npm test` checks and runs it. See [ADR 0008](docs/adr/0008-tools-for-ai-agents.md).
 
 The step-by-step [tutorial](docs/tutorial/first-tool.md) builds a word counter from start to finish.
 

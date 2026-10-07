@@ -87,6 +87,34 @@ Keep the `word-counter-` prefix on every id. The sidebar shares the page, and th
 
 Fill in the TODOs in `tool.json`. Write the `seoTitle` in the words people type into a search engine ("Word counter online"), and keep `description` between 50 and 160 characters. Put your name and GitHub username under `authors`. The [reference](../reference/tool-json.md) explains every field.
 
+### Let AI agents use it (optional)
+
+Add `agent.js` next to `core.js`, so AI assistants can count words with your tool instead of installing something:
+
+```js
+import { defineTools } from "../../../src/agent/contract.js";
+import { stats } from "./core.js";
+
+export default defineTools({
+  name: "count_words",
+  title: "Word Counter",
+  description: "Count words, characters, sentences and paragraphs, with reading time. Runs on this device; nothing is uploaded.",
+  input: {
+    type: "object",
+    properties: { text: { type: "string", description: "The text to count." } },
+    required: ["text"],
+    additionalProperties: false,
+  },
+  example: { text: "Free the tools." },
+  run: ({ text }) => {
+    const s = stats(text);
+    return { summary: `${s.words} words.`, data: s };
+  },
+});
+```
+
+`npm test` checks the definition and runs the example.
+
 ## 7. Check everything
 
 ```sh
