@@ -11,6 +11,8 @@ An assistant that has this server no longer needs to install Ghostscript, ImageM
 - The server runs on your computer. It reads the files you point it at from your disk.
 - It makes no network connection of its own. Nothing is uploaded and nothing is counted.
 - Results are saved in a folder on your computer (see [Where results go](#where-results-go)).
+- The record of every job keeps options such as a quality level or a page range. It never keeps the text you gave a tool, a password or any other secret.
+- It reads and writes only what is safe for an assistant to touch (see [Safety](#safety)).
 - Anything the assistant reads or makes passes through your conversation with it. Use the website, not an assistant, for secrets such as passwords.
 
 ## Set it up
@@ -29,6 +31,8 @@ Add `--scope user` before the name to use it in every project. Check it with `cl
 Source: [Claude Code MCP documentation](https://code.claude.com/docs/en/mcp).
 
 ### Claude Desktop
+
+Claude Desktop does not run in your project folder. **Give the assistant absolute paths**, such as `C:\Users\you\Documents\report.pdf` or `/Users/you/Documents/report.pdf`. A short path such as `report.pdf` will not be found.
 
 1. Open the Claude menu, then Settings, then Developer, then Edit Config.
 2. Add this to `claude_desktop_config.json` (Windows: `%APPDATA%\Claude`, macOS: `~/Library/Application Support/Claude`):
@@ -86,7 +90,7 @@ Run `freethetools list` for the full list. Files are always paths on your comput
 | Everyday | `convert_units`, `convert_time_zone` |
 | Text | `convert_case`, `compare_texts`, `count_words` |
 
-Every tool that makes files also takes an optional `saveTo`: a folder where the results are saved as well. An existing file is never overwritten. The server adds " (2)" to the name instead.
+Every tool that makes files also takes an optional `saveTo`: a folder where the results are saved as well. An existing file is never overwritten. The server adds " (2)" to the name instead. `saveTo` has rules: see [Safety](#safety).
 
 ## Where results go
 
@@ -97,9 +101,46 @@ Every tool that makes files also takes an optional `saveTo`: a folder where the 
 | Result files | `<library>/files/<id>/<name>` |
 | Record of every job | `<library>/library.jsonl`, one JSON record per line |
 
-A record holds the tool, the time, the settings, the input file names and sizes, and the result files. Failed jobs are recorded with the error. The record never holds file contents.
+A record holds the tool, the time, the settings, the input file names and sizes, the short summary the tool returned and the result files. Failed jobs are recorded with the error.
+
+- **Settings** are options only: yes/no switches, numbers, choices from a list, and a few short values such as a file name or a page range. Text you gave a tool, passwords, secrets (a JWT secret, a Wi-Fi password) and `saveTo` are never recorded.
+- **Summaries** are one line, such as "Encoded 3 bytes." A summary can name something you typed, such as a Wi-Fi network name.
+- The record never holds file contents.
 
 In Chrome and Edge, the library page on [freethetools.com](https://freethetools.com) can open this folder, so you can see what an assistant did and get the results again. The page reads the folder in your browser; nothing is uploaded.
+
+## Safety
+
+An AI assistant chooses the paths and file names. The package does not trust them.
+
+**Reading**
+
+- It never reads a hidden file, or a file inside a hidden folder. A name that starts with a dot is hidden. This covers `~/.ssh`, `~/.aws`, `~/.gnupg`, `.env` and `.git`.
+- It follows links first, so a link to a hidden file is refused too.
+- Only the part of a path below your working directory, your library or your home folder is checked. A project inside a folder such as `.work` still works.
+- A tool returns at most 1 MB of text or data in the conversation. Larger data is saved as a file in the library, and the result gives the path.
+
+**Saving with `saveTo`**
+
+`saveTo` may only point to a folder inside one of these:
+
+1. The working directory. This does not apply when the working directory is your home folder or the top of a drive.
+2. The library folder.
+3. A folder you allow with `--allow-save <folder>`. Repeat the option for more folders. You can also set `FREETHETOOLS_ALLOW_SAVE` to a list of folders, separated by `;` on Windows and `:` elsewhere.
+
+`saveTo` may not go into a hidden folder, such as `.git/hooks`. It follows links first, so a link cannot lead outside the allowed folders.
+
+To allow a folder in Claude Code:
+
+```sh
+claude mcp add freethetools -- npx -y freethetools mcp --allow-save ~/Documents/results
+```
+
+**File names**
+
+- The package never saves a file whose name starts with a dot, or has no extension.
+- It never saves a file that can run a program or start by itself: `.bat .cmd .com .exe .dll .msi .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .hta .scr .pif .lnk .url .reg .sh .bash .zsh .command .desktop .app .jar .py .rb .pl`.
+- This holds for the library as well. The error names the file and asks for another name.
 
 ## Limits
 

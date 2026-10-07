@@ -14,11 +14,13 @@ You need [Node.js](https://nodejs.org) 22 or later.
 
 ## Claude Desktop
 
+Claude Desktop does not run in your project folder, so it cannot find a short path such as `report.pdf`. Always tell it the full path, for example `C:\Users\you\Documents\report.pdf` or `/Users/you/Documents/report.pdf`.
+
 1. Open the Claude menu, then Settings, then Developer.
 2. Select Edit Config. This opens `claude_desktop_config.json`.
 3. Add the block below. If the file already has `mcpServers`, add only the `freethetools` entry.
 4. Save the file and restart Claude Desktop.
-5. Ask for a job, for example: "Merge a.pdf and b.pdf."
+5. Ask for a job with full paths, for example: "Merge C:\Users\you\Documents\a.pdf and C:\Users\you\Documents\b.pdf."
 
 ```json
 {
@@ -58,7 +60,28 @@ On Windows, if the app cannot start `npx`, use `"command": "cmd"` and `"args": [
 3. To use another folder, add `--library <folder>` to the command, or set the `FREETHETOOLS_LIBRARY` environment variable.
 4. To see the folder as a list, open the library page on freethetools.com in Chrome or Edge and choose the folder.
 
-Each tool that makes files also takes `saveTo`, a folder where the results are saved as well. Existing files are never overwritten.
+## Save results in another folder
+
+Each tool that makes files also takes `saveTo`, a folder where the results are saved as well. Existing files are never overwritten. Results are always saved in the library too.
+
+`saveTo` must point inside one of these folders:
+
+- The working directory. In Claude Desktop this is not your project, so use the next option.
+- The library folder.
+- A folder you allow with `--allow-save`.
+
+To allow a folder:
+
+1. Add `--allow-save <folder>` after `mcp` in the command. Repeat it for more folders. In Claude Code, for example, run `claude mcp add freethetools -- npx -y freethetools mcp --allow-save ~/Documents/results`.
+2. In a JSON config, add the two words to `args`: `["-y", "freethetools", "mcp", "--allow-save", "C:\\Users\\you\\Documents\\results"]`.
+3. Or set the `FREETHETOOLS_ALLOW_SAVE` environment variable to a list of folders, separated by `;` on Windows and `:` elsewhere.
+4. Restart the assistant.
+
+The package refuses to save into a hidden folder (a name starting with a dot, such as `.git/hooks`). It also refuses file names that can run a program, such as `.bat`, `.exe` or `.sh`, and names without an extension.
+
+## What the assistant cannot read
+
+The package never reads hidden files or files in hidden folders, such as `~/.ssh`, `.env` and `.git`. A tool returns at most 1 MB of text or data in the conversation. Larger data is saved in the library, and the result gives the path. [Safety](../../packages/freethetools/README.md#safety) has the full rules.
 
 ## Tools in the browser
 
@@ -70,4 +93,4 @@ Other browsers ignore WebMCP, and the page works as usual.
 ## Related
 
 - [Decision record 8](../adr/0008-tools-for-ai-agents.md): why there are two channels and no hosted server
-- [Package README](../../packages/freethetools/README.md): limits, the folder layout and licences
+- [Package README](../../packages/freethetools/README.md): safety rules, limits, the folder layout and licences
