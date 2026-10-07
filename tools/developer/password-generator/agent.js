@@ -19,7 +19,7 @@ export default defineTools({
       symbols: { type: "boolean", description: "Password: use symbols such as !#$% (default true)." },
       similar: { type: "boolean", description: "Password: allow look-alike characters l, I, O, 0, 1 (default false)." },
       words: { type: "integer", minimum: 3, maximum: 12, description: "Passphrase: number of words (default 6)." },
-      separator: { type: "string", maxLength: 3, description: "Passphrase: between words (default -)." },
+      separator: { type: "string", "x-setting": true, maxLength: 3, description: "Passphrase: between words (default -)." },
       capitalize: { type: "boolean", description: "Passphrase: capitalise each word (default false)." },
       number: { type: "boolean", description: "Passphrase: add a number at the end (default false)." },
     },

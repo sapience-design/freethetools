@@ -24,7 +24,7 @@ export default defineTools({
         additionalProperties: false,
       },
       level: { type: "string", enum: ["L", "M", "Q", "H"], description: "Error correction: L 7%, M 15% (default), Q 25%, H 30%." },
-      fileName: { type: "string", description: "Name of the SVG file (default qr-code.svg)." },
+      fileName: { type: "string", "x-setting": true, description: "Name of the SVG file (default qr-code.svg)." },
     },
     additionalProperties: false,
   },

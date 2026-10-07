@@ -24,7 +24,9 @@
  * }} AgentTool
  *
  * `makesFiles` is true when a result can carry files, so a channel can offer to save them elsewhere.
- * `input` is a JSON Schema object. A file is `{ type: "string", format: "file", accept?: string[] }`,
+ * `input` is a JSON Schema object. A string option worth keeping in the library record (a file
+ * name, a page range) carries `"x-setting": true`; see settingsOf. A file is
+ * `{ type: "string", format: "file", accept?: string[] }`,
  * or an array of those. Channels replace file fields with their own form (a path on disk, or a file
  * added to the page) and hand `run` a FileIn instead.
  */
@@ -89,10 +91,30 @@ export function wireSchema(schema, replace) {
   return { ...schema, properties: props };
 }
 
-/** The arguments that are settings, not files, for the library record. */
+/**
+ * The arguments worth keeping in the library record: options, never content. Kept are booleans,
+ * numbers, values from an `enum` (or arrays of them), and strings the schema marks with
+ * `"x-setting": true`, such as a file name or a page range. Everything else is left out: free
+ * text, secrets (a Wi-Fi password, a JWT secret), form answers, nested objects and files.
+ * An allowlist, so a new tool records nothing private unless it says a field is a setting.
+ */
 export function settingsOf(schema, args) {
-  const fileKeys = new Set(fileFields(schema).map((f) => f.key));
-  return Object.fromEntries(Object.entries(args ?? {}).filter(([k]) => !fileKeys.has(k)));
+  const props = schema.properties ?? {};
+  const out = {};
+  for (const [k, v] of Object.entries(args ?? {})) {
+    if (!Object.hasOwn(props, k)) continue;
+    const s = props[k];
+    const plainSetting = (x) => typeof x === "string" && x.length <= 200;
+    const keep =
+      s.enum ? s.enum.includes(v)
+      : s.type === "boolean" ? typeof v === "boolean"
+      : s.type === "number" || s.type === "integer" ? typeof v === "number" && Number.isFinite(v)
+      : s.type === "array" && s.items?.enum ? Array.isArray(v) && v.every((x) => s.items.enum.includes(x))
+      : s["x-setting"] === true && s.type === "array" ? Array.isArray(v) && v.length <= 50 && v.every(plainSetting)
+      : s["x-setting"] === true && plainSetting(v);
+    if (keep) out[k] = v;
+  }
+  return out;
 }
 
 const TYPES = {
@@ -103,6 +125,15 @@ const TYPES = {
   array: Array.isArray,
   object: (v) => v !== null && typeof v === "object" && !Array.isArray(v),
 };
+
+/**
+ * Arguments ready for run(): options sent as null are dropped, so the tool's defaults apply.
+ * Call it after checkArgs.
+ * @param {Record<string, unknown>} args
+ */
+export function cleanArgs(args) {
+  return Object.fromEntries(Object.entries(args ?? {}).filter(([, v]) => v !== null && v !== undefined));
+}
 
 /**
  * Check arguments against a schema: the subset of JSON Schema that tool inputs use (type,
@@ -124,7 +155,7 @@ export function checkArgs(schema, value, path = "") {
     if (schema.maximum !== undefined && value > schema.maximum) errs.push(`${at} should be at most ${schema.maximum}.`);
   }
   if (typeof value === "string") {
-    if (schema.minLength !== undefined && value.length < schema.minLength) errs.push(`${at} should not be empty.`);
+    if (schema.minLength !== undefined && value.length < schema.minLength) errs.push(schema.minLength === 1 ? `${at} should not be empty.` : `${at} should be at least ${schema.minLength} characters.`);
     if (schema.maxLength !== undefined && value.length > schema.maxLength) errs.push(`${at} should be at most ${schema.maxLength} characters.`);
   }
   if (Array.isArray(value)) {
@@ -133,9 +164,11 @@ export function checkArgs(schema, value, path = "") {
     if (schema.items) value.forEach((v, i) => errs.push(...checkArgs(schema.items, v, `${at}[${i}]`)));
   }
   if (TYPES.object(value) && (schema.properties || schema.required)) {
-    for (const r of schema.required ?? []) if (value[r] === undefined) errs.push(`${path ? path + "." : ""}${r} is required.`);
+    const req = new Set(schema.required ?? []);
+    for (const r of req) if (value[r] === undefined || value[r] === null) errs.push(`${path ? path + "." : ""}${r} is required.`);
     for (const [k, v] of Object.entries(value)) {
-      const sub = schema.properties?.[k];
+      if (v === null && !req.has(k)) continue; // some clients send null for an option they leave unset
+      const sub = schema.properties && Object.hasOwn(schema.properties, k) ? schema.properties[k] : undefined;
       if (sub) errs.push(...checkArgs(sub, v, path ? `${path}.${k}` : k));
       else if (schema.additionalProperties === false) errs.push(`${path ? path + "." : ""}${k} is not an option for this tool.`);
       else if (typeof schema.additionalProperties === "object") errs.push(...checkArgs(schema.additionalProperties, v, path ? `${path}.${k}` : k));

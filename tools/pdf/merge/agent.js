@@ -11,7 +11,7 @@ export default defineTools({
     type: "object",
     properties: {
       files: files("PDFs in the order they should appear.", ["application/pdf"], 2),
-      fileName: { type: "string", description: "Name of the merged PDF (default merged.pdf)." },
+      fileName: { type: "string", "x-setting": true, description: "Name of the merged PDF (default merged.pdf)." },
     },
     required: ["files"],
     additionalProperties: false,

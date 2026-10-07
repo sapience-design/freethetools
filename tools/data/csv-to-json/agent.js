@@ -31,7 +31,7 @@ export default defineTools(
   {
     name: "json_to_csv",
     makesFiles: true,
-    title: "CSV to JSON",
+    title: "JSON to CSV",
     description:
       "Turn a JSON array (of objects, or of arrays) into CSV. Give text to get text back, or a file to get a .csv file. Runs on this device; nothing is uploaded.",
     input: {
@@ -47,7 +47,7 @@ export default defineTools(
     run: (args) => {
       const { text, file: f } = textOrFile(args, "JSON");
       const csv = jsonToCsv(text, { delimiter: args.delimiter ?? "," });
-      const rows = Math.max(0, csv.split(/\r?\n/).filter(Boolean).length - 1);
+      const rows = JSON.parse(text).length; // jsonToCsv has checked it is an array
       const summary = `${rows} rows converted.`;
       if (f) return { summary, data: { rows }, files: [textFile(`${baseName(f.name)}.csv`, "text/csv", csv)] };
       return { summary, data: { rows, csv } };

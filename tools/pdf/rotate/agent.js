@@ -14,7 +14,7 @@ export default defineTools({
     properties: {
       file: file("The PDF.", ["application/pdf"]),
       degrees: { type: "integer", enum: [90, 180, 270], description: "Clockwise turn." },
-      pages: { type: "string", description: "Pages to turn, e.g. \"1-3, 5, 8-\". Default every page." },
+      pages: { type: "string", "x-setting": true, description: "Pages to turn, e.g. \"1-3, 5, 8-\". Default every page." },
     },
     required: ["file", "degrees"],
     additionalProperties: false,

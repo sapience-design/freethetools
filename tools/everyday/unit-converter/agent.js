@@ -14,8 +14,8 @@ export default defineTools({
     properties: {
       value: { type: "number", description: "The amount to convert." },
       category: { type: "string", enum: Object.keys(UNITS), description: "The kind of quantity." },
-      from: { type: "string", description: "Unit key to convert from, e.g. km." },
-      to: { type: "string", description: "Unit key to convert to, e.g. mi." },
+      from: { type: "string", "x-setting": true, description: "Unit key to convert from, e.g. km." },
+      to: { type: "string", "x-setting": true, description: "Unit key to convert to, e.g. mi." },
     },
     required: ["value", "category", "from", "to"],
     additionalProperties: false,

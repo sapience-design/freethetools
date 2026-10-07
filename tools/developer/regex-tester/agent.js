@@ -10,7 +10,7 @@ export default defineTools({
     type: "object",
     properties: {
       pattern: { type: "string", minLength: 1, description: "The pattern, without slashes, e.g. \\d{4}-\\d{2}" },
-      flags: { type: "string", description: "Flags such as i, m, s, u (g is always on). Default none." },
+      flags: { type: "string", "x-setting": true, description: "Flags such as i, m, s, u (g is always on). Default none." },
       text: { type: "string", description: "The text to search." },
       limit: { type: "integer", minimum: 1, maximum: 500, description: "Most matches to return (default 100)." },
     },

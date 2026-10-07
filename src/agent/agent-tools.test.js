@@ -6,7 +6,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { PDFDocument } from "pdf-lib";
-import { checkArgs, detectType, fileFields, settingsOf, wireSchema } from "./contract.js";
+import { checkArgs, cleanArgs, detectType, fileFields, settingsOf, wireSchema } from "./contract.js";
 import { libraryEntry, logLine, parseLog } from "./library.js";
 
 const ROOT = new URL("../../", import.meta.url);
@@ -199,4 +199,55 @@ test("library records round-trip through library.jsonl", () => {
   assert.equal(e.outputs[0].path, "files/1/x.pdf");
   const text = logLine(e) + "not json\n" + logLine({ ...e, v: 99 }) + logLine({ ...e, id: "b" });
   assert.deepEqual(parseLog(text).map((x) => x.id), [e.id, "b"]);
+});
+
+test("the library keeps options, never content or secrets", () => {
+  const s = (name, args) => settingsOf(byName[name].input, args);
+  assert.deepEqual(s("make_qr_code", { wifi: { ssid: "Home", password: "WIFIPASS" }, level: "H" }), { level: "H" });
+  assert.deepEqual(s("decode_jwt", { token: "a.b.c", secret: "SUPERSECRET" }), {});
+  assert.deepEqual(s("fill_pdf_form", { file: "f.pdf", values: { name: "Ada" }, flatten: true }), { flatten: true });
+  assert.deepEqual(s("convert_case", { text: "private words", case: "upper" }), { case: "upper" });
+  assert.deepEqual(s("base64_decode", { base64: "c2VjcmV0", output: "file", fileName: "x.bin" }), { output: "file", fileName: "x.bin" });
+  assert.deepEqual(s("split_pdf", { file: "f.pdf", ranges: "1-3, 5" }), { ranges: "1-3, 5" });
+  assert.deepEqual(s("generate_hash", { text: "x", algorithms: ["MD5"] }), { algorithms: ["MD5"] });
+  assert.deepEqual(s("convert_case", JSON.parse('{"__proto__": {"x": 1}, "constructor": "y", "case": "lower"}')), { case: "lower" });
+});
+
+test("options sent as null count as unset", () => {
+  const input = byName.compress_pdf.input;
+  assert.deepEqual(checkArgs(wireSchema(input, () => ({ type: "string" })), { file: "a.pdf", quality: null, firstPageOnly: null }), []);
+  assert.deepEqual(cleanArgs({ file: "a.pdf", quality: null }), { file: "a.pdf" });
+  assert.match(checkArgs(input, { file: null })[0], /file is required/);
+  assert.match(checkArgs({ type: "object", properties: { a: { type: "string", minLength: 3 } } }, { a: "x" })[0], /at least 3 characters/);
+  assert.match(checkArgs(byName.convert_case.input, { text: "a", case: "upper", toString: 1 })[0], /not an option/);
+});
+
+test("json_to_csv counts rows, not lines", async () => {
+  const r = await call("json_to_csv", { text: JSON.stringify([{ a: "two\nlines" }, { a: 1 }]) });
+  assert.equal(r.data.rows, 2);
+});
+
+test("schemas use only keywords that checkArgs understands", () => {
+  const KNOWN = new Set(["type", "properties", "required", "additionalProperties", "enum", "minimum", "maximum", "minLength", "maxLength", "minItems", "maxItems", "items", "description", "format", "accept", "x-setting"]);
+  const walk = (s, where) => {
+    for (const k of Object.keys(s)) assert.ok(KNOWN.has(k), `${where}: unsupported keyword "${k}"`);
+    for (const [k, sub] of Object.entries(s.properties ?? {})) walk(sub, `${where}.${k}`);
+    if (s.items) walk(s.items, `${where}[]`);
+    if (typeof s.additionalProperties === "object") walk(s.additionalProperties, `${where}{}`);
+  };
+  for (const { def } of all) walk(def.input, def.name);
+});
+
+test("parseLog cleans every line, so one bad record can't break the library page", () => {
+  const good = { v: 1, id: "a", tool: "pdf/merge", time: "2026-10-06T00:00:00.000Z", ok: true };
+  const lines = [
+    { v: 1, id: "b", tool: "pdf/merge" }, // no inputs, outputs or time
+    { ...good, inputs: "nope", settings: [1, 2], by: "hacker", outputs: [{ name: "x.pdf", size: -5, path: "../../etc/passwd" }, { name: "y.pdf", path: "files/a/y.pdf" }, { size: 1 }] },
+    { ...good, id: "c", outputs: [{ name: "z", path: "C:\Windows\z" }, { name: "w", path: "/abs/w" }] },
+  ].map((x) => JSON.stringify(x)).join("\n");
+  const [b, a, c] = parseLog(lines);
+  assert.deepEqual([b.inputs, b.outputs, b.settings, b.by], [[], [], {}, "agent"]);
+  assert.equal(b.time, "1970-01-01T00:00:00.000Z");
+  assert.deepEqual(a.outputs, [{ name: "x.pdf", size: 0, type: "" }, { name: "y.pdf", size: 0, type: "", path: "files/a/y.pdf" }]);
+  assert.deepEqual(c.outputs.map((o) => o.path), [undefined, undefined]);
 });
