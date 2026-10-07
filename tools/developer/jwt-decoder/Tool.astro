@@ -23,6 +23,8 @@ const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsi
   import { decodeJwt, describeClaims, verifyHmac } from "./core.js";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("jwt-in") as HTMLTextAreaElement, secret = $("jwt-secret") as HTMLInputElement;
+  // Live regions speak whenever text is written, so write only when it changes.
+  const setText = (el: HTMLElement, text: string) => { if (el.textContent !== text) el.textContent = text; };
   async function update() {
     const err = $("jwt-err");
     try {
@@ -37,12 +39,13 @@ const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsi
         li.append(n, m); return li;
       }));
       const v = $("jwt-verdict");
-      if (!secret.value) { v.textContent = ""; v.className = ""; return; }
+      if (!secret.value) { setText(v, ""); v.className = ""; return; }
       const ok = await verifyHmac(input.value, secret.value);
-      v.textContent = ok === null ? `Can't verify ${header.alg} with a secret; it needs the issuer's public key.` : ok ? "Signature is valid for this secret." : "Signature does not match this secret.";
+      setText(v, ok === null ? `Can't verify ${header.alg} with a secret; it needs the issuer's public key.` : ok ? "Signature is valid for this secret." : "Signature does not match this secret.");
       v.className = ok ? "hg-ok" : "tool-error";
     } catch (e) {
-      err.textContent = (e as Error).message; err.hidden = false;
+      if (err.textContent !== (e as Error).message) err.textContent = (e as Error).message;
+      err.hidden = false;
       $("jwt-head").textContent = ""; $("jwt-body").textContent = ""; $("jwt-claims").replaceChildren();
     }
   }

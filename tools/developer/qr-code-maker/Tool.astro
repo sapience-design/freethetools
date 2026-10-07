@@ -62,7 +62,9 @@
       png.classList.add("line");
       actions.append(png);
     } catch (e) {
-      err.textContent = (e as Error).message; err.hidden = false;
+      // role="alert" speaks whenever its text is written, so write only when it changes.
+      if (err.textContent !== (e as Error).message) err.textContent = (e as Error).message;
+      err.hidden = false;
       $("qr-code").replaceChildren(); actions.replaceChildren();
     }
   }

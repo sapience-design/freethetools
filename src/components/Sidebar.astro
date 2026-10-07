@@ -154,8 +154,10 @@ const icon = {
 
   .scrim { display: none; }
   @media (max-width: 960px) {
-    .side { position: fixed; inset: 0 auto 0 0; z-index: 30; width: min(86vw, 300px); height: 100%; transform: translateX(-100%); transition: transform .25s cubic-bezier(.2,.7,.2,1); }
-    .side.open { transform: none; box-shadow: 0 0 80px rgba(0,0,0,.25); }
+    /* Closed, the drawer is also visibility: hidden, so it can't take focus even before the script
+       sets inert. It stays visible for the length of the slide when closing, and shows at once on open. */
+    .side { position: fixed; inset: 0 auto 0 0; z-index: 30; width: min(86vw, 300px); height: 100%; transform: translateX(-100%); visibility: hidden; transition: transform .25s cubic-bezier(.2,.7,.2,1), visibility 0s .25s; }
+    .side.open { transform: none; visibility: visible; transition: transform .25s cubic-bezier(.2,.7,.2,1), visibility 0s; box-shadow: 0 0 80px rgba(0,0,0,.25); }
     .close { display: block; }
     .scrim { display: block; position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.35); }
   }
@@ -192,12 +194,17 @@ const icon = {
   const scrim = document.getElementById("scrim")!;
 
   const status = document.getElementById("side-status")!;
+  // Write to the live region only when the words change, so a screen reader isn't interrupted
+  // by the same message on every keystroke.
+  const say = (text: string) => { if (status.textContent !== text) status.textContent = text; };
+  // The arrow-key hint is spoken once per search: from the first letter until the box is cleared.
+  let hinted = false;
   const find = makeSearch(index);
   function search() {
     const q = input.value;
     results.hidden = !q.trim();
     panel.hidden = !!q.trim();
-    if (!q.trim()) { status.textContent = ""; return; }
+    if (!q.trim()) { say(""); hinted = false; return; }
     const hits = find(q).slice(0, 12);
     results.replaceChildren(
       ...hits.map((h, i) => {
@@ -209,6 +216,8 @@ const icon = {
         const small = document.createElement("small");
         small.textContent = h.w ? `${h.c} · made to order` : h.c;
         a.append(small);
+        a.dataset.name = h.n;
+        a.dataset.group = small.textContent;
         li.append(a);
         return li;
       }),
@@ -219,7 +228,10 @@ const icon = {
       li.textContent = "No tool matches yet. Press Enter to request it.";
       results.append(li);
     }
-    status.textContent = hits.length ? `${hits.length} ${hits.length === 1 ? "result" : "results"}. Use the up and down arrow keys, then Enter.` : "No tool matches yet. Press Enter to request it.";
+    if (!hits.length) { say("No tool matches yet. Press Enter to request it."); return; }
+    const count = `${hits.length} ${hits.length === 1 ? "result" : "results"}.`;
+    say(hinted ? count : `${count} Use the up and down arrow keys, then Enter.`);
+    hinted = true;
   }
 
   // Arrow keys move through results; Enter opens the highlighted one.
@@ -233,7 +245,8 @@ const icon = {
     links.forEach((l, i) => l.classList.toggle("sel", i === next));
     links[next].scrollIntoView({ block: "nearest" });
     // The highlight is visual only, so say which result is selected.
-    status.textContent = `${links[next].textContent}, ${next + 1} of ${links.length}`;
+    const { name, group } = links[next].dataset;
+    say(`${name}, ${group}, ${next + 1} of ${links.length}`);
   });
 
   input.addEventListener("input", search);
@@ -287,6 +300,13 @@ const icon = {
     if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
     else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
   });
-  phone.addEventListener("change", () => { side.classList.remove("open"); scrim.hidden = true; syncInert(); });
+  phone.addEventListener("change", () => {
+    // Going from desktop to phone width makes the drawer inert, which would drop focus to the page.
+    const hadFocus = side.contains(document.activeElement);
+    side.classList.remove("open");
+    scrim.hidden = true;
+    syncInert();
+    if (hadFocus && phone.matches) menu?.focus();
+  });
   syncInert();
 </script>

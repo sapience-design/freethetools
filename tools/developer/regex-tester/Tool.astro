@@ -22,7 +22,10 @@ No address on this line.</textarea></label>
   function update() {
     const flags = [...document.querySelectorAll<HTMLInputElement>("[data-flag]")].filter((c) => c.checked).map((c) => c.dataset.flag).join("");
     const r = runRegex(pattern.value, flags, text.value);
-    $("rx-err").hidden = !r.error; $("rx-err").textContent = r.error ?? "";
+    // role="alert" speaks whenever its text is written, so write only when it changes.
+    const err = $("rx-err");
+    if (err.textContent !== (r.error ?? "")) err.textContent = r.error ?? "";
+    err.hidden = !r.error;
     $("rx-count").textContent = r.error ? "" : `${r.matches.length}${r.truncated ? "+" : ""} ${r.matches.length === 1 ? "match" : "matches"}`;
     $("rx-view").replaceChildren(...segments(text.value, r.matches).map((s) => {
       const el = document.createElement(s.match ? "mark" : "span"); el.textContent = s.text; return el;

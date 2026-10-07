@@ -411,3 +411,225 @@ test.describe("theme, search, sorting, likes and stats", () => {
     expect(await res.text()).toContain("isn't here");
   });
 });
+
+// ---- Fixes from the tools review ----
+
+/** Count the times a node's text is written (even to the same words) from now on. */
+async function watchWrites(page, selector) {
+  await page.evaluate((sel) => {
+    window.__writes = 0;
+    new MutationObserver((m) => { window.__writes += m.length; }).observe(document.querySelector(sel), { childList: true, characterData: true, subtree: true });
+  }, selector);
+}
+const writes = (page) => page.evaluate(() => window.__writes);
+
+/** Focus a button and press a key; the file picker must open. Chromium sometimes drops the first
+ *  keypress on a busy machine, so try a few times before failing. */
+async function pickerFromKey(page, selector, key) {
+  for (let attempt = 1; ; attempt++) {
+    await page.locator(selector).focus();
+    try {
+      const [chooser] = await Promise.all([page.waitForEvent("filechooser", { timeout: 4000 }), page.keyboard.press(key)]);
+      return chooser;
+    } catch (e) {
+      if (attempt === 3) throw e;
+    }
+  }
+}
+
+test.describe("Open a file button and live regions", () => {
+  const OPENERS = [
+    // The last column is something only the page's script fills in, so the click handler is wired.
+    ["/text/markdown-to-html/", "#md-open", "#md-out"],
+    ["/data/csv-to-json/", "#cj-open", "#cj-out"],
+    ["/developer/base64/", "#b64-open", "#b64-out"],
+    ["/developer/hash-generator/", "#hg-open", "#hg-list li"],
+  ];
+  for (const [path, button, ready] of OPENERS) {
+    for (const key of ["Enter", "Space"]) {
+      test(`${path} opens the file picker from the keyboard (${key})`, async ({ page }) => {
+        await page.goto(path);
+        await expect(page.locator(ready).first()).not.toBeEmpty();
+        await expect(page.locator(button)).toHaveJSProperty("tagName", "BUTTON");
+        const chooser = await pickerFromKey(page, button, key === "Space" ? " " : "Enter");
+        expect(chooser.isMultiple()).toBe(false);
+      });
+    }
+  }
+
+  test("Markdown to HTML: a file chosen with the button is loaded", async ({ page }) => {
+    await page.goto("/text/markdown-to-html/");
+    await expect(page.locator("#md-out")).not.toBeEmpty();
+    const chooser = await pickerFromKey(page, "#md-open", "Enter");
+    await chooser.setFiles({ name: "note.md", mimeType: "text/markdown", buffer: Buffer.from("# From a file") });
+    await expect(page.locator("#md-in")).toHaveValue("# From a file");
+    await expect(page.locator("#md-out")).toContainText("<h1>From a file</h1>");
+  });
+
+  test("Markdown to HTML: the result box is not live, and the status is written only when it changes", async ({ page }) => {
+    await page.goto("/text/markdown-to-html/");
+    await page.waitForLoadState("networkidle");
+    await expect(page.locator("#md-out")).not.toHaveAttribute("aria-live", /.+/);
+    const live = page.locator("#md-live");
+    await expect(live).toHaveAttribute("role", "status");
+    await expect(live).toHaveText("HTML ready, cleaned");
+    await watchWrites(page, "#md-live");
+    await page.locator("#md-in").pressSequentially(" more words", { delay: 10 });
+    expect(await writes(page)).toBe(0);
+    await page.locator("#md-clean").uncheck();
+    await expect(live).toHaveText("HTML ready, exactly as written");
+    expect(await writes(page)).toBeGreaterThan(0);
+  });
+
+  test("Markdown to HTML: an error is announced once, not on every keystroke", async ({ page }) => {
+    await page.goto("/text/markdown-to-html/");
+    await page.waitForLoadState("networkidle");
+    await page.fill("#md-in", "");
+    await expect(page.locator("#md-live")).toContainText("Type or paste some Markdown");
+    await watchWrites(page, "#md-live");
+    await page.locator("#md-in").pressSequentially("   ", { delay: 10 });
+    expect(await writes(page)).toBe(0);
+  });
+
+  test("Regex Tester writes its alert only when the message changes", async ({ page }) => {
+    await page.goto("/developer/regex-tester/");
+    await page.waitForLoadState("networkidle");
+    await page.fill("#rx-pattern", "(");
+    const err = page.locator("#rx-err");
+    await expect(err).toBeVisible();
+    await watchWrites(page, "#rx-err");
+    await page.locator("#rx-text").pressSequentially("abc", { delay: 10 });
+    expect(await writes(page)).toBe(0);
+    await page.fill("#rx-pattern", "a");
+    await expect(err).toBeHidden();
+  });
+
+  test("JWT Decoder writes its alert only when the message changes", async ({ page }) => {
+    await page.goto("/developer/jwt-decoder/");
+    await page.waitForLoadState("networkidle");
+    await page.fill("#jwt-in", "abc");
+    await expect(page.locator("#jwt-err")).toBeVisible();
+    await watchWrites(page, "#jwt-err");
+    await page.locator("#jwt-in").pressSequentially("def", { delay: 10 });
+    expect(await writes(page)).toBe(0);
+  });
+
+  test("QR Code Maker writes its alert only when the message changes", async ({ page }) => {
+    await page.goto("/developer/qr-code-maker/");
+    await page.waitForLoadState("networkidle");
+    await page.fill("#qr-in", "");
+    await expect(page.locator("#qr-err")).toBeVisible();
+    await watchWrites(page, "#qr-err");
+    await page.locator("label[for=qr-H]").click();
+    await page.locator("label[for=qr-Q]").click();
+    await page.waitForTimeout(100);
+    expect(await writes(page)).toBe(0);
+  });
+});
+
+test.describe("File Converter text files", () => {
+  const row = (page, name) => page.locator("#fc-list li").filter({ hasText: name });
+
+  test("a semicolon CSV in Windows-1252 becomes columns with the accent intact, and the row says so", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    await page.setInputFiles("#fc-file", { name: "cities.csv", mimeType: "text/csv", buffer: Buffer.from("name;city\nAda;Zürich", "latin1") });
+    const r = row(page, "cities.csv");
+    await expect(r).toContainText("semicolon separated");
+    await expect(r).toContainText("Windows-1252");
+    const json = JSON.parse((await download(page, () => r.locator("a[download]").click())).toString());
+    expect(json).toEqual([{ name: "Ada", city: "Zürich" }]);
+  });
+
+  test("a UTF-16 text file with a byte order mark converts", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    const buffer = Buffer.concat([Buffer.from([0xff, 0xfe]), Buffer.from("a,b\n1,2", "utf16le")]);
+    await page.setInputFiles("#fc-file", { name: "wide.csv", mimeType: "text/csv", buffer });
+    const r = row(page, "wide.csv");
+    await expect(r).toContainText("CSV table");
+    expect(JSON.parse((await download(page, () => r.locator("a[download]").click())).toString())).toEqual([{ a: "1", b: "2" }]);
+  });
+
+  test("repeated column names are reported in the row", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    await page.setInputFiles("#fc-file", { name: "dup.csv", mimeType: "text/csv", buffer: Buffer.from("a,a\n1,2") });
+    await expect(row(page, "dup.csv")).toContainText("renamed");
+  });
+
+  test("a .txt file becomes escaped paragraphs, not Markdown", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    await page.setInputFiles("#fc-file", { name: "notes.txt", mimeType: "text/plain", buffer: Buffer.from("* star\nsecond line\n\nnew <b>paragraph</b>") });
+    const html = (await download(page, () => row(page, "notes.txt").locator("a[download]").click())).toString();
+    expect(html).toContain("<p>* star<br>\nsecond line</p>");
+    expect(html).toContain("<p>new &lt;b&gt;paragraph&lt;/b&gt;</p>");
+    expect(html).not.toContain("<li>");
+  });
+
+  test("very long audio waits for a go-ahead before it is decoded", async ({ page }) => {
+    await page.goto("/everyday/file-converter/");
+    // About 40 MB at a typical MP3 rate is over half an hour.
+    const buffer = Buffer.concat([Buffer.from("ID3"), Buffer.alloc(40 * 1024 * 1024)]);
+    await page.setInputFiles("#fc-file", { name: "long.mp3", mimeType: "audio/mpeg", buffer });
+    const r = row(page, "long.mp3");
+    await expect(r).toContainText("minutes long");
+    await expect(r.getByRole("button", { name: /Convert long.mp3 anyway/ })).toBeVisible();
+    await expect(r.locator("a[download]")).toHaveCount(0);
+  });
+});
+
+test.describe("sidebar search status", () => {
+  test.skip(({ isMobile }) => isMobile, "run once, on desktop");
+
+  test("the arrow-key hint is spoken once per search, and the selected result reads as name, group and position", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    const status = page.locator("#side-status");
+    await page.locator("#find").focus();
+    await page.keyboard.type("p");
+    await expect(status).toContainText("arrow keys");
+    await page.keyboard.type("df");
+    await expect(status).toHaveText(/^\d+ results?\.$/);
+    await page.keyboard.press("ArrowDown");
+    const link = page.locator("#side-results a").nth(1);
+    const name = await link.getAttribute("data-name");
+    const group = await link.getAttribute("data-group");
+    const total = await page.locator("#side-results a").count();
+    await expect(status).toHaveText(`${name}, ${group}, 2 of ${total}`);
+    // A new search says the hint again.
+    await page.fill("#find", "");
+    await page.keyboard.type("m");
+    await expect(status).toContainText("arrow keys");
+  });
+
+  test("typing more letters that give the same results does not rewrite the status", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.locator("#find").focus();
+    await page.keyboard.type("zzzz");
+    await expect(page.locator("#side-status")).toContainText(/no tool matches/i);
+    await watchWrites(page, "#side-status");
+    await page.keyboard.type("zz");
+    expect(await writes(page)).toBe(0);
+  });
+
+  test("focus moves to the Menu button when the window narrows to phone width", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.locator("#find").focus();
+    await page.setViewportSize({ width: 700, height: 900 });
+    await expect(page.locator("#menu")).toBeFocused();
+  });
+});
+
+test.describe("phone drawer without JavaScript", () => {
+  test.skip(({ isMobile }) => !isMobile, "phone only");
+  test.use({ javaScriptEnabled: false });
+
+  test("the closed drawer is hidden from keyboard and screen readers before any script runs", async ({ page }) => {
+    await page.goto("/");
+    expect(await page.evaluate(() => getComputedStyle(document.getElementById("side")).visibility)).toBe("hidden");
+    for (let i = 0; i < 6; i++) {
+      await page.keyboard.press("Tab");
+      expect(await page.evaluate(() => !!document.activeElement?.closest("#side"))).toBe(false);
+    }
+  });
+});
