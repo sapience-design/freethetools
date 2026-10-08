@@ -7,6 +7,7 @@ try {
   const { def } = byName.get(name);
   const ctx = {};
   if (def.needs?.includes("ghostscript")) ctx.ghostscript = (await import("./ghostscript.js")).ghostscript;
+  if (def.needs?.includes("qpdf")) ctx.qpdf = (await import("./qpdf.js")).qpdf;
   const r = await def.run(args, ctx);
   const files = (r.files ?? []).map((f) => ({ name: f.name, type: f.type, bytes: f.bytes }));
   const buffers = [...new Set(files.map((f) => f.bytes.buffer))].filter((b) => b instanceof ArrayBuffer);

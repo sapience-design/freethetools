@@ -46,7 +46,7 @@ await build({
   format: "esm",
   platform: "node",
   target: "node22",
-  external: ["@modelcontextprotocol/sdk/*", "@jspawn/ghostscript-wasm"],
+  external: ["@modelcontextprotocol/sdk/*", "@jspawn/ghostscript-wasm", "@jspawn/qpdf-wasm"],
   plugins: [toolsPlugin],
   define: { __VERSION__: JSON.stringify(pkg.version) },
   banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" },
@@ -59,5 +59,9 @@ await build({
 const gsDir = dirname(require.resolve("@jspawn/ghostscript-wasm/package.json"));
 copyFileSync(join(gsDir, "gs.js"), join(dist, "gs.cjs"));
 copyFileSync(join(gsDir, "gs.wasm"), join(dist, "gs.wasm"));
+// qpdf compiled to WebAssembly, for unlock_pdf, shipped the same way.
+const qpdfDir = dirname(require.resolve("@jspawn/qpdf-wasm/package.json"));
+copyFileSync(join(qpdfDir, "qpdf.js"), join(dist, "qpdf.cjs"));
+copyFileSync(join(qpdfDir, "qpdf.wasm"), join(dist, "qpdf.wasm"));
 copyFileSync(join(root, "LICENSE"), join(here, "LICENSE"));
 console.log(`Built ${ids.length} tool folders into ${dist}`);
