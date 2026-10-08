@@ -13,6 +13,7 @@ import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
 import { PDFDocument } from "pdf-lib";
 import { parseLog } from "../../../src/agent/library.js";
 import { safeName } from "../src/library.js";
+import { OPEN_PASSWORD, withPassword, withRestrictions } from "../../../tools/pdf/unlock/tests/helpers.js";
 
 const here = fileURLToPath(new URL(".", import.meta.url));
 const CLI = join(here, "../dist/cli.js");
@@ -44,9 +45,9 @@ const entries = () => parseLog(readFileSync(join(library, "library.jsonl"), "utf
 const pageCount = async (p) => (await PDFDocument.load(readFileSync(p))).getPageCount();
 const section = (r, title) => text(r).split(`${title}:\n`)[1]?.split("\n\n")[0].split("\n") ?? [];
 
-test("the server lists all 24 tools, with file fields as paths", async () => {
+test("the server lists all 25 tools, with file fields as paths", async () => {
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 24);
+  assert.equal(tools.length, 25);
   const merge = tools.find((t) => t.name === "merge_pdfs");
   assert.equal(merge.inputSchema.properties.files.items.type, "string");
   assert.match(merge.inputSchema.properties.files.items.description, /Path to a file on this computer, absolute or relative to the working directory/);
@@ -100,6 +101,34 @@ test("compress_pdf runs Ghostscript in Node", async () => {
   assert.equal(await pageCount(path), await pageCount(SAMPLE));
 });
 
+test("unlock_pdf runs qpdf in Node, and the password never reaches the library", async () => {
+  const locked = join(tmp, "locked.pdf");
+  writeFileSync(locked, withPassword);
+  const r = await call("unlock_pdf", { file: locked, password: OPEN_PASSWORD });
+  assert.ok(!r.isError, text(r));
+  const [path] = section(r, "Saved files");
+  assert.match(path, /locked_unlocked.pdf$/);
+  assert.equal(await pageCount(path), await pageCount(SAMPLE));
+  assert.ok(!text(r).includes(OPEN_PASSWORD), "the password is not echoed back");
+
+  const wrong = await call("unlock_pdf", { file: locked, password: "not-the-password" });
+  assert.equal(wrong.isError, true);
+  assert.match(text(wrong), /doesn.t open/);
+
+  const limited = join(tmp, "limited.pdf");
+  writeFileSync(limited, withRestrictions);
+  const free = await call("unlock_pdf", { file: limited });
+  assert.ok(!free.isError, text(free));
+  assert.match(text(free), /restrictions on printing, copying/);
+
+  const log = readFileSync(join(library, "library.jsonl"), "utf8");
+  assert.ok(!log.includes(OPEN_PASSWORD) && !log.includes("not-the-password"), "no password in library.jsonl");
+  const mine = entries().filter((e) => e.tool === "unlock_pdf");
+  assert.equal(mine.length, 3);
+  assert.deepEqual(mine.map((e) => e.settings), [{}, {}, {}]);
+  for (const f of readdirSync(library, { recursive: true, withFileTypes: true })) if (f.isFile() && f.name.endsWith(".jsonl")) assert.ok(!readFileSync(join(f.parentPath, f.name), "utf8").includes(OPEN_PASSWORD));
+});
+
 test("failed calls return a plain error and are recorded", async () => {
   const missing = await call("merge_pdfs", { files: [join(tmp, "nope.pdf"), SAMPLE] });
   assert.equal(missing.isError, true);
@@ -138,7 +167,7 @@ test("the library log parses and holds every call", () => {
 
 test("the command line lists tools and runs one", async () => {
   const list = await run(process.execPath, [CLI, "list"], { env });
-  assert.match(list.stdout, /24 tools/);
+  assert.match(list.stdout, /25 tools/);
   assert.match(list.stdout, /compress_pdf/);
   const help = await run(process.execPath, [CLI, "--help"], { env });
   assert.match(help.stdout, /never uploaded/);

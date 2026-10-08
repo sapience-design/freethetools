@@ -2,7 +2,7 @@
 
 **Free the Tools on your own computer, for AI assistants. Your files never leave it.**
 
-This package runs a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server and a small command line. They give an AI assistant 24 tools for everyday file jobs, such as compressing, merging, splitting and rotating PDFs, stripping location data from photos, converting CSV and JSON, and hashing. The tools are the same ones as on [freethetools.com](https://freethetools.com).
+This package runs a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server and a small command line. They give an AI assistant 25 tools for everyday file jobs, such as compressing, merging, splitting, rotating and unlocking PDFs, stripping location data from photos, converting CSV and JSON, and hashing. The tools are the same ones as on [freethetools.com](https://freethetools.com).
 
 An assistant that has this server no longer needs to install Ghostscript, ImageMagick or a Python package for those jobs. The server tells it to use these tools instead.
 

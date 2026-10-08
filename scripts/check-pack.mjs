@@ -9,7 +9,7 @@ const stdout = execSync("npm pack --dry-run --json", { cwd: dir, encoding: "utf8
 // The build prints a line before npm's JSON, so read from the JSON's own start.
 const start = stdout.search(/^\[\s*\{/m);
 const listed = JSON.parse(stdout.slice(start))[0].files.map((f) => f.path.replaceAll("\\", "/"));
-const missing = ["dist/cli.js", "dist/gs.wasm", "package.json", "README.md"].filter((f) => !listed.includes(f));
+const missing = ["dist/cli.js", "dist/gs.wasm", "dist/qpdf.wasm", "package.json", "README.md"].filter((f) => !listed.includes(f));
 if (missing.length) {
   console.error(`npm pack would leave these out: ${missing.join(", ")}. Files it lists:\n${listed.join("\n")}`);
   process.exit(1);
