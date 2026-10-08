@@ -1,32 +1,41 @@
 ---
-// QR Code Maker. The code itself is the product shot here, so no banner.
+// QR Code Maker.
+import Step from "../../../src/components/Step.astro";
 ---
-<section class="tool" aria-label="QR code maker">
-  <fieldset class="field">
-    <legend class="eyebrow">What to encode</legend>
-    <div class="seg">
-      <input type="radio" name="qr-kind" id="qr-text" value="text" checked><label for="qr-text">Link or text</label>
-      <input type="radio" name="qr-kind" id="qr-wifi" value="wifi"><label for="qr-wifi">Wi-Fi login</label>
+<section class="tool" id="qr-tool" aria-label="QR code maker">
+  <Step n={1} title="Type a link or text">
+    <fieldset class="field">
+      <legend class="sr-only">What to encode</legend>
+      <div class="seg">
+        <input type="radio" name="qr-kind" id="qr-text" value="text" checked><label for="qr-text">Link or text</label>
+        <input type="radio" name="qr-kind" id="qr-wifi" value="wifi"><label for="qr-wifi">Wi-Fi login</label>
+      </div>
+    </fieldset>
+    <label class="field" id="qr-text-field"><span>Link or text</span><input type="text" id="qr-in" value="https://freethetools.com" autocomplete="off"></label>
+    <div id="qr-wifi-fields" class="qr-wifi" hidden>
+      <label class="field"><span>Network name</span><input type="text" id="qr-ssid" autocomplete="off"></label>
+      <label class="field"><span>Password</span><input type="text" id="qr-pass" autocomplete="off"></label>
+      <label class="check"><input type="checkbox" id="qr-hidden"> Hidden network</label>
     </div>
-  </fieldset>
-  <label class="field" id="qr-text-field"><span>Link or text</span><input type="text" id="qr-in" value="https://freethetools.com" autocomplete="off"></label>
-  <div id="qr-wifi-fields" class="qr-wifi" hidden>
-    <label class="field"><span>Network name</span><input type="text" id="qr-ssid" autocomplete="off"></label>
-    <label class="field"><span>Password</span><input type="text" id="qr-pass" autocomplete="off"></label>
-    <label class="check"><input type="checkbox" id="qr-hidden"> Hidden network</label>
-  </div>
-  <fieldset class="field">
-    <legend class="eyebrow">Error correction</legend>
-    <div class="seg">
-      <input type="radio" name="qr-level" id="qr-L" value="L"><label for="qr-L">Low</label>
-      <input type="radio" name="qr-level" id="qr-M" value="M" checked><label for="qr-M">Medium</label>
-      <input type="radio" name="qr-level" id="qr-Q" value="Q"><label for="qr-Q">Quartile</label>
-      <input type="radio" name="qr-level" id="qr-H" value="H"><label for="qr-H">High</label>
-    </div>
-  </fieldset>
-  <div class="qr-stage"><div class="qr-code" id="qr-code" role="img" aria-label="QR code preview"></div></div>
-  <p class="tool-error" id="qr-err" hidden></p>
-  <div class="actions" id="qr-actions"></div>
+  </Step>
+  <Step n={2} title="Choose how tough it is">
+    <fieldset class="field">
+      <legend>Error correction</legend>
+      <div class="seg">
+        <input type="radio" name="qr-level" id="qr-L" value="L"><label for="qr-L">Low</label>
+        <input type="radio" name="qr-level" id="qr-M" value="M" checked><label for="qr-M">Medium</label>
+        <input type="radio" name="qr-level" id="qr-Q" value="Q"><label for="qr-Q">Quartile</label>
+        <input type="radio" name="qr-level" id="qr-H" value="H"><label for="qr-H">High</label>
+      </div>
+      <small class="hint">Higher levels still scan when the code is dirty or damaged, but make it denser.</small>
+    </fieldset>
+  </Step>
+  <Step n={3} title="Save your code">
+    <div class="qr-stage"><div class="qr-code" id="qr-code" role="img" aria-label="QR code preview"></div></div>
+    <p class="tool-error" id="qr-err" hidden></p>
+    <div class="actions" id="qr-actions"></div>
+    <p class="hint">Scan it with your phone camera to check it before printing.</p>
+  </Step>
 </section>
 
 <script>
@@ -72,8 +81,8 @@
 </script>
 
 <style>
-  .qr-wifi { display: grid; gap: var(--s2); }
-  .qr-stage { display: grid; place-items: center; padding: var(--s5) var(--s3); border-radius: 6px; background: linear-gradient(#353a40 55%, #202328); }
-  .qr-code { width: min(100%, 260px); aspect-ratio: 1; border-radius: 10px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,.35); background: #fff; }
+  .qr-wifi { display: grid; gap: 16px; }
+  .qr-stage { display: grid; place-items: center; padding: 40px 24px; border-radius: var(--r-lg); background: var(--tint); }
+  .qr-code { width: min(100%, 260px); aspect-ratio: 1; border-radius: var(--r); overflow: hidden; border: 1.5px solid var(--edge); box-shadow: var(--shadow); background: #fff; }
   .qr-code :global(img) { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
 </style>

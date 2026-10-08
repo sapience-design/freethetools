@@ -1,58 +1,87 @@
 ---
-// Split PDF: every page as its own file, or custom ranges.
+// Split PDF: every page as its own file, or the pages you pick.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Split PDF">
-  <DropZone prefix="pdfs" toolId="pdf/split" category="pdf" name="Split PDF" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
+<section class="tool" id="pdfs-tool" aria-label="Split PDF">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="pdfs" toolId="pdf/split" category="pdf" name="Split PDF" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
+    <ul class="file-list" id="pdfs-picked" hidden>
+      <li>
+        <span class="fname" id="pdfs-name"></span>
+        <span class="fmeta" id="pdfs-meta"></span>
+        <span class="fact"><button class="btn quiet small" id="pdfs-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
 
-  <div id="pdfs-panel" hidden class="tool">
-    <ul class="file-list"><li><span class="fname" id="pdfs-name"></span><span class="fmeta" id="pdfs-meta"></span></li></ul>
-    <fieldset class="field">
-      <legend class="eyebrow">Split into</legend>
-      <div class="seg">
-        <input type="radio" name="pdfs-mode" id="pdfs-each" value="each" checked><label for="pdfs-each">Every page<small>one file per page</small></label>
-        <input type="radio" name="pdfs-mode" id="pdfs-ranges" value="ranges"><label for="pdfs-ranges">Custom ranges<small>e.g. 1-3, 5, 8-</small></label>
-      </div>
+  <Step n={2} title="How should we split it?" state="later">
+    <fieldset class="choices cols">
+      <legend class="sr-only">Split into</legend>
+      <div class="choice"><input type="radio" name="pdfs-mode" id="pdfs-each" value="each" checked><label for="pdfs-each"><b>Every page on its own</b><small>One file per page</small></label></div>
+      <div class="choice"><input type="radio" name="pdfs-mode" id="pdfs-ranges" value="ranges"><label for="pdfs-ranges"><b>Pick the pages</b><small>Type pages or ranges below</small></label></div>
     </fieldset>
-    <label class="field" id="pdfs-range-field" hidden><span>Pages</span><input type="text" id="pdfs-range" placeholder="1-3, 5, 8-" autocomplete="off"></label>
-    <div class="actions"><button class="btn" id="pdfs-go" type="button">Split PDF</button></div>
-  </div>
-  <div id="pdfs-result" aria-live="polite"></div>
+    <label class="field" id="pdfs-range-field" hidden>
+      <span>Pages to take out</span>
+      <input type="text" id="pdfs-range" placeholder="1-3, 5, 8-" autocomplete="off">
+      <small>Use a dash for a range and commas between pages, like 1-3, 7.</small>
+    </label>
+    <button class="btn run" id="pdfs-go" type="button" disabled><Icon name="scissors" /><span>Split PDF</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="pdfs-result" aria-live="polite"><p class="res-wait">Your new files will appear here.</p></div>
+    <ul class="file-list" id="pdfs-files"></ul>
+  </Step>
 </section>
 
 <script>
   import { parseRanges, everyPage, splitPdf } from "./core.js";
   import { pageCount } from "../merge/core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
   const $ = (id: string) => document.getElementById(id)!;
-  const rangeField = $("pdfs-range-field"), result = $("pdfs-result");
+  const root = $("pdfs-tool"), rangeField = $("pdfs-range-field"), result = $("pdfs-result"), files = $("pdfs-files");
+  const go = $("pdfs-go") as HTMLButtonElement, picked = $("pdfs-picked");
+  const WAIT = "Your new files will appear here.";
 
   document.querySelectorAll<HTMLInputElement>('input[name="pdfs-mode"]').forEach((r) =>
     r.addEventListener("change", () => { rangeField.hidden = r.value !== "ranges" || !r.checked; if (!rangeField.hidden) ($("pdfs-range") as HTMLInputElement).focus(); }));
 
-  wireDrop("pdfs", async (files) => {
-    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+  $("pdfs-change").addEventListener("click", () => $("pdfs-file").click());
+
+  wireDrop("pdfs", async (picks) => {
+    const f = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
     if (!f) return;
-    result.replaceChildren();
+    showWait(result, WAIT);
+    files.replaceChildren();
     try {
       bytes = await f.arrayBuffer();
       total = await pageCount(bytes.slice(0));
       file = f;
       $("pdfs-name").textContent = f.name;
       $("pdfs-meta").textContent = `${total} ${total === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
-      $("pdfs-panel").hidden = false;
+      picked.hidden = false;
+      compactDrop("pdfs", true);
+      go.disabled = false;
+      stepTo(root, 2);
     } catch (e) { showError(result, (e as Error).message); }
   });
 
-  $("pdfs-go").addEventListener("click", async () => {
+  go.addEventListener("click", async () => {
     if (!bytes || !file) return;
     const mode = (document.querySelector('input[name="pdfs-mode"]:checked') as HTMLInputElement).value;
+    go.disabled = true;
+    files.replaceChildren();
+    stepTo(root, 3);
+    showBusy(result);
     try {
       const ranges = mode === "each" ? everyPage(total) : parseRanges(($("pdfs-range") as HTMLInputElement).value, total);
       const parts = await splitPdf(bytes.slice(0), ranges);
-      const ul = document.createElement("ul"); ul.className = "file-list";
+      const rows: HTMLElement[] = [];
       for (const p of parts) {
         const label = p.range[0] === p.range[1] ? `page ${p.range[0]}` : `pages ${p.range[0]}-${p.range[1]}`;
         const fname = `${baseName(file.name)}_${label.replace(/\s/g, "-")}.pdf`;
@@ -60,9 +89,20 @@ import DropZone from "../../../src/components/DropZone.astro";
         const n = document.createElement("span"); n.className = "fname"; n.textContent = fname;
         const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${label} · ${fmtBytes(p.bytes.byteLength)}`;
         const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(p.bytes, fname, "application/pdf"));
-        li.append(n, m, a); ul.append(li);
+        li.append(n, m, a); rows.push(li);
       }
-      result.replaceChildren(ul);
+      showDone(result, `Done. ${parts.length} new ${parts.length === 1 ? "PDF" : "PDFs"}.`);
+      files.replaceChildren(...rows);
+      stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
+    go.disabled = false;
+  });
+
+  // Changing anything in step 2 makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    if (!result.querySelector(".res-done, .res-bad")) return;
+    files.replaceChildren();
+    showWait(result, WAIT);
+    stepTo(root, 2);
   });
 </script>

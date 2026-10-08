@@ -1,24 +1,31 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+// Case converter: type text, pick a style, copy the result.
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 const cases = [
   ["sentence", "Sentence case"], ["lower", "lower case"], ["upper", "UPPER CASE"], ["title", "Title Case"],
   ["camel", "camelCase"], ["pascal", "PascalCase"], ["snake", "snake_case"], ["kebab", "kebab-case"], ["constant", "CONSTANT_CASE"],
 ];
 ---
 <section class="tool" aria-label="Case converter">
-  <ToolShot toolId="text/case-converter" category="text" name="Case Converter" />
-  <label class="field"><span>Your text</span><textarea id="cc-in" class="prose" rows="6">the quick brown fox jumps over the lazy dog</textarea></label>
-  <fieldset class="field">
-    <legend class="eyebrow">Change to</legend>
-    <div class="seg">
-      {cases.map(([v, label], i) => (<><input type="radio" name="cc-case" id={`cc-${v}`} value={v} checked={i === 3} /><label for={`cc-${v}`}>{label}</label></>))}
+  <Step n={1} title="Type or paste your text">
+    <label class="field"><span>Your text</span><textarea id="cc-in" class="prose" rows="6">the quick brown fox jumps over the lazy dog</textarea></label>
+  </Step>
+  <Step n={2} title="Pick a style">
+    <fieldset class="field">
+      <legend class="sr-only">Change to</legend>
+      <div class="seg">
+        {cases.map(([v, label], i) => (<><input type="radio" name="cc-case" id={`cc-${v}`} value={v} checked={i === 3} /><label for={`cc-${v}`}>{label}</label></>))}
+      </div>
+    </fieldset>
+  </Step>
+  <Step n={3} title="Copy the result">
+    <div class="out">
+      <span class="hint">Result</span>
+      <output class="out-box" id="cc-out" for="cc-in"></output>
     </div>
-  </fieldset>
-  <div class="out">
-    <span class="eyebrow">Result</span>
-    <output class="out-box" id="cc-out" for="cc-in"></output>
-    <div class="actions"><button class="btn line" id="cc-copy" type="button">Copy result</button></div>
-  </div>
+    <div class="actions"><button class="btn run" id="cc-copy" type="button"><Icon name="copy" /><span id="cc-copy-label">Copy</span></button></div>
+  </Step>
 </section>
 
 <script>
@@ -26,6 +33,7 @@ const cases = [
   const input = document.getElementById("cc-in") as HTMLTextAreaElement;
   const out = document.getElementById("cc-out")!;
   const copy = document.getElementById("cc-copy") as HTMLButtonElement;
+  const copyLabel = document.getElementById("cc-copy-label")!;
   const update = () => {
     const kind = (document.querySelector('input[name="cc-case"]:checked') as HTMLInputElement).value;
     out.textContent = convert(input.value, kind as never);
@@ -33,8 +41,8 @@ const cases = [
   input.addEventListener("input", update);
   document.querySelectorAll('input[name="cc-case"]').forEach((r) => r.addEventListener("change", update));
   copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
-    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select the text to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy"), 1600);
   });
   update();
 </script>

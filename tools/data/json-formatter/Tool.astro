@@ -1,25 +1,31 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 const sample = JSON.stringify({ name: "Free the Tools", tools: ["Compress PDF", "Merge PDFs"], uploads: 0, open: true });
 ---
-<section class="tool" aria-label="JSON formatter">
-  <ToolShot toolId="data/json-formatter" category="data" name="JSON Formatter" />
-  <label class="field"><span>JSON</span><textarea id="jf-in" rows="9" spellcheck="false">{sample}</textarea></label>
-  <fieldset class="field">
-    <legend class="eyebrow">Layout</legend>
-    <div class="seg">
-      <input type="radio" name="jf-indent" id="jf-2" value="2" checked><label for="jf-2">2 spaces</label>
-      <input type="radio" name="jf-indent" id="jf-4" value="4"><label for="jf-4">4 spaces</label>
-      <input type="radio" name="jf-indent" id="jf-tab" value="tab"><label for="jf-tab">Tabs</label>
-      <input type="radio" name="jf-indent" id="jf-min" value="0"><label for="jf-min">Minify</label>
+<section class="tool" id="jf-tool" aria-label="JSON formatter">
+  <Step n={1} title="Paste your JSON">
+    <label class="field"><span>JSON</span><textarea id="jf-in" rows="9" spellcheck="false">{sample}</textarea></label>
+  </Step>
+  <Step n={2} title="Tidy or shrink?">
+    <fieldset class="field">
+      <legend class="sr-only">Layout</legend>
+      <div class="seg">
+        <input type="radio" name="jf-indent" id="jf-2" value="2" checked><label for="jf-2">2 spaces</label>
+        <input type="radio" name="jf-indent" id="jf-4" value="4"><label for="jf-4">4 spaces</label>
+        <input type="radio" name="jf-indent" id="jf-tab" value="tab"><label for="jf-tab">Tabs</label>
+        <input type="radio" name="jf-indent" id="jf-min" value="0"><label for="jf-min">Minify</label>
+      </div>
+    </fieldset>
+    <label class="check"><input type="checkbox" id="jf-sort"> Sort keys A to Z</label>
+  </Step>
+  <Step n={3} title="Copy the result">
+    <div class="out">
+      <span class="hint" id="jf-status"></span>
+      <pre class="out-box" id="jf-out" aria-live="polite"></pre>
     </div>
-  </fieldset>
-  <label class="check"><input type="checkbox" id="jf-sort"> Sort keys A to Z</label>
-  <div class="out">
-    <span class="eyebrow" id="jf-status"></span>
-    <pre class="out-box" id="jf-out" aria-live="polite"></pre>
-    <div class="actions"><button class="btn line" id="jf-copy" type="button">Copy result</button></div>
-  </div>
+    <div class="actions"><button class="btn run" id="jf-copy" type="button"><Icon name="copy" /><span id="jf-copy-label">Copy</span></button></div>
+  </Step>
 </section>
 
 <script>
@@ -34,15 +40,10 @@ const sample = JSON.stringify({ name: "Free the Tools", tools: ["Compress PDF", 
   }
   input.addEventListener("input", update);
   document.querySelectorAll('input[name="jf-indent"], #jf-sort').forEach((el) => el.addEventListener("change", update));
-  const copy = $("jf-copy") as HTMLButtonElement;
+  const copy = $("jf-copy") as HTMLButtonElement, copyLabel = $("jf-copy-label");
   copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
-    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select the text to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy"), 1600);
   });
   update();
 </script>
-
-<style>
-  pre.out-box { margin: 0; max-height: 420px; overflow: auto; }
-  pre.out-box.bad { color: var(--bad); }
-</style>

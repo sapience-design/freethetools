@@ -1,22 +1,27 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
 // A harmless example token, signed at build time with HS256 and the secret "free-the-tools".
 import { createHmac } from "node:crypto";
 const enc = (o: object) => Buffer.from(JSON.stringify(o)).toString("base64url");
 const unsigned = `${enc({ alg: "HS256", typ: "JWT" })}.${enc({ sub: "user-42", name: "Ada", iat: 1759000000, exp: 4914673600 })}`;
 const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsigned).digest("base64url")}`;
 ---
-<section class="tool" aria-label="JWT decoder">
-  <ToolShot toolId="developer/jwt-decoder" category="developer" name="JWT Decoder" />
-  <label class="field"><span>Token</span><textarea id="jwt-in" rows="4" spellcheck="false">{sample}</textarea></label>
-  <p class="tool-error" id="jwt-err" hidden></p>
-  <div class="jwt-grid">
-    <div class="out"><span class="eyebrow">Header</span><pre class="out-box" id="jwt-head"></pre></div>
-    <div class="out"><span class="eyebrow">Payload</span><pre class="out-box" id="jwt-body"></pre></div>
-  </div>
-  <ul class="file-list" id="jwt-claims"></ul>
-  <label class="field"><span>Secret, to verify an HS256/384/512 signature (optional)</span><input type="text" id="jwt-secret" autocomplete="off" spellcheck="false"></label>
-  <p id="jwt-verdict" aria-live="polite"></p>
+<section class="tool" id="jwt-tool" aria-label="JWT decoder">
+  <Step n={1} title="Paste your token">
+    <label class="field"><span>Token</span><textarea id="jwt-in" rows="4" spellcheck="false">{sample}</textarea></label>
+    <p class="tool-error" id="jwt-err" hidden></p>
+  </Step>
+  <Step n={2} title="What it says">
+    <div class="jwt-grid">
+      <div class="out"><span class="hint">Header</span><pre class="out-box" id="jwt-head"></pre></div>
+      <div class="out"><span class="hint">Payload</span><pre class="out-box" id="jwt-body"></pre></div>
+    </div>
+    <ul class="kv" id="jwt-claims"></ul>
+  </Step>
+  <Step n={3} title="Check the signature">
+    <label class="field"><span>Secret, to verify an HS256/384/512 signature (optional)</span><input type="text" id="jwt-secret" autocomplete="off" spellcheck="false"></label>
+    <p id="jwt-verdict" aria-live="polite"></p>
+  </Step>
 </section>
 
 <script>
@@ -32,15 +37,15 @@ const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsi
       $("jwt-body").textContent = JSON.stringify(payload, null, 2);
       $("jwt-claims").replaceChildren(...describeClaims(payload).map((c) => {
         const li = document.createElement("li");
-        const n = document.createElement("span"); n.className = "fname"; n.textContent = c.label;
-        const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${c.claim}: ${c.value}`;
+        const n = document.createElement("span"); n.className = "k"; n.textContent = c.label;
+        const m = document.createElement("span"); m.className = "v"; m.textContent = `${c.claim}: ${c.value}`;
         li.append(n, m); return li;
       }));
       const v = $("jwt-verdict");
       if (!secret.value) { v.textContent = ""; v.className = ""; return; }
       const ok = await verifyHmac(input.value, secret.value);
       v.textContent = ok === null ? `Can't verify ${header.alg} with a secret; it needs the issuer's public key.` : ok ? "Signature is valid for this secret." : "Signature does not match this secret.";
-      v.className = ok ? "hg-ok" : "tool-error";
+      v.className = ok ? "ok-text" : "tool-error";
     } catch (e) {
       err.textContent = (e as Error).message; err.hidden = false;
       $("jwt-head").textContent = ""; $("jwt-body").textContent = ""; $("jwt-claims").replaceChildren();
@@ -52,7 +57,5 @@ const sample = `${unsigned}.${createHmac("sha256", "free-the-tools").update(unsi
 </script>
 
 <style>
-  .jwt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s2); }
-  pre.out-box { margin: 0; overflow: auto; }
-  :global(.hg-ok) { color: var(--ok); font-weight: 500; }
+  .jwt-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
 </style>

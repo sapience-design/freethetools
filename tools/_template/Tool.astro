@@ -1,28 +1,33 @@
 ---
-// The working area of the tool. The page around it (name, specs, FAQ, credits) is built
-// from tool.json, so this file only needs the interface. Style with the tokens in src/styles/global.css.
-// Prefix every id with the tool slug: the sidebar shares the page, and the build fails on duplicate ids.
+// The working area of the tool. The page around it (task heading, privacy note, questions, specs,
+// credits) is built from tool.json, so this file only needs the interface: numbered steps from
+// src/components/Step.astro, styled by the shared classes in src/styles/global.css.
+// File tools: see tools/pdf/merge/Tool.astro (choose → options → run → save).
+// Prefix every id with the tool slug; the build fails on duplicate ids.
+// No style="" attributes: the page's security policy blocks them. Use a <style> block.
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
 <section class="tool" aria-label="__NAME__">
-  <label class="eyebrow" for="__ID__-in">Input</label>
-  <textarea id="__ID__-in" rows="8" placeholder="Type or paste here">Free the tools</textarea>
-  <p class="eyebrow">Result</p>
-  <output id="__ID__-out" for="__ID__-in"></output>
+  <Step n={1} title="Type or paste your text">
+    <label class="field"><span class="sr-only">Your text</span><textarea id="__ID__-in" rows="6" placeholder="Type or paste here">Free the tools</textarea></label>
+  </Step>
+  <Step n={2} title="Copy the result">
+    <output class="out-box" id="__ID__-out" for="__ID__-in"></output>
+    <button class="btn run" id="__ID__-copy" type="button"><Icon name="copy" /><span id="__ID__-copy-label">Copy</span></button>
+  </Step>
 </section>
-
-<style>
-  .tool { display: grid; gap: 10px; }
-  .caps { color: var(--muted); }
-  textarea { width: 100%; font: inherit; padding: 14px; border: 0; background: var(--studio); color: var(--ink); resize: vertical; }
-  textarea:focus { outline: 2px solid var(--accent); }
-  output { display: block; min-height: 3em; padding: 14px; border: 1px solid var(--line); white-space: pre-wrap; }
-</style>
 
 <script>
   import { run } from "./core.js";
   const input = document.getElementById("__ID__-in") as HTMLTextAreaElement;
   const output = document.getElementById("__ID__-out")!;
+  const label = document.getElementById("__ID__-copy-label")!;
   const update = () => (output.textContent = run(input.value));
   input.addEventListener("input", update);
+  document.getElementById("__ID__-copy")!.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(output.textContent ?? ""); label.textContent = "Copied"; } catch { label.textContent = "Select the text to copy"; }
+    setTimeout(() => (label.textContent = "Copy"), 1600);
+  });
   update(); // show a working example on first load
 </script>

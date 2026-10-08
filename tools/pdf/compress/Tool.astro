@@ -1,99 +1,89 @@
 ---
 // Compress PDF: the working area. The page around it (name, specs, FAQ, credits) comes from tool.json.
-import { artFor } from "../../../src/data/art";
-const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
+// Choose PDFs, pick a quality, press the button; each PDF is compressed by Ghostscript in a worker.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="shrink" aria-label="Compress PDFs">
-  <div class="drop" id="pdfc-drop" tabindex="0" role="button">
-    <span class="shot" aria-hidden="true" set:html={shot} />
-    <span class="label"><strong>Drop PDFs here</strong><span>or click to choose · several at once is fine</span></span>
-    <input type="file" id="pdfc-file" accept="application/pdf,.pdf" multiple hidden>
-  </div>
+<section class="tool" id="pdfc-tool" aria-label="Compress PDFs">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="pdfc" toolId="pdf/compress" category="pdf" name="Compress PDF" accept="application/pdf,.pdf" multiple title="Drop your PDF here" hint="Several at once is fine" button="Choose PDF" />
+    <ul class="file-list" id="pdfc-picked" hidden></ul>
+  </Step>
 
-  <fieldset>
-    <legend class="eyebrow">Quality</legend>
-    <div class="presets">
-      <div class="preset"><input type="radio" name="preset" id="pdfc-p-screen" value="screen"><label for="pdfc-p-screen"><b>Smallest</b><small>72 dpi</small></label></div>
-      <div class="preset"><input type="radio" name="preset" id="pdfc-p-ebook" value="ebook" checked><label for="pdfc-p-ebook"><b>Balanced</b><small>150 dpi</small></label></div>
-      <div class="preset"><input type="radio" name="preset" id="pdfc-p-printer" value="printer"><label for="pdfc-p-printer"><b>Print</b><small>300 dpi</small></label></div>
-      <div class="preset"><input type="radio" name="preset" id="pdfc-p-prepress" value="prepress"><label for="pdfc-p-prepress"><b>Prepress</b><small>colour kept</small></label></div>
-    </div>
+  <Step n={2} title="Pick how small" state="later">
+    <fieldset class="choices">
+      <legend class="sr-only">Quality</legend>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-screen" value="screen"><label for="pdfc-p-screen"><b>Smallest</b><small>Good for reading on screen · 72 dpi</small></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-ebook" value="ebook" checked><label for="pdfc-p-ebook"><b>Good quality</b><small>Right for email and forms · 150 dpi</small><span class="badge rec">Recommended</span></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-printer" value="printer"><label for="pdfc-p-printer"><b>For printing</b><small>Sharp text and pictures · 300 dpi</small></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-prepress" value="prepress"><label for="pdfc-p-prepress"><b>For a print shop</b><small>Keeps colour profiles for professional printing</small></label></div>
+    </fieldset>
     <label class="check"><input type="checkbox" id="pdfc-first"> <span>Keep only the first page</span></label>
-  </fieldset>
+    <button class="btn run" id="pdfc-go" type="button" disabled><Icon name="arrows-in" /><span id="pdfc-go-label">Make it smaller</span></button>
+  </Step>
 
-  <div class="results" id="pdfc-results" aria-live="polite">
-    <div class="row example" id="pdfc-example">
-      <div class="name">schematic.pdf <span class="tag">Example</span></div>
-      <div class="meta mono">1.92 MB → 828 KB · <span class="saved">57% smaller</span></div>
-      <div class="act mono muted">your files appear here</div>
-    </div>
-  </div>
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="pdfc-status" aria-live="polite"><p class="res-wait">Your smaller PDF will appear here.</p></div>
+    <ul class="file-list" id="pdfc-results"></ul>
+    <button class="btn quiet" id="pdfc-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
 </section>
 
-<style>
-  .shrink { display: grid; gap: 28px; }
-  .drop {
-    position: relative; display: grid; place-items: center; align-content: end; gap: 4px; text-align: center; aspect-ratio: 4 / 3;
-    padding-bottom: 28px; border-radius: 6px; overflow: hidden; cursor: pointer; isolation: isolate;
-  }
-  .drop .shot { position: absolute; inset: 0; z-index: -1; }
-  .drop .shot :global(svg) { width: 100%; height: 100%; display: block; }
-  .drop .shot :global(.obj) { transition: transform .6s cubic-bezier(.2,.7,.2,1); }
-  .drop:hover .shot :global(.obj), .drop.over .shot :global(.obj) { transform: translateY(-8px); }
-  .drop::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
-  .drop.over::after { box-shadow: inset 0 0 0 2px var(--ink); }
-  .label { display: grid; gap: 2px; padding: 10px 18px 11px; border-radius: 14px; background: rgba(255,255,255,.78); backdrop-filter: blur(10px); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-  .drop strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
-  .drop span:not(.plus) { color: var(--muted); font-size: var(--t-sm); line-height: var(--lh-sm); }
-  fieldset { border: 0; margin: 0; padding: 0; display: grid; gap: 14px; }
-  legend { padding: 0; margin-bottom: 10px; color: var(--muted); }
-  .presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; background: var(--studio); border-radius: 12px; }
-  .preset input { position: absolute; opacity: 0; pointer-events: none; }
-  .preset label { display: grid; gap: 2px; padding: 10px 14px; cursor: pointer; height: 100%; border-radius: 9px; transition: background .15s; }
-  .preset label:hover { background: var(--studio-2); }
-  .preset label b { font-weight: 500; font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
-  .preset label small { color: var(--muted); font-size: var(--t-xs); line-height: var(--lh-xs); font-family: var(--sans); }
-  .preset input:checked + label { background: var(--paper); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.08), 0 0 0 1px var(--line); }
-  .preset input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: -2px; }
-  @media (max-width: 560px) { .presets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  .check { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: var(--t-base); line-height: var(--lh-base); }
-  .check input { width: 17px; height: 17px; accent-color: var(--ink); }
-  .results { display: grid; border-top: 1px solid var(--line); }
-  .results :global(.row) { display: grid; grid-template-columns: 1fr auto; gap: 2px 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .results :global(.name) { font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; overflow-wrap: anywhere; }
-  .results :global(.meta) { grid-column: 1; color: var(--muted); font-size: var(--t-sm); line-height: var(--lh-sm); }
-  .results :global(.act) { grid-row: 1 / span 2; grid-column: 2; font-size: var(--t-sm); }
-  .results :global(.example) .tag { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
-  .tag { font-size: var(--t-xs); color: var(--muted); margin-left: 8px; font-weight: 400; }
-  .results :global(.saved) { color: var(--ok); }
-  .results :global(.err) { color: var(--bad); }
-  .results :global(.spin) { display: inline-block; width: 11px; height: 11px; border: 1.5px solid var(--line); border-top-color: var(--ink); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -1px; margin-right: 4px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-</style>
-
 <script>
-  import { reportFailure } from "../../../src/lib/files";
+  import { reportFailure, fmtBytes, compactDrop, compareBars, iconButton, showBusy, showDone, showProblem, showWait, wireDrop } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
   import { buildArgs } from "./core.js";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
-  const drop = $("#pdfc-drop"), input = $<HTMLInputElement>("#pdfc-file"), results = $("#pdfc-results");
+  const root = $("#pdfc-tool"), picked = $("#pdfc-picked"), results = $("#pdfc-results"), status = $("#pdfc-status");
+  const go = $<HTMLButtonElement>("#pdfc-go"), goLabel = $("#pdfc-go-label"), again = $("#pdfc-again");
   const worker = new Worker(new URL("./worker.js", import.meta.url));
   type Job = { row: HTMLElement; file: File; preset: string; firstPage: boolean };
   const jobs = new Map<number, Job>();
+  let pending: File[] = [];
   let nextId = 1;
+  let batch = { total: 0, done: 0, failed: 0, before: 0, after: 0 };
+  const running = () => batch.done + batch.failed < batch.total;
 
-  const fmt = (n: number) => (n >= 1048576 ? (n / 1048576).toFixed(2) + " MB" : Math.max(1, Math.round(n / 1024)) + " KB");
-  const labels: Record<string, string> = { screen: "smallest", ebook: "balanced", printer: "print", prepress: "prepress" };
-  const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".meta") as HTMLElement).innerHTML = html);
+  const labels: Record<string, string> = { screen: "smallest", ebook: "good quality", printer: "for printing", prepress: "for a print shop" };
+  const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".fmeta") as HTMLElement).innerHTML = html);
 
   const LOAD_ERROR = '<span class="err">The compressor could not load. Reload the page and try again.</span>';
-  let broken = false; // the worker failed to start; files dropped later must not wait forever
+  let broken = false; // the worker failed to start; files added later must not wait forever
   worker.onerror = () => {
     broken = true;
     reportFailure();
     for (const { row } of jobs.values()) setMeta(row, LOAD_ERROR);
+    batch.failed += jobs.size;
     jobs.clear();
+    finish();
   };
 
+  // ---- Step 1: the files waiting to be compressed ----
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
+      const act = document.createElement("span"); act.className = "fact";
+      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
+      li.append(n, m, act);
+      return li;
+    }));
+    compactDrop("pdfc", pending.length > 0 || results.children.length > 0);
+    go.disabled = !pending.length || running();
+    goLabel.textContent = pending.length > 1 ? `Make ${pending.length} PDFs smaller` : "Make it smaller";
+    if (pending.length) stepTo(root, 2);
+    else if (!batch.total) stepTo(root, 1);
+  }
+
+  wireDrop("pdfc", (files) => {
+    pending.push(...files.filter((f) => /\.pdf$/i.test(f.name) || f.type === "application/pdf"));
+    renderPicked();
+  });
+
+  // ---- Step 2 → 3: compress ----
   worker.onmessage = ({ data }) => {
     const job = jobs.get(data.id);
     if (!job) return;
@@ -105,44 +95,73 @@ const shot = artFor("pdf/compress", "pdf", "pdfcdrop");
       const err = document.createElement("span");
       err.className = "err";
       err.textContent = `Could not compress: ${data.error}. The PDF may be password-protected or damaged.`;
-      row.querySelector(".meta")!.append(err);
+      row.querySelector(".fmeta")!.append(err);
+      batch.failed++;
+      finish();
       return;
     }
     const size = data.out.byteLength;
     const pct = Math.round(100 * (1 - size / file.size));
     const note = pct > 0 ? `<span class="saved">${pct}% smaller</span>` : `<span>already compact, ${-pct}% larger</span>`;
-    setMeta(row, `${fmt(file.size)} → ${fmt(size)} · ${note} · ${labels[preset]}${firstPage ? " · page 1 only" : ""}`);
+    setMeta(row, `${fmtBytes(file.size)} → ${fmtBytes(size)} · ${note} · ${labels[preset]}${firstPage ? " · page 1 only" : ""}`);
     const a = document.createElement("a");
     a.className = "btn";
     a.textContent = "Download";
     a.href = URL.createObjectURL(new Blob([data.out], { type: "application/pdf" }));
     a.download = `${file.name.replace(/\.pdf$/i, "")}${firstPage ? "_p1" : ""}_small.pdf`;
-    row.querySelector(".act")!.replaceChildren(a);
+    row.querySelector(".fact")!.replaceChildren(a);
+    batch.done++;
+    batch.before += file.size;
+    batch.after += size;
+    finish();
   };
 
-  async function handle(files: File[]) {
-    document.getElementById("pdfc-example")?.remove();
+  function finish() {
+    if (!batch.total || running()) return;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!batch.done) { showProblem(status, batch.total > 1 ? "None of these PDFs could be compressed. Each row says why." : "This PDF could not be compressed. The row below says why.", "That didn't work"); return; }
+    stepTo(root, 4);
+    const pct = Math.round(100 * (1 - batch.after / batch.before));
+    const title = pct > 0
+      ? (batch.done > 1 ? `Done. ${batch.done} PDFs, ${pct}% smaller in total.` : `Done. It's ${pct}% smaller.`)
+      : "Done, but it didn't get smaller. Keep your original.";
+    showDone(status, title, compareBars(batch.before, batch.after));
+  }
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running()) return;
+    const files = pending;
+    pending = [];
+    renderPicked();
     const preset = (document.querySelector('input[name="preset"]:checked') as HTMLInputElement).value;
     const firstPage = $<HTMLInputElement>("#pdfc-first").checked;
+    batch = { total: files.length, done: 0, failed: 0, before: 0, after: 0 };
+    again.hidden = true;
+    results.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("pdfc", true);
+    showBusy(status, files.length > 1 ? `Compressing ${files.length} PDFs. Please keep this page open.` : undefined);
     for (const file of files) {
-      if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") continue;
-      const row = document.createElement("div");
-      row.className = "row";
-      row.innerHTML = `<div class="name"></div><div class="meta mono"><span class="spin"></span>compressing ${fmt(file.size)}…</div><div class="act"></div>`;
-      row.querySelector(".name")!.textContent = file.name;
-      results.prepend(row);
-      if (broken) { setMeta(row, LOAD_ERROR); continue; }
+      const row = document.createElement("li");
+      row.innerHTML = `<span class="fname"></span><span class="fmeta"><span class="spin"></span>compressing ${fmtBytes(file.size)}…</span><span class="fact"></span>`;
+      row.querySelector(".fname")!.textContent = file.name;
+      results.append(row);
+      if (broken) { setMeta(row, LOAD_ERROR); batch.failed++; finish(); continue; }
       const id = nextId++;
       jobs.set(id, { row, file, preset, firstPage });
       const bytes = await file.arrayBuffer();
       worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage }) }, [bytes]);
     }
-  }
+  });
 
-  drop.addEventListener("click", () => input.click());
-  drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); } });
-  input.addEventListener("change", () => { handle([...(input.files ?? [])]); input.value = ""; });
-  for (const t of ["dragenter", "dragover"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); });
-  for (const t of ["dragleave", "drop"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); });
-  drop.addEventListener("drop", (e) => handle([...((e as DragEvent).dataTransfer?.files ?? [])]));
+  again.addEventListener("click", () => {
+    results.replaceChildren();
+    batch = { total: 0, done: 0, failed: 0, before: 0, after: 0 };
+    again.hidden = true;
+    showWait(status, "Your smaller PDF will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("pdfc-drop")?.focus();
+  });
 </script>

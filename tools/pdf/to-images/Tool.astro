@@ -1,28 +1,46 @@
 ---
+// PDF to images: pick a picture type, a sharpness and the pages; each page becomes a picture.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 import { RESOLUTIONS } from "./core.js";
 ---
-<section class="tool" aria-label="PDF to images">
-  <DropZone prefix="p2i" toolId="pdf/to-images" category="pdf" name="PDF to Images" accept="application/pdf,.pdf" title="Drop a PDF here" hint="or click to choose" />
-  <div id="p2i-panel" hidden class="tool">
-    <ul class="file-list"><li><span class="fname" id="p2i-name"></span><span class="fmeta" id="p2i-meta"></span></li></ul>
-    <fieldset class="field">
-      <legend class="eyebrow">Format</legend>
-      <div class="seg">
-        <input type="radio" name="p2i-fmt" id="p2i-png" value="png" checked><label for="p2i-png">PNG<small>sharp, for text</small></label>
-        <input type="radio" name="p2i-fmt" id="p2i-jpg" value="jpg"><label for="p2i-jpg">JPG<small>small, for photos</small></label>
-      </div>
+<section class="tool" id="p2i-tool" aria-label="PDF to images">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="p2i" toolId="pdf/to-images" category="pdf" name="PDF to Images" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
+    <ul class="file-list" id="p2i-picked" hidden>
+      <li>
+        <span class="fname" id="p2i-name"></span>
+        <span class="fmeta" id="p2i-meta"></span>
+        <span class="fact"><button class="btn quiet small" id="p2i-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
+
+  <Step n={2} title="Pick a picture type" state="later">
+    <fieldset class="choices cols">
+      <legend class="sr-only">Picture type</legend>
+      <div class="choice"><input type="radio" name="p2i-fmt" id="p2i-png" value="png" checked><label for="p2i-png"><b>PNG</b><small>Sharp, good for text</small><span class="badge rec">Recommended</span></label></div>
+      <div class="choice"><input type="radio" name="p2i-fmt" id="p2i-jpg" value="jpg"><label for="p2i-jpg"><b>JPG</b><small>Smaller files, good for photos</small></label></div>
     </fieldset>
     <fieldset class="field">
-      <legend class="eyebrow">Resolution</legend>
+      <legend>Sharpness</legend>
       <div class="seg">
         {RESOLUTIONS.map((r, i) => (<><input type="radio" name="p2i-dpi" id={`p2i-${r.dpi}`} value={r.dpi} checked={i === 1} /><label for={`p2i-${r.dpi}`}>{r.label}<small>{r.dpi} dpi</small></label></>))}
       </div>
     </fieldset>
-    <label class="field"><span>Pages (leave empty for all)</span><input type="text" id="p2i-range" placeholder="e.g. 1-3, 5" autocomplete="off"></label>
-    <div class="actions"><button class="btn" id="p2i-go" type="button">Convert pages</button></div>
-  </div>
-  <div id="p2i-result" aria-live="polite"></div>
+    <label class="field">
+      <span>Pages (leave empty for all)</span>
+      <input type="text" id="p2i-range" placeholder="e.g. 1-3, 5" autocomplete="off">
+      <small>Use a dash for a range and commas between pages, like 1-3, 5.</small>
+    </label>
+    <button class="btn run" id="p2i-go" type="button" disabled><Icon name="images" /><span>Save as pictures</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="p2i-result" aria-live="polite"><p class="res-wait">Your pictures will appear here.</p></div>
+    <ul class="file-list" id="p2i-files"></ul>
+  </Step>
 </section>
 
 <script>
@@ -30,39 +48,54 @@ import { RESOLUTIONS } from "./core.js";
   import { safeScale, pageFileName } from "./core.js";
   import { parseRanges, everyPage } from "../split/core.js";
   import { pagesFromRanges } from "../rotate/core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
 
   // The worker is served from this site (see "vendor" in tool.json), never from a CDN.
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf/to-images/vendor/pdf.worker.min.mjs";
   const $ = (id: string) => document.getElementById(id)!;
+  const root = $("p2i-tool"), result = $("p2i-result"), files = $("p2i-files"), go = $("p2i-go") as HTMLButtonElement;
+  const WAIT = "Your pictures will appear here.";
   let doc: pdfjs.PDFDocumentProxy | null = null, file: File | null = null;
 
-  wireDrop("p2i", async (files) => {
-    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+  $("p2i-change").addEventListener("click", () => $("p2i-file").click());
+
+  wireDrop("p2i", async (picks) => {
+    const f = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
     if (!f) return;
-    $("p2i-result").replaceChildren();
+    showWait(result, WAIT);
+    files.replaceChildren();
     try {
       doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false, useSystemFonts: true }).promise;
       file = f;
       $("p2i-name").textContent = f.name;
       $("p2i-meta").textContent = `${doc.numPages} ${doc.numPages === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
-      $("p2i-panel").hidden = false;
+      $("p2i-picked").hidden = false;
+      compactDrop("p2i", true);
+      go.disabled = false;
+      stepTo(root, 2);
     } catch (e) {
       const msg = /password/i.test(String((e as Error).message)) ? "This PDF is password-protected. Remove the password in your PDF reader first." : "This file isn't a readable PDF.";
-      showError($("p2i-result"), msg);
+      showError(result, msg);
     }
   });
 
-  $("p2i-go").addEventListener("click", async () => {
+  go.addEventListener("click", async () => {
     if (!doc || !file) return;
     const ext = (document.querySelector('input[name="p2i-fmt"]:checked') as HTMLInputElement).value;
     const dpi = +(document.querySelector('input[name="p2i-dpi"]:checked') as HTMLInputElement).value;
     const rangeText = ($("p2i-range") as HTMLInputElement).value.trim();
-    const ul = document.createElement("ul"); ul.className = "file-list";
-    $("p2i-result").replaceChildren(ul);
+    go.disabled = true;
+    files.replaceChildren();
+    stepTo(root, 3);
+    showBusy(result);
+    let made = 0;
     try {
       const pages = pagesFromRanges(rangeText ? parseRanges(rangeText, doc.numPages) : everyPage(doc.numPages));
+      // Each picture appears as soon as it's made, so a long PDF shows progress and a late error keeps the rest.
+      const progress = result.querySelector<HTMLElement>(".res-busy > span:last-child");
       for (const n of pages) {
+        if (progress) progress.textContent = `Page ${made + 1} of ${pages.length}. Please keep this page open.`;
         const page = await doc.getPage(n);
         const base = page.getViewport({ scale: 1 });
         const viewport = page.getViewport({ scale: safeScale(base.width, base.height, dpi) });
@@ -78,8 +111,19 @@ import { RESOLUTIONS } from "./core.js";
         const nm = document.createElement("span"); nm.className = "fname"; nm.textContent = name;
         const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `Page ${n} · ${canvas.width}×${canvas.height} · ${fmtBytes(blob.size)}`;
         const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(blob, name, type));
-        li.append(nm, m, a); ul.append(li);
+        li.append(nm, m, a); files.append(li); made++;
       }
-    } catch (e) { showError($("p2i-result"), (e as Error).message); }
+      showDone(result, `Done. ${made} ${made === 1 ? "picture" : "pictures"}.`);
+      stepTo(root, 4);
+    } catch (e) { showError(result, made ? `${(e as Error).message} The ${made} ${made === 1 ? "picture" : "pictures"} below were made before it stopped.` : (e as Error).message); }
+    go.disabled = false;
+  });
+
+  // Changing the picture type, sharpness or pages makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    if (!doc || !result.querySelector(".res-done, .res-bad")) return;
+    files.replaceChildren();
+    showWait(result, WAIT);
+    stepTo(root, 2);
   });
 </script>

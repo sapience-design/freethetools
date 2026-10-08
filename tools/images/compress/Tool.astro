@@ -1,47 +1,125 @@
 ---
+// Compress images: choose photos, pick how small, press the button; each photo is re-encoded in the browser.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Compress images">
-  <DropZone prefix="cmi" toolId="images/compress" category="images" name="Compress Images" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · one or many" />
-  <fieldset class="field">
-    <legend class="eyebrow">Quality</legend>
-    <div class="seg">
-      <input type="radio" name="cmi-q" id="cmi-high" value="high"><label for="cmi-high">Best quality<small>up to 4096 px</small></label>
-      <input type="radio" name="cmi-q" id="cmi-balanced" value="balanced" checked><label for="cmi-balanced">Balanced<small>up to 2560 px</small></label>
-      <input type="radio" name="cmi-q" id="cmi-small" value="small"><label for="cmi-small">Smallest<small>up to 1600 px</small></label>
-    </div>
-  </fieldset>
-  <label class="check"><input type="checkbox" id="cmi-keep" checked> Keep JPG and WebP in their format</label>
-  <ul class="file-list" id="cmi-list" aria-live="polite"></ul>
+<section class="tool" id="cmi-tool" aria-label="Compress images">
+  <Step n={1} title="Choose your photos">
+    <DropZone prefix="cmi" toolId="images/compress" category="images" name="Compress Images" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG or WebP · one or many" button="Choose photos" />
+    <ul class="file-list" id="cmi-picked" hidden></ul>
+  </Step>
+
+  <Step n={2} title="Pick how small" state="later">
+    <fieldset class="choices">
+      <legend class="sr-only">Quality</legend>
+      <div class="choice"><input type="radio" name="cmi-q" id="cmi-balanced" value="balanced" checked><label for="cmi-balanced"><b>For sharing</b><small>Looks the same on a phone or laptop · up to 2560 px</small><span class="badge rec">Recommended</span></label></div>
+      <div class="choice"><input type="radio" name="cmi-q" id="cmi-high" value="high"><label for="cmi-high"><b>Good quality</b><small>A bit bigger, fine for printing · up to 4096 px</small></label></div>
+      <div class="choice"><input type="radio" name="cmi-q" id="cmi-small" value="small"><label for="cmi-small"><b>Smallest</b><small>For email or slow connections · up to 1600 px</small></label></div>
+    </fieldset>
+    <label class="check"><input type="checkbox" id="cmi-keep" checked> <span>Keep JPG and WebP in their format</span></label>
+    <button class="btn run" id="cmi-go" type="button" disabled><Icon name="arrows-in" /><span id="cmi-go-label">Make them smaller</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="cmi-status" aria-live="polite"><p class="res-wait">Your smaller photos will appear here.</p></div>
+    <ul class="file-list" id="cmi-list"></ul>
+    <button class="btn quiet" id="cmi-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
 </section>
 
 <script>
   import { PRESETS, outputType, worthIt, saving } from "./core.js";
   import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, baseName, reportFailure } from "../../../src/lib/files";
-  const $ = (id: string) => document.getElementById(id)!;
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+  const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
+  const root = $("#cmi-tool"), picked = $("#cmi-picked"), list = $("#cmi-list"), status = $("#cmi-status");
+  const go = $<HTMLButtonElement>("#cmi-go"), goLabel = $("#cmi-go-label"), again = $("#cmi-again");
   const webpOk = canEncode("image/webp");
+  let pending: File[] = [];
+  let running = false;
 
-  wireDrop("cmi", async (files) => {
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
+      const act = document.createElement("span"); act.className = "fact";
+      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
+      li.append(n, m, act);
+      return li;
+    }));
+    compactDrop("cmi", pending.length > 0 || list.children.length > 0);
+    go.disabled = !pending.length || running;
+    goLabel.textContent = pending.length > 1 ? `Make ${pending.length} photos smaller` : "Make them smaller";
+    if (pending.length) stepTo(root, 2);
+    else if (!list.children.length) stepTo(root, 1);
+  }
+
+  wireDrop("cmi", (files) => {
+    pending.push(...files.filter((x) => x.type.startsWith("image/")));
+    renderPicked();
+  });
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running) return;
+    running = true;
+    const files = pending;
+    pending = [];
+    renderPicked();
     const preset = PRESETS[(document.querySelector('input[name="cmi-q"]:checked') as HTMLInputElement).value as keyof typeof PRESETS];
-    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+    const keep = $<HTMLInputElement>("#cmi-keep").checked;
+    again.hidden = true;
+    list.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("cmi", true);
+    showBusy(status, files.length > 1 ? `Making ${files.length} photos smaller. Please keep this page open.` : undefined);
+    let done = 0, failed = 0, before = 0, after = 0;
+    for (const f of files) {
       const li = document.createElement("li");
       const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
       const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Compressing…";
       const act = document.createElement("span"); act.className = "fact";
-      li.append(n, m, act); $("cmi-list").prepend(li);
+      li.append(n, m, act); list.append(li);
       try {
         const bmp = await decode(f);
-        const type = outputType(f.type, await webpOk, ($("cmi-keep") as HTMLInputElement).checked) as Format;
+        const type = outputType(f.type, await webpOk, keep) as Format;
         const size = fitWithin(bmp.width, bmp.height, preset.maxSide, preset.maxSide);
         const blob = await encode(bmp, size.width, size.height, type, preset.quality);
+        done++;
+        before += f.size;
         if (worthIt(f.size, blob.size)) {
+          after += blob.size;
           m.textContent = `${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${saving(f.size, blob.size)}% smaller`;
           act.append(downloadLink(blob, `${baseName(f.name)}_small.${EXT[type]}`, type));
         } else {
+          after += f.size;
           m.textContent = `Already compact: ${fmtBytes(f.size)}. Keep the original, or try Smallest.`;
         }
-      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
+      } catch (e) { failed++; reportFailure(); m.textContent = (e as Error).message; }
     }
+    running = false;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!done) {
+      showProblem(status, files.length > 1 ? "None of these photos could be compressed. Each row says why." : "This photo could not be compressed. The row below says why.", "That didn't work");
+      return;
+    }
+    stepTo(root, 4);
+    const pct = Math.round(100 * (1 - after / before));
+    showDone(status, pct > 0 ? `Done. ${done > 1 ? "They're" : "It's"} ${pct}% smaller.` : `Done, but ${done > 1 ? "they didn't" : "it didn't"} get smaller. Keep your original${done > 1 ? "s" : ""}.`, compareBars(before, after));
+    renderPicked();
+    stepTo(root, 4);
+  });
+
+  again.addEventListener("click", () => {
+    list.replaceChildren();
+    again.hidden = true;
+    showWait(status, "Your smaller photos will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("cmi-drop")?.focus();
   });
 </script>

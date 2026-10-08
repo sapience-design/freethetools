@@ -1,34 +1,115 @@
 ---
+// Remove photo location: choose photos, press the button; GPS and other hidden details are cut out in the browser.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Remove photo location">
-  <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop photos here" hint="JPG, PNG or WebP · several at once is fine" />
-  <ul class="file-list" id="rml-list" aria-live="polite"></ul>
+<section class="tool" id="rml-tool" aria-label="Remove photo location">
+  <Step n={1} title="Choose your photos">
+    <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop your photos here" hint="JPG, PNG or WebP · several at once is fine" button="Choose photos" />
+    <ul class="file-list" id="rml-picked" hidden></ul>
+    <p class="hint err" id="rml-skip" role="status" hidden></p>
+  </Step>
+
+  <Step n={2} title="Remove the location" state="later">
+    <p class="hint">We cut out the GPS location, plus camera and date details, comments and other hidden data. The picture itself is not changed.</p>
+    <button class="btn run" id="rml-go" type="button" disabled><Icon name="eraser" /><span id="rml-go-label">Remove it</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="rml-status" aria-live="polite"><p class="res-wait">Your clean photos will appear here.</p></div>
+    <ul class="file-list" id="rml-list"></ul>
+    <button class="btn quiet" id="rml-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
 </section>
 
 <script>
   import { stripMetadata } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, baseName, reportFailure } from "../../../src/lib/files";
-  const list = document.getElementById("rml-list")!;
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $("rml-tool"), picked = $("rml-picked"), list = $("rml-list"), status = $("rml-status");
+  const go = $("rml-go") as HTMLButtonElement, goLabel = $("rml-go-label"), again = $("rml-again");
   const MIME: Record<string, string> = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
   const EXT: Record<string, string> = { jpeg: "jpg", png: "png", webp: "webp" };
+  let pending: File[] = [];
+  let running = false;
 
-  wireDrop("rml", async (files) => {
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
+      const act = document.createElement("span"); act.className = "fact";
+      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
+      li.append(n, m, act);
+      return li;
+    }));
+    compactDrop("rml", pending.length > 0 || list.children.length > 0);
+    go.disabled = !pending.length || running;
+    goLabel.textContent = pending.length > 1 ? `Remove it from ${pending.length} photos` : "Remove it";
+    if (pending.length) stepTo(root, 2);
+    else if (!list.children.length) stepTo(root, 1);
+  }
+
+  wireDrop("rml", (files) => {
+    const ok = files.filter((f) => /^image\/(jpeg|png|webp)$/.test(f.type));
+    const skipped = files.length - ok.length;
+    const skip = document.getElementById("rml-skip")!;
+    skip.hidden = !skipped;
+    skip.textContent = skipped === 1 ? "One file isn't a JPG, PNG or WebP photo, so we left it out." : `${skipped} files aren't JPG, PNG or WebP photos, so we left them out.`;
+    pending.push(...ok);
+    renderPicked();
+  });
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running) return;
+    running = true;
+    const files = pending;
+    pending = [];
+    renderPicked();
+    again.hidden = true;
+    list.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("rml", true);
+    showBusy(status, files.length > 1 ? `Cleaning ${files.length} photos. Please keep this page open.` : undefined);
+    let done = 0, gps = 0;
     for (const f of files) {
       const li = document.createElement("li");
       const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
       const m = document.createElement("span"); m.className = "fmeta";
       const act = document.createElement("span"); act.className = "fact";
+      li.append(n, m, act);
+      list.append(li);
       try {
         const r = stripMetadata(new Uint8Array(await f.arrayBuffer()));
         const removed = [r.found.gps && "GPS location", r.found.exif && "camera and date details", r.found.xmp && "XMP", r.found.iptc && "IPTC", r.found.comment && "comments"].filter(Boolean);
         m.textContent = removed.length ? `Removed ${removed.join(", ")} · ${fmtBytes(f.size)} → ${fmtBytes(r.bytes.length)}` : "No location or camera data found. This copy is clean.";
-        if (r.found.gps) li.classList.add("rml-gps");
+        if (r.found.gps) { li.classList.add("rml-gps"); gps++; }
         act.append(downloadLink(r.bytes, `${baseName(f.name)}_clean.${EXT[r.format]}`, MIME[r.format]));
+        done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; m.classList.add("bad"); }
-      li.append(n, m, act);
-      list.prepend(li);
     }
+    running = false;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!done) {
+      showProblem(status, files.length > 1 ? "None of these photos could be cleaned. Each row says why." : "This photo could not be cleaned. The row below says why.", "That didn't work");
+      return;
+    }
+    stepTo(root, 4);
+    const note = gps ? [] : [done > 1 ? "None of them had a location to remove." : "It had no location to remove."];
+    showDone(status, done > 1 ? `Done. No location left in these ${done} photos.` : "Done. No location left in this photo.", ...note);
+  });
+
+  again.addEventListener("click", () => {
+    list.replaceChildren();
+    again.hidden = true;
+    showWait(status, "Your clean photos will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("rml-drop")?.focus();
   });
 </script>
 

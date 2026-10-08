@@ -1,91 +1,101 @@
 ---
 // Merge PDFs: add files, put them in order, combine.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Merge PDFs">
-  <DropZone prefix="pdfm" toolId="pdf/merge" category="pdf" name="Merge PDFs" accept="application/pdf,.pdf" multiple title="Drop PDFs here" hint="or click to choose · add as many as you like" />
+<section class="tool" id="pdfm-tool" aria-label="Merge PDFs">
+  <Step n={1} title="Choose your PDFs">
+    <DropZone prefix="pdfm" toolId="pdf/merge" category="pdf" name="Merge PDFs" accept="application/pdf,.pdf" multiple title="Drop your PDFs here" hint="Add as many as you like" button="Choose PDFs" />
+  </Step>
 
-  <div id="pdfm-panel" hidden>
-    <p class="eyebrow">Order</p>
-    <ol class="file-list" id="pdfm-list"></ol>
-  </div>
+  <Step n={2} title="Put them in order" state="later">
+    <div id="pdfm-panel" class="tool-order" hidden>
+      <ol class="file-list" id="pdfm-list"></ol>
+      <p class="hint">The top file comes first. Use the arrows to move a file up or down.</p>
+    </div>
+    <p class="res-wait" id="pdfm-none">Your PDFs will appear here, in the order they'll be combined.</p>
+    <div class="actions">
+      <button class="btn run" id="pdfm-go" type="button" disabled><Icon name="arrows-merge" /><span id="pdfm-go-label">Add at least two PDFs</span></button>
+      <button class="btn quiet small" id="pdfm-clear" type="button" hidden>Clear the list</button>
+    </div>
+  </Step>
 
-  <div class="actions">
-    <button class="btn" id="pdfm-go" type="button" disabled>Merge PDFs</button>
-    <button class="btn line" id="pdfm-clear" type="button" hidden>Clear</button>
-  </div>
-  <div id="pdfm-result" aria-live="polite"></div>
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="pdfm-result" aria-live="polite"><p class="res-wait">Your combined PDF will appear here.</p></div>
+  </Step>
 </section>
 
 <script>
   import { mergePdfs, pageCount } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
 
   type Item = { file: File; bytes: ArrayBuffer; pages: number };
   const items: Item[] = [];
-  const list = document.getElementById("pdfm-list")!;
-  const panel = document.getElementById("pdfm-panel")!;
-  const go = document.getElementById("pdfm-go") as HTMLButtonElement;
-  const clear = document.getElementById("pdfm-clear") as HTMLButtonElement;
-  const result = document.getElementById("pdfm-result")!;
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $("pdfm-tool"), list = $("pdfm-list"), panel = $("pdfm-panel"), none = $("pdfm-none");
+  const go = $("pdfm-go") as HTMLButtonElement, goLabel = $("pdfm-go-label"), clear = $("pdfm-clear") as HTMLButtonElement;
+  const result = $("pdfm-result");
+  const WAIT = "Your combined PDF will appear here.";
 
   function render() {
     panel.hidden = !items.length;
+    none.hidden = items.length > 0;
     clear.hidden = !items.length;
     go.disabled = items.length < 2;
-    go.textContent = items.length < 2 ? "Add at least two PDFs" : `Merge ${items.length} PDFs`;
+    goLabel.textContent = items.length < 2 ? "Add at least two PDFs" : `Combine ${items.length} PDFs into one`;
+    compactDrop("pdfm", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
       const li = document.createElement("li");
       const name = document.createElement("span"); name.className = "fname"; name.textContent = it.file.name;
       const meta = document.createElement("span"); meta.className = "fmeta"; meta.textContent = `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`;
       const act = document.createElement("span"); act.className = "fact";
-      const btn = (label: string, title: string, fn: () => void, disabled = false) => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = label;
-        b.setAttribute("aria-label", `${title} ${it.file.name}`); b.disabled = disabled; b.onclick = fn; return b;
-      };
       act.append(
-        btn("↑", "Move up", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); }, i === 0),
-        btn("↓", "Move down", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); }, i === items.length - 1),
-        btn("✕", "Remove", () => { items.splice(i, 1); render(); }),
+        iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),
+        iconButton("down", `Move down ${it.file.name}`, () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; changed(); refocus(list, i + 1, "down"); }, i === items.length - 1),
+        iconButton("remove", `Remove ${it.file.name}`, () => { items.splice(i, 1); changed(); refocus(list, i, "remove", document.getElementById("pdfm-drop")); }),
       );
       li.append(name, meta, act);
       return li;
     }));
+    stepTo(root, items.length ? 2 : 1);
   }
+  // Any change to the list makes an earlier result out of date.
+  function changed() { showWait(result, WAIT); render(); }
 
   wireDrop("pdfm", async (files) => {
-    result.replaceChildren();
+    showWait(result, WAIT);
     for (const file of files) {
       if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") continue;
       const bytes = await file.arrayBuffer();
       try {
         items.push({ file, bytes, pages: await pageCount(bytes.slice(0)) });
       } catch (e) {
-        showError(result, `${file.name}: ${(e as Error).message}`);
+        showError(result, `${file.name}: ${(e as Error).message}`, "We can't open this PDF");
       }
     }
     render();
   });
 
-  clear.onclick = () => { items.length = 0; result.replaceChildren(); render(); };
+  clear.onclick = () => { items.length = 0; changed(); };
 
   go.onclick = async () => {
     go.disabled = true;
-    go.textContent = "Merging…";
+    stepTo(root, 3);
+    showBusy(result);
     try {
       const out = await mergePdfs(items.map((it) => it.bytes.slice(0)));
       const pages = items.reduce((n, it) => n + it.pages, 0);
-      const row = document.createElement("ul"); row.className = "file-list";
-      const li = document.createElement("li");
-      const name = document.createElement("span"); name.className = "fname"; name.textContent = "merged.pdf";
-      const meta = document.createElement("span"); meta.className = "fmeta"; meta.textContent = `${pages} pages · ${fmtBytes(out.byteLength)}`;
-      const act = document.createElement("span"); act.className = "fact"; act.append(downloadLink(out, "merged.pdf", "application/pdf"));
-      li.append(name, meta, act); row.append(li);
-      result.replaceChildren(row);
+      const dl = downloadLink(out, "merged.pdf", "application/pdf", "Download PDF");
+      dl.classList.add("run");
+      showDone(result, `Done. ${items.length} files are now one PDF.`, `merged.pdf · ${pages} pages · ${fmtBytes(out.byteLength)}, in the order you chose`);
+      result.append(dl);
+      stepTo(root, 4);
     } catch (e) {
       showError(result, (e as Error).message);
     }
-    render();
+    go.disabled = items.length < 2;
   };
 
   render();

@@ -59,6 +59,24 @@ test.describe("PDF tools", () => {
     expect(await pageCount(out)).toBe(1);
   });
 
+  test("Merge PDFs keeps keyboard focus on the arrows while reordering", async ({ page }) => {
+    await page.goto("/pdf/merge/");
+    await page.setInputFiles("#pdfm-file", [PDF, PDF]);
+    await page.locator("#pdfm-list li").first().locator('button[data-kind="down"]').click();
+    // The moved file is now last, so its down arrow is off; focus moves to its up arrow.
+    await expect(page.locator("#pdfm-list li").nth(1).locator('button[data-kind="up"]')).toBeFocused();
+  });
+
+  test("Split PDF clears an old result when the options change", async ({ page }) => {
+    await page.goto("/pdf/split/");
+    await page.setInputFiles("#pdfs-file", PDF);
+    await page.click("#pdfs-go");
+    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+    await page.click('label[for="pdfs-ranges"]');
+    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(0);
+    await expect(page.locator("#pdfs-result")).toContainText("will appear here");
+  });
+
   test("Split PDF rejects a bad range with a clear message", async ({ page }) => {
     await page.goto("/pdf/split/");
     await page.setInputFiles("#pdfs-file", PDF);
@@ -172,12 +190,14 @@ test.describe("image tools", () => {
     await page.goto("/images/resize/");
     await page.fill("#rsz-w", "150");
     await page.setInputFiles("#rsz-file", png());
+    await page.click("#rsz-go");
     await expect(page.locator("#rsz-list .fmeta")).toContainText("300×200 → 150×100");
   });
 
   test("Convert Image Format writes a real JPG", async ({ page }) => {
     await page.goto("/images/convert/");
     await page.setInputFiles("#cvi-file", png());
+    await page.click("#cvi-go");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out[0]).toBe(0xff);
     expect(out[1]).toBe(0xd8);
@@ -186,12 +206,14 @@ test.describe("image tools", () => {
   test("Compress Images reports a result", async ({ page }) => {
     await page.goto("/images/compress/");
     await page.setInputFiles("#cmi-file", png());
+    await page.click("#cmi-go");
     await expect(page.locator("#cmi-list .fmeta")).toContainText(/smaller|Already compact/);
   });
 
   test("Remove Photo Location strips GPS", async ({ page }) => {
     await page.goto("/images/remove-location/");
     await page.setInputFiles("#rml-file", { name: "photo.jpg", mimeType: "image/jpeg", buffer: jpegWithGps() });
+    await page.click("#rml-go");
     await expect(page.locator("#rml-list .fmeta")).toContainText("Removed GPS location");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.toString("hex")).not.toContain("ffe1");
@@ -276,16 +298,23 @@ test.describe("theme, search, sorting, likes and stats", () => {
   test("search understands other words and typos", async ({ page }) => {
     await page.goto("/");
     await page.fill("#find", "combine pdf");
-    await expect(page.locator("#side-results a").first()).toContainText("Merge PDFs");
+    await expect(page.locator("#search-results a").first()).toContainText("Merge PDFs");
     await page.fill("#find", "compres");
-    await expect(page.locator("#side-results a").first()).toContainText("Compress");
+    await expect(page.locator("#search-results a").first()).toContainText("Compress");
+    await page.fill("#find", "make a pdf smaller");
+    await expect(page.locator("#search-results a").first()).toContainText("Compress PDF");
   });
 
-  test("A–Z sorts each shelf, made-to-order last", async ({ page }) => {
-    await page.goto("/pdf/");
+  test("A–Z sorts each group, not-built-yet last", async ({ page }) => {
+    await page.goto("/");
     await page.click('label[for="sort-az"]');
-    const names = await page.locator("main .grid").first().locator("li:not(.planned)").evaluateAll((els) => els.map((e) => e.dataset.name));
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    for (const g of ["pdf", "images"]) {
+      const rows = page.locator(`.gcard[data-g="${g}"] [data-sortable] > li`);
+      const names = await rows.locator("xpath=self::li[not(contains(@class,'want'))]").evaluateAll((els) => els.map((e) => e.dataset.name));
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+      const want = await rows.evaluateAll((els) => els.map((e) => e.classList.contains("want")));
+      expect(want).toEqual([...want].sort((a, b) => Number(a) - Number(b)));
+    }
   });
 
   test("liking a tool is remembered and counted", async ({ page }) => {

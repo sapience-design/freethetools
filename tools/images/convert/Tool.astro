@@ -1,46 +1,125 @@
 ---
+// Convert image format: choose photos, pick a format, press the button; each photo is re-encoded in the browser.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 import { FORMATS } from "./core.js";
+const blurb: Record<string, string> = {
+  jpg: "Opens everywhere",
+  png: "Keeps see-through backgrounds",
+  webp: "Smallest, for websites",
+  avif: "Smaller still, but not every app opens it",
+};
 ---
-<section class="tool" aria-label="Convert image format">
-  <DropZone prefix="cvi" toolId="images/convert" category="images" name="Convert Image Format" accept="image/*" multiple title="Drop images here" hint="PNG, JPG, WebP, GIF or BMP · one or many" />
-  <fieldset class="field">
-    <legend class="eyebrow">Convert to</legend>
-    <div class="seg">
-      {FORMATS.map((f, i) => (<><input type="radio" name="cvi-to" id={`cvi-${f.ext}`} value={f.type} checked={i === 0} /><label for={`cvi-${f.ext}`}>{f.label}<small>{f.note}</small></label></>))}
-    </div>
-  </fieldset>
-  <ul class="file-list" id="cvi-list" aria-live="polite"></ul>
+<section class="tool" id="cvi-tool" aria-label="Convert image format">
+  <Step n={1} title="Choose your photos">
+    <DropZone prefix="cvi" toolId="images/convert" category="images" name="Convert Image Format" accept="image/*" multiple title="Drop your photos here" hint="PNG, JPG, WebP, GIF or BMP · one or many" button="Choose photos" />
+    <ul class="file-list" id="cvi-picked" hidden></ul>
+  </Step>
+
+  <Step n={2} title="Change it to" state="later">
+    <fieldset class="choices cols">
+      <legend class="sr-only">New format</legend>
+      {FORMATS.map((f, i) => (
+        <div class="choice"><input type="radio" name="cvi-to" id={`cvi-${f.ext}`} value={f.type} checked={i === 0} /><label for={`cvi-${f.ext}`}><b>{f.label}</b><small>{blurb[f.ext] ?? f.note}</small>{i === 0 && <span class="badge rec">Recommended</span>}</label></div>
+      ))}
+    </fieldset>
+    <button class="btn run" id="cvi-go" type="button" disabled><Icon name="swap" /><span id="cvi-go-label">Change type</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="cvi-status" aria-live="polite"><p class="res-wait">Your converted photos will appear here.</p></div>
+    <ul class="file-list" id="cvi-list"></ul>
+    <button class="btn quiet" id="cvi-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
 </section>
 
 <script>
   import { FORMATS, renameTo, qualityFor } from "./core.js";
   import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, reportFailure } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, reportFailure, iconButton, showBusy, showDone, showProblem, showWait } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
+  const root = $("cvi-tool"), picked = $("cvi-picked"), list = $("cvi-list"), status = $("cvi-status");
+  const go = $("cvi-go") as HTMLButtonElement, goLabel = $("cvi-go-label"), again = $("cvi-again");
+  let pending: File[] = [];
+  let running = false;
+
   canEncode("image/avif").then((ok) => {
     if (ok) return;
     const input = $("cvi-avif") as HTMLInputElement;
     input.disabled = true;
     const label = document.querySelector('label[for="cvi-avif"] small');
-    if (label) label.textContent = "this browser can't write AVIF";
+    if (label) label.textContent = "This browser can't write AVIF";
   });
 
-  wireDrop("cvi", async (files) => {
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
+      const act = document.createElement("span"); act.className = "fact";
+      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
+      li.append(n, m, act);
+      return li;
+    }));
+    compactDrop("cvi", pending.length > 0 || list.children.length > 0);
+    go.disabled = !pending.length || running;
+    if (pending.length) stepTo(root, 2);
+    else if (!list.children.length) stepTo(root, 1);
+  }
+
+  wireDrop("cvi", (files) => {
+    pending.push(...files.filter((x) => x.type.startsWith("image/")));
+    renderPicked();
+  });
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running) return;
+    running = true;
+    const files = pending;
+    pending = [];
+    renderPicked();
     const type = (document.querySelector('input[name="cvi-to"]:checked') as HTMLInputElement).value as Format;
     const fmt = FORMATS.find((f) => f.type === type)!;
-    for (const f of files.filter((x) => x.type.startsWith("image/"))) {
+    again.hidden = true;
+    list.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("cvi", true);
+    showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
+    let done = 0;
+    for (const f of files) {
       const li = document.createElement("li");
       const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
       const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Converting…";
       const act = document.createElement("span"); act.className = "fact";
-      li.append(n, m, act); $("cvi-list").prepend(li);
+      li.append(n, m, act); list.append(li);
       try {
         const bmp = await decode(f);
         const blob = await encode(bmp, bmp.width, bmp.height, type, qualityFor(type));
         m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
         act.append(downloadLink(blob, renameTo(f.name, fmt.ext), type));
+        done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
+    running = false;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!done) {
+      showProblem(status, files.length > 1 ? "None of these photos could be changed. Each row says why." : "This photo could not be changed. The row below says why.", "That didn't work");
+      return;
+    }
+    stepTo(root, 4);
+    showDone(status, done > 1 ? `Done. ${done} photos are now ${fmt.label}.` : `Done. Your photo is now ${fmt.label}.`);
+  });
+
+  again.addEventListener("click", () => {
+    list.replaceChildren();
+    again.hidden = true;
+    showWait(status, "Your converted photos will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("cvi-drop")?.focus();
   });
 </script>
