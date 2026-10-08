@@ -124,6 +124,15 @@ const PIECES: Record<string, Draw> = {
     return box(x + 54, y, 12, 48, z + 30, c.accent) + stack(c, x, y, 6) + box(x + 16, y, 88, 48, 10, c.accent, z) +
       box(x + 18, y, 7, 7, 24, c.navy, z + 10) + box(x + 18, y, 46, 7, 6, c.navy, z + 34);
   },
+  "pdf/unlock": (c) => {
+    // A stack of pages with a padlock standing in front of it, its shackle lifted: open.
+    const [x, y] = at(0);
+    const [px, py, w, d, h] = [x + 60, y + 8, 44, 22, 34];
+    const lock = c.clay ? c.line : c.navy.left;
+    const shackle = `<path d="M-12 ${h} V${h + 18} A12 12 0 0 0 12 ${h + 18} V${h + 9}" fill="none" stroke="${lock}" stroke-width="6" stroke-linecap="round"/>`;
+    const keyhole = `<circle cx="0" cy="22" r="4.5" fill="${lock}"/><rect x="-1.8" y="10" width="3.6" height="12" fill="${lock}"/>`;
+    return stack(c, x - 30, y - 22, 5) + box(px, py, w, d, h, c.accent) + face(px, py, 0, shackle) + face(px, py, d / 2, keyhole);
+  },
   "merge-pdfs": (c) => { const [x, y] = at(0); return stack(c, x - 34, y - 20, 3, 80, 104, false) + stack(c, x + 34, y + 20, 3, 80, 104, false) + stack(c, x, y, 7, 88, 112); },
   "split-pdf": (c) => { const [x, y] = at(0); return stack(c, x - 44, y - 6, 4, 80, 104) + stack(c, x + 44, y + 6, 3, 80, 104, false); },
   "rotate-pages": (c) => { const [x, y] = at(0); return stack(c, x - 20, y, 3, 88, 112) + box(x + 44, y - 10, 112, 4, 88, c.paper, 0, c.line); },

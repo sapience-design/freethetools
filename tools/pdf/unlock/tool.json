@@ -1,0 +1,30 @@
+{
+  "name": "Unlock PDF",
+  "short": "Unlock",
+  "tagline": "Take the password or the print and copy limits off a PDF you own. Your files never leave this device.",
+  "seoTitle": "Unlock PDF without uploading",
+  "description": "Remove a PDF's password, or its printing and copying limits, for free in your browser. Files are never uploaded. Pages and forms stay the same.",
+  "section": "Security",
+  "keywords": ["unlock", "remove password", "decrypt", "unprotect", "restrictions", "copy protection", "print protection", "encrypted", "qpdf"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-08",
+  "offline": true,
+  "specs": {
+    "Engine": "qpdf 11, compiled to WebAssembly",
+    "Lossless": "Only the lock is removed. Pages, forms and bookmarks stay as they were.",
+    "First load": "1.3 MB, then cached by your browser",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Can it unlock a PDF without the password?", "a": "It can remove printing, copying and editing limits from a PDF that opens without a password. It can't open a PDF whose password you don't know. Unlock only PDFs you have the right to unlock." },
+    { "q": "Is my password sent anywhere?", "a": "No. The password stays in this browser tab. It goes to the unlocking engine on this page and nowhere else. The page's security policy blocks it from sending data anywhere, and the page never saves or logs the password. The field is cleared as soon as you use it." },
+    { "q": "Does unlocking change my PDF?", "a": "No. Only the lock is removed. The pages, text, images, forms and bookmarks come out the same, and your original file is not touched." },
+    { "q": "Why does my PDF say it isn't locked?", "a": "Some PDFs only look protected. If this page says there is no lock, the file has no password and no limits, so you can use it as it is." },
+    { "q": "Which locks does it remove?", "a": "Both kinds: the password that opens a PDF, and the owner limits on printing, copying and editing. It works with the encryption in common PDF files, from old 40-bit files to 256-bit AES." }
+  ],
+  "vendor": [
+    { "from": "@jspawn/qpdf-wasm/qpdf.js", "to": "qpdf.js" },
+    { "from": "@jspawn/qpdf-wasm/qpdf.wasm", "to": "qpdf.wasm" }
+  ]
+}

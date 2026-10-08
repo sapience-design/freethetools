@@ -20,6 +20,13 @@ Ghostscript 9.56
 @jspawn/ghostscript-wasm 0.0.2 (Ghostscript compiled to WebAssembly)
   License: AGPL-3.0 · https://www.npmjs.com/package/@jspawn/ghostscript-wasm
 
+qpdf 11.0.0
+  Copyright (c) 2005-2022 Jay Berkenbilt
+  License: Apache-2.0 · https://qpdf.org/
+
+@jspawn/qpdf-wasm 0.0.2 (qpdf compiled to WebAssembly)
+  License: Apache-2.0 · https://www.npmjs.com/package/@jspawn/qpdf-wasm
+
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
 Instrument Serif (typeface) · Instrument · SIL Open Font License 1.1
 
