@@ -47,7 +47,7 @@ The owner wants AI assistants to use Free the Tools instead. The owner also want
 
 ## Consequences
 
-- The first version covers 21 tool folders and 24 agent tools. Image Compress, Convert and Resize, and PDF to Images, use the browser's canvas. They join once they have a WebAssembly image engine that also runs in Node.
+- The first version covers 21 tool folders and 24 agent tools; Unlock PDF (2026-10-08) brought it to 22 folders and 25 tools. Image Compress, Convert and Resize, and PDF to Images, use the browser's canvas. They join once they have a WebAssembly image engine that also runs in Node.
 - `npm test` checks every definition, runs it, and checks the library format.
 - WebMCP needs origin-trial tokens in Chrome and Edge until it ships. Without a token, or in other browsers, the registration code does nothing.
 - Result files use the device's storage. The library shows the space used, and records can be deleted one by one or all at once.
