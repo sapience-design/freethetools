@@ -59,6 +59,10 @@ Every job is recorded on the device that did it, so a person can see what they o
 - **In the package**, records go to `library.jsonl` in a `freethetools` folder in the person's home folder, with result files beside it.
 - Both use one record format, `src/agent/library.js`, so `/library/` can open the package's folder too.
 
+## Sharing results
+
+Next to every result to download, on tool pages, in the agent activity panel and in the library, a Share button opens the device's own share menu through the Web Share API (`src/lib/share.ts`). The file goes only where the person sends it. The button appears only where the browser can share that kind of file. A completed share counts as a success in the anonymous totals and records the job in the library, like a download.
+
 ## Search and sorting
 
 Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). Shelves sort by Featured, Most used, Most liked, Newest or A–Z, using the totals below when they are available.
