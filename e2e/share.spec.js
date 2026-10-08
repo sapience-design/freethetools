@@ -200,7 +200,7 @@ test("a tool page with Share buttons meets WCAG 2.2 AA", async ({ page }) => {
   expect(summary, summary.join("\n")).toEqual([]);
 });
 
-test("a click on Share counts as a success in the anonymous totals", async ({ page }) => {
+test("a share counts as a success in the anonymous totals", async ({ page }) => {
   await stubShare(page);
   const kinds = [];
   page.on("request", (r) => { if (r.url().endsWith("/api/stats/event") && r.method() === "POST") kinds.push(JSON.parse(r.postData()).kind); });
@@ -208,4 +208,14 @@ test("a click on Share counts as a success in the anonymous totals", async ({ pa
   await expect.poll(() => kinds).not.toContain("success");
   await page.locator(".share-btn").click();
   await expect.poll(() => kinds).toContain("success");
+});
+
+test("closing the share menu without sharing counts nothing", async ({ page }) => {
+  await stubShare(page, { fail: "AbortError" });
+  const kinds = [];
+  page.on("request", (r) => { if (r.url().endsWith("/api/stats/event") && r.method() === "POST") kinds.push(JSON.parse(r.postData()).kind); });
+  await merge(page);
+  await page.locator(".share-btn").click();
+  await page.waitForTimeout(800);
+  expect(kinds).not.toContain("success");
 });

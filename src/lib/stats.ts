@@ -77,9 +77,10 @@ export function watchOutcomes(tool: string, root: Element) {
     const el = (e.target as Element).closest("a[download], button");
     if (!el) return;
     const isCopy = el.tagName === "BUTTON" && (el.id.endsWith("-copy") || el.textContent?.trim() === "Copy");
-    const isShare = el.tagName === "BUTTON" && el.classList.contains("share-btn"); // sharing a result counts as taking it
-    if (el.tagName === "A" || isCopy || isShare) report("success");
+    if (el.tagName === "A" || isCopy) report("success");
   });
+  // A share counts once it has happened, not on the click: closing the share menu takes nothing.
+  root.addEventListener("ftt:shared", () => report("success"));
   document.addEventListener("ftt:outcome", (e) => { if ((e as CustomEvent).detail?.ok === false) report("error"); });
 }
 
