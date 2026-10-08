@@ -23,7 +23,7 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 
 ## One folder per tool
 
-`tools/<group>/<slug>/` holds everything about a tool. The site reads every `tool.json` through an Astro content collection (`src/content.config.ts`) and generates the sidebar, group pages, tool page, search index, sitemap, `llms.txt` and `/api/tools.json`. Contributors never edit shared files, so pull requests don't conflict and every page gets the same metadata and structure. See [ADR 0004](../adr/0004-one-folder-per-tool.md).
+`tools/<group>/<slug>/` holds everything about a tool. The site reads every `tool.json` through an Astro content collection (`src/content.config.ts`) and generates the home page, group pages, tool page, search index, sitemap, `llms.txt` and `/api/tools.json`. Contributors never edit shared files, so pull requests don't conflict and every page gets the same metadata and structure. See [ADR 0004](../adr/0004-one-folder-per-tool.md).
 
 ## Pages
 
@@ -52,23 +52,28 @@ The Worker writes only for requests from the site's own origin and for known too
 
 ## The look
 
-A minimal shop:
+Design round 4 ("v4"), from the Claude Design project *Free the Tools v4*. The design files are kept outside the repo; the owner has them.
 
-- A full-height sidebar that drills into each group.
-- White space.
-- Each tool shown as a studio "product shot" (`src/data/art.ts`). Tools that have been requested but not built appear as clay prototypes marked "Made to order".
+Layout:
+
+- A sticky top bar: the mark and name, About, and Saved (on the home page) or All tools (elsewhere).
+- Home: one headline, a search box ("What do you need to do?"), group filter chips, a sort control, "Most people come for", then one card per group with its top three tools.
+- Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
+- Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.
+- Each group has a tint and a mark (a Phosphor icon); each tool has its own icon (`icon` in `tool.json`). The studio product shots (`src/data/art.ts`) sit on the group's tint.
+- Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages as "Not built yet", linking to the request.
 
 Type:
 
-- Follows Cloudflare's open-source Kumo scale (12–30px).
-- Set in Schibsted Grotesk, with Instrument Serif for headings and IBM Plex Mono for code.
-- All three are self-hosted.
+- Bricolage Grotesque for headings, Schibsted Grotesk for text, IBM Plex Mono for code and numbers. All three are self-hosted.
 
 Colour:
 
-- Kumo's neutrals, plus a single yellow accent. The accent and the Sapience wordmark tie the site to Sapience Design.
-- Light, Dark and System themes. The choice is stored per browser and applied before the first paint.
-- Colours and sizes are tokens in `src/styles/global.css`.
+- Cream paper, warm ink and one yellow highlight, with a tint for each group.
+- Light, Dark and System themes, switched in the footer. The choice is stored per browser and applied before the first paint. Product shots recolour their backdrop in dark mode.
+- Colours, radii and shadows are tokens in `src/styles/global.css`, which also holds the shared tool classes (steps, choices, pills, fields, file rows, result boxes).
+
+Icons are Phosphor (MIT), inlined at build time by `src/components/Icon.astro`, so pages load no icon files.
 
 ## Search engines and AI
 

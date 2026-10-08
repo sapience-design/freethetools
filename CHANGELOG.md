@@ -7,6 +7,15 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Changed (design round 4)
+
+- New look and layout from the v4 design: cream paper, ink outlines, a yellow highlight, and a tint and mark for each group; Bricolage Grotesque headings; Phosphor icons. Light and dark themes.
+- The sidebar is gone. A top bar holds the name, About and Saved; the home page has the search box, group chips, sorting (Most used, Newest, Most liked, A–Z), "Most people come for" and a card per group.
+- Tools are named by the job they do ("Make a PDF smaller"), with the product name in a tag. `tool.json` gains `task` (required) and `icon` (optional).
+- Every tool is laid out as numbered steps. File tools now run when you press the button (choose, options, run, save) instead of on drop, and show "Working on it", "Done" and plain-language problems, with "Do another". Text tools still work as you type.
+- Share images, the favicon and the app icons are redrawn in the new style.
+- Search ranks a half-typed word ("compres") above a near miss in a task name ("Compare").
+
 ### Added (extended stats)
 
 - Anonymous visit totals, one per browser session, with separate daily counts of referring site (a name such as "Google", never a link), country and device type (phone, tablet, desktop); shown on /stats/ for the last 30 days.

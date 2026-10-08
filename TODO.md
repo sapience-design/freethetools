@@ -7,7 +7,10 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | # | Task | Why | Status |
 |---|---|---|---|
-| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Prompt written 2026-09-28 |
+| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Superseded by the v4 port (branch `feat/ui-v4`): shared step components, a tint and mark per group, an icon per tool. No `/lab/` |
+| B10 | Compress PDF and Compress Images: "Does it need to be under a size?" (No limit / 1 MB / 2 MB / 5 MB), trying lower qualities until the file fits | In the v4 design; not built, so the port leaves it out | Ready |
+| B11 | A Share button on results (Web Share API with files, where the browser supports it) | In the v4 design; not built, so the port leaves it out | Ready |
+| B12 | Fill PDF Form: drawn signatures | The v4 help text mentions them as "coming later"; the port does not promise them | Idea |
 | B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Ready |
 
 ## Owner (Sapience Design)
@@ -20,6 +23,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | O6 | Launch posts when happy: Show HN, r/opensource, Product Hunt | — | Open |
 | O7 | Optional: sign up for the OpenSSF Best Practices badge | bestpractices.dev | Open |
 | O8 | Decide whether Dependabot PRs skip the sign-off check. If yes, add `if: github.event.pull_request.user.login != 'dependabot[bot]'` to the `signoff` job in `.github/workflows/dco.yml`. Until then, a maintainer re-applies each bump in a signed-off PR, as #34 did. | GitHub (CI changes need the owner) | Open |
+| O12 | Review the v4 design port on its Cloudflare preview and merge it. Check "Contact us" on /about/ reaches hello@freethetools.com (see O5) | The `feat/ui-v4` pull request | Open |
 | O11 | Two-factor login on GitHub and Cloudflare with an authenticator app or security key (not SMS), and check that no old API tokens remain | github.com/settings/security; Cloudflare → My Profile → Authentication and API Tokens | Open |
 
 ## Parked
