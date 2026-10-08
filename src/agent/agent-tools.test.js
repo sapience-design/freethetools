@@ -8,6 +8,7 @@ import { pathToFileURL } from "node:url";
 import { PDFDocument } from "pdf-lib";
 import { checkArgs, cleanArgs, detectType, fileFields, settingsOf, wireSchema } from "./contract.js";
 import { libraryEntry, logLine, parseLog } from "./library.js";
+import { OPEN_PASSWORD, qpdf as realQpdf, withPassword, withRestrictions } from "../../tools/pdf/unlock/tests/helpers.js";
 
 const ROOT = new URL("../../", import.meta.url);
 const TOOLS = join(ROOT.pathname.replace(/^\/(\w:)/, "$1"), "tools");
@@ -186,6 +187,52 @@ test("compress_pdf uses the engine the channel lends it", async () => {
   assert.ok(seen.includes("-dPDFSETTINGS=/screen") && seen.includes("-dFirstPage=1"));
   assert.equal(r.files[0].name, "report_p1_small.pdf");
   assert.ok(r.data.percentSmaller > 0);
+});
+
+test("unlock_pdf uses the engine the channel lends it, and says what it did", async () => {
+  await assert.rejects(call("unlock_pdf", { file: pdf() }), /isn.t available here/);
+  const seen = [];
+  const fake = async (args, input) => {
+    seen.push(args);
+    if (args[0] === "--show-encryption") return { code: 0, lines: ["R = 6", "Supplied password is user password", "print low resolution: not allowed", "extract for any purpose: not allowed"] };
+    return { code: 0, lines: [], output: input.subarray(0, 100) };
+  };
+  const r = await call("unlock_pdf", { file: pdf("secret.pdf"), password: "hunter2" }, { qpdf: fake });
+  assert.ok(seen.some((a) => a.includes("--password=hunter2") && a[0] === "--decrypt"));
+  assert.equal(r.files[0].name, "secret_unlocked.pdf");
+  assert.deepEqual(r.data, { lock: "password", restrictions: ["printing", "copying text and images"] });
+  assert.match(r.summary, /Removed the password and the restrictions on printing and copying text and images/);
+  assert.ok(!JSON.stringify([r.summary, r.data]).includes("hunter2"), "the password is not echoed back");
+  const none = await call("unlock_pdf", { file: pdf() }, { qpdf: async () => ({ code: 0, lines: ["File is not encrypted"] }) });
+  assert.equal(none.files, undefined);
+  assert.equal(none.data.lock, "none");
+  const needs = async () => ({ code: 2, lines: ["qpdf: /in.pdf: invalid password"] });
+  await assert.rejects(call("unlock_pdf", { file: pdf() }, { qpdf: needs }), /needs a password/);
+  await assert.rejects(call("unlock_pdf", { file: pdf(), password: "x" }, { qpdf: needs }), /doesn.t open/);
+  await assert.rejects(call("unlock_pdf", { file: pdf() }, { qpdf: async () => ({ code: 2, lines: ["qpdf: damaged"] }) }), /damaged or not a PDF/);
+});
+
+test("unlock_pdf unlocks real encrypted files with qpdf", async () => {
+  const ctx = { qpdf: realQpdf };
+  const opened = await call("unlock_pdf", { file: pdf("locked.pdf", withPassword), password: OPEN_PASSWORD }, ctx);
+  assert.equal(await pages(opened.files[0].bytes), await pages(SAMPLE_PDF));
+  const free = await call("unlock_pdf", { file: pdf("limited.pdf", withRestrictions) }, ctx);
+  assert.equal(free.data.lock, "restrictions");
+  assert.ok(free.data.restrictions.includes("printing"));
+  await assert.rejects(call("unlock_pdf", { file: pdf("locked.pdf", withPassword), password: "wrong" }, ctx), /doesn.t open/);
+});
+
+test("the library never keeps an unlock password", () => {
+  const input = byName.unlock_pdf.input;
+  assert.equal(input.properties.password["x-setting"], undefined, "password must not be a recorded setting");
+  assert.deepEqual(settingsOf(input, { file: "a.pdf", password: "hunter2" }), {});
+  assert.deepEqual(settingsOf(input, { password: "" }), {});
+  assert.match(byName.unlock_pdf.description, /password passes through the AI conversation/);
+  assert.match(byName.unlock_pdf.description, /right to unlock/);
+  assert.deepEqual(byName.unlock_pdf.needs, ["qpdf"]);
+  assert.equal(byName.unlock_pdf.makesFiles, true);
+  const entry = libraryEntry({ tool: "pdf/unlock", title: "Unlock PDF", by: "agent", via: "mcp", ok: true, summary: "Removed the password.", settings: settingsOf(input, { file: "a.pdf", password: "hunter2" }), inputs: [pdf("a.pdf")], outputs: [] });
+  assert.ok(!logLine(entry).includes("hunter2"));
 });
 
 test("library records round-trip through library.jsonl", () => {
