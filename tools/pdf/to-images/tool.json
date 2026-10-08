@@ -1,7 +1,9 @@
 {
   "name": "PDF to Images",
+  "task": "Save PDF pages as pictures",
+  "icon": "images",
   "short": "PDF to images",
-  "tagline": "Save every page, or just some, as PNG or JPG at screen or print resolution.",
+  "tagline": "Every page, or just some, as JPG or PNG.",
   "seoTitle": "PDF to JPG and PNG without uploading",
   "description": "Convert PDF pages to PNG or JPG images for free in your browser, at 72, 150 or 300 dpi. Choose the pages. Nothing is uploaded.",
   "section": "Convert",

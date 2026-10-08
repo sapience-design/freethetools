@@ -1,7 +1,9 @@
 {
   "name": "Compress PDF",
+  "task": "Make a PDF smaller",
+  "icon": "arrows-in",
   "short": "Compress",
-  "tagline": "Make PDFs smaller, or keep only the first page. Your files never leave this device.",
+  "tagline": "Shrink a PDF to fit an email or an upload limit.",
   "seoTitle": "Compress PDF without uploading",
   "description": "Make a PDF smaller for free, right in your browser. Files are never uploaded. Pick the quality, or keep only the first page. No sign-up.",
   "section": "Optimize",

@@ -1,7 +1,9 @@
 {
   "name": "Fill PDF Form",
+  "task": "Fill in a PDF form",
+  "icon": "pen-nib",
   "short": "Fill form",
-  "tagline": "Type into a PDF form's fields, tick the boxes, and save it, optionally locked.",
+  "tagline": "Type into the form's boxes and save a finished copy.",
   "seoTitle": "Fill in PDF forms online without uploading",
   "description": "Fill in PDF form fields for free in your browser: text, checkboxes, dropdowns and choices. Lock the answers if you like. Nothing is uploaded.",
   "section": "Edit",

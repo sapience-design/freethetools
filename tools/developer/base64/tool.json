@@ -1,7 +1,9 @@
 {
   "name": "Base64",
+  "task": "Encode or decode Base64",
+  "icon": "binary",
   "short": "Base64",
-  "tagline": "Encode and decode Base64 for text and files, standard or URL-safe.",
+  "tagline": "Turn text or files into Base64, and back.",
   "seoTitle": "Base64 encode and decode online",
   "description": "Encode or decode Base64 for text and files, standard or URL-safe, with full UTF-8 support. Free, and nothing leaves your browser.",
   "section": "Encode",

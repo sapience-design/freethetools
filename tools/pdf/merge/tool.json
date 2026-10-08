@@ -1,7 +1,9 @@
 {
   "name": "Merge PDFs",
+  "task": "Combine PDFs into one",
+  "icon": "arrows-merge",
   "short": "Merge",
-  "tagline": "Combine several PDFs into one, in the order you choose. Nothing is uploaded.",
+  "tagline": "Put several PDFs into one file, in the order you choose.",
   "seoTitle": "Merge PDF files without uploading",
   "description": "Combine PDF files into one, free and right in your browser. Put them in any order. Nothing is uploaded, no sign-up, no watermark.",
   "section": "Organize",

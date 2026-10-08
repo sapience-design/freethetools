@@ -1,7 +1,9 @@
 {
   "name": "Rotate Pages",
+  "task": "Turn PDF pages the right way up",
+  "icon": "arrow-clockwise",
   "short": "Rotate",
-  "tagline": "Turn sideways or upside-down pages the right way up, all of them or just some.",
+  "tagline": "Fix sideways or upside-down pages, all or just some.",
   "seoTitle": "Rotate PDF pages without uploading",
   "description": "Rotate PDF pages 90 or 180 degrees for free in your browser. Turn every page or just the ones you pick. Nothing is uploaded.",
   "section": "Organize",

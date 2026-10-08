@@ -10,3 +10,5 @@ test-results/
 playwright-report/
 # Copied from node_modules at build time by scripts/sync-tool-assets.mjs
 public/**/vendor/
+# Claude Code worktrees
+.claude/worktrees/

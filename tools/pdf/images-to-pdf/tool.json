@@ -1,7 +1,9 @@
 {
   "name": "Images to PDF",
+  "task": "Turn photos into a PDF",
+  "icon": "file-arrow-down",
   "short": "Images to PDF",
-  "tagline": "Turn photos, scans and screenshots into one PDF, in the order you choose.",
+  "tagline": "Photos, scans and screenshots in one PDF, in your order.",
   "seoTitle": "JPG and PNG to PDF without uploading",
   "description": "Convert JPG, PNG and WebP images into a single PDF for free in your browser. Fit to the image or A4, reorder pages. Nothing is uploaded.",
   "section": "Convert",

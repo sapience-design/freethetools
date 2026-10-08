@@ -5,29 +5,31 @@ import { loadCatalogue } from "../../data/catalogue";
 import { artFor } from "../../data/art";
 import { ogPng } from "../../lib/og.js";
 
-type Card = { eyebrow: string; title: string; text: string; art: string };
+type Card = { eyebrow: string; title: string; text: string; art: string; group?: string };
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const { tools, aisles } = await loadCatalogue();
   const site: Card = {
     eyebrow: "A Sapience initiative",
-    title: "Free the Tools",
-    text: `${tools.length} everyday tools that run in your browser. Free and open source; your files never leave your device.`,
+    title: "Simple tools for your files.",
+    text: `${tools.length} free, open-source tools that work inside your browser.`,
     art: artFor("pdf/compress", "pdf", "ogsite"),
+    group: "",
   };
   return [
     { params: { slug: "site" }, props: site },
     ...aisles.filter((a) => a.live.length).map((a) => ({
       params: { slug: a.slug },
-      props: { eyebrow: `${a.live.length} free tools`, title: `${a.name} tools`, text: a.blurb, art: artFor("", a.slug, `og${a.slug}`) },
+      props: { eyebrow: `${a.live.length} free tools`, title: a.label, text: a.blurb, art: artFor(a.shot, a.slug, `og${a.slug}`), group: a.slug },
     })),
     ...tools.map((t) => ({
       params: { slug: t.id },
       props: {
-        eyebrow: `${t.category.name} · ${t.number}`,
-        title: t.data.name,
+        eyebrow: t.data.name,
+        title: t.data.task,
         text: t.data.tagline,
         art: artFor(t.id, t.category.slug, `og${t.id.replace(/\W/g, "")}`, t.data.name),
+        group: t.category.slug,
       },
     })),
   ];

@@ -1,7 +1,9 @@
 {
   "name": "Time Zone Converter",
+  "task": "Convert time zones",
+  "icon": "globe-hemisphere-west",
   "short": "Time zones",
-  "tagline": "Pick a time in one city and see it everywhere else, with working hours marked.",
+  "tagline": "Pick a time in one city and see it in others.",
   "seoTitle": "Time zone converter and meeting planner",
   "description": "Convert a time between cities and time zones, with daylight saving handled exactly and working hours marked. Free, no sign-up, works offline.",
   "section": "Time",

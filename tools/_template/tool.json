@@ -1,7 +1,9 @@
 {
   "name": "__NAME__",
+  "task": "TODO: the job in plain words, like Count words",
+  "icon": "sparkle",
   "short": "__SHORT__",
-  "tagline": "TODO: one sentence on what it does for the person using it. Say that nothing is uploaded.",
+  "tagline": "TODO: one sentence under the heading on what it does for the person using it.",
   "seoTitle": "TODO: the words people type into Google, e.g. Count words online",
   "description": "TODO: 50 to 160 characters for search results. Say what it does, that it is free, and that nothing is uploaded.",
   "section": "__SECTION__",

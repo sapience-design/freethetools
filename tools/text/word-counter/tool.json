@@ -1,7 +1,9 @@
 {
   "name": "Word Counter",
+  "task": "Count words",
+  "icon": "list-numbers",
   "short": "Word counter",
-  "tagline": "Words, characters, sentences and reading time, counted as you type.",
+  "tagline": "Words, characters, sentences and reading time, as you type.",
   "seoTitle": "Word and character counter",
   "description": "Count words, characters, sentences and paragraphs as you type, with reading and speaking time. Free, private: your text never leaves the page.",
   "section": "Count & Compare",

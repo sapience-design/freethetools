@@ -1,7 +1,9 @@
 {
   "name": "Password Generator",
+  "task": "Make a strong password",
+  "icon": "password",
   "short": "Passwords",
-  "tagline": "Strong random passwords and memorable passphrases, made on your device.",
+  "tagline": "Random passwords or easy-to-type passphrases.",
   "seoTitle": "Strong password and passphrase generator",
   "description": "Generate strong random passwords or memorable passphrases with a clear strength rating. Made on your device, never sent or stored anywhere.",
   "section": "Generate",

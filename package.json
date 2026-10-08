@@ -27,10 +27,11 @@
     "deploy": "npm run build && wrangler deploy"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
     "@fontsource-variable/schibsted-grotesk": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@fontsource/instrument-serif": "^5.3.0",
     "@jspawn/ghostscript-wasm": "0.0.2",
+    "@phosphor-icons/core": "^2.1.1",
     "astro": "^7.3.5",
     "diff": "9.0.0",
     "minisearch": "7.2.0",
@@ -41,6 +42,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
+    "@fontsource/bricolage-grotesque": "^5.3.0",
     "@playwright/test": "^1.63.0",
     "opentype.js": "^2.0.0",
     "sharp": "^0.35.5",

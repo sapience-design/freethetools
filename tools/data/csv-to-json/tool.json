@@ -1,7 +1,9 @@
 {
   "name": "CSV to JSON",
+  "task": "Turn a spreadsheet into JSON",
+  "icon": "arrows-left-right",
   "short": "CSV to JSON",
-  "tagline": "Turn spreadsheets into clean JSON, and JSON back into CSV. Nothing is uploaded.",
+  "tagline": "Paste rows from a spreadsheet and get clean JSON. It works the other way too.",
   "seoTitle": "CSV to JSON converter (and JSON to CSV)",
   "description": "Convert CSV to JSON or JSON to CSV for free in your browser. Detects commas and semicolons, handles quotes. Your data never leaves the page.",
   "section": "Convert",

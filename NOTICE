@@ -21,7 +21,8 @@ Ghostscript 9.56
   License: AGPL-3.0 · https://www.npmjs.com/package/@jspawn/ghostscript-wasm
 
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
-Instrument Serif (typeface) · Instrument · SIL Open Font License 1.1
+Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL Open Font License 1.1
+Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/
 
 pdf-lib 1.17 · Copyright (c) 2019 Andrew Dillon · MIT · https://pdf-lib.js.org/
 pdf.js 6.3 · Copyright Mozilla Foundation · Apache-2.0 · https://mozilla.github.io/pdf.js/

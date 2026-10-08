@@ -1,26 +1,32 @@
 ---
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
 ---
-<Base page="saved" title="Saved tools | Free the Tools" description="The tools you saved on this device." noindex>
-  <section class="opening">
-    <p class="eyebrow">Saved</p>
-    <h1 class="sm">Your tools.</h1>
-    <p>Kept in this browser only. Nothing is stored anywhere else.</p>
-  </section>
-  <ul class="saved-list" id="saved-list"></ul>
-  <div class="empty" id="saved-empty">
-    <p>Nothing saved yet. Press <b>Save</b> on any tool to keep it here.</p>
-    <p class="muted">To keep the whole site handy, bookmark it with <kbd>Ctrl</kbd> + <kbd>D</kbd> (<kbd>⌘</kbd> + <kbd>D</kbd> on a Mac), or install it as an app from your browser's address bar.</p>
-    <p><a class="btn" href="/">Browse all tools</a></p>
+<Base page="saved" title="Saved tools | Free the Tools" description="The tools you saved on this device. Kept in this browser only." noindex>
+  <div class="page narrow saved">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Saved tools</h1>
+      <p class="lede">Kept in this browser only. Nothing is stored anywhere else.</p>
+    </div>
+    <ul class="rows card" id="saved-list" hidden></ul>
+    <div class="empty card" id="saved-empty">
+      <p><b>Nothing saved yet.</b> Press <b>Save</b> on any tool to keep it here.</p>
+      <p>To keep the whole site handy, bookmark it with <kbd>Ctrl</kbd> + <kbd>D</kbd> (<kbd>⌘</kbd> + <kbd>D</kbd> on a Mac), or install it as an app from your browser's address bar.</p>
+      <p><a class="btn" href="/">Browse all tools</a></p>
+    </div>
   </div>
 </Base>
 
 <style>
-  .saved-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 760px; }
-  .saved-list :global(li) { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
-  .saved-list :global(a) { text-decoration: none; font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
-  .saved-list :global(button) { border: 0; background: none; font: inherit; font-size: var(--t-sm); color: var(--muted); cursor: pointer; }
-  .empty { display: grid; gap: 14px; max-width: 560px; color: var(--ink-soft); }
+  .saved { display: grid; gap: 24px; }
+  .intro { display: grid; gap: 12px; }
+  .saved-list :global(li), #saved-list :global(li) { display: flex; align-items: center; gap: 8px; padding-right: 10px; }
+  #saved-list :global(.row) { flex: 1; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; }
+  #saved-list :global(.row-sub) { grid-column: 1; }
+  #saved-list :global(.row-go) { grid-column: 2; }
+  .empty { display: grid; gap: 14px; padding: 18px; color: var(--soft); }
+  .empty b { color: var(--ink); }
 </style>
 
 <script>
@@ -34,19 +40,30 @@ import Base from "../layouts/Base.astro";
   function render(saved: Saved) {
     const ids = Object.keys(saved);
     empty.hidden = ids.length > 0;
+    list.hidden = ids.length === 0;
     list.replaceChildren(
       ...ids.map((id) => {
         const li = document.createElement("li");
         const a = document.createElement("a");
+        a.className = "row";
         a.href = saved[id].href;
-        a.textContent = saved[id].name;
-        const b = document.createElement("button");
-        b.type = "button";
-        b.dataset.save = id;
-        b.dataset.name = saved[id].name;
-        b.dataset.href = saved[id].href;
-        b.textContent = "Remove";
-        li.append(a, b);
+        const t = document.createElement("span");
+        t.className = "row-title";
+        const b = document.createElement("b");
+        b.textContent = saved[id].name;
+        t.append(b);
+        const sub = document.createElement("span");
+        sub.className = "row-sub";
+        sub.textContent = saved[id].href;
+        a.append(t, sub);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn quiet small";
+        btn.dataset.save = id;
+        btn.dataset.name = saved[id].name;
+        btn.dataset.href = saved[id].href;
+        btn.textContent = "Remove";
+        li.append(a, btn);
         return li;
       }),
     );

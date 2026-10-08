@@ -1,7 +1,9 @@
 {
   "name": "Resize Images",
+  "task": "Resize photos",
+  "icon": "arrows-out",
   "short": "Resize",
-  "tagline": "Exact sizes for one image or a whole batch, by pixels or percentage. Nothing is uploaded.",
+  "tagline": "Make photos an exact size for email, websites or forms.",
   "seoTitle": "Resize images online without uploading",
   "description": "Resize JPG, PNG and WebP images to exact pixels or a percentage, one or many at once. Free, private, and your photos never leave your device.",
   "section": "Optimize",
