@@ -50,6 +50,11 @@ const specs: [string, string][] = [
     ],
   }}
 >
+  <script>
+    // First on the page, so a result a tool draws as it loads is captured too (Share needs its Blob).
+    import { installBlobCapture } from "../../../agent/blob-capture.js";
+    installBlobCapture();
+  </script>
   <div class="product">
     <div class="work" id="tool-work" data-tool={tool.id}>
       <UI />
@@ -113,6 +118,16 @@ const specs: [string, string][] = [
   watchUse(tool, work);
   watchOutcomes(tool, work);
   startAgentPage(work, tool);
+
+  // A Share button next to every result link, where this browser can share the file.
+  import { watchShare, liveRegion } from "../../../lib/share";
+  const say = liveRegion("agent-status");
+  watchShare(work, {
+    say,
+    onShared: (link) => work.dispatchEvent(new CustomEvent("ftt:shared", { detail: { link } })),
+  });
+  const log = document.getElementById("agent-log");
+  if (log) watchShare(log, { say });
 
   function paint(on: boolean) {
     like.setAttribute("aria-pressed", String(on));

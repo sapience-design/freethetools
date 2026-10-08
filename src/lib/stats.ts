@@ -66,7 +66,7 @@ export function watchUse(tool: string, root: Element) {
 }
 
 /**
- * Count outcomes: a success when a result is downloaded or copied, an error when a tool reports it
+ * Count outcomes: a success when a result is downloaded, shared or copied, an error when a tool reports it
  * couldn't process something (the `ftt:outcome` event). Only the kind is sent, never what or why.
  */
 export function watchOutcomes(tool: string, root: Element) {
@@ -77,7 +77,8 @@ export function watchOutcomes(tool: string, root: Element) {
     const el = (e.target as Element).closest("a[download], button");
     if (!el) return;
     const isCopy = el.tagName === "BUTTON" && (el.id.endsWith("-copy") || el.textContent?.trim() === "Copy");
-    if (el.tagName === "A" || isCopy) report("success");
+    const isShare = el.tagName === "BUTTON" && el.classList.contains("share-btn"); // sharing a result counts as taking it
+    if (el.tagName === "A" || isCopy || isShare) report("success");
   });
   document.addEventListener("ftt:outcome", (e) => { if ((e as CustomEvent).detail?.ok === false) report("error"); });
 }
