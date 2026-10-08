@@ -92,13 +92,15 @@ export function startAgentPage(work, toolId) {
     current.links.set(a, { name: a.getAttribute("download") || "download", blob });
     jobOf.set(a, current);
   };
-  work.addEventListener("click", (e) => {
-    const a = e.target instanceof Element ? e.target.closest("a[download]") : null;
+  const recordFor = (a) => {
     const job = a ? jobOf.get(a) : undefined;
     if (!job || job.recorded) return;
     job.recorded = true;
     record(job);
-  }, true);
+  };
+  work.addEventListener("click", (e) => recordFor(e.target instanceof Element ? e.target.closest("a[download]") : null), true);
+  // Sharing a result takes it too (src/lib/share.ts): the Share button names its link.
+  work.addEventListener("ftt:shared", (e) => recordFor(e.detail?.link));
 
   async function record(job) {
     // Only the links still on the page: a tool that redraws replaces its old links.

@@ -23,5 +23,15 @@ export function installBlobCapture() {
   };
 }
 
+/** Blobs behind plainUrl links, so Share can find them (the CSP blocks fetch() of blob: URLs). */
+const plainBlobs = new Map();
+
 /** A blob: URL for this page's own links that is not recorded. */
-export const plainUrl = (blob) => rawCreate(blob);
+export const plainUrl = (blob) => {
+  const url = rawCreate(blob);
+  plainBlobs.set(url, blob);
+  return url;
+};
+
+/** The Blob behind a blob: URL made on this page, or undefined. */
+export const blobOfUrl = (url) => blobsByUrl.get(url) ?? plainBlobs.get(url);

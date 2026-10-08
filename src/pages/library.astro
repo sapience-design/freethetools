@@ -76,6 +76,7 @@ for (const [path, mod] of Object.entries(agents)) {
 
 <script>
   import { LOG_FILE, parseLog, type LibraryEntry } from "../agent/library.js";
+  import { shareButton } from "../lib/share";
   import { clearAll, deleteEntry, getBlob, getNote, keptKeys, listEntries, usage } from "../agent/db.js";
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -177,6 +178,8 @@ for (const [path, mod] of Object.entries(agents)) {
           b.setAttribute("aria-label", `Download ${f.name}`);
           b.addEventListener("click", () => save(f.name, f.type, () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i))));
           item.append(b);
+          const sh = shareButton(f.name, f.type || "application/octet-stream", () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i)), { say });
+          if (sh) item.append(sh);
         } else item.append(el("span", "file not kept", "muted"));
         ul.append(item);
       });
