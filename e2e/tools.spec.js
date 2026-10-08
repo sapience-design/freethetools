@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
+import { OPEN_PASSWORD, withPassword, withRestrictions } from "../tools/pdf/unlock/tests/helpers.js";
 
 const PDF = "tools/pdf/compress/tests/fixtures/sample.pdf";
 // Open downloads with pdf-lib: its output uses compressed object streams, so text searches miss.
@@ -83,6 +84,100 @@ test.describe("PDF tools", () => {
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.subarray(0, 5).toString()).toBe("%PDF-");
     expect(await pageCount(out)).toBe(2);
+  });
+
+  // Unlock PDF. The encrypted files are made by qpdf itself from the sample PDF (tools/pdf/unlock/tests/helpers.js).
+  const locked = { name: "locked.pdf", mimeType: "application/pdf", buffer: Buffer.from(withPassword) };
+  const limited = { name: "limited.pdf", mimeType: "application/pdf", buffer: Buffer.from(withRestrictions) };
+  const downloadLink = (page, name) => page.getByRole("link", { name: "Download " + name });
+
+  test("Unlock PDF opens a password-protected file with the right password", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", locked);
+    const field = page.getByLabel("Password for locked.pdf");
+    await expect(field).toHaveAttribute("type", "password");
+    await expect(field).toHaveAttribute("autocomplete", "off");
+    await expect(page.locator("#unlk-list")).toContainText("Needs a password to open");
+    await expect(downloadLink(page, "locked_unlocked.pdf")).toHaveCount(0);
+    await field.fill(OPEN_PASSWORD);
+    await page.getByRole("button", { name: "Unlock", exact: true }).click();
+    await expect(field).toHaveCount(0);
+    await expect(page.locator("#unlk-list")).toContainText("Removed the password");
+    // The password is not anywhere on the page once it has been used.
+    expect(await page.content()).not.toContain(OPEN_PASSWORD);
+    const out = await download(page, () => downloadLink(page, "locked_unlocked.pdf").click());
+    expect(await pageCount(out)).toBe(3); // pdf-lib refuses encrypted files, so this also proves the lock is gone
+    await expect(page.locator("#unlk-status")).toContainText("locked_unlocked.pdf is ready to download");
+  });
+
+  test("Unlock PDF explains a wrong password and lets you try again", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", locked);
+    const field = page.getByLabel("Password for locked.pdf");
+    await field.fill("not-the-password");
+    await page.getByRole("button", { name: "Unlock", exact: true }).click();
+    await expect(page.locator(".tool-error")).toContainText("That password doesn't open this PDF");
+    await expect(page.locator("#unlk-status")).toContainText("doesn't open");
+    await expect(field).toHaveValue(""); // cleared after use
+    await expect(field).toBeFocused();
+    await expect(field).toHaveAttribute("aria-invalid", "true");
+    expect(await page.content()).not.toContain("not-the-password");
+    await field.fill(OPEN_PASSWORD);
+    await field.press("Enter");
+    await expect(page.locator(".tool-error")).toHaveCount(0);
+    const out = await download(page, () => downloadLink(page, "locked_unlocked.pdf").click());
+    expect(await pageCount(out)).toBe(3);
+  });
+
+  test("Unlock PDF removes restrictions with no password and says which", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", limited);
+    await expect(page.locator("#unlk-list")).toContainText("Removed the restrictions on printing");
+    await expect(page.locator("#unlk-list")).toContainText("copying text and images");
+    await expect(page.locator('#unlk-list input[type="password"]')).toHaveCount(0);
+    const out = await download(page, () => downloadLink(page, "limited_unlocked.pdf").click());
+    expect(await pageCount(out)).toBe(3);
+  });
+
+  test("Unlock PDF says when a PDF isn't locked, and offers no download", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", PDF);
+    await expect(page.locator("#unlk-list")).toContainText("This PDF isn't locked");
+    await expect(page.getByRole("link", { name: /Download/ })).toHaveCount(0);
+  });
+
+  test("Unlock PDF reports a file that is not a PDF", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", { name: "notes.pdf", mimeType: "application/pdf", buffer: Buffer.from("this is not a pdf") });
+    await expect(page.locator(".tool-error")).toContainText("notes.pdf could not be read");
+  });
+
+  test("Unlock PDF handles several files, one row each", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.setInputFiles("#unlk-file", [locked, limited]);
+    await expect(page.locator("#unlk-list li")).toHaveCount(2);
+    await expect(downloadLink(page, "limited_unlocked.pdf")).toBeVisible();
+    await expect(page.getByLabel("Password for locked.pdf")).toBeFocused(); // the first file that needs one
+  });
+
+  test("Unlock PDF works from the keyboard alone", async ({ page }) => {
+    await page.goto("/pdf/unlock/");
+    await page.focus("#unlk-drop");
+    const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.keyboard.press("Enter")]);
+    await chooser.setFiles(locked);
+    const field = page.getByLabel("Password for locked.pdf");
+    await expect(field).toBeFocused();
+    await page.keyboard.type("wrong-one");
+    await page.keyboard.press("Enter");
+    await expect(page.locator(".tool-error")).toBeVisible();
+    await expect(field).toBeFocused();
+    await page.keyboard.type(OPEN_PASSWORD);
+    await page.keyboard.press("Tab"); // to the Unlock button
+    await expect(page.getByRole("button", { name: "Unlock", exact: true })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(downloadLink(page, "locked_unlocked.pdf")).toBeFocused();
+    const out = await download(page, () => page.keyboard.press("Enter"));
+    expect(await pageCount(out)).toBe(3);
   });
 });
 
