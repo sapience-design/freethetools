@@ -10,7 +10,7 @@
  * @typedef {{ name: string, type: string, bytes: Uint8Array }} FileIn a file handed to a tool
  * @typedef {{ name: string, type: string, bytes: Uint8Array }} FileOut a file a tool made
  * @typedef {{ summary: string, data?: unknown, files?: FileOut[] }} Result
- * @typedef {{ ghostscript?: (args: string[], input: Uint8Array) => Promise<Uint8Array> }} Context
+ * @typedef {{ ghostscript?: (args: string[], input: Uint8Array) => Promise<Uint8Array>, qpdf?: (args: string[], input: Uint8Array) => Promise<{ code: number, lines: string[], output?: Uint8Array }> }} Context
  *   abilities a channel lends to tools that need an engine it loads in its own way
  * @typedef {{
  *   name: string,

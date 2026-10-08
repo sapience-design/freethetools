@@ -223,6 +223,7 @@ async function registerWithAgents(toolId, pageTitle, added) {
           inputs = resolved.inputs;
           const ctx = {};
           if (def.needs?.includes("ghostscript")) ctx.ghostscript = (await import("./gs.js")).ghostscript;
+          if (def.needs?.includes("qpdf")) ctx.qpdf = (await import("./qpdf.js")).qpdf;
           const result = await def.run(resolved.args, ctx);
           stopIfCancelled();
           const outFiles = (result.files ?? []).map((f) => ({ name: f.name, type: f.type, size: f.bytes.length, blob: new Blob([f.bytes], { type: f.type }) }));
