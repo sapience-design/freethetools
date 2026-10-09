@@ -519,6 +519,15 @@ test.describe("phone layout", () => {
       expect(overflow).toBeLessThanOrEqual(0);
     });
   }
+
+  test("a form field's text can't push a 320 px screen sideways", async ({ page }) => {
+    // The date field's text width depends on the date, time and fonts; on Linux it once came out
+    // 3 px too wide. A large wide font makes that certain.
+    await page.setViewportSize({ width: 320, height: 700 });
+    await page.goto("/everyday/time-zone-converter/");
+    await page.locator("#tz-when").evaluate((i) => { i.style.fontFamily = "Verdana, 'DejaVu Sans', sans-serif"; i.style.fontSize = "24px"; });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+  });
 });
 
 test.describe("theme, search, sorting, likes and stats", () => {
