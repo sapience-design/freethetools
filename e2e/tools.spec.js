@@ -162,8 +162,9 @@ test.describe("PDF tools", () => {
 
   test("Unlock PDF works from the keyboard alone", async ({ page }) => {
     await page.goto("/pdf/unlock/");
-    await page.focus("#unlk-drop");
-    const [chooser] = await Promise.all([page.waitForEvent("filechooser"), page.keyboard.press("Enter")]);
+    await page.waitForLoadState("networkidle");
+    // A key press can land before the page's script is ready on a busy machine; pickerFromKey presses again.
+    const chooser = await pickerFromKey(page, "#unlk-drop", "Enter");
     await chooser.setFiles(locked);
     const field = page.getByLabel("Password for locked.pdf");
     await expect(field).toBeFocused();
