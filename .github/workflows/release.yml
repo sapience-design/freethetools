@@ -2,8 +2,8 @@ name: Release
 
 # When a release pull request merges (`npm run release`), the version in package.json changes on
 # main. This tags that commit vX.Y.Z and publishes a GitHub Release with the version's notes from
-# CHANGELOG.md. A version that is already released is skipped, so other package.json changes do
-# nothing. Needs no secrets. See docs/how-to/release.md.
+# CHANGELOG.md. It acts only when the push changed the version, and never releases a version
+# twice, so other package.json changes do nothing. Needs no secrets. See docs/how-to/release.md.
 on:
   push:
     branches: [main]
@@ -34,7 +34,15 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.v.outputs.version }}
+          BEFORE: ${{ github.event.before }}
         run: |
+          # Only a push that changes the version is a release. (Without this, the first push after
+          # this workflow arrived released the old version on the wrong commit.)
+          was=$(gh api "repos/$GITHUB_REPOSITORY/contents/package.json?ref=$BEFORE" --jq .content | base64 -d | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).version')
+          if [ "$was" = "$VERSION" ]; then
+            echo "The version is still $VERSION; nothing to release."
+            exit 0
+          fi
           if gh release view "v$VERSION" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
             echo "v$VERSION is already released."
             exit 0
