@@ -1,0 +1,27 @@
+{
+  "name": "Markdown to HTML",
+  "task": "Turn Markdown into HTML",
+  "icon": "markdown-logo",
+  "short": "Markdown to HTML",
+  "tagline": "Clean HTML from Markdown, or Markdown from HTML, with a live preview.",
+  "seoTitle": "Markdown to HTML converter (and HTML to Markdown)",
+  "description": "Convert Markdown to HTML or HTML to Markdown for free in your browser, with a live preview. Copy or download the result. Nothing is uploaded.",
+  "section": "Transform",
+  "keywords": ["markdown", "html", "md to html", "html to markdown", "convert markdown", "markdown preview", "readme", "commonmark"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-06",
+  "offline": true,
+  "specs": {
+    "Engines": "marked 18 (Markdown to HTML), Turndown 7 (HTML to Markdown), DOMPurify 3 (cleaning)",
+    "Markdown flavour": "CommonMark plus GitHub tables, strikethrough and task lists",
+    "Safety": "The preview is always cleaned and never loads images from other sites"
+  },
+  "faq": [
+    { "q": "Is my text uploaded?", "a": "No. It's converted inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Is the HTML safe to publish?", "a": "With the clean option on, scripts, event handlers and javascript: links are removed. Turn it off only when you trust the Markdown and want the HTML exactly as written." },
+    { "q": "Which Markdown does it understand?", "a": "CommonMark, the standard, plus the GitHub extras: tables, strikethrough and task lists." },
+    { "q": "Why does HTML to Markdown change my layout?", "a": "Markdown has no colours, columns or classes. Headings, lists, links, images, code, quotes and simple tables carry over. Anything else is reduced to its text." },
+    { "q": "Why is an image missing from the preview?", "a": "The preview never loads images from other websites, so nothing leaves your device. It shows the image's description in brackets. The HTML you copy keeps the image." }
+  ]
+}

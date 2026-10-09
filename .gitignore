@@ -10,5 +10,8 @@ test-results/
 playwright-report/
 # Copied from node_modules at build time by scripts/sync-tool-assets.mjs
 public/**/vendor/
-# Claude Code worktrees
+# Claude Code worktrees (kept inside the repo, never committed)
 .claude/worktrees/
+
+# The freethetools npm package: build output (made by npm run build:package)
+packages/freethetools/dist/

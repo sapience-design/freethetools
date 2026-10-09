@@ -1,0 +1,252 @@
+---
+// File Converter: each file is recognised from its first bytes and converted to the first format it
+// can become at once; pick another format in its row to convert it again.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+---
+<section class="tool" id="fc-tool" aria-label="File Converter">
+  <Step n={1} title="Choose your files">
+    <DropZone prefix="fc" toolId="everyday/file-converter" category="everyday" name="File Converter" accept="*/*" multiple title="Drop your files here" hint="Images, audio, CSV, JSON, Markdown or HTML · one or many" button="Choose files" />
+  </Step>
+  <Step n={2} title="Pick a format and save">
+    <p class="hint">Each file is converted to the first format in its list. Pick another to convert it again.</p>
+    <ul class="file-list" id="fc-list" aria-live="polite"></ul>
+  </Step>
+</section>
+
+<style>
+  #fc-list :global(select) { width: auto; max-width: 100%; min-height: 44px; padding: 6px 36px 6px 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background-color: var(--bg); color: var(--ink); font: inherit; font-size: 15px; }
+  #fc-list :global(.finfo a:not(.btn)) { color: var(--ink); }
+</style>
+
+<script>
+  import {
+    detectType, outputsFor, relatedTools, renameTo, REQUEST_URL,
+    encodeBmp, encodeIco, icoSizes, svgRasterSize, encodeWav, convertData, convertDocument,
+    decodeText, delimiterName, estimateAudio, longAudioWarning,
+  } from "./core.js";
+  import { decode, encode, type Format } from "../../../src/lib/images";
+  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, imageThumb, compactDrop } from "../../../src/lib/files";
+
+  const list = document.getElementById("fc-list")!;
+  type Det = ReturnType<typeof detectType>;
+  type Out = ReturnType<typeof outputsFor>[number];
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = "", text = "") => {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text) e.textContent = text;
+    return e;
+  };
+
+  // ---- Images -----------------------------------------------------------------------------
+
+  /** Open any image the browser can draw. SVG is drawn at a sensible size; the rest use the shared decoder. */
+  async function toBitmap(bytes: Uint8Array, det: Det): Promise<ImageBitmap> {
+    const blob = new Blob([bytes], { type: det.mime });
+    const viaImage = async (width?: number, height?: number) => {
+      const url = URL.createObjectURL(blob);
+      try {
+        const img = new Image();
+        img.src = url;
+        await img.decode();
+        const w = width ?? img.naturalWidth, h = height ?? img.naturalHeight;
+        const c = document.createElement("canvas");
+        c.width = w; c.height = h;
+        c.getContext("2d")!.drawImage(img, 0, 0, w, h);
+        return await createImageBitmap(c);
+      } finally { URL.revokeObjectURL(url); }
+    };
+    try {
+      if (det.format === "svg") {
+        const size = svgRasterSize(new TextDecoder().decode(bytes));
+        return await viaImage(size.width, size.height);
+      }
+      try { return await decode(blob); } catch { return await viaImage(); }
+    } catch {
+      throw new Error(det.format === "avif"
+        ? "This browser can't open AVIF images. Try a recent Chrome, Edge or Firefox."
+        : `This browser can't open that ${det.label.replace(/ image$/, "")} image. Check that the file isn't damaged.`);
+    }
+  }
+
+  const flatCanvas = (bmp: ImageBitmap, w: number, h: number, background?: string) => {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const ctx = c.getContext("2d", { willReadFrequently: true })!;
+    if (background) { ctx.fillStyle = background; ctx.fillRect(0, 0, w, h); }
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bmp, 0, 0, w, h);
+    return c;
+  };
+
+  const canvasPng = (c: HTMLCanvasElement) => new Promise<Uint8Array>((resolve, reject) =>
+    c.toBlob(async (b) => (b ? resolve(new Uint8Array(await b.arrayBuffer())) : reject(new Error("Couldn't write the icon."))), "image/png"));
+
+  async function convertImage(bytes: Uint8Array, det: Det, out: Out): Promise<Blob> {
+    const bmp = await toBitmap(bytes, det);
+    try {
+      return await writeImage(bmp, out);
+    } finally { bmp.close(); } // free the decoded pixels now, not when the garbage collector gets to it
+  }
+
+  async function writeImage(bmp: ImageBitmap, out: Out): Promise<Blob> {
+    const { width: w, height: h } = bmp;
+    if (out.id === "bmp") {
+      const data = flatCanvas(bmp, w, h, "#fff").getContext("2d")!.getImageData(0, 0, w, h).data;
+      return new Blob([encodeBmp(w, h, data)], { type: out.mime });
+    }
+    if (out.id === "ico") {
+      const images = [];
+      for (const size of icoSizes(w, h)) {
+        // Fit the picture inside a square, centred, so it is never stretched.
+        const scale = Math.min(size / w, size / h);
+        const dw = Math.max(1, Math.round(w * scale)), dh = Math.max(1, Math.round(h * scale));
+        const c = document.createElement("canvas");
+        c.width = c.height = size;
+        const ctx = c.getContext("2d")!;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(bmp, Math.round((size - dw) / 2), Math.round((size - dh) / 2), dw, dh);
+        images.push({ size, png: await canvasPng(c) });
+      }
+      return new Blob([encodeIco(images)], { type: out.mime });
+    }
+    const blob = await encode(bmp, w, h, out.mime as Format, out.id === "png" ? undefined : 0.9);
+    if (blob.type !== out.mime) throw new Error(`This browser can't write ${out.label}. Choose another format.`);
+    return blob;
+  }
+
+  // ---- Audio ------------------------------------------------------------------------------
+
+  async function convertAudio(bytes: Uint8Array, out: Out): Promise<Blob> {
+    let buffer: AudioBuffer;
+    try {
+      // An offline context decodes without starting any sound; the result is at 44.1 kHz.
+      buffer = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(bytes.slice().buffer);
+    } catch {
+      throw new Error("This browser can't read that audio file. Try a WAV, MP3, Ogg or FLAC file, or another browser.");
+    }
+    const channels = Array.from({ length: buffer.numberOfChannels }, (_, i) => buffer.getChannelData(i));
+    return new Blob([encodeWav(channels, buffer.sampleRate)], { type: out.mime });
+  }
+
+  // ---- One row per file -------------------------------------------------------------------
+
+  /** Reads the whole file only now, when converting; the list keeps just its first 64 KB. */
+  async function convertFile(file: File, det: Det, out: Out): Promise<{ blob: Blob; notes: string }> {
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (det.kind === "image") return { blob: await convertImage(bytes, det, out), notes: "" };
+    if (det.kind === "audio") return { blob: await convertAudio(bytes, out), notes: "" };
+    const { text, encoding } = decodeText(bytes);
+    const enc = encoding === "windows-1252" ? "read as Windows-1252 (not UTF-8)" : encoding.startsWith("utf-16") ? "read as UTF-16" : "";
+    if (det.kind === "data") {
+      const r = convertData(text, det.format as "csv" | "tsv" | "json", out.id as "csv" | "tsv" | "json");
+      const notes = [r.delimiter && det.format === "csv" ? `${delimiterName(r.delimiter)} separated` : "", enc, ...r.warnings].filter(Boolean);
+      return { blob: new Blob([r.text], { type: out.mime }), notes: notes.join(" · ") };
+    }
+    const doc = convertDocument(text, det.format as "markdown" | "html" | "txt", out.id as "html" | "markdown" | "text", baseName(file.name));
+    return { blob: new Blob([doc], { type: out.mime }), notes: enc };
+  }
+
+  async function addRow(file: File, before: ChildNode | null) {
+    // Photos show a thumbnail; other files a plain row.
+    const li = fileRow({ name: file.name, meta: "Reading…", thumb: file.type.startsWith("image/") && file.type !== "image/svg+xml" ? imageThumb(file) : undefined });
+    const meta = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!, info = li.querySelector<HTMLElement>(".finfo")!;
+    list.insertBefore(li, before);
+
+    let head: Uint8Array, det: Det;
+    try {
+      head = new Uint8Array(await file.slice(0, 65536).arrayBuffer());
+      det = detectType(head, file.name);
+    } catch {
+      reportFailure();
+      meta.textContent = "The browser couldn't read this file. Check that it still exists, then add it again.";
+      return;
+    }
+    const size = fmtBytes(file.size);
+    const outputs = outputsFor(det);
+    const tools = relatedTools(det);
+    const extra = (parts: (string | HTMLElement)[]) => {
+      const p = el("span", "fmeta");
+      p.append(...parts);
+      info.append(p);
+    };
+    const link = (href: string, text: string) => {
+      const a = el("a", "", text);
+      a.href = href;
+      return a;
+    };
+
+    if (!outputs.length) {
+      if (det.kind === "pdf") {
+        meta.textContent = `${det.label} · ${size}. A PDF needs its own tool.`;
+      } else {
+        meta.textContent = `This is a ${det.label} · ${size}. This tool can't convert it yet.`;
+        const ask = link(REQUEST_URL, "Request this conversion");
+        ask.rel = "noopener";
+        extra(["Need it? ", ask, "."]);
+      }
+    }
+    if (tools.length) {
+      const parts: (string | HTMLElement)[] = [det.kind === "pdf" ? "Try " : "Also useful: "];
+      tools.forEach((t, i) => parts.push(...(i ? [" · "] : []), link(t.href, t.name)));
+      extra(parts);
+    }
+    if (!outputs.length) return;
+
+    const select = el("select");
+    select.setAttribute("aria-label", `Convert ${file.name} to`);
+    for (const o of outputs) select.add(new Option(`${o.label} · ${o.note}`, o.id));
+    act.append(select);
+    let download: HTMLAnchorElement | null = null;
+    const notes = el("span", "fmeta");
+    notes.hidden = true;
+    info.append(notes);
+    const setNotes = (t: string) => { notes.textContent = t; notes.hidden = !t; };
+    let proceed: HTMLButtonElement | null = null;
+
+    async function run(confirmed = false) {
+      const out = outputs.find((o) => o.id === select.value)!;
+      if (download) { URL.revokeObjectURL(download.href); download.remove(); download = null; }
+      proceed?.remove(); proceed = null;
+      setNotes("");
+      if (det.kind === "audio" && !confirmed) {
+        const warning = longAudioWarning(estimateAudio(head, file.size, det.format));
+        if (warning) {
+          meta.textContent = warning;
+          proceed = el("button", "btn quiet small", "Convert anyway");
+          proceed.type = "button";
+          proceed.setAttribute("aria-label", `Convert ${file.name} anyway`);
+          proceed.addEventListener("click", () => run(true));
+          act.append(proceed);
+          return;
+        }
+      }
+      meta.textContent = "Converting…";
+      select.disabled = true;
+      try {
+        const { blob, notes: note } = await convertFile(file, det, out);
+        const newName = renameTo(file.name, out.ext);
+        download = downloadLink(blob, newName, out.mime);
+        download.setAttribute("aria-label", `Download ${newName}`);
+        act.append(download);
+        meta.textContent = `${det.label} → ${out.label} · ${size} → ${fmtBytes(blob.size)}`;
+        setNotes(note);
+      } catch (e) {
+        reportFailure();
+        meta.textContent = (e as Error).message;
+      } finally { select.disabled = false; }
+    }
+    select.addEventListener("change", () => run());
+    await run(); // convert to the first choice straight away; change the format to redo it
+  }
+
+  async function addFiles(files: File[]) {
+    const before = list.firstChild; // new files go above the old ones, in the order dropped
+    for (const f of files) await addRow(f, before);
+  }
+
+  wireDrop("fc", (files) => { if (files.length) compactDrop("fc"); return addFiles(files); });
+  // A working example on first load.
+  addFiles([new File(["name,city,tools\nAda,London,3\nLinus,Helsinki,5\n"], "example.csv", { type: "text/csv" })]);
+</script>

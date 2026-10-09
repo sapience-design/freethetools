@@ -19,6 +19,7 @@ const d = tool.data;
 const uis = import.meta.glob<{ default: any }>("../../../../tools/*/*/Tool.astro", { eager: true });
 const UI = uis[`../../../../tools/${tool.id}/Tool.astro`]?.default;
 if (!UI) throw new Error(`tools/${tool.id}/Tool.astro is missing`);
+const hasAgent = `../../../../tools/${tool.id}/agent.js` in import.meta.glob("../../../../tools/*/*/agent.js");
 const url = new URL(tool.url, Astro.site).href;
 const specs: [string, string][] = [
   ["Runs", d.offline ? "In your browser. Nothing is uploaded." : "In your browser"],
@@ -54,6 +55,11 @@ const safe = files
     ],
   }}
 >
+  <script>
+    // First on the page, so a result a tool draws as it loads is captured too (Share needs its Blob).
+    import { installBlobCapture } from "../../../agent/blob-capture.js";
+    installBlobCapture();
+  </script>
   <div class="page tool-page" data-g={category}>
     <div class="tp-main">
       <a class="back" href={`/${category}/`}><Icon name="caret-left" />{tool.category.label}</a>
@@ -74,6 +80,14 @@ const safe = files
       <div class="work" id="tool-work" data-tool={tool.id}>
         <UI />
       </div>
+      {hasAgent && (
+        <section class="agent-activity" id="agent-activity" aria-labelledby="agent-activity-h" hidden>
+          <h2 class="h3" id="agent-activity-h">AI agent activity</h2>
+          <p>An AI agent used this tool on this page. The files stay on this device and are saved in your <a href="/library/">library</a>.</p>
+          <ul class="agent-log" id="agent-log"></ul>
+        </section>
+      )}
+      {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
     </div>
 
     <aside class="tp-side" aria-label="Help and details">
@@ -109,9 +123,21 @@ const safe = files
   const label = document.getElementById("tool-like-label")!;
   const usage = document.getElementById("tool-usage")!;
 
+  import { startAgentPage } from "../../../agent/page.js";
   trackView(tool);
   watchUse(tool, work);
   watchOutcomes(tool, work);
+  startAgentPage(work, tool);
+
+  // A Share button next to every result link, where this browser can share the file.
+  import { watchShare, liveRegion } from "../../../lib/share";
+  const say = liveRegion("agent-status");
+  watchShare(work, {
+    say,
+    onShared: (link) => work.dispatchEvent(new CustomEvent("ftt:shared", { detail: { link } })),
+  });
+  const log = document.getElementById("agent-log");
+  if (log) watchShare(log, { say });
 
   function paint(on: boolean) {
     like.setAttribute("aria-pressed", String(on));
@@ -163,5 +189,18 @@ const safe = files
   @media (max-width: 960px) {
     .tool-page { grid-template-columns: minmax(0, 1fr); }
     .tp-side { position: static; }
+  }
+  .agent-activity { display: grid; gap: 12px; padding: clamp(16px, 2vw, 22px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); box-shadow: var(--shadow); }
+  .agent-activity[hidden] { display: none; }
+  .agent-activity > p { color: var(--soft); }
+  .agent-activity a:not(.btn) { color: var(--ink); }
+  .agent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .agent-log :global(.agent-call) { display: grid; gap: 6px; padding: 12px 14px; border: 1.5px solid var(--hair); border-radius: var(--r); font-size: 15px; }
+  .agent-log :global(.agent-call p) { margin: 0; }
+  .agent-log :global(.agent-head) { font-weight: 650; }
+  .agent-log :global(.agent-call.bad .agent-head + p) { color: var(--bad); }
+  .agent-log :global(.agent-data) { color: var(--soft); overflow-wrap: anywhere; }
+  .agent-log :global(.agent-files) { display: flex; flex-wrap: wrap; gap: 8px; }
+  .agent-log :global(.agent-files .btn) { min-height: 44px; padding: 0 16px; font-size: 15px; border-radius: var(--r); }
   }
 </style>

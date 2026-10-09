@@ -7,7 +7,7 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Type or paste your text">
     <label class="field"><span id="b64-in-label">Text</span><textarea id="b64-in" rows="5" spellcheck="false">Free the Tools 👍</textarea></label>
     <div class="actions">
-      <button class="btn quiet small" id="b64-pick" type="button"><Icon name="folder-open" />Encode a file instead</button><input type="file" id="b64-file" hidden>
+      <button class="btn quiet small" id="b64-open" type="button"><Icon name="folder-open" />Encode a file instead</button><input type="file" id="b64-file" hidden>
     </div>
   </Step>
   <Step n={2} title="Encode or decode?">
@@ -60,7 +60,7 @@ import Icon from "../../../src/components/Icon.astro";
   }
   input.addEventListener("input", update);
   document.querySelectorAll('input[name="b64-mode"], #b64-url').forEach((el) => el.addEventListener("change", update));
-  $("b64-pick").addEventListener("click", () => $("b64-file").click());
+  $("b64-open").addEventListener("click", () => $("b64-file").click());
   ($("b64-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     const b64 = bytesToBase64(new Uint8Array(await f.arrayBuffer()), url.checked);

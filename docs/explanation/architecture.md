@@ -33,9 +33,35 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 | `/<group>/` | `src/pages/[category]/index.astro`: every tool and wanted tool in the group |
 | `/<group>/<tool>/` | `src/pages/[category]/[tool]/index.astro` wrapping the tool's `Tool.astro`, with Like, usage count and FAQ |
 | `/saved/` | Tools the visitor saved, from their own `localStorage` |
+| `/library/` | `src/pages/library.astro`: every job done in this browser, by the visitor or an AI agent, with the results to download again. It can also open the package's library folder (Chrome and Edge). |
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
 | `/api/tools.json`, `/llms.txt`, `/sitemap.xml`, `/robots.txt` | Endpoints in `src/pages/` |
+
+## Tools for AI agents
+
+AI assistants can use the tools instead of installing software to do a file job. Each tool folder can have an `agent.js`: a name, a description, an input schema and a `run` function built on the tool's `core.js`. The contract is in `src/agent/contract.js`, and the reasoning in [ADR 0008](../adr/0008-tools-for-ai-agents.md).
+
+The same definitions serve two channels. Neither sends files anywhere.
+
+| Channel | Code | How it works |
+|---|---|---|
+| WebMCP on tool pages | `src/agent/page.js` | When the browser supports WebMCP (Chrome and Edge origin trials), the page registers its tools. An AI agent in the browser calls them on files the person added to the page, or on small files passed in the call. Each call shows in an "AI agent activity" panel on the page. |
+| MCP server in the npm package `freethetools` | `packages/freethetools/` | `npx freethetools mcp` runs the same definitions in Node on the person's computer, for Claude Code, Claude Desktop, Cursor and other MCP clients. Files are paths on disk. Ghostscript runs as WebAssembly, as on the site. |
+
+There is no hosted MCP server, because the agent would have to upload the files.
+
+## The library
+
+Every job is recorded on the device that did it, so a person can see what they or an agent did and download the results again. The library is on by default and can be cleared at any time.
+
+- **On the site**, records and result files live in the browser's IndexedDB (`src/agent/db.js`). A person's own jobs are captured from the download links a tool creates; agent jobs are recorded when they run. Nothing is sent.
+- **In the package**, records go to `library.jsonl` in a `freethetools` folder in the person's home folder, with result files beside it.
+- Both use one record format, `src/agent/library.js`, so `/library/` can open the package's folder too.
+
+## Sharing results
+
+Next to every result to download, on tool pages, in the agent activity panel and in the library, a Share button opens the device's own share menu through the Web Share API (`src/lib/share.ts`). The file goes only where the person sends it. The button appears only where the browser can share that kind of file. A completed share counts as a success in the anonymous totals and records the job in the library, like a download.
 
 ## Search and sorting
 
@@ -57,7 +83,7 @@ Design round 4 ("v4"), from the Claude Design project *Free the Tools v4*. The d
 Layout:
 
 - One 1280 px container (`--content`) shared by the top bar, the page and the footer, with fluid gutters; running text stops at 65 characters (`--measure`). Tool pages put a 340 px side column beside the tool, stacking below 960 px.
-- A sticky top bar: the mark and name, About, and Saved (on the home page) or All tools (elsewhere).
+- A sticky top bar: the mark and name, About, Library, and Saved (on the home page) or All tools (elsewhere). On phones the button shows its icon only.
 - Home: one headline, a search box ("What do you need to do?"), group filter chips, a sort control, "Most people come for", then one card per group with its top three tools.
 - Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
 - Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.

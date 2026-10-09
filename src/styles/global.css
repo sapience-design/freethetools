@@ -310,6 +310,7 @@ fieldset.field legend { padding: 0; margin-bottom: 6px; }
 .kv > li, .kv > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 12px 14px; background: var(--bg); }
 .kv > li + li, .kv > div + div { border-top: 1px solid var(--hair); }
 .kv .k { color: var(--soft); }
+.kv .k, .kv .v { min-width: 0; overflow-wrap: anywhere; }
 .kv .v { font-family: var(--mono); overflow-wrap: anywhere; }
 
 /* Product shots at night: the backdrop keeps its pastel, a step dimmer, and the glow softens. */

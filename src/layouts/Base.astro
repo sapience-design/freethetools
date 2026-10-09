@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
 import { loadCatalogue, REPO, REQUEST_URL } from "../data/catalogue";
+import originTrials from "../data/origin-trials.json";
 
 interface Props {
   title: string;
@@ -10,7 +11,7 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "licenses" | "saved" | "stats";
+  page?: "home" | "about" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -50,6 +51,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <meta name="theme-color" content="#15130f" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon-192.png">
+  {originTrials.map((token) => <meta http-equiv="origin-trial" content={token}>)}
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
@@ -58,12 +60,13 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <a class="skip" href="#main">Skip to content</a>
   <header class="bar">
     <div class="bar-in">
-    <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span>Free the Tools</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
     <nav class="bar-nav" aria-label="Site">
       <a class="navlink" href="/about/" aria-current={page === "about" ? "page" : undefined}>About</a>
+      <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
       {page === "home"
-        ? <a class="bar-btn" href="/saved/"><Icon name="bookmark-simple" /><span>Saved</span><span class="count-pill" data-saved-count hidden>0</span></a>
-        : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span>All tools</span></a>}
+        ? <a class="bar-btn" href="/saved/"><Icon name="bookmark-simple" /><span class="bar-label">Saved</span><span class="count-pill" data-saved-count hidden>0</span></a>
+        : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
     </nav>
     </div>
   </header>
@@ -92,6 +95,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
         <ul>
           <li><a href="/about/">About</a></li>
           <li><a href="/saved/">Saved tools</a></li>
+          <li><a href="/library/">Library</a></li>
           <li><a href="/stats/">Usage stats</a></li>
           <li><a href={REQUEST_URL}>Suggest a tool</a></li>
           <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
@@ -135,6 +139,15 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       applyTheme(choice);
     }));
 
+    // Pills and option cards hide their radio inputs and show the label. When Tab reaches a hidden
+    // input, bring its label into view: the browser would scroll to the input's own box instead.
+    document.addEventListener("focusin", (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement) || (t.type !== "radio" && t.type !== "checkbox")) return;
+      if (getComputedStyle(t).opacity !== "0") return;
+      t.labels?.[0]?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+
     // "/" jumps to search from anywhere.
     document.addEventListener("keydown", (e) => {
       const t = e.target as HTMLElement;
@@ -174,10 +187,10 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     position: sticky; top: 0; z-index: 30;
     padding: 10px var(--gutter); background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--hair);
   }
-  .bar-in { display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: var(--content); margin: 0 auto; }
+  .bar-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; max-width: var(--content); margin: 0 auto; }
   .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--display); font-weight: 700; font-size: 17px; text-decoration: none; white-space: nowrap; }
   .logo { display: grid; place-items: center; width: 32px; height: 32px; border: 1.5px solid #1d1b16; border-radius: 10px; background: #ffe27a; color: #1d1b16; box-shadow: 0 3px 0 #1d1b16; font-size: 18px; }
-  .bar-nav { display: flex; align-items: center; gap: 6px; }
+  .bar-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
   .navlink { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: var(--r); font-weight: 650; text-decoration: none; white-space: nowrap; }
   .navlink:hover, .navlink[aria-current="page"] { background: var(--hover); }
   .bar-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); font-weight: 650; text-decoration: none; white-space: nowrap; }
@@ -209,14 +222,21 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     .foot-in { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .colophon { grid-column: 1 / -1; }
   }
+  /* Phones: the two buttons show their icon only (the words stay for screen readers), so About,
+     Library, the button and the name all fit; on the narrowest screens the name hides the same way. */
+  @media (max-width: 560px) {
+    .bar-btn { width: 48px; padding: 0; justify-content: center; gap: 0; }
+    .bar-btn .bar-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .bar-btn .count-pill { position: absolute; transform: translate(14px, -14px); }
+    .bar-btn { position: relative; }
+  }
+  @media (max-width: 350px) {
+    .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  }
   @media (max-width: 520px) {
     .bar-in { gap: 6px; }
     .brand { gap: 8px; font-size: 16px; }
     .navlink { padding: 0 8px; }
-    .bar-btn { padding: 0 10px; gap: 6px; }
     .foot-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (max-width: 360px) {
-    .bar-btn :global(.ic) { display: none; }
   }
 </style>

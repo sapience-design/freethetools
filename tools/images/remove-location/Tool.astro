@@ -8,7 +8,8 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Choose your photos">
     <DropZone prefix="rml" toolId="images/remove-location" category="images" name="Remove Photo Location" accept="image/jpeg,image/png,image/webp" multiple title="Drop your photos here" hint="JPG, PNG or WebP · several at once is fine" button="Choose photos" />
     <ul class="file-list" id="rml-picked" hidden></ul>
-    <p class="hint err" id="rml-skip" role="status" hidden></p>
+    <p class="hint err" id="rml-skip" hidden></p>
+    <p class="sr-only" id="rml-skip-live" role="status"></p>
   </Step>
 
   <Step n={2} title="Remove the location" state="later">
@@ -83,6 +84,7 @@ import Icon from "../../../src/components/Icon.astro";
     const skip = document.getElementById("rml-skip")!;
     skip.hidden = !skipped;
     skip.textContent = skipped === 1 ? "One file isn't a JPG, PNG or WebP photo, so we left it out." : `${skipped} files aren't JPG, PNG or WebP photos, so we left them out.`;
+    document.getElementById("rml-skip-live")!.textContent = skipped ? skip.textContent : "";
     pending.push(...ok);
     renderPicked();
   });

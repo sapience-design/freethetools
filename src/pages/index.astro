@@ -34,6 +34,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
         <li><Icon name="check-circle" />No sign-up</li>
         <li><Icon name="check-circle" />Free and open source</li>
       </ul>
+      <p class="sr-only" id="find-status" role="status"></p>
       <form class="find" role="search" action="/" method="get">
         <label class="find-box">
           <Icon name="magnifying-glass" />
@@ -54,12 +55,13 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
           {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
         </div>
       </fieldset>
+      <p class="sr-only" id="sort-status" role="status"></p>
       <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
     </section>
 
     <section class="results" id="results" aria-labelledby="results-title" hidden>
       <div class="results-head">
-        <h2 class="h2" id="results-title" aria-live="polite"></h2>
+        <h2 class="h2" id="results-title"></h2>
         <span class="count-pill" id="results-count"></span>
         <a class="results-group" id="results-group" href="/" hidden><span></span><Icon name="arrow-right" /></a>
       </div>
@@ -112,8 +114,8 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 </Base>
 
 <style>
-  .home { display: grid; gap: clamp(32px, 4vw, 44px); }
-  .hero { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 20px 0 4px; }
+  .home { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(32px, 4vw, 44px); }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; justify-items: center; text-align: center; padding: 20px 0 4px; }
   .hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 1.2rem + 2.6vw, 42px); line-height: 1.08; letter-spacing: -0.02em; max-width: 18ch; }
   .hero mark { background: linear-gradient(transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%); color: inherit; }
   /* At night the highlighter is a solid block, so its words stay readable on the dark page. */
@@ -223,6 +225,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   const rowFor = (u: string) => document.querySelector<HTMLElement>(`[data-sortable] > li[data-u="${CSS.escape(u)}"]`);
 
   let cat = "all";
+  // Write to a live region only when the words change, so a screen reader isn't interrupted by the
+  // same message on every keystroke. The arrow-key hint is spoken once per search.
+  const findStatus = $("find-status");
+  const say = (text: string) => { if (findStatus.textContent !== text) findStatus.textContent = text; };
+  let hinted = false;
   let stats: Record<string, ToolStats> | null = null;
   let statsTried = false; // the stats request has answered (or failed)
   const sortBy = () => radios.find((r) => r.checked)?.value ?? "az";
@@ -276,7 +283,8 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     const show = !!q || cat !== "all";
     results.hidden = !show;
     def.hidden = show;
-    if (!show) return;
+    if (!q) hinted = false;
+    if (!show) { say(""); return; }
     const cname = cat !== "all" ? chips.find((c) => c.dataset.cat === cat)?.dataset.label ?? "" : "";
     let urls: string[];
     if (q) urls = find(q).filter((h) => cat === "all" || h.g === cat).map((h) => h.u);
@@ -291,6 +299,10 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     count.hidden = !rows.length;
     groupLink.hidden = cat === "all";
     if (cat !== "all") { groupLink.href = `/${cat}/`; groupLink.querySelector("span")!.textContent = `Open the ${cname} page`; }
+    const n = rows.length === 1 ? "1 tool" : `${rows.length} tools`;
+    if (!q) say(`Showing ${cname}: ${n}.`);
+    else if (!rows.length) say("No tool matches yet. Press Enter to ask for it.");
+    else { say(hinted ? `${n}.` : `${n}. Use the up and down arrow keys, then Enter.`); hinted = true; }
   }
 
   input.addEventListener("input", render);
@@ -307,6 +319,10 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     const next = (at + (e.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
     links.forEach((l, i) => l.classList.toggle("sel", i === next));
     links[next].scrollIntoView({ block: "nearest" });
+    // The highlight is visual only, so say which result is selected.
+    const li = links[next].closest<HTMLElement>("li")!;
+    const group = chips.find((c) => c.dataset.cat === li.dataset.g)?.dataset.label ?? "";
+    say(`${li.dataset.name}${group ? `, ${group}` : ""}, ${next + 1} of ${links.length}`);
   });
   input.form!.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -315,6 +331,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     location.href = first ? first.href : REQUEST;
   });
 
+  chips.forEach((c) => c.addEventListener("focus", () => c.scrollIntoView({ block: "nearest", inline: "nearest" })));
   chips.forEach((c) => c.addEventListener("click", () => {
     cat = c.dataset.cat!;
     chips.forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
@@ -329,7 +346,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   });
 
   const KEY = "ftt:sort";
-  radios.forEach((r) => r.addEventListener("change", () => { sort(); try { localStorage.setItem(KEY, r.value); } catch {} }));
+  radios.forEach((r) => r.addEventListener("change", () => {
+    sort();
+    $("sort-status").textContent = `Sorted by ${r.nextElementSibling!.textContent}.`;
+    try { localStorage.setItem(KEY, r.value); } catch {}
+  }));
   let saved = "used";
   try { saved = localStorage.getItem(KEY) || "used"; } catch {}
   (radios.find((r) => r.value === saved) ?? radios[0]).checked = true;

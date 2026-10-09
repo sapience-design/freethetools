@@ -13,7 +13,7 @@ interface Props {
   accept: string;
   multiple?: boolean;
   title: string;
-  hint: string;
+  hint?: string;
   button?: string;
 }
 const { prefix, toolId, category, name, accept, multiple = false, title, hint, button = "Choose file" } = Astro.props;
@@ -24,7 +24,7 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
   <span class="drop-card">
     <strong>{title}</strong>
     <span class="drop-btn"><Icon name="folder-open" />{button}</span>
-    <small>{hint}</small>
+    {hint && <small>{hint}</small>}
   </span>
   <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
 </div>

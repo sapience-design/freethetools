@@ -16,6 +16,17 @@ Open [freethetools.com](https://freethetools.com). That's it.
 
 Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt). Some tools also ship a command-line version in their `cli/` folder.
 
+## For AI agents
+
+AI assistants can use the tools instead of installing software such as Ghostscript, ImageMagick or a Python package. Files stay on the device either way. There are two channels, and both use one definition per tool ([ADR 0008](docs/adr/0008-tools-for-ai-agents.md)).
+
+| Channel | For | Setup |
+|---|---|---|
+| The `freethetools` npm package, an MCP server on your computer | Claude Code, Claude Desktop, Cursor and other MCP clients | `claude mcp add freethetools -- npx -y freethetools mcp` |
+| WebMCP on each tool page | AI agents inside a browser | None. Chrome and Edge support it in origin trials; other browsers ignore it. |
+
+The package reads files by path, saves results in a `freethetools` folder in your home folder, and records every job in `library.jsonl`. It also has a command line for agents without MCP: `npx -y freethetools run <tool> '<json>'`. Setup for each client is in [docs/how-to/use-with-ai.md](docs/how-to/use-with-ai.md). The package source is in [packages/freethetools](packages/freethetools). There is no hosted MCP server, because the files would have to be uploaded.
+
 ## Request a tool
 
 [Open a tool request](https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml). Vote for existing requests with a 👍. Requests a maintainer accepts are labelled `wanted` and show on the site as open requests.
@@ -40,6 +51,7 @@ npm run dev          # http://localhost:4321/text/word-counter/
 | `src/` | The site: layout, home and group pages, tool pages, API and search files, all built from the tool folders |
 | `astro.config.mjs` | The Content Security Policy that keeps every page on its own origin |
 | `worker/`, `migrations/` | The only server code: anonymous usage totals at `/api/stats/*`, stored in Cloudflare D1 |
+| `packages/freethetools/` | The npm package: an MCP server and command line that run the tools on your computer. Build it with `npm run build:package` |
 | `e2e/`, `tests/` | Browser tests and checks on the built site |
 | `docs/` | Tutorials, how-to guides, reference and design decisions |
 

@@ -2,7 +2,7 @@
 
 Contributors never deploy. **Merging to `main` is the deploy**, and only maintainers can merge (branch protection requires a code-owner review).
 
-The site is plain files served by **Cloudflare Workers static assets** (`wrangler.jsonc`). There is no Worker code, so nothing runs on a server. freethetools.com and www.freethetools.com are attached as custom domains.
+The site is plain files served by **Cloudflare Workers static assets** (`wrangler.jsonc`). The only server code is the small Worker in `worker/` that answers `/api/stats/*` (anonymous usage totals) and serves the 404 page; every other request is served straight from the static files. freethetools.com and www.freethetools.com are attached as custom domains.
 
 ## Automatic: Cloudflare Workers Builds
 

@@ -7,6 +7,8 @@ import { REPO } from "../data/catalogue";
 const parts = [
   { name: "Ghostscript 9.56", by: "Artifex Software", licence: "AGPL-3.0", use: "Shipped: PDF engine in Compress PDF", url: "https://www.ghostscript.com/" },
   { name: "@jspawn/ghostscript-wasm 0.0.2", by: "jspawn", licence: "AGPL-3.0", use: "Shipped: Ghostscript compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/ghostscript-wasm" },
+  { name: "qpdf 11.0.0", by: "Jay Berkenbilt and contributors", licence: "Apache-2.0", use: "Shipped: PDF engine in Unlock PDF", url: "https://qpdf.org/" },
+  { name: "@jspawn/qpdf-wasm 0.0.2", by: "jspawn", licence: "Apache-2.0", use: "Shipped: qpdf compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/qpdf-wasm" },
   { name: "Schibsted Grotesk", by: "Schibsted Media Group", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/schibsted/schibsted-grotesk" },
   { name: "Bricolage Grotesque", by: "The Bricolage Grotesque Project Authors", licence: "OFL-1.1", use: "Shipped: headings typeface", url: "https://github.com/ateliertriay/bricolage" },
   { name: "Phosphor Icons", by: "Phosphor Icons", licence: "MIT", use: "Shipped: icons, inlined at build time", url: "https://phosphoricons.com/" },
@@ -16,9 +18,13 @@ const parts = [
   { name: "Papa Parse 5.7", by: "Matt Holt and contributors", licence: "MIT", use: "Shipped: CSV to JSON", url: "https://www.papaparse.com/" },
   { name: "qrcode-generator 2", by: "Kazuhiko Arase", licence: "MIT", use: "Shipped: QR Code Maker", url: "https://github.com/kazuhikoarase/qrcode-generator" },
   { name: "jsdiff 9", by: "Kevin Decker and contributors", licence: "BSD-3-Clause", use: "Shipped: Text Diff", url: "https://github.com/kpdecker/jsdiff" },
+  { name: "marked 18", by: "Christopher Jeffrey and contributors", licence: "MIT", use: "Shipped: Markdown to HTML, File Converter", url: "https://marked.js.org/" },
+  { name: "Turndown 7", by: "Dom Christie", licence: "MIT", use: "Shipped: Markdown to HTML, File Converter", url: "https://github.com/mixmark-io/turndown" },
+  { name: "DOMPurify 3", by: "Cure53 and contributors", licence: "MPL-2.0 or Apache-2.0", use: "Shipped: cleaning HTML in Markdown to HTML", url: "https://github.com/cure53/DOMPurify" },
   { name: "IBM Plex Mono", by: "IBM", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/IBM/plex" },
   { name: "Astro", by: "The Astro Technology Company", licence: "MIT", use: "Build: static site generator", url: "https://astro.build/" },
   { name: "opentype.js", by: "Frederik De Bleser and contributors", licence: "MIT", use: "Build: text in share images", url: "https://opentype.js.org/" },
+  { name: "jsdom", by: "Domenic Denicola and contributors", licence: "MIT", use: "Build: tests for Markdown to HTML", url: "https://github.com/jsdom/jsdom" },
   { name: "sharp (with libvips)", by: "Lovell Fuller; libvips contributors", licence: "Apache-2.0 (libvips: LGPL-3.0)", use: "Build: renders share images", url: "https://sharp.pixelplumbing.com/" },
   { name: "PyMuPDF", by: "Artifex Software", licence: "AGPL-3.0", use: "Command-line version of Compress PDF only", url: "https://pymupdf.readthedocs.io/" },
 ];

@@ -3,7 +3,7 @@
 // ("Image tools"); `mark` is a Phosphor icon name; `shot` is the
 // tool whose product shot heads the group page; the tint for each group is in src/styles/global.css.
 export const CATEGORIES = [
-  { slug: "pdf", name: "PDF", label: "PDF tools", title: "Free PDF tools", mark: "file-pdf", shot: "pdf/merge", blurb: "Compress, merge, split, fill and convert PDFs.", sub: "Pick what you want to do. Your files stay on this device.", sections: ["Optimize", "Organize", "Edit", "Convert"] },
+  { slug: "pdf", name: "PDF", label: "PDF tools", title: "Free PDF tools", mark: "file-pdf", shot: "pdf/merge", blurb: "Compress, merge, split, fill and convert PDFs.", sub: "Pick what you want to do. Your files stay on this device.", sections: ["Optimize", "Organize", "Edit", "Convert", "Security"] },
   { slug: "images", name: "Images", label: "Image tools", title: "Free image tools", mark: "mountains", shot: "images/resize", blurb: "Resize, compress and convert photos.", sub: "Pick what you want to do. Your photos stay on this device.", sections: ["Optimize", "Convert", "Privacy"] },
   { slug: "text", name: "Text", label: "Text tools", title: "Free text tools", mark: "text-aa", shot: "text/word-counter", blurb: "Count, compare and change text.", sub: "Pick what you want to do. Your text stays on this device.", sections: ["Count & Compare", "Transform"] },
   { slug: "data", name: "Data", label: "Data tools", title: "Free data tools", mark: "brackets-curly", shot: "data/json-formatter", blurb: "Convert and tidy CSV and JSON.", sub: "Pick what you want to do. Your data stays on this device.", sections: ["Convert", "Format"] },

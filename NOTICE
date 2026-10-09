@@ -20,6 +20,13 @@ Ghostscript 9.56
 @jspawn/ghostscript-wasm 0.0.2 (Ghostscript compiled to WebAssembly)
   License: AGPL-3.0 · https://www.npmjs.com/package/@jspawn/ghostscript-wasm
 
+qpdf 11.0.0
+  Copyright (c) 2005-2022 Jay Berkenbilt
+  License: Apache-2.0 · https://qpdf.org/
+
+@jspawn/qpdf-wasm 0.0.2 (qpdf compiled to WebAssembly)
+  License: Apache-2.0 · https://www.npmjs.com/package/@jspawn/qpdf-wasm
+
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
 Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL Open Font License 1.1
 Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/
@@ -30,6 +37,9 @@ MiniSearch 7 · Copyright (c) 2019 Luca Ongaro · MIT
 Papa Parse 5.7 · Copyright (c) 2015 Matthew Holt · MIT · https://www.papaparse.com/
 qrcode-generator 2 · Copyright (c) 2009 Kazuhiko Arase · MIT
 jsdiff 9 · Copyright (c) 2009-2015 Kevin Decker · BSD-3-Clause
+marked 18 · Copyright (c) 2018+ MarkedJS, (c) 2011-2018 Christopher Jeffrey · MIT · https://marked.js.org/
+Turndown 7 · Copyright (c) 2017+ Dom Christie · MIT · https://github.com/mixmark-io/turndown
+DOMPurify 3 · Copyright Cure53 and contributors · MPL-2.0 OR Apache-2.0 · https://github.com/cure53/DOMPurify
 
 IBM Plex Mono (typeface)
   Copyright IBM Corp.
@@ -41,6 +51,7 @@ Build and command-line tools (not shipped to the browser)
 
 Astro · License: MIT · https://astro.build/
 opentype.js (share images) · Frederik De Bleser and contributors · License: MIT
+jsdom (tests) · Domenic Denicola and contributors · License: MIT
 sharp (share images) · Lovell Fuller · License: Apache-2.0; bundled libvips · License: LGPL-3.0
 PyMuPDF (used by tools/pdf/compress/cli) · Artifex Software · License: AGPL-3.0
 Playwright (tests) · Microsoft · License: Apache-2.0

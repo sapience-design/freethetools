@@ -1,0 +1,183 @@
+---
+// Unlock PDF: choose PDFs and each is checked at once, one row per file. A PDF that only has print
+// or copy limits is unlocked straight away; one that needs a password to open gets a password row.
+// A password is read from its field, the field is cleared at once, and the password goes only to
+// qpdf: it is never written to the page, logged or stored.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+---
+<section class="tool" id="unlk-tool" aria-label="Unlock PDFs">
+  <Step n={1} title="Choose your PDFs">
+    <DropZone prefix="unlk" toolId="pdf/unlock" category="pdf" name="Unlock PDF" accept="application/pdf,.pdf" multiple title="Drop locked PDFs here" hint="Several at once is fine" button="Choose PDFs" />
+  </Step>
+  <Step n={2} title="Unlock and save" state="later">
+    <p class="res-wait" id="unlk-wait">Your unlocked PDFs will appear here. A PDF that needs a password to open asks for it here.</p>
+    <ul class="file-list" id="unlk-list"></ul>
+    <p class="sr-only" id="unlk-status" role="status" aria-live="polite"></p>
+  </Step>
+</section>
+
+<style>
+  .file-list :global(.fmsg:empty) { display: none; }
+  .file-list :global(.fmsg) { margin-top: 6px; }
+  .file-list :global(.pw) { display: grid; gap: 6px; margin-top: 8px; }
+  .file-list :global(.pw label) { font-size: 14px; font-weight: 650; color: var(--soft); overflow-wrap: anywhere; }
+  .file-list :global(.pw .pwrow) { display: flex; flex-wrap: wrap; gap: 8px; }
+  .file-list :global(.pw .input) { flex: 1 1 220px; width: auto; min-width: 0; min-height: 48px; padding: 8px 14px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--bg); color: var(--ink); font-size: 17px; }
+  .file-list :global(.pw .input:focus) { outline: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  .file-list :global(.pw .btn) { min-height: 48px; }
+</style>
+
+<script>
+  import { removedSentence, unlockPdf } from "./core.js";
+  import { qpdf } from "../../../src/agent/qpdf.js";
+  import { baseName, downloadLink, fmtBytes, showError, wireDrop, fileRow, pdfThumb, compactDrop } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+
+  const root = document.getElementById("unlk-tool")!;
+  const list = document.getElementById("unlk-list")!;
+  const status = document.getElementById("unlk-status")!;
+  let counter = 0;
+
+  /** Say something to screen readers, even if it is the same words as last time. */
+  function announce(text: string) {
+    status.textContent = "";
+    setTimeout(() => (status.textContent = text), 50);
+  }
+
+  const el = <K extends keyof HTMLElementTagNameMap>(tag: K, className = "", text = "") => {
+    const e = document.createElement(tag);
+    if (className) e.className = className;
+    if (text) e.textContent = text;
+    return e;
+  };
+
+  type Row = { file: File; bytes: Uint8Array | null; meta: HTMLElement; act: HTMLElement; msg: HTMLElement; li: HTMLElement; form?: HTMLFormElement; input?: HTMLInputElement };
+
+  function addRow(file: File): Row {
+    const msg = el("div", "fmsg");
+    const li = fileRow({ name: file.name, meta: `Checking ${fmtBytes(file.size)}…`, thumb: pdfThumb(), extra: [msg] });
+    list.prepend(li);
+    return { file, bytes: null, meta: li.querySelector<HTMLElement>(".fmeta")!, act: li.querySelector<HTMLElement>(".fact")!, msg, li };
+  }
+
+  /** The password form for one row. The label names the file; the field is never given a value. */
+  function passwordForm(row: Row) {
+    const id = `unlk-pw-${++counter}`;
+    const form = el("form", "pw");
+    form.noValidate = true;
+    const label = el("label", "", `Password for ${row.file.name}`);
+    label.htmlFor = id;
+    const input = el("input", "input");
+    input.id = id;
+    input.type = "password";
+    input.autocomplete = "off";
+    input.setAttribute("autocapitalize", "off");
+    input.spellcheck = false;
+    const button = el("button", "btn", "Unlock");
+    button.type = "submit";
+    const line = el("div", "pwrow");
+    line.append(input, button);
+    form.append(label, line);
+    row.li.querySelector(".finfo")!.append(form);
+    row.form = form;
+    row.input = input;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const password = input.value;
+      input.value = ""; // never keep it: the field is cleared before anything else happens
+      if (!password) {
+        showTry(row, "Type the password first.");
+        return;
+      }
+      button.disabled = true;
+      row.meta.textContent = "Unlocking…";
+      row.msg.replaceChildren();
+      await attempt(row, password, true);
+      button.disabled = false;
+    });
+  }
+
+  /** A mistake the person can fix (not a failure of the tool), shown in the row and read out. */
+  function showTry(row: Row, text: string) {
+    const p = el("p", "tool-error", text);
+    p.id = `unlk-err-${++counter}`;
+    row.msg.replaceChildren(p);
+    row.input?.setAttribute("aria-describedby", p.id);
+    row.input?.setAttribute("aria-invalid", "true");
+    row.meta.textContent = "Needs a password to open.";
+    announce(`${row.file.name}: ${text}`);
+    row.input?.focus();
+  }
+
+  /** Try to unlock one file. `fromPerson` is true after they press Unlock, so focus follows them. */
+  async function attempt(row: Row, password: string, fromPerson = false) {
+    let r;
+    try {
+      r = await unlockPdf(qpdf, row.bytes!, password);
+    } catch {
+      row.form?.remove();
+      row.meta.textContent = "";
+      showError(row.msg, "The unlocker could not load. Reload the page and try again.");
+      announce(`${row.file.name}: the unlocker could not load.`);
+      return;
+    }
+    password = ""; // drop our copy too
+    switch (r.status) {
+      case "unlocked": {
+        const out = `${baseName(row.file.name)}_unlocked.pdf`;
+        const sentence = removedSentence(r.lock, r.restrictions);
+        row.form?.remove();
+        row.msg.replaceChildren();
+        row.meta.textContent = `${sentence} ${fmtBytes(r.bytes.length)}.`;
+        const a = downloadLink(r.bytes, out, "application/pdf");
+        a.setAttribute("aria-label", `Download ${out}`);
+        row.act.replaceChildren(a);
+        row.bytes = null;
+        announce(`${row.file.name}: ${sentence} ${out} is ready to download.`);
+        if (fromPerson) a.focus();
+        break;
+      }
+      case "not-locked":
+        row.meta.textContent = "This PDF isn't locked. It has no password and no limits, so there is nothing to remove.";
+        row.bytes = null;
+        announce(`${row.file.name} isn't locked. Nothing to remove.`);
+        break;
+      case "needs-password":
+        row.meta.textContent = "Needs a password to open.";
+        if (!row.form) passwordForm(row);
+        announce(`${row.file.name} needs a password to open.`);
+        break;
+      case "wrong-password":
+        showTry(row, "That password doesn't open this PDF. Check it and try again.");
+        break;
+      default:
+        row.form?.remove();
+        row.meta.textContent = "";
+        row.bytes = null;
+        showError(row.msg, `${row.file.name} could not be read. It may be damaged, or it may not be a PDF.`);
+        announce(`${row.file.name} could not be read. It may be damaged, or not a PDF.`);
+    }
+  }
+
+  wireDrop("unlk", async (files) => {
+    if (!files.length) return;
+    document.getElementById("unlk-wait")?.remove();
+    compactDrop("unlk");
+    stepTo(root, 2);
+    let first: HTMLInputElement | undefined;
+    for (const file of files) {
+      const row = addRow(file);
+      try {
+        row.bytes = new Uint8Array(await file.arrayBuffer());
+      } catch {
+        row.meta.textContent = "";
+        showError(row.msg, `${file.name} could not be read.`);
+        continue;
+      }
+      await attempt(row, "");
+      first ??= row.input;
+    }
+    first?.focus(); // the first file that needs a password
+  });
+</script>

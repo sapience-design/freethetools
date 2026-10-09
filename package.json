@@ -15,9 +15,12 @@
     "sync": "node scripts/sync-tool-assets.mjs",
     "dev": "npm run sync && astro dev",
     "build": "npm run sync && astro build",
+    "build:package": "npm run build --prefix packages/freethetools",
     "preview": "wrangler dev --port 8788",
-    "test": "node --test \"tools/*/*/tests/*.test.js\"",
+    "test": "node --test \"tools/*/*/tests/*.test.js\" \"src/agent/*.test.js\"",
+    "test:package": "node scripts/test-package.mjs",
     "test:site": "node --test \"tests/*.test.js\"",
+    "setup:package": "npm ci --prefix packages/freethetools",
     "test:e2e": "playwright test",
     "check:live": "node scripts/live-check.mjs",
     "check": "npm run build && npm test && npm run test:site && npm run test:e2e",
@@ -31,22 +34,27 @@
     "@fontsource-variable/schibsted-grotesk": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
     "@jspawn/ghostscript-wasm": "0.0.2",
+    "@jspawn/qpdf-wasm": "0.0.2",
     "@phosphor-icons/core": "^2.1.1",
     "astro": "^7.3.5",
     "diff": "9.0.0",
+    "dompurify": "3.4.16",
+    "marked": "18.1.0",
     "minisearch": "7.2.0",
     "papaparse": "5.7.0",
     "pdf-lib": "1.17.1",
     "pdfjs-dist": "6.3.289",
-    "qrcode-generator": "2.0.4"
+    "qrcode-generator": "2.0.4",
+    "turndown": "7.2.4"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
     "@fontsource/bricolage-grotesque": "^5.3.0",
     "@playwright/test": "^1.63.0",
+    "jsdom": "29.1.1",
     "opentype.js": "^2.0.0",
     "sharp": "^0.35.5",
-    "wrangler": "^4.142.0"
+    "wrangler": "^4.146.0"
   },
   "allowScripts": {
     "esbuild": true

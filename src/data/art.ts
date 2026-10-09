@@ -125,6 +125,15 @@ const PIECES: Record<string, Draw> = {
     return box(x + 54, y, 12, 48, z + 30, c.accent) + stack(c, x, y, 6) + box(x + 16, y, 88, 48, 10, c.accent, z) +
       box(x + 18, y, 7, 7, 24, c.navy, z + 10) + box(x + 18, y, 46, 7, 6, c.navy, z + 34);
   },
+  "pdf/unlock": (c) => {
+    // A stack of pages with a padlock standing in front of it, its shackle lifted: open.
+    const [x, y] = at(0);
+    const [px, py, w, d, h] = [x + 60, y + 8, 44, 22, 34];
+    const lock = c.clay ? c.line : c.navy.left;
+    const shackle = `<path d="M-12 ${h} V${h + 18} A12 12 0 0 0 12 ${h + 18} V${h + 9}" fill="none" stroke="${lock}" stroke-width="6" stroke-linecap="round"/>`;
+    const keyhole = `<circle cx="0" cy="22" r="4.5" fill="${lock}"/><rect x="-1.8" y="10" width="3.6" height="12" fill="${lock}"/>`;
+    return stack(c, x - 30, y - 22, 5) + box(px, py, w, d, h, c.accent) + face(px, py, 0, shackle) + face(px, py, d / 2, keyhole);
+  },
   "merge-pdfs": (c) => { const [x, y] = at(0); return stack(c, x - 34, y - 20, 3, 80, 104, false) + stack(c, x + 34, y + 20, 3, 80, 104, false) + stack(c, x, y, 7, 88, 112); },
   "split-pdf": (c) => { const [x, y] = at(0); return stack(c, x - 44, y - 6, 4, 80, 104) + stack(c, x + 44, y + 6, 3, 80, 104, false); },
   "rotate-pages": (c) => { const [x, y] = at(0); return stack(c, x - 20, y, 3, 88, 112) + box(x + 44, y - 10, 112, 4, 88, c.paper, 0, c.line); },
@@ -141,6 +150,7 @@ const PIECES: Record<string, Draw> = {
   "word-counter": (c) => { const [x, y] = at(0); return pad(c, x, y) + box(x + 34, y - 20, 132, 8, 8, c.accent, 10) + box(x + 34 - 66 * 0.866 - 3, y - 20 - 66 * 0.5 - 2, 9, 8, 8, c.navy, 10); },
   "text-diff": (c) => { const [x, y] = at(0); return pad(c, x - 40, y - 16, 80, 104) + pad(c, x + 44, y + 18, 80, 104); },
   "case-converter": (c) => { const [x, y] = at(0); return cube(c, x - 40, y - 8, 54, c.paper, "A") + cube(c, x + 34, y + 20, 42, c.accent, "a", c.ink); },
+  "markdown-to-html": (c) => { const [x, y] = at(0); return pad(c, x - 38, y - 12, 82, 106) + cube(c, x + 46, y + 22, 52, c.accent, "&lt;/&gt;", c.ink); },
   // Data
   "csv-to-json": (c) => { const [x, y] = at(0); return box(x - 30, y - 10, 104, 128, 6, c.paper, 0, c.line) + top(x - 30, y - 10, 6, [-44, -26, -8, 10, 28].map((b) => `<rect x="-44" y="${b}" width="88" height="2" fill="${c.line}"/>`).join("") + `<rect x="-14" y="-52" width="2" height="104" fill="${c.line}"/>`) + cube(c, x + 60, y + 30, 48, c.accent, "{ }", c.ink); },
   "json-formatter": (c) => { const [x, y] = at(0); return cube(c, x - 36, y + 6, 58, c.paper, "{", c.ink) + cube(c, x + 40, y + 6, 58, c.accent, "}", c.ink); },
@@ -159,6 +169,7 @@ const PIECES: Record<string, Draw> = {
   // Everyday
   "unit-converter": (c) => { const [x, y] = at(0); return box(x, y, 176, 34, 8, c.accent) + top(x, y, 8, Array.from({ length: 17 }, (_, i) => `<rect x="${-84 + i * 10.5}" y="-17" width="2" height="${i % 4 ? 8 : 14}" fill="${c.ink}"/>`).join("")) + cube(c, x + 10, y - 44, 40, c.paper); },
   "time-zone-converter": (c) => { const [x, y] = at(0); return dial(c, x - 46, y - 10, 46, 30, -40) + dial(c, x + 46, y + 18, 46, 30, 70); },
+  "file-converter": (c) => { const [x, y] = at(0); return stack(c, x - 64, y - 14, 3, 64, 84, false) + box(x, y, 56, 70, 52, c.navy) + box(x, y, 62, 76, 8, c.accent, 52) + print(c, x + 62, y + 24, 62, 76); },
 };
 
 // Group fallbacks for tools that don't have their own composition yet.

@@ -6,7 +6,7 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Type or paste your text">
     <label class="field"><span>Text</span><textarea id="hg-in" rows="4" spellcheck="false">Free the Tools</textarea></label>
     <div class="actions">
-      <button class="btn quiet small" id="hg-pick" type="button"><Icon name="folder-open" />Hash a file instead</button><input type="file" id="hg-file" hidden>
+      <button class="btn quiet small" id="hg-open" type="button"><Icon name="folder-open" />Hash a file instead</button><input type="file" id="hg-file" hidden>
     </div>
     <p class="hint" id="hg-source" aria-live="polite">Hashing the text above</p>
   </Step>
@@ -51,7 +51,7 @@ import Icon from "../../../src/components/Icon.astro";
   }
   input.addEventListener("input", () => { $("hg-source").textContent = "Hashing the text above"; run(new TextEncoder().encode(input.value)); });
   check.addEventListener("input", verdict);
-  $("hg-pick").addEventListener("click", () => $("hg-file").click());
+  $("hg-open").addEventListener("click", () => $("hg-file").click());
   ($("hg-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     $("hg-source").textContent = `Hashing ${f.name} (${fmtBytes(f.size)})`;
