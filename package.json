@@ -17,6 +17,7 @@
     "build": "npm run sync && astro build",
     "build:package": "npm run build --prefix packages/freethetools",
     "preview": "wrangler dev --port 8788",
+    "preview:cloud": "npm run build && wrangler preview",
     "test": "node --test \"tools/*/*/tests/*.test.js\" \"src/agent/*.test.js\"",
     "test:package": "node scripts/test-package.mjs",
     "test:site": "node --test \"tests/*.test.js\"",
