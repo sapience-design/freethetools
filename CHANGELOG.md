@@ -2,10 +2,17 @@
 
 All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses
-[Semantic Versioning](https://semver.org/spec/v2.0.0.html): a new tool is a minor
-version, a fix is a patch, and a change to URLs, `tool.json` or the API is a major version.
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html): a new tool or feature is a
+minor version, a fix is a patch, and a change that breaks existing URLs or the API is a
+major version.
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-10-09
+
+The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
+
+**For contributors:** `tool.json` now requires `task`, the job the tool does in a few words ("Make a PDF smaller").
 
 ### Changed (design round 4)
 
@@ -113,5 +120,6 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sapience-design/freethetools/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sapience-design/freethetools/releases/tag/v1.0.0
