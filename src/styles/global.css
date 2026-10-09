@@ -35,7 +35,9 @@
 
   --shadow: 0 3px 0 var(--press);
   --r-sm: 9px; --r: 14px; --r-lg: 16px; --r-xl: 20px;
-  --gutter: clamp(16px, 3vw, 32px);
+  --gutter: clamp(16px, 4vw, 40px);
+  --content: 1280px;       /* header, page and footer share these edges */
+  --measure: 65ch;         /* longest line of running text */
 
   --display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -111,15 +113,15 @@ kbd { font-family: var(--mono); font-size: 12px; line-height: 16px; padding: 1px
 /* ---- Frame ---- */
 .skip { position: absolute; left: 12px; top: -60px; z-index: 50; padding: 10px 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 650; text-decoration: none; }
 .skip:focus { top: 12px; }
-.page { width: 100%; max-width: 1080px; margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--gutter) 72px; }
-.page.narrow { max-width: 760px; }
+.page { width: 100%; max-width: calc(var(--content) + 2 * var(--gutter)); margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--gutter) 72px; }
+.page.narrow { max-width: calc(760px + 2 * var(--gutter)); }
 main { display: block; min-height: 60vh; }
 
 /* Display type */
 .h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 1.4rem + 1.2vw, 34px); line-height: 1.1; letter-spacing: -0.02em; }
 .h2 { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.2; letter-spacing: -0.01em; }
 .h3 { font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1.25; }
-.lede { color: var(--soft); font-size: 17px; }
+.lede { color: var(--soft); font-size: 17px; max-width: var(--measure); }
 .label-caps { font-size: 14px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--soft); }
 
 /* Back link: "‹ All tools" */
@@ -214,7 +216,7 @@ details.qa p { padding-bottom: 14px; color: var(--soft); }
 .step > .hint, .tool .hint { font-size: 14px; color: var(--soft); }
 
 /* Choices: big radio cards ("Smallest / Good quality / For printing") */
-.choices { display: grid; gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
 .choices legend { padding: 0; margin-bottom: 10px; font-weight: 650; }
 .choices.cols { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); }
 .choice { position: relative; }

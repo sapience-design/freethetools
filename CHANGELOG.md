@@ -16,6 +16,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Share images, the favicon and the app icons are redrawn in the new style.
 - Search ranks a half-typed word ("compres") above a near miss in a task name ("Compare").
 - Dark mode keeps the light mode's feel: neutral charcoal, light outlines and shadows, and the same pastel group colours a step dimmer, with dark text on them.
+- Pages use a 1280 px container shared by the top bar, content and footer (was 1080 px, with the bar full width), and text stops at a 65-character line. The home page shows six popular tools and three group cards per row; tool pages have a fixed side column and show options side by side when there is room.
 - Each group card on the home page has one way in: a "See all 7 tools" pill in its header ("7 tools" when the card is narrow).
 - Every chosen file shows its details: photos get a thumbnail and their type and size in pixels; PDFs show their pages and paper size, and PDF to Images draws page 1. Compress PDF warns about a password-locked PDF before you run it. Remove Photo Location lists the location, date, camera and other hidden data it found as soon as a photo is added, or says the photo is already safe to share.
 

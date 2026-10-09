@@ -54,7 +54,7 @@ const secId = (name: string) => `sec-${name.replace(/\W+/g, "-")}`;
 
 <style>
   .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 3vw, 32px); }
-  .banner { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: clamp(16px, 2.5vw, 28px); align-items: center; padding: clamp(18px, 2.5vw, 28px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--tint); box-shadow: var(--shadow); }
+  .banner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 440px); gap: clamp(16px, 2.5vw, 28px); align-items: center; padding: clamp(18px, 2.5vw, 28px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--tint); box-shadow: var(--shadow); }
   .banner-text { display: grid; gap: 14px; justify-items: start; }
   .banner-text p { color: var(--soft); }
   .banner-shot { display: block; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--edge); }

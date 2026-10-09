@@ -133,8 +133,8 @@ const safe = files
 </script>
 
 <style>
-  .tool-page { display: flex; flex-wrap: wrap; gap: clamp(22px, 3vw, 32px); align-items: flex-start; }
-  .tp-main { flex: 3 1 480px; min-width: 0; display: grid; gap: 22px; }
+  .tool-page { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px clamp(28px, 3vw, 48px); align-items: start; }
+  .tp-main { min-width: 0; display: grid; gap: 22px; }
   .tp-head { display: grid; gap: 10px; justify-items: start; }
   .tp-head .h1 { margin-top: 2px; }
   .tp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
@@ -151,7 +151,7 @@ const safe = files
   .like[aria-pressed="true"] :global(.ic) { color: var(--bad); }
   .usage { font-size: 14px; color: var(--muted); }
 
-  .tp-side { flex: 1 1 280px; min-width: 0; display: grid; gap: 18px; position: sticky; top: 90px; align-self: flex-start; }
+  .tp-side { min-width: 0; display: grid; gap: 18px; position: sticky; top: 90px; }
   .safe { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--ok-t); }
   .safe :global(.ic) { color: var(--ok); font-size: 22px; margin-top: 1px; }
   .help { border-bottom: 1px solid var(--hair); }
@@ -160,7 +160,8 @@ const safe = files
   .facts .specs tr:last-child th, .facts .specs tr:last-child td { border-bottom: 0; }
   .report { font-size: 14px; }
   .report a { color: var(--soft); }
-  @media (max-width: 860px) {
+  @media (max-width: 960px) {
+    .tool-page { grid-template-columns: minmax(0, 1fr); }
     .tp-side { position: static; }
   }
 </style>

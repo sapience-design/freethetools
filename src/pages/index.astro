@@ -131,7 +131,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .find-box input:focus { outline: none; }
   .find-box input::placeholder { color: var(--muted); opacity: 1; }
   .find-box input::-webkit-search-cancel-button { cursor: pointer; }
-  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(760px, 100%); padding-bottom: 2px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(1000px, 100%); padding-bottom: 2px; }
   .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 8px; border: 1.5px solid var(--hair); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 650; font-size: 15px; cursor: pointer; white-space: nowrap; }
   .chip:hover { border-color: var(--edge); }
   .chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
@@ -156,7 +156,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
   .default { display: grid; gap: clamp(32px, 4vw, 44px); }
   .popular .h2, .all-head { margin-bottom: 12px; }
-  .pops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+  .pops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 14px; }
   .pops li { min-width: 0; }
   .pop {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-content: start; height: 100%; padding: 8px 12px 12px 8px;
@@ -174,7 +174,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
   .all-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
   .all-sub { font-size: 14px; color: var(--muted); }
-  .gcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; align-items: start; }
+  .gcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 20px; align-items: start; }
   .gcard { min-width: 0; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); overflow: hidden; box-shadow: var(--shadow); container-type: inline-size; }
   .gcard-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--tint); border-bottom: 1.5px solid var(--edge); text-decoration: none; }
   .gcard-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--card); border: 1.5px solid var(--edge); font-size: 22px; }
