@@ -15,6 +15,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Every tool is laid out as numbered steps. File tools now run when you press the button (choose, options, run, save) instead of on drop, and show "Working on it", "Done" and plain-language problems, with "Do another". Text tools still work as you type.
 - Share images, the favicon and the app icons are redrawn in the new style.
 - Search ranks a half-typed word ("compres") above a near miss in a task name ("Compare").
+- Every chosen file shows its details: photos get a thumbnail and their type and size in pixels; PDFs show their pages and paper size, and PDF to Images draws page 1. Compress PDF warns about a password-locked PDF before you run it. Remove Photo Location lists the location, date, camera and other hidden data it found as soon as a photo is added, or says the photo is already safe to share.
 
 ### Added (extended stats)
 

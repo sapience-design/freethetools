@@ -61,6 +61,7 @@ Layout:
 - Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
 - Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.
 - Each group has a tint and a mark (a Phosphor icon); each tool has its own icon (`icon` in `tool.json`). The studio product shots (`src/data/art.ts`) sit on the group's tint.
+- Chosen files are rows with a thumbnail and the details that matter for the tool (`fileRow`, `photoRow` in `src/lib/files.ts`; PDF pages and paper size from `src/lib/pdfinfo.ts`).
 - Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages as "Not built yet", linking to the request.
 
 Type:

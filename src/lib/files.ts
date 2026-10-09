@@ -171,3 +171,80 @@ export function refocus(list: HTMLElement, index: number, kind: keyof typeof GLY
   const pick = (k: string) => row.querySelector<HTMLButtonElement>(`button[data-kind="${k}"]:not(:disabled)`);
   (pick(kind) ?? pick(kind === "up" ? "down" : kind === "down" ? "up" : "remove") ?? pick("remove"))?.focus();
 }
+
+// ---- File rows: a thumbnail, the name, what matters about the file, and its buttons ----
+
+const tile = (inner: string) => `<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">${inner}</svg>`;
+// Phosphor duotone "file-pdf" and "image" (MIT).
+const PDF_ICON = tile('<path d="M208,88H152V32Z" opacity="0.2"/><path d="M224,152a8,8,0,0,1-8,8H192v16h16a8,8,0,0,1,0,16H192v16a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8h32A8,8,0,0,1,224,152ZM92,172a28,28,0,0,1-28,28H56v8a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8H64A28,28,0,0,1,92,172Zm-16,0a12,12,0,0,0-12-12H56v24h8A12,12,0,0,0,76,172Zm88,8a36,36,0,0,1-36,36H112a8,8,0,0,1-8-8V152a8,8,0,0,1,8-8h16A36,36,0,0,1,164,180Zm-16,0a20,20,0,0,0-20-20h-8v40h8A20,20,0,0,0,148,180ZM40,112V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88v24a8,8,0,0,1-16,0V96H152a8,8,0,0,1-8-8V40H56v72a8,8,0,0,1-16,0ZM160,80h28.69L160,51.31Z"/>');
+const IMAGE_ICON = tile('<path d="M224,56V178.06l-39.72-39.72a8,8,0,0,0-11.31,0L147.31,164,97.66,114.34a8,8,0,0,0-11.32,0L32,168.69V56a8,8,0,0,1,8-8H216A8,8,0,0,1,224,56Z" opacity="0.2"/><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/>');
+
+const TYPES: Record<string, string> = {
+  "image/jpeg": "JPG", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/bmp": "BMP",
+  "image/heic": "HEIC", "image/heif": "HEIF", "image/svg+xml": "SVG", "image/tiff": "TIFF", "application/pdf": "PDF",
+};
+/** A file's type in plain words: "JPG", "PNG", "PDF". */
+export const typeLabel = (f: File) => TYPES[f.type] ?? (f.name.includes(".") ? f.name.split(".").pop()!.toUpperCase() : "File");
+
+type Thumb = { box: HTMLElement; w?: number; h?: number; waiting: ((w: number, h: number) => void)[] };
+const thumbs = new WeakMap<Blob, Thumb>();
+
+/**
+ * A square thumbnail of a photo, made by the browser from the file itself (nothing leaves the
+ * page). Made once per file: lists that re-render reuse it. `onSize` gets the size in pixels.
+ */
+export function imageThumb(file: Blob, onSize?: (width: number, height: number) => void) {
+  let t = thumbs.get(file);
+  if (!t) {
+    const box = document.createElement("span");
+    box.className = "fthumb";
+    const img = new Image();
+    img.alt = "";
+    img.decoding = "async";
+    const made: Thumb = { box, waiting: [] };
+    img.onload = () => { made.w = img.naturalWidth; made.h = img.naturalHeight; made.waiting.splice(0).forEach((fn) => fn(made.w!, made.h!)); };
+    img.onerror = () => { img.remove(); box.innerHTML = IMAGE_ICON; made.waiting.length = 0; };
+    img.src = URL.createObjectURL(file);
+    box.append(img);
+    thumbs.set(file, (t = made));
+  }
+  if (onSize) { if (t.w && t.h) onSize(t.w, t.h); else t.waiting.push(onSize); }
+  return t.box;
+}
+
+/** A PDF tile, or a canvas when the caller can draw the first page into it. */
+export function pdfThumb() {
+  const box = document.createElement("span");
+  box.className = "fthumb";
+  box.innerHTML = PDF_ICON;
+  return box;
+}
+
+/**
+ * A file as a row of a `.file-list`: thumbnail, name, a details line (`.fmeta`), optional extra
+ * lines, and buttons. Returns the row; its details line is `row.querySelector(".fmeta")`.
+ */
+export function fileRow(o: { name: string; meta: string; thumb?: HTMLElement; extra?: Node[]; actions?: Node[] }) {
+  const li = document.createElement("li");
+  const info = document.createElement("span");
+  info.className = "finfo";
+  const n = document.createElement("span"); n.className = "fname"; n.textContent = o.name;
+  const m = document.createElement("span"); m.className = "fmeta"; m.textContent = o.meta;
+  info.append(n, m, ...(o.extra ?? []));
+  const act = document.createElement("span"); act.className = "fact"; act.append(...(o.actions ?? []));
+  if (o.thumb) { li.classList.add("has-thumb"); li.append(o.thumb); }
+  li.append(info, act);
+  return li;
+}
+
+/** "JPG · 4032 × 3024 · 4.1 MB" once the size is known, "JPG · 4.1 MB" until then. */
+export const photoMeta = (f: File, w?: number, h?: number) => [typeLabel(f), w && h ? `${w} × ${h}` : "", fmtBytes(f.size)].filter(Boolean).join(" · ");
+
+/** A photo as a row, with its thumbnail and its type, size in pixels and file size. */
+export function photoRow(file: File, actions: Node[] = [], extra: Node[] = []) {
+  const li = fileRow({ name: file.name, meta: photoMeta(file), actions, extra });
+  const meta = li.querySelector(".fmeta")!;
+  li.classList.add("has-thumb");
+  li.prepend(imageThumb(file, (w, h) => (meta.textContent = photoMeta(file, w, h))));
+  return li;
+}

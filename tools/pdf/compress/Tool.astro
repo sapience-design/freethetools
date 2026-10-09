@@ -31,7 +31,8 @@ import Icon from "../../../src/components/Icon.astro";
 </section>
 
 <script>
-  import { reportFailure, fmtBytes, compactDrop, compareBars, iconButton, showBusy, showDone, showProblem, showWait, wireDrop } from "../../../src/lib/files";
+  import { reportFailure, fmtBytes, compactDrop, compareBars, iconButton, showBusy, showDone, showProblem, showWait, wireDrop, fileRow, pdfThumb } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
   import { buildArgs } from "./core.js";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -63,12 +64,20 @@ import Icon from "../../../src/components/Icon.astro";
   function renderPicked() {
     picked.hidden = !pending.length;
     picked.replaceChildren(...pending.map((f, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
-      li.append(n, m, act);
+      const warn = document.createElement("ul");
+      warn.className = "ffacts";
+      warn.hidden = true;
+      const li = fileRow({ name: f.name, meta: fmtBytes(f.size), thumb: pdfThumb(), extra: [warn], actions: [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })] });
+      pdfFacts(f).then((facts) => {
+        li.querySelector(".fmeta")!.textContent = pdfMeta(facts, f.size);
+        if (facts?.locked) {
+          const w = document.createElement("li");
+          w.className = "warn";
+          w.textContent = "Locked with a password. Remove the password in your PDF reader first, or this one won't compress.";
+          warn.replaceChildren(w);
+          warn.hidden = false;
+        }
+      });
       return li;
     }));
     compactDrop("pdfc", pending.length > 0 || results.children.length > 0);
@@ -143,9 +152,8 @@ import Icon from "../../../src/components/Icon.astro";
     compactDrop("pdfc", true);
     showBusy(status, files.length > 1 ? `Compressing ${files.length} PDFs. Please keep this page open.` : undefined);
     for (const file of files) {
-      const row = document.createElement("li");
-      row.innerHTML = `<span class="fname"></span><span class="fmeta"><span class="spin"></span>compressing ${fmtBytes(file.size)}…</span><span class="fact"></span>`;
-      row.querySelector(".fname")!.textContent = file.name;
+      const row = fileRow({ name: file.name, meta: "", thumb: pdfThumb() });
+      setMeta(row, `<span class="spin"></span>compressing ${fmtBytes(file.size)}…`);
       results.append(row);
       if (broken) { setMeta(row, LOAD_ERROR); batch.failed++; finish(); continue; }
       const id = nextId++;

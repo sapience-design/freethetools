@@ -53,6 +53,7 @@ test.describe("PDF tools", () => {
   test("Split PDF makes one file per page", async ({ page }) => {
     await page.goto("/pdf/split/");
     await page.setInputFiles("#pdfs-file", PDF);
+    await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages · .+ · \d+ KB$/);
     await page.click("#pdfs-go");
     await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
@@ -97,6 +98,8 @@ test.describe("PDF tools", () => {
   test("Images to PDF makes a page per image", async ({ page }) => {
     await page.goto("/pdf/images-to-pdf/");
     await page.setInputFiles("#i2p-file", [{ name: "a.png", mimeType: "image/png", buffer: PNG }, { name: "b.png", mimeType: "image/png", buffer: PNG }]);
+    await expect(page.locator("#i2p-list .fthumb img")).toHaveCount(2);
+    await expect(page.locator("#i2p-list .fmeta").first()).toContainText("PNG · 2 × 1");
     await page.click("#i2p-go");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.subarray(0, 5).toString()).toBe("%PDF-");
@@ -182,6 +185,38 @@ function jpegWithGps() {
   return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
 }
 
+function jpegWithDetails() {
+  const dirs = [
+    { name: "ifd0", entries: [[0x010f, 2, Buffer.from("Apple\0")], [0x0110, 2, Buffer.from("iPhone 14\0")], [0x8769, 4, { ptr: "exif" }], [0x8825, 4, { ptr: "gps" }]] },
+    { name: "exif", entries: [[0x9003, 2, Buffer.from("2024:03:14 10:32:05\0")]] },
+    { name: "gps", entries: [[1, 2, Buffer.from("N\0")], [2, 5, rationals(59, 1, 54, 1, 5004, 100)], [3, 2, Buffer.from("E\0")], [4, 5, rationals(10, 1, 45, 1, 792, 100)]] },
+  ];
+  const at = {};
+  let o = 8;
+  for (const d of dirs) { at[d.name] = o; o += 2 + d.entries.length * 12 + 4; }
+  const t = Buffer.alloc(512);
+  t.write("II*\0", 0, "latin1");
+  t.writeUInt32LE(at.ifd0, 4);
+  let data = o;
+  for (const d of dirs) {
+    let p = at[d.name];
+    t.writeUInt16LE(d.entries.length, p);
+    p += 2;
+    for (const [tag, type, val] of d.entries) {
+      const count = val.ptr ? 1 : type === 5 ? val.length / 8 : val.length;
+      t.writeUInt16LE(tag, p); t.writeUInt16LE(type, p + 2); t.writeUInt32LE(count, p + 4);
+      if (val.ptr) t.writeUInt32LE(at[val.ptr], p + 8);
+      else if (val.length <= 4) val.copy(t, p + 8);
+      else { val.copy(t, data); t.writeUInt32LE(data, p + 8); data += val.length + (val.length & 1); }
+      p += 12;
+    }
+  }
+  const exif = Buffer.concat([Buffer.from("Exif\0\0", "latin1"), t.subarray(0, data)]);
+  const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, (exif.length + 2) >> 8, (exif.length + 2) & 255]), exif]);
+  return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
+}
+function rationals(...v) { const b = Buffer.alloc(v.length * 4); v.forEach((x, i) => b.writeUInt32LE(x, i * 4)); return b; }
+
 test.describe("image tools", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   const png = () => ({ name: "gradient.png", mimeType: "image/png", buffer: gradientPng(300, 200) });
@@ -190,6 +225,8 @@ test.describe("image tools", () => {
     await page.goto("/images/resize/");
     await page.fill("#rsz-w", "150");
     await page.setInputFiles("#rsz-file", png());
+    await expect(page.locator("#rsz-picked .fthumb img")).toBeVisible();
+    await expect(page.locator("#rsz-picked .fmeta")).toContainText("PNG · 300 × 200");
     await page.click("#rsz-go");
     await expect(page.locator("#rsz-list .fmeta")).toContainText("300×200 → 150×100");
   });
@@ -213,6 +250,7 @@ test.describe("image tools", () => {
   test("Remove Photo Location strips GPS", async ({ page }) => {
     await page.goto("/images/remove-location/");
     await page.setInputFiles("#rml-file", { name: "photo.jpg", mimeType: "image/jpeg", buffer: jpegWithGps() });
+    await expect(page.locator("#rml-picked .ffacts .warn")).toContainText("Location");
     await page.click("#rml-go");
     await expect(page.locator("#rml-list .fmeta")).toContainText("Removed GPS location");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
@@ -220,11 +258,30 @@ test.describe("image tools", () => {
   });
 });
 
+test("Remove Photo Location shows where, when and with what a photo was taken", async ({ page, isMobile }) => {
+  test.skip(isMobile, "file flows run once, on desktop");
+  await page.goto("/images/remove-location/");
+  await page.setInputFiles("#rml-file", { name: "trip.jpg", mimeType: "image/jpeg", buffer: jpegWithDetails() });
+  const facts = page.locator("#rml-picked .ffacts");
+  await expect(facts).toContainText("Location: 59.9139° N, 10.7522° E");
+  await expect(facts).toContainText("Camera: Apple iPhone 14");
+  await expect(facts).toContainText("Taken:");
+});
+
+test("Remove Photo Location says when there is nothing to remove", async ({ page, isMobile }) => {
+  test.skip(isMobile, "file flows run once, on desktop");
+  await page.goto("/images/remove-location/");
+  await page.setInputFiles("#rml-file", { name: "plain.png", mimeType: "image/png", buffer: gradientPng(4, 4) });
+  await expect(page.locator("#rml-picked .ffacts .good")).toContainText("already safe to share");
+});
+
 test.describe("PDF to images", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   test("renders every page as a PNG", async ({ page }) => {
     await page.goto("/pdf/to-images/");
     await page.setInputFiles("#p2i-file", PDF);
+    await expect(page.locator("#p2i-thumb canvas")).toBeVisible();
+    await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
     await page.click("#p2i-go");
     await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3, { timeout: 30_000 });
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());

@@ -31,7 +31,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { PRESETS, outputType, worthIt, saving } from "./core.js";
   import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = $("#cmi-tool"), picked = $("#cmi-picked"), list = $("#cmi-list"), status = $("#cmi-status");
@@ -43,13 +43,7 @@ import Icon from "../../../src/components/Icon.astro";
   function renderPicked() {
     picked.hidden = !pending.length;
     picked.replaceChildren(...pending.map((f, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
-      li.append(n, m, act);
-      return li;
+      return photoRow(f, [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })]);
     }));
     compactDrop("cmi", pending.length > 0 || list.children.length > 0);
     go.disabled = !pending.length || running;
@@ -78,11 +72,9 @@ import Icon from "../../../src/components/Icon.astro";
     showBusy(status, files.length > 1 ? `Making ${files.length} photos smaller. Please keep this page open.` : undefined);
     let done = 0, failed = 0, before = 0, after = 0;
     for (const f of files) {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Compressing…";
-      const act = document.createElement("span"); act.className = "fact";
-      li.append(n, m, act); list.append(li);
+      const li = fileRow({ name: f.name, meta: "Compressing…", thumb: imageThumb(f) });
+      const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
+      list.append(li);
       try {
         const bmp = await decode(f);
         const type = outputType(f.type, await webpOk, keep) as Format;
@@ -93,6 +85,7 @@ import Icon from "../../../src/components/Icon.astro";
         if (worthIt(f.size, blob.size)) {
           after += blob.size;
           m.textContent = `${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${saving(f.size, blob.size)}% smaller`;
+          li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
           act.append(downloadLink(blob, `${baseName(f.name)}_small.${EXT[type]}`, type));
         } else {
           after += f.size;

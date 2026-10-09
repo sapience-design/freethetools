@@ -8,9 +8,9 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Choose your PDF">
     <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
     <ul class="file-list" id="pdfr-picked" hidden>
-      <li>
-        <span class="fname" id="pdfr-name"></span>
-        <span class="fmeta" id="pdfr-meta"></span>
+      <li class="has-thumb">
+        <span class="fthumb" id="pdfr-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pdfr-name"></span><span class="fmeta" id="pdfr-meta"></span></span>
         <span class="fact"><button class="btn quiet small" id="pdfr-change" type="button">Change</button></span>
       </li>
     </ul>
@@ -48,6 +48,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { parseRanges } from "../split/core.js";
   import { pageCount } from "../merge/core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
@@ -69,7 +70,7 @@ import Icon from "../../../src/components/Icon.astro";
       total = await pageCount(bytes.slice(0));
       file = f;
       $("pdfr-name").textContent = f.name;
-      $("pdfr-meta").textContent = `${total} ${total === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
+      $("pdfr-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
       $("pdfr-picked").hidden = false;
       compactDrop("pdfr", true);
       go.disabled = false;

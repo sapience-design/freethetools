@@ -41,7 +41,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { imagesToPdf } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, photoRow } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
 
   type Item = { file: File; bytes: ArrayBuffer; type: "image/jpeg" | "image/png" };
@@ -70,17 +70,11 @@ import Icon from "../../../src/components/Icon.astro";
     goLabel.textContent = items.length > 1 ? `Make a ${items.length}-page PDF` : "Make PDF";
     compactDrop("i2p", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = it.file.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(it.file.size);
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(
+      return photoRow(it.file, [
         iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),
         iconButton("down", `Move down ${it.file.name}`, () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; changed(); refocus(list, i + 1, "down"); }, i === items.length - 1),
         iconButton("remove", `Remove ${it.file.name}`, () => { items.splice(i, 1); changed(); refocus(list, i, "remove", document.getElementById("i2p-drop")); }),
-      );
-      li.append(n, m, act);
-      return li;
+      ]);
     }));
     stepTo(root, items.length ? 2 : 1);
   }

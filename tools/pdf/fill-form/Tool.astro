@@ -8,9 +8,9 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Choose your form">
     <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop your form here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
     <ul class="file-list" id="pff-picked" hidden>
-      <li>
-        <span class="fname" id="pff-name"></span>
-        <span class="fmeta" id="pff-meta"></span>
+      <li class="has-thumb">
+        <span class="fthumb" id="pff-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pff-name"></span><span class="fmeta" id="pff-meta"></span></span>
         <span class="fact"><button class="btn quiet small" id="pff-change" type="button">Change</button></span>
       </li>
     </ul>
@@ -30,6 +30,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { listFields, fillForm } from "./core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   let bytes: ArrayBuffer | null = null, file: File | null = null;
@@ -78,7 +79,7 @@ import Icon from "../../../src/components/Icon.astro";
       fields = await listFields(bytes.slice(0));
       file = f;
       $("pff-name").textContent = f.name;
-      $("pff-meta").textContent = fields.length ? `${fields.length} ${fields.length === 1 ? "box" : "boxes"} to fill · ${fmtBytes(f.size)}` : fmtBytes(f.size);
+      $("pff-meta").textContent = [fields.length ? `${fields.length} ${fields.length === 1 ? "box" : "boxes"} to fill` : "", pdfMeta(await pdfFacts(f), f.size)].filter(Boolean).join(" · ");
       $("pff-picked").hidden = false;
       compactDrop("pff", true);
       $("pff-form").replaceChildren(...fields.map(control));

@@ -24,8 +24,8 @@ import Icon from "../../../src/components/Icon.astro";
 </section>
 
 <script>
-  import { stripMetadata } from "./core.js";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait } from "../../../src/lib/files";
+  import { stripMetadata, readMetadata } from "./core.js";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("rml-tool"), picked = $("rml-picked"), list = $("rml-list"), status = $("rml-status");
@@ -35,17 +35,41 @@ import Icon from "../../../src/components/Icon.astro";
   let pending: File[] = [];
   let running = false;
 
+  // ---- What each photo gives away, shown as soon as it is added ----
+  const seen = new WeakMap<File, Promise<ReturnType<typeof readMetadata> | null>>();
+  const inspect = (f: File) => {
+    let p = seen.get(f);
+    if (!p) { p = f.arrayBuffer().then((b) => readMetadata(new Uint8Array(b))).catch(() => null); seen.set(f, p); }
+    return p;
+  };
+  const when = new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" });
+  const coord = (v: number, pos: string, neg: string) => `${Math.abs(v).toFixed(4)}° ${v < 0 ? neg : pos}`;
+
+  function hiddenDetails(f: File) {
+    const ul = document.createElement("ul");
+    ul.className = "ffacts";
+    ul.setAttribute("aria-label", `Hidden details in ${f.name}`);
+    const add = (text: string, cls = "") => { const li = document.createElement("li"); li.textContent = text; if (cls) li.className = cls; ul.append(li); };
+    add("Looking for hidden details…");
+    inspect(f).then((r) => {
+      ul.replaceChildren();
+      if (!r) { add("We can't read this photo's hidden details. Removing them may still work."); return; }
+      const { found: x, details: d } = r;
+      if (x.gps) add(d.lat !== undefined && d.lon !== undefined ? `Location: ${coord(d.lat, "N", "S")}, ${coord(d.lon, "E", "W")}` : "Location: yes", "warn");
+      if (d.taken) add(`Taken: ${when.format(new Date(d.taken))}`);
+      if (d.camera) add(`Camera: ${d.camera}`);
+      if (d.software) add(`Software: ${d.software}`);
+      const other = [x.exif && !x.gps && !d.taken && !d.camera && !d.software && "other camera data", x.xmp && "XMP data", x.iptc && "IPTC captions", x.comment && "comments"].filter(Boolean);
+      if (other.length) add(`Also: ${other.join(", ")}`);
+      if (!ul.children.length) add("No location or camera details. It's already safe to share.", "good");
+    });
+    return ul;
+  }
+
   function renderPicked() {
     picked.hidden = !pending.length;
-    picked.replaceChildren(...pending.map((f, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
-      li.append(n, m, act);
-      return li;
-    }));
+    picked.replaceChildren(...pending.map((f, i) =>
+      photoRow(f, [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })], [hiddenDetails(f)])));
     compactDrop("rml", pending.length > 0 || list.children.length > 0);
     go.disabled = !pending.length || running;
     goLabel.textContent = pending.length > 1 ? `Remove it from ${pending.length} photos` : "Remove it";
@@ -76,11 +100,8 @@ import Icon from "../../../src/components/Icon.astro";
     showBusy(status, files.length > 1 ? `Cleaning ${files.length} photos. Please keep this page open.` : undefined);
     let done = 0, gps = 0;
     for (const f of files) {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta";
-      const act = document.createElement("span"); act.className = "fact";
-      li.append(n, m, act);
+      const li = fileRow({ name: f.name, meta: "", thumb: imageThumb(f) });
+      const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
         const r = stripMetadata(new Uint8Array(await f.arrayBuffer()));

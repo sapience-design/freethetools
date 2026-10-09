@@ -8,9 +8,9 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={1} title="Choose your PDF">
     <DropZone prefix="pdfs" toolId="pdf/split" category="pdf" name="Split PDF" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
     <ul class="file-list" id="pdfs-picked" hidden>
-      <li>
-        <span class="fname" id="pdfs-name"></span>
-        <span class="fmeta" id="pdfs-meta"></span>
+      <li class="has-thumb">
+        <span class="fthumb" id="pdfs-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pdfs-name"></span><span class="fmeta" id="pdfs-meta"></span></span>
         <span class="fact"><button class="btn quiet small" id="pdfs-change" type="button">Change</button></span>
       </li>
     </ul>
@@ -40,6 +40,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { parseRanges, everyPage, splitPdf } from "./core.js";
   import { pageCount } from "../merge/core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
@@ -63,7 +64,7 @@ import Icon from "../../../src/components/Icon.astro";
       total = await pageCount(bytes.slice(0));
       file = f;
       $("pdfs-name").textContent = f.name;
-      $("pdfs-meta").textContent = `${total} ${total === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
+      $("pdfs-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
       picked.hidden = false;
       compactDrop("pdfs", true);
       go.disabled = false;

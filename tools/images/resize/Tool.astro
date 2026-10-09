@@ -38,7 +38,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { targetSize, checkSize } from "./core.js";
   import { decode, encode, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("rsz-tool"), picked = $("rsz-picked"), list = $("rsz-list"), status = $("rsz-status");
@@ -59,13 +59,7 @@ import Icon from "../../../src/components/Icon.astro";
   function renderPicked() {
     picked.hidden = !pending.length;
     picked.replaceChildren(...pending.map((f, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(f.size);
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); }));
-      li.append(n, m, act);
-      return li;
+      return photoRow(f, [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })]);
     }));
     compactDrop("rsz", pending.length > 0 || list.children.length > 0);
     go.disabled = !pending.length || running;
@@ -92,11 +86,9 @@ import Icon from "../../../src/components/Icon.astro";
     showBusy(status, files.length > 1 ? `Resizing ${files.length} photos. Please keep this page open.` : undefined);
     let done = 0;
     for (const f of files) {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = f.name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = "Resizing…";
-      const act = document.createElement("span"); act.className = "fact";
-      li.append(n, m, act); list.append(li);
+      const li = fileRow({ name: f.name, meta: "Resizing…", thumb: imageThumb(f) });
+      const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
+      list.append(li);
       try {
         const bmp = await decode(f);
         const md = mode();
@@ -105,6 +97,7 @@ import Icon from "../../../src/components/Icon.astro";
         const type: Format = f.type === "image/png" || f.type === "image/webp" ? (f.type as Format) : "image/jpeg";
         const blob = await encode(bmp, size.width, size.height, type, 0.9);
         m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
+        li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
         act.append(downloadLink(blob, `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`, type));
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }

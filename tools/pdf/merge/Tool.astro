@@ -28,7 +28,8 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { mergePdfs, pageCount } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, fileRow, pdfThumb } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
 
   type Item = { file: File; bytes: ArrayBuffer; pages: number };
@@ -47,16 +48,13 @@ import Icon from "../../../src/components/Icon.astro";
     goLabel.textContent = items.length < 2 ? "Add at least two PDFs" : `Combine ${items.length} PDFs into one`;
     compactDrop("pdfm", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
-      const li = document.createElement("li");
-      const name = document.createElement("span"); name.className = "fname"; name.textContent = it.file.name;
-      const meta = document.createElement("span"); meta.className = "fmeta"; meta.textContent = `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`;
-      const act = document.createElement("span"); act.className = "fact";
-      act.append(
+      const li = fileRow({ name: it.file.name, meta: `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`, thumb: pdfThumb() });
+      pdfFacts(it.file).then((facts) => { if (facts) li.querySelector(".fmeta")!.textContent = pdfMeta(facts, it.file.size); });
+      li.querySelector(".fact")!.append(
         iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),
         iconButton("down", `Move down ${it.file.name}`, () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; changed(); refocus(list, i + 1, "down"); }, i === items.length - 1),
         iconButton("remove", `Remove ${it.file.name}`, () => { items.splice(i, 1); changed(); refocus(list, i, "remove", document.getElementById("pdfm-drop")); }),
       );
-      li.append(name, meta, act);
       return li;
     }));
     stepTo(root, items.length ? 2 : 1);
