@@ -28,7 +28,7 @@ A maintainer makes a preview on demand instead:
 1. Check out the branch.
 2. Run `npm run preview:cloud`. It builds the site and uploads a Preview named after the branch, using your own `wrangler login`.
 3. Open the link it prints. Share it privately; never paste it into a pull request, issue or commit.
-4. After the merge, delete it: `npx wrangler preview delete --name <branch>`.
+4. After the merge, delete it: `npx wrangler preview delete --name <branch>`. While the command is in beta, Cloudflare can keep serving the link for an hour or more after it reports the preview deleted. A preview shows only code that is already public here, so this does no harm.
 
 Previews have no database binding, so usage totals show as unavailable and never touch the real numbers. To try a branch without Cloudflare, run `npm run build` and then `npm run preview`.
 - Build logs: Workers & Pages → freethetools → Deployments.
@@ -58,7 +58,7 @@ npx wrangler deployments list
 npx wrangler rollback <version-id>
 ```
 
-Then revert the commit on `main`.
+Then undo the cause on `main`: press **Revert** on the merged pull request, and merge the pull request GitHub opens. To go back to a named version, see [How to release](release.md#go-back-to-a-version).
 
 ## Email
 

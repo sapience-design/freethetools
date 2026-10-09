@@ -71,3 +71,13 @@ test("robots.txt points at the sitemap", () => {
 test("Cloudflare headers file is published", () => {
   assert.match(html("_headers"), /X-Content-Type-Options: nosniff/);
 });
+
+test("the footer names the released version and links to its notes", () => {
+  const { version } = JSON.parse(readFileSync("package.json", "utf8"));
+  for (const page of ["index.html", "pdf/compress/index.html", "404.html"]) {
+    const link = /<a href="([^"]+)" id="site-version"[^>]*>([^<]+)<\/a>/.exec(html(page));
+    assert.ok(link, `${page} has the version link`);
+    assert.ok(link[1].endsWith(`/releases/tag/v${version}`), page);
+    assert.equal(link[2], `Version ${version}`, page);
+  }
+});

@@ -28,7 +28,8 @@
     "new-tool": "node scripts/new-tool.mjs",
     "astro": "astro",
     "test:py": "python -m pytest -q tools",
-    "deploy": "npm run build && wrangler deploy"
+    "deploy": "npm run build && wrangler deploy",
+    "release": "node scripts/release.mjs"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
