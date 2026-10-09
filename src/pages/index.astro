@@ -54,6 +54,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
           {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
         </div>
       </fieldset>
+      <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
     </section>
 
     <section class="results" id="results" aria-labelledby="results-title" hidden>
@@ -140,6 +141,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .chip-n { font-family: var(--mono); font-size: 13px; font-weight: 400; opacity: .8; }
   .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
   .sortrow legend { float: left; padding: 0; margin-right: 10px; font-size: 14px; color: var(--soft); line-height: 44px; }
+  .sort-note { font-size: 14px; color: var(--muted); margin-top: -6px; }
   .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
   .segmented input { position: absolute; opacity: 0; pointer-events: none; }
   .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -222,6 +224,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
   let cat = "all";
   let stats: Record<string, ToolStats> | null = null;
+  let statsTried = false; // the stats request has answered (or failed)
   const sortBy = () => radios.find((r) => r.checked)?.value ?? "az";
 
   // ---- Sorting: each group card keeps its rows in the chosen order; planned tools stay last ----
@@ -257,7 +260,9 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
       ul.append(...rows);
       for (const li of rows) { const el = li.querySelector("[data-stat]"); if (el) el.textContent = statText(li, by); }
     }
-    $("all-sub").textContent = SUBS[by];
+    const missing = !stats && (by === "used" || by === "liked");
+    $("all-sub").textContent = missing ? SUBS.az : SUBS[by];
+    $("sort-note").hidden = !missing || !statsTried;
     if (!results.hidden) render();
   }
 
@@ -329,13 +334,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   try { saved = localStorage.getItem(KEY) || "used"; } catch {}
   (radios.find((r) => r.value === saved) ?? radios[0]).checked = true;
 
+  // All four options always show. Without usage numbers (a preview, offline, blocked), the two
+  // usage sorts fall back to A to Z and a note says why.
   summary().then((s) => {
     stats = s;
-    if (!s) {
-      // No stats available (e.g. local development): usage sorts would do nothing, so hide them.
-      radios.filter((r) => r.value === "used" || r.value === "liked").forEach((r) => { r.disabled = true; (r.nextElementSibling as HTMLElement).hidden = true; });
-      if (!radios.find((r) => r.checked && !r.disabled)) radios.find((r) => r.value === "az")!.checked = true;
-    }
+    statsTried = true;
     sort();
   });
 

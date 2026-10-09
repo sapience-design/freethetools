@@ -374,6 +374,25 @@ test.describe("theme, search, sorting, likes and stats", () => {
     }
   });
 
+  test("all four sorts show, with or without usage numbers", async ({ page }) => {
+    const labels = ["Most used", "Newest", "Most liked", "A–Z"];
+    await page.goto("/");
+    for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
+    await expect(page.locator("#sort-note")).toBeHidden();
+
+    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z.
+    // (An empty answer takes the same path as the preview's 503, without a console error.)
+    await page.route("**/api/stats/summary", (r) => r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+    await page.reload();
+    for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
+    await page.click('label[for="sort-liked"]');
+    await expect(page.locator("#sort-note")).toBeVisible();
+    const names = await page.locator('.gcard[data-g="pdf"] [data-sortable] > li:not(.want)').evaluateAll((els) => els.map((e) => e.dataset.name));
+    expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
+    await page.click('label[for="sort-new"]');
+    await expect(page.locator("#sort-note")).toBeHidden();
+  });
+
   test("liking a tool is remembered and counted", async ({ page }) => {
     await page.goto("/text/case-converter/");
     await page.click("#tool-like");
