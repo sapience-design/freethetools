@@ -88,6 +88,14 @@ test("HTML to Markdown escapes a pipe inside a table cell", () => {
   assert.equal(md, "| a\\|b | c |\n| --- | --- |\n| 1\\|2 | 3 |\n");
 });
 
+test("HTML to Markdown escapes backslashes before pipes, so a cell holding a backslash and a pipe stays one cell", () => {
+  const md = htmlToMarkdown("<table><tr><th>a\\|b</th><th>c</th></tr><tr><td>1</td><td>2</td></tr></table>");
+  assert.equal(md.split("\n")[0], "| a\\\\\\|b | c |");
+  // And back again: two columns, the first holding the original text.
+  const cells = [...new JSDOM(markdownToHtml(md, { sanitize: false })).window.document.querySelectorAll("th")].map((th) => th.textContent);
+  assert.deepEqual(cells, ["a\\|b", "c"]);
+});
+
 test("the preview blocks remote srcset, video, audio, source, track, poster and backslash URLs", () => {
   const html = [
     '<img src="/ok.png" srcset="https://evil.test/a.png 2x">',

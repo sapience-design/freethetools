@@ -130,7 +130,7 @@ test.describe("keyboard only", () => {
     await page.keyboard.press("ArrowDown");
     const href = await links.nth(1).getAttribute("href");
     await page.keyboard.press("Enter");
-    await expect(page).toHaveURL(new RegExp(`${href.replace(/\//g, "\\/")}$`));
+    await expect(page).toHaveURL(new RegExp(`${href.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}$`));
   });
 
   test("Escape closes the phone drawer and returns focus to the Menu button", async ({ page, isMobile }) => {

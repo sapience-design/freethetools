@@ -86,7 +86,8 @@ export function markdownToHtml(md, opts = {}) {
   return opts.sanitize === false ? html : sanitizeHtml(html, opts);
 }
 
-const cell = (el) => el.textContent.replace(/\s+/g, " ").replace(/\|/g, "\\|").trim();
+// Backslashes first, then pipes, so a cell holding "a\|b" stays one cell.
+const cell = (el) => el.textContent.replace(/\s+/g, " ").replace(/\\/g, "\\\\").replace(/\|/g, "\\|").trim();
 
 function turndownService() {
   const td = new TurndownService({ headingStyle: "atx", codeBlockStyle: "fenced", bulletListMarker: "-", emDelimiter: "*" });
