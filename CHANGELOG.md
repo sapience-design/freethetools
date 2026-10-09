@@ -8,6 +8,12 @@ major version.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-09
+
+The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
+
+**For contributors:** `tool.json` now requires `task`, the job the tool does in a few words ("Make a PDF smaller").
+
 ### Changed (design round 4)
 
 - New look and layout from the v4 design: cream paper, ink outlines, a yellow highlight, and a tint and mark for each group; Bricolage Grotesque headings; Phosphor icons. Light and dark themes.
@@ -114,5 +120,6 @@ major version.
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/sapience-design/freethetools/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sapience-design/freethetools/releases/tag/v1.0.0
