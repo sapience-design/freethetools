@@ -248,7 +248,9 @@ details.qa p { padding-bottom: 14px; color: var(--soft); }
 .seg input:disabled + label { opacity: .5; cursor: default; }
 
 /* Fields */
-.field { display: grid; gap: 6px; min-width: 0; }
+/* minmax(0, 1fr): the column may shrink below its content, so a date field's text can't push a
+   320 px screen sideways. */
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
 fieldset.field { border: 0; padding: 0; margin: 0; }
 fieldset.field legend { padding: 0; margin-bottom: 6px; }
 .field > span, .field > legend, .field-label { font-weight: 650; }
