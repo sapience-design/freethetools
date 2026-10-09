@@ -21,10 +21,16 @@ const ids = readdirSync(toolsDir)
 if (!ids.length) throw new Error("No tools/*/*/agent.js found. Run this from inside the repository.");
 
 
+// Generated code embeds paths and ids as string literals. Ids must be plain "group/slug", and each
+// literal is escaped beyond JSON.stringify, so no value can end the string or the script.
+for (const id of ids) if (!/^[a-z0-9-]+\/[a-z0-9-]+$/.test(id)) throw new Error(`Unexpected tool folder name: ${id}`);
+// The line and paragraph separators are built from their codes, so this file holds no raw ones.
+const UNSAFE = new RegExp("[<>/" + String.fromCharCode(0x2028, 0x2029) + "]", "g");
+const literal = (v) => JSON.stringify(String(v)).replace(UNSAFE, (c) => "\\" + "u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
 const generated = [
-  ...ids.map((id, i) => `import * as m${i} from ${JSON.stringify(join(toolsDir, id, "agent.js").replaceAll("\\", "/"))};`),
+  ...ids.map((id, i) => `import * as m${i} from ${literal(join(toolsDir, id, "agent.js").replaceAll("\\", "/"))};`),
   `export const tools = [`,
-  ...ids.map((id, i) => `  ...[m${i}.default].flat().map((def) => ({ id: ${JSON.stringify(id)}, def, makesFiles: def.makesFiles === true })),`),
+  ...ids.map((id, i) => `  ...[m${i}.default].flat().map((def) => ({ id: ${literal(id)}, def, makesFiles: def.makesFiles === true })),`),
   `];`,
 ].join("\n");
 

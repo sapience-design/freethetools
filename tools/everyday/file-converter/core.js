@@ -92,10 +92,31 @@ export function detectType(bytes, name = "") {
   return textType(decodeText(head).text, ext);
 }
 
+/**
+ * Skip what may come before an SVG's root element: an XML declaration, comments and a doctype, in
+ * any order. A plain loop, not one regular expression: a pattern with a repeated group can take
+ * exponential time on a crafted file.
+ */
+export function skipPrologue(text) {
+  let t = text;
+  for (let i = 0; i < 50; i++) {
+    const before = t;
+    t = t.replace(/^<\?xml[^>]*>/i, "").trimStart();
+    if (t.startsWith("<!--")) {
+      const end = t.indexOf("-->", 4);
+      if (end < 0) return t;
+      t = t.slice(end + 3).trimStart();
+    }
+    t = t.replace(/^<!doctype[^>]*>/i, "").trimStart();
+    if (t === before) break;
+  }
+  return t;
+}
+
 /** What a text file is, from its start and its extension. */
 function textType(text, ext) {
   const start = text.replace(/^﻿/, "").trimStart().slice(0, 2000);
-  if (/^(<\?xml[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*(<!doctype svg[^>]*>\s*)?<svg[\s>]/i.test(start)) return { kind: "image", format: "svg", ...IMAGES.svg };
+  if (/^<svg[\s>]/i.test(skipPrologue(start))) return { kind: "image", format: "svg", ...IMAGES.svg };
   const known = TEXT_BY_EXT[ext];
   if (known) {
     if (known === "txt" && /^<(!doctype html|html[\s>])/i.test(start)) return { ...TEXTS.html, format: "html", mime: "text/html" };

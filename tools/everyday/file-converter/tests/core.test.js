@@ -39,6 +39,17 @@ test("detects SVG from its content", () => {
   assert.equal(detectType(text('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>'), "a.svg").format, "svg");
   assert.equal(detectType(text('<?xml version="1.0"?>\n<!-- c -->\n<svg viewBox="0 0 8 8"></svg>'), "").format, "svg");
   assert.equal(detectType(text("<!doctype html><html><body><svg></svg></body></html>"), "a.html").format, "html");
+  // A comment after the doctype, and a doctype after a comment, are both fine.
+  assert.equal(detectType(text('<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "x.dtd">\n<!-- made by hand -->\n<svg></svg>'), "").format, "svg");
+});
+
+test("type detection stays fast on a crafted file full of comment markers", () => {
+  // A single regular expression with a repeated group took exponential time on input like this.
+  const crafted = "<!--" + "--><!--".repeat(40000);
+  const started = Date.now();
+  assert.notEqual(detectType(text(crafted), "x.svg").format, "svg");
+  assert.notEqual(detectType(text("<?xml?>" + "<!-- -->".repeat(5000) + "<p>"), "x.txt").format, "svg");
+  assert.ok(Date.now() - started < 1000, `took ${Date.now() - started} ms`);
 });
 
 test("detects audio, PDF and other binary types", () => {
