@@ -1,30 +1,40 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Password generator">
-  <ToolShot toolId="developer/password-generator" category="developer" name="Password Generator" />
-  <fieldset class="field">
-    <legend class="eyebrow">Kind</legend>
-    <div class="seg">
-      <input type="radio" name="pw-kind" id="pw-password" value="password" checked><label for="pw-password">Password</label>
-      <input type="radio" name="pw-kind" id="pw-phrase" value="phrase"><label for="pw-phrase">Passphrase</label>
+<section class="tool" id="pw-tool" aria-label="Password generator">
+  <Step n={1} title="Pick a kind">
+    <fieldset class="field">
+      <legend class="sr-only">Kind</legend>
+      <div class="seg">
+        <input type="radio" name="pw-kind" id="pw-password" value="password" checked><label for="pw-password">Password</label>
+        <input type="radio" name="pw-kind" id="pw-phrase" value="phrase"><label for="pw-phrase">Passphrase</label>
+      </div>
+    </fieldset>
+    <div id="pw-opts-password" class="pw-opts">
+      <label class="field"><span>Length: <b id="pw-len-v">20</b></span><input type="range" id="pw-len" min="8" max="64" value="20"></label>
+      <label class="check"><input type="checkbox" id="pw-upper" checked> A–Z</label>
+      <label class="check"><input type="checkbox" id="pw-lower" checked> a–z</label>
+      <label class="check"><input type="checkbox" id="pw-digits" checked> 2–9</label>
+      <label class="check"><input type="checkbox" id="pw-symbols" checked> Symbols</label>
+      <label class="check"><input type="checkbox" id="pw-similar"> Allow look-alikes (l, I, O, 0, 1)</label>
     </div>
-  </fieldset>
-  <div class="pw-out"><output id="pw-out" class="mono"></output><span id="pw-meta" class="muted"></span></div>
-  <div class="actions"><button class="btn" id="pw-new" type="button">New one</button><button class="btn line" id="pw-copy" type="button">Copy</button></div>
-  <div id="pw-opts-password" class="pw-opts">
-    <label class="field"><span>Length: <b id="pw-len-v">20</b></span><input type="range" id="pw-len" min="8" max="64" value="20"></label>
-    <label class="check"><input type="checkbox" id="pw-upper" checked> A–Z</label>
-    <label class="check"><input type="checkbox" id="pw-lower" checked> a–z</label>
-    <label class="check"><input type="checkbox" id="pw-digits" checked> 2–9</label>
-    <label class="check"><input type="checkbox" id="pw-symbols" checked> Symbols</label>
-    <label class="check"><input type="checkbox" id="pw-similar"> Allow look-alikes (l, I, O, 0, 1)</label>
-  </div>
-  <div id="pw-opts-phrase" class="pw-opts" hidden>
-    <label class="field"><span>Words: <b id="pw-words-v">6</b></span><input type="range" id="pw-words" min="3" max="12" value="6"></label>
-    <label class="check"><input type="checkbox" id="pw-cap" checked> Capitalise</label>
-    <label class="check"><input type="checkbox" id="pw-num" checked> Add a number</label>
-  </div>
+    <div id="pw-opts-phrase" class="pw-opts" hidden>
+      <label class="field"><span>Words: <b id="pw-words-v">6</b></span><input type="range" id="pw-words" min="3" max="12" value="6"></label>
+      <label class="check"><input type="checkbox" id="pw-cap" checked> Capitalise</label>
+      <label class="check"><input type="checkbox" id="pw-num" checked> Add a number</label>
+    </div>
+  </Step>
+  <Step n={2} title="Copy your password">
+    <div class="out">
+      <output id="pw-out" class="out-box"></output>
+      <span id="pw-meta" class="hint"></span>
+    </div>
+    <div class="actions">
+      <button class="btn run" id="pw-copy" type="button"><Icon name="copy" /><span id="pw-copy-label">Copy</span></button>
+      <button class="btn line" id="pw-new" type="button">Make another</button>
+    </div>
+  </Step>
 </section>
 
 <script>
@@ -45,21 +55,19 @@ import ToolShot from "../../../src/components/ToolShot.astro";
       $("pw-meta").textContent = `${strength(r.bits)} · about ${r.bits} bits of randomness`;
     } catch (e) { $("pw-out").textContent = ""; $("pw-meta").textContent = (e as Error).message; }
   }
-  document.querySelectorAll(".tool input").forEach((el) => el.addEventListener("input", gen));
+  document.querySelectorAll("#pw-tool input").forEach((el) => el.addEventListener("input", gen));
   $("pw-new").addEventListener("click", gen);
-  const copy = $("pw-copy") as HTMLButtonElement;
-  copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText($("pw-out").textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select to copy"; }
-    setTimeout(() => (copy.textContent = "Copy"), 1600);
+  const copyLabel = $("pw-copy-label");
+  $("pw-copy").addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText($("pw-out").textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy"), 1600);
   });
   gen();
 </script>
 
 <style>
-  .pw-out { display: grid; gap: 6px; padding: var(--s3); border-radius: 8px; background: var(--studio); }
-  .pw-out output { font-size: var(--t-xl); line-height: var(--lh-xl); overflow-wrap: anywhere; color: var(--ink-strong); }
-  .pw-out span { font-size: var(--t-sm); line-height: var(--lh-sm); }
-  .pw-opts { display: flex; flex-wrap: wrap; gap: var(--s2) var(--s3); align-items: center; }
+  .pw-opts { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
   .pw-opts .field { width: 100%; }
+  #pw-out { display: block; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; white-space: normal; }
   input[type="range"] { accent-color: var(--ink); }
 </style>

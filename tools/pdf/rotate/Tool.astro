@@ -1,75 +1,108 @@
 ---
 // Rotate Pages: choose a turn and which pages.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Rotate PDF pages">
-  <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop a PDF here" pick="Choose a PDF" />
+<section class="tool" id="pdfr-tool" aria-label="Rotate PDF pages">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="pdfr" toolId="pdf/rotate" category="pdf" name="Rotate Pages" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
+    <ul class="file-list" id="pdfr-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="pdfr-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pdfr-name"></span><span class="fmeta" id="pdfr-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="pdfr-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
 
-  <div id="pdfr-panel" hidden class="tool">
-    <ul class="file-list"><li><span class="fname" id="pdfr-name"></span><span class="fmeta" id="pdfr-meta"></span></li></ul>
-    <fieldset class="field">
-      <legend class="eyebrow">Turn</legend>
-      <div class="seg">
-        <input type="radio" name="pdfr-turn" id="pdfr-90" value="90" checked><label for="pdfr-90">Right<small>90° clockwise</small></label>
-        <input type="radio" name="pdfr-turn" id="pdfr-180" value="180"><label for="pdfr-180">Upside down<small>180°</small></label>
-        <input type="radio" name="pdfr-turn" id="pdfr-270" value="270"><label for="pdfr-270">Left<small>90° anticlockwise</small></label>
-      </div>
+  <Step n={2} title="Which way?" state="later">
+    <fieldset class="choices">
+      <legend class="sr-only">Turn</legend>
+      <div class="choice"><input type="radio" name="pdfr-turn" id="pdfr-90" value="90" checked><label for="pdfr-90"><b>Turn right</b><small>90° clockwise</small><span class="badge rec">Recommended</span></label></div>
+      <div class="choice"><input type="radio" name="pdfr-turn" id="pdfr-270" value="270"><label for="pdfr-270"><b>Turn left</b><small>90° anticlockwise</small></label></div>
+      <div class="choice"><input type="radio" name="pdfr-turn" id="pdfr-180" value="180"><label for="pdfr-180"><b>Upside down</b><small>180°</small></label></div>
     </fieldset>
     <fieldset class="field">
-      <legend class="eyebrow">Pages</legend>
+      <legend>Which pages</legend>
       <div class="seg">
         <input type="radio" name="pdfr-which" id="pdfr-all" value="all" checked><label for="pdfr-all">All pages</label>
         <input type="radio" name="pdfr-which" id="pdfr-some" value="some"><label for="pdfr-some">Some pages</label>
       </div>
     </fieldset>
-    <label class="field" id="pdfr-range-field" hidden><span>Pages to turn</span><input type="text" id="pdfr-range" placeholder="2, 5-7" autocomplete="off"></label>
-    <div class="actions"><button class="btn" id="pdfr-go" type="button">Rotate</button></div>
-  </div>
-  <div id="pdfr-result" aria-live="polite"></div>
+    <label class="field" id="pdfr-range-field" hidden>
+      <span>Pages to turn</span>
+      <input type="text" id="pdfr-range" placeholder="2, 5-7" autocomplete="off">
+      <small>Use a dash for a range and commas between pages, like 2, 5-7.</small>
+    </label>
+    <button class="btn run" id="pdfr-go" type="button" disabled><Icon name="arrow-clockwise" /><span>Turn pages</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="pdfr-result" aria-live="polite"><p class="res-wait">Your fixed PDF will appear here.</p></div>
+  </Step>
 </section>
 
 <script>
   import { rotatePdf, pagesFromRanges } from "./core.js";
   import { parseRanges } from "../split/core.js";
   import { pageCount } from "../merge/core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { stepTo } from "../../../src/lib/steps";
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
   const $ = (id: string) => document.getElementById(id)!;
-  const result = $("pdfr-result");
+  const root = $("pdfr-tool"), result = $("pdfr-result"), go = $("pdfr-go") as HTMLButtonElement;
+  const WAIT = "Your fixed PDF will appear here.";
 
   document.querySelectorAll<HTMLInputElement>('input[name="pdfr-which"]').forEach((r) =>
     r.addEventListener("change", () => { $("pdfr-range-field").hidden = !($("pdfr-some") as HTMLInputElement).checked; }));
 
+  $("pdfr-change").addEventListener("click", () => $("pdfr-file").click());
+
   wireDrop("pdfr", async (files) => {
     const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
     if (!f) return;
-    result.replaceChildren();
+    showWait(result, WAIT);
     try {
       bytes = await f.arrayBuffer();
       total = await pageCount(bytes.slice(0));
       file = f;
       $("pdfr-name").textContent = f.name;
-      $("pdfr-meta").textContent = `${total} ${total === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}`;
-      $("pdfr-panel").hidden = false;
+      $("pdfr-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
+      $("pdfr-picked").hidden = false;
+      compactDrop("pdfr", true);
+      go.disabled = false;
+      stepTo(root, 2);
     } catch (e) { showError(result, (e as Error).message); }
   });
 
-  $("pdfr-go").addEventListener("click", async () => {
+  go.addEventListener("click", async () => {
     if (!bytes || !file) return;
     const turn = +(document.querySelector('input[name="pdfr-turn"]:checked') as HTMLInputElement).value as 90 | 180 | 270;
+    go.disabled = true;
+    stepTo(root, 3);
+    showBusy(result);
     try {
       const some = ($("pdfr-some") as HTMLInputElement).checked;
       const pages = some ? pagesFromRanges(parseRanges(($("pdfr-range") as HTMLInputElement).value, total)) : null;
       const out = await rotatePdf(bytes.slice(0), turn, pages);
       const fname = `${baseName(file.name)}_rotated.pdf`;
-      const ul = document.createElement("ul"); ul.className = "file-list";
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = fname;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${pages ? pages.length : total} ${(pages ? pages.length : total) === 1 ? "page" : "pages"} turned · ${fmtBytes(out.byteLength)}`;
-      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, fname, "application/pdf"));
-      li.append(n, m, a); ul.append(li);
-      result.replaceChildren(ul);
+      const n = pages ? pages.length : total;
+      const dl = downloadLink(out, fname, "application/pdf", "Download PDF");
+      dl.classList.add("run");
+      showDone(result, `Done. ${n} ${n === 1 ? "page" : "pages"} turned.`, `${fname} · ${fmtBytes(out.byteLength)}`);
+      result.append(dl);
+      stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
+    go.disabled = false;
+  });
+
+  // Changing anything in step 2 makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    if (!result.querySelector(".res-done, .res-bad")) return;
+    showWait(result, WAIT);
+    stepTo(root, 2);
   });
 </script>

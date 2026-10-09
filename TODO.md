@@ -7,12 +7,14 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 
 | # | Task | Why | Status |
 |---|---|---|---|
-| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Waiting for the owner to finalise the theme |
-| B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Automated part done on `feat/agents-and-tools`; the screen-reader pass is O17 |
-| B10 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
-| B11 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
-| B12 | A way to turn off the "/" search shortcut (WCAG 2.1.4), and a styled "Skip to content" link | Found in the accessibility pass; both change how the site looks or behaves | After the theme |
-| B13 | Rewrite the tutorial around a tool that doesn't exist yet | `docs/tutorial/first-tool.md` builds Word Counter, which now exists, so its scaffold step fails | Ready |
+| B8 | UI lab: shared UI components, a colour and symbol for each group and tool, and three friendlier layout variants at `/lab/` (noindex) | Product shots are hard to tell apart; tools repeat their own CSS | Superseded by the v4 design port: shared step components, a tint and mark per group, an icon per tool. No `/lab/` |
+| B9 | Manual accessibility pass: keyboard only, NVDA and VoiceOver, 200%/400% zoom, text spacing, focus not hidden by sticky bars | Automated checks (now in CI) catch about a third of WCAG issues; see docs/research/2026-09-28-accessibility-speed-audit.md | Automated part done (`e2e/a11y-manual.spec.js`, rewritten for the v4 top bar); the screen-reader pass is O17 |
+| B10 | Compress PDF and Compress Images: "Does it need to be under a size?" (No limit / 1 MB / 2 MB / 5 MB), trying lower qualities until the file fits | In the v4 design; not built, so the port leaves it out | Ready |
+| B12 | Fill PDF Form: drawn signatures | The v4 help text mentions them as "coming later"; the port does not promise them | Idea |
+| B13 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
+| B14 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
+| B15 | A way to turn off the "/" search shortcut (WCAG 2.1.4) | Found in the accessibility pass. The styled "Skip to content" link shipped with the v4 design | Ready |
+| B16 | Rewrite the tutorial around a tool that doesn't exist yet | `docs/tutorial/first-tool.md` builds Word Counter, which now exists, so its scaffold step fails | Ready |
 
 ## Owner (Sapience Design)
 
@@ -31,6 +33,7 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | O15 | List the MCP server in the official MCP Registry, from `packages/freethetools/server.json` | registry.modelcontextprotocol.io | After O14 |
 | O16 | Decide whether agent jobs count in the anonymous usage totals (ADR 0007, ADR 0008) | — | Open |
 | O17 | Screen-reader pass with NVDA (Windows) and VoiceOver (iOS), using the checklist in the accessibility audit | `docs/research/2026-09-28-accessibility-speed-audit.md` | Open |
+| O18 | Check that "Contact us" on /about/ reaches hello@freethetools.com (the v4 design added that link; see O5) | Any mail client | Open |
 
 ## Parked
 

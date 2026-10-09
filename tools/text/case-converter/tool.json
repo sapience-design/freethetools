@@ -1,7 +1,9 @@
 {
   "name": "Case Converter",
+  "task": "Change text to UPPER or lower case",
+  "icon": "text-t",
   "short": "Case converter",
-  "tagline": "UPPER, lower, Title and Sentence case, plus camelCase, snake_case and friends.",
+  "tagline": "UPPER, lower, Title and Sentence case, plus camelCase and snake_case.",
   "seoTitle": "Case converter: upper, lower, title case",
   "description": "Change text to upper case, lower case, title case or sentence case, or camelCase, snake_case and kebab-case. Free, and your text stays on the page.",
   "section": "Transform",

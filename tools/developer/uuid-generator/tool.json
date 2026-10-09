@@ -1,7 +1,9 @@
 {
   "name": "UUID Generator",
+  "task": "Make unique IDs",
+  "icon": "cube",
   "short": "UUID generator",
-  "tagline": "Random v4 and time-ordered v7 UUIDs, one or a thousand at a time.",
+  "tagline": "Random v4 or time-ordered v7 UUIDs.",
   "seoTitle": "UUID generator (v4 and v7)",
   "description": "Generate UUID v4 or time-sortable v7 IDs in bulk, upper or lower case, with or without hyphens. Free, made on your device with secure randomness.",
   "section": "Generate",

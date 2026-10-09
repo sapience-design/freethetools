@@ -23,37 +23,48 @@ test.afterEach(async ({ page }) => {
   expect(page.__checks.violations, "CSP violations").toEqual([]);
 });
 
-test("home lists the live tool and wanted tools", async ({ page }) => {
+test("home lists the live tools, and groups list wanted ones", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/Free the Tools/);
-  await expect(page.getByRole("link", { name: /Compress PDF/ }).first()).toBeVisible();
-  await expect(page.locator(".planned a").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Make a PDF smaller/ }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText("$0");
+  await page.goto("/images/");
+  await expect(page.locator("li.want a").first()).toBeVisible();
+  await expect(page.locator("li.want a").first()).toContainText("Not built yet");
+  await page.goto("/");
   if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/home-${test.info().project.name}.png`, fullPage: true });
 });
 
-test("the sidebar drills into a group and back", async ({ page, isMobile }) => {
+test("a group card leads to its page, and back", async ({ page }) => {
   await page.goto("/");
-  if (isMobile) await page.click("#menu");
-  await page.locator(".nav-root").getByRole("link", { name: "PDF" }).click();
+  await expect(page.locator('.gcard[data-g="pdf"] .gcard-head')).toContainText(/See all \d+ tools/);
+  await page.locator('.gcard[data-g="pdf"] .gcard-head').click();
   await expect(page).toHaveURL(/\/pdf\/$/);
-  if (isMobile) await page.click("#menu");
-  await expect(page.locator(".nav-sub").getByRole("link", { name: "Compress" })).toBeVisible();
-  await page.locator(".nav-sub").getByRole("link", { name: /All tools/ }).click();
+  await expect(page.locator("main").getByRole("link", { name: /Make a PDF smaller/ })).toBeVisible();
+  await page.locator("main .back").click();
   await expect(page).toHaveURL(/\/$/);
 });
 
-test("search finds tools and offers requests for misses", async ({ page, isMobile }) => {
+test("group chips filter the home page", async ({ page }) => {
+  await page.goto("/");
+  await page.locator('.chip[data-cat="images"]').click();
+  await expect(page.locator("#results-title")).toHaveText("Image tools");
+  await expect(page.locator("#search-results li")).toHaveCount(4);
+  await page.click("#results-clear");
+  await expect(page.locator("#results")).toBeHidden();
+});
+
+test("search finds tools and offers requests for misses", async ({ page }) => {
   await page.goto("/?q=compress");
-  if (isMobile) await page.click("#menu");
-  await expect(page.locator("#side-results").getByRole("link", { name: /Compress PDF/ })).toBeVisible();
+  await expect(page.locator("#search-results").getByRole("link", { name: /Compress PDF/ })).toBeVisible();
   await page.fill("#find", "zzzz nothing");
-  await expect(page.locator("#side-results")).toContainText("No tool matches");
+  await expect(page.locator("#results-title")).toContainText("Nothing found");
+  await expect(page.locator("#results-empty")).toContainText("ask us to build it");
 });
 
 test("saving a tool shows it on the Saved page", async ({ page }) => {
   await page.goto("/pdf/compress/");
-  await page.locator(".info [data-save]").click();
+  await page.locator(".tp-actions [data-save]").click();
   await page.goto("/saved/");
   await expect(page.locator("#saved-list").getByRole("link", { name: "Compress PDF" })).toBeVisible();
 });
@@ -63,6 +74,7 @@ for (const firstPage of [false, true]) {
     await page.goto("/pdf/compress/");
     if (firstPage) await page.check("#pdfc-first");
     await page.setInputFiles("#pdfc-file", FIXTURE);
+    await page.click("#pdfc-go");
     const link = page.getByRole("link", { name: "Download" });
     await expect(link).toBeVisible({ timeout: 60_000 });
     const [download] = await Promise.all([page.waitForEvent("download"), link.click()]);

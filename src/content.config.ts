@@ -13,6 +13,8 @@ const tools = defineCollection({
   }),
   schema: z.object({
     name: z.string().min(2).max(40),
+    task: z.string().min(4).max(48),
+    icon: z.string().regex(/^[a-z0-9-]+$/).optional(),
     short: z.string().min(2).max(24),
     tagline: z.string().min(10).max(110),
     seoTitle: z.string().min(10).max(65),

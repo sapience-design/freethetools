@@ -1,18 +1,24 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
 const flags = [["g", "all matches"], ["i", "ignore case"], ["m", "^ $ per line"], ["s", ". matches newline"], ["u", "unicode"]];
 ---
-<section class="tool" aria-label="Regex tester">
-  <ToolShot toolId="developer/regex-tester" category="developer" name="Regex Tester" />
-  <label class="field"><span>Pattern</span><input type="text" id="rx-pattern" class="mono" value="(?<user>[\w.]+)@(?<domain>[\w-]+\.\w+)" autocomplete="off" spellcheck="false"></label>
-  <div class="rx-flags">
-    {flags.map(([f, label], i) => <label class="check"><input type="checkbox" id={`rx-f-${f}`} data-flag={f} checked={i === 0} /> <span class="mono">{f}</span> <span class="muted">{label}</span></label>)}
-  </div>
-  <label class="field"><span>Text</span><textarea id="rx-text" rows="6" spellcheck="false">Write to ada@example.com or alan.turing@bletchley.org.uk
+<section class="tool" id="rx-tool" aria-label="Regex tester">
+  <Step n={1} title="Type a pattern and some text">
+    <label class="field"><span>Pattern</span><input type="text" id="rx-pattern" class="mono" value="(?<user>[\w.]+)@(?<domain>[\w-]+\.\w+)" autocomplete="off" spellcheck="false"></label>
+    <fieldset class="field">
+      <legend>Flags</legend>
+      <div class="rx-flags">
+        {flags.map(([f, label], i) => <label class="check"><input type="checkbox" id={`rx-f-${f}`} data-flag={f} checked={i === 0} /> <span class="mono">{f}</span> <span class="muted">{label}</span></label>)}
+      </div>
+    </fieldset>
+    <label class="field"><span>Text</span><textarea id="rx-text" rows="6" spellcheck="false">Write to ada@example.com or alan.turing@bletchley.org.uk
 No address on this line.</textarea></label>
-  <p class="tool-error" id="rx-err" role="alert" hidden></p>
-  <div class="out"><span class="eyebrow" id="rx-count"></span><div class="out-box" id="rx-view"></div></div>
-  <ul class="file-list" id="rx-list"></ul>
+    <p class="tool-error" id="rx-err" role="alert" hidden></p>
+  </Step>
+  <Step n={2} title="Matches">
+    <div class="out"><span class="hint" id="rx-count" aria-live="polite"></span><div class="out-box" id="rx-view"></div></div>
+    <ul class="kv" id="rx-list"></ul>
+  </Step>
 </section>
 
 <script>
@@ -32,8 +38,8 @@ No address on this line.</textarea></label>
     }));
     $("rx-list").replaceChildren(...r.matches.slice(0, 50).map((m, i) => {
       const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname mono"; n.textContent = `${i + 1}. ${m.text}`;
-      const meta = document.createElement("span"); meta.className = "fmeta";
+      const n = document.createElement("span"); n.className = "k mono"; n.textContent = `${i + 1}. ${m.text}`;
+      const meta = document.createElement("span"); meta.className = "v";
       const groups = m.named ? Object.entries(m.named).map(([k, v]) => `${k}: ${v}`) : m.groups.map((g, j) => `$${j + 1}: ${g}`);
       meta.textContent = `at ${m.index}${groups.length ? " · " + groups.join(" · ") : ""}`;
       li.append(n, meta); return li;
@@ -45,7 +51,7 @@ No address on this line.</textarea></label>
 </script>
 
 <style>
-  .rx-flags { display: flex; flex-wrap: wrap; gap: 6px var(--s3); }
+  .rx-flags { display: flex; flex-wrap: wrap; gap: 6px 24px; }
   #rx-view { font-family: var(--mono); white-space: pre-wrap; }
-  #rx-view :global(mark) { background: var(--accent); color: #1a1a1a; border-radius: 3px; } /* dark text on yellow in both themes: 11:1 */
+  #rx-view :global(mark) { background: var(--hl); color: var(--hl-ink); border-radius: 3px; box-shadow: 0 0 0 1px var(--edge); }
 </style>

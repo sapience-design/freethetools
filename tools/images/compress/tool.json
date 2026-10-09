@@ -1,7 +1,9 @@
 {
   "name": "Compress Images",
+  "task": "Make photos smaller",
+  "icon": "arrows-in",
   "short": "Compress",
-  "tagline": "Smaller photos with no visible loss, one or a whole batch. Nothing is uploaded.",
+  "tagline": "Smaller files that look the same, one photo or many.",
   "seoTitle": "Compress images without uploading (JPG, PNG, WebP)",
   "description": "Make JPG, PNG and WebP images smaller for free in your browser, one or many at once. Choose the quality. Photos never leave your device.",
   "section": "Optimize",

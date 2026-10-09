@@ -1,8 +1,9 @@
 ---
-// The drop area for file tools: the tool's own product shot, with the prompt set on the floor.
-// Pair with wireDrop(prefix, handler) from src/lib/files.ts. Ids are prefixed so several tools
-// and the sidebar can share a page.
+// The drop area for file tools: the tool's product shot on its group tint, with a card that says
+// what to drop and a Choose button. Pair with wireDrop(prefix, handler) from src/lib/files.ts;
+// compactDrop(prefix) shrinks it once files are in. Ids are prefixed with the tool's slug.
 import { artFor } from "../data/art";
+import Icon from "./Icon.astro";
 
 interface Props {
   prefix: string;
@@ -13,39 +14,40 @@ interface Props {
   multiple?: boolean;
   title: string;
   hint?: string;
-  /** Text of the visible button, e.g. "Choose PDFs". The whole area opens the file picker; the button says so. */
-  pick?: string;
+  button?: string;
 }
-const { prefix, toolId, category, name, accept, multiple = false, title, hint, pick = multiple ? "Choose files" : "Choose a file" } = Astro.props;
+const { prefix, toolId, category, name, accept, multiple = false, title, hint, button = "Choose file" } = Astro.props;
 const shot = artFor(toolId, category, `${prefix}drop`, name);
 ---
-<div class:list={["drop", { dark: category === "developer" }]} id={`${prefix}-drop`} tabindex="0" role="button">
-  <span class="shot" aria-hidden="true" set:html={shot} />
-  <span class="label"><strong>{title}</strong>{hint && <span class="hint">{hint}</span>}<span class="btn pick">{pick}</span></span>
+<div class="drop" data-g={category} id={`${prefix}-drop`} tabindex="0" role="button">
+  <span class="drop-shot" aria-hidden="true" set:html={shot} />
+  <span class="drop-card">
+    <strong>{title}</strong>
+    <span class="drop-btn"><Icon name="folder-open" />{button}</span>
+    {hint && <small>{hint}</small>}
+  </span>
   <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
 </div>
 
 <style>
   .drop {
-    position: relative; display: grid; place-items: center; align-content: end; gap: 4px; text-align: center;
-    aspect-ratio: 4 / 3; padding: 0 16px 28px; border-radius: 6px; overflow: hidden; cursor: pointer; isolation: isolate;
+    position: relative; display: grid; justify-items: center; align-content: end; gap: 12px; min-height: clamp(250px, 28vw, 330px);
+    padding: 16px; border: 2px dashed var(--edge); border-radius: var(--r-lg); overflow: hidden; cursor: pointer; isolation: isolate;
+    text-align: center; background: var(--tint); transition: min-height .25s;
   }
-  .shot { position: absolute; inset: 0; z-index: -1; }
-  .shot :global(svg) { width: 100%; height: 100%; display: block; }
-  .shot :global(.obj) { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
-  .drop:hover .shot :global(.obj), .drop.over .shot :global(.obj) { transform: translateY(-8px); }
-  .drop::after { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; box-shadow: inset 0 0 0 2px transparent; transition: box-shadow .2s; }
-  .drop.over::after { box-shadow: inset 0 0 0 2px var(--ink); }
-  .label { display: grid; gap: 2px; padding: 10px 18px 11px; border-radius: 14px; background: rgba(255, 255, 255, .78); backdrop-filter: blur(10px); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
-  .dark .label { background: rgba(20, 22, 26, .62); }
-  strong { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; color: #111; }
-  .hint { color: #555a60; font-size: var(--t-sm); line-height: var(--lh-sm); }
-  .dark strong { color: #f4f5f7; }
-  .dark .hint { color: #b6bcc5; }
-  /* Looks like a button; the whole drop area is the real one, so clicking anywhere opens the picker. */
-  /* The label is always light (dark for developer tools), whatever the theme, so the button is fixed too. */
-  .pick { justify-self: center; margin-top: 6px; min-height: 32px; padding: 0 14px; background: #111; color: #fff; }
-  .dark .pick { background: #f4f5f7; color: #111; }
-  .drop:hover .pick, .drop:focus-visible .pick { opacity: .86; }
-  @media (prefers-reduced-motion: reduce) { .shot :global(.obj) { transition: none; } }
+  .drop-shot { position: absolute; inset: 0; z-index: -1; }
+  .drop-shot :global(svg) { width: 100%; height: 100%; display: block; }
+  .drop-shot :global(.obj) { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+  .drop:hover .drop-shot :global(.obj), .drop.over .drop-shot :global(.obj) { transform: translateY(-8px); }
+  .drop.over { border-style: solid; box-shadow: inset 0 0 0 2px var(--edge); }
+  .drop-card { display: grid; gap: 10px; justify-items: center; padding: 14px 16px; border-radius: var(--r-lg); background: var(--glass); border: 1.5px solid var(--edge); }
+  .drop-card strong { font-size: 16px; }
+  .drop-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 650; }
+  .drop-btn :global(.ic) { font-size: 20px; }
+  .drop-card small { font-size: 14px; color: var(--soft); }
+  /* Once files are in: a slim bar that still takes more. */
+  .drop.compact { min-height: 0; align-content: center; padding: 10px; }
+  .drop.compact .drop-shot, .drop.compact strong, .drop.compact small { display: none; }
+  .drop.compact .drop-card { background: transparent; border: 0; padding: 0; }
+  @media (prefers-reduced-motion: reduce) { .drop-shot :global(.obj) { transition: none; } }
 </style>

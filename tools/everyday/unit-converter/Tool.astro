@@ -1,24 +1,29 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
 import { UNITS } from "./core.js";
 const cats = Object.keys(UNITS);
 ---
-<section class="tool" aria-label="Unit converter">
-  <ToolShot toolId="everyday/unit-converter" category="everyday" name="Unit Converter" />
-  <fieldset class="field">
-    <legend class="eyebrow">Measure</legend>
-    <div class="seg">
-      {cats.map((c, i) => (<><input type="radio" name="uc-cat" id={`uc-${c}`} value={c} checked={i === 0} /><label for={`uc-${c}`}>{c[0].toUpperCase() + c.slice(1)}</label></>))}
+<section class="tool" id="uc-tool" aria-label="Unit converter">
+  <Step n={1} title="What are you converting?">
+    <fieldset class="field">
+      <legend class="sr-only">Measure</legend>
+      <div class="seg">
+        {cats.map((c, i) => (<><input type="radio" name="uc-cat" id={`uc-${c}`} value={c} checked={i === 0} /><label for={`uc-${c}`}>{c[0].toUpperCase() + c.slice(1)}</label></>))}
+      </div>
+    </fieldset>
+  </Step>
+  <Step n={2} title="Type a number">
+    <div class="uc-row">
+      <label class="field"><span>Value</span><input type="number" id="uc-val" value="1" step="any"></label>
+      <label class="field"><span>From</span><select id="uc-from"></select></label>
+      <button class="icon-btn uc-swap" id="uc-swap" type="button" aria-label="Swap units">⇄</button>
+      <label class="field"><span>To</span><select id="uc-to"></select></label>
     </div>
-  </fieldset>
-  <div class="uc-row">
-    <label class="field"><span>Value</span><input type="number" id="uc-val" value="1" step="any"></label>
-    <label class="field"><span>From</span><select id="uc-from"></select></label>
-    <button class="icon-btn uc-swap" id="uc-swap" type="button" aria-label="Swap units">⇄</button>
-    <label class="field"><span>To</span><select id="uc-to"></select></label>
-  </div>
-  <p class="uc-result" id="uc-out" aria-live="polite"></p>
-  <ul class="file-list" id="uc-all"></ul>
+  </Step>
+  <Step n={3} title="Result">
+    <p class="uc-result" id="uc-out" aria-live="polite"></p>
+    <ul class="file-list" id="uc-all"></ul>
+  </Step>
 </section>
 
 <script>
@@ -57,9 +62,11 @@ const cats = Object.keys(UNITS);
 </script>
 
 <style>
-  .uc-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto minmax(0, 2fr); gap: var(--s2); align-items: end; }
-  .uc-swap { height: 40px; }
-  .uc-result { font-family: var(--serif); font-size: var(--t-3xl); line-height: var(--lh-3xl); color: var(--ink-strong); overflow-wrap: anywhere; }
-  .uc-result.bad { font-family: var(--sans); font-size: var(--t-sm); color: var(--bad); }
+  .uc-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto minmax(0, 2fr); gap: 16px; align-items: end; }
+  .uc-swap { height: 52px; }
+  #uc-all { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
+  #uc-all :global(li) { min-height: 0; }
+  .uc-result { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
+  .uc-result.bad { font-family: var(--sans); font-weight: 600; font-size: 15px; color: var(--bad); }
   @media (max-width: 640px) { .uc-row { grid-template-columns: 1fr 1fr; } .uc-row .field:first-child { grid-column: 1 / -1; } .uc-swap { display: none; } }
 </style>

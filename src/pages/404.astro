@@ -1,10 +1,20 @@
 ---
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REQUEST_URL } from "../data/catalogue";
 ---
 <Base title="Not on the shelf | Free the Tools" description="This page is not on the shelf. Browse all free tools or search for the one you need." noindex>
-  <section class="opening">
-    <p class="eyebrow">404</p>
-    <h1 class="sm">This page isn't here.</h1>
-    <p>The tool may have moved, or it hasn't been built yet. Search in the sidebar, or <a href="/">see all tools</a>.</p>
-  </section>
+  <div class="page narrow lost">
+    <span class="tag">404</span>
+    <h1 class="h1">This page isn't here.</h1>
+    <p class="lede">The tool may have moved, or it hasn't been built yet. Search for it, or ask us to build it.</p>
+    <div class="actions">
+      <a class="btn" href="/#find"><Icon name="magnifying-glass" />Search all tools</a>
+      <a class="btn line" href={REQUEST_URL}>Suggest a tool</a>
+    </div>
+  </div>
 </Base>
+
+<style>
+  .lost { display: grid; gap: 16px; justify-items: start; padding-top: 48px; }
+</style>

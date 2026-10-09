@@ -23,7 +23,7 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 
 ## One folder per tool
 
-`tools/<group>/<slug>/` holds everything about a tool. The site reads every `tool.json` through an Astro content collection (`src/content.config.ts`) and generates the sidebar, group pages, tool page, search index, sitemap, `llms.txt` and `/api/tools.json`. Contributors never edit shared files, so pull requests don't conflict and every page gets the same metadata and structure. See [ADR 0004](../adr/0004-one-folder-per-tool.md).
+`tools/<group>/<slug>/` holds everything about a tool. The site reads every `tool.json` through an Astro content collection (`src/content.config.ts`) and generates the home page, group pages, tool page, search index, sitemap, `llms.txt` and `/api/tools.json`. Contributors never edit shared files, so pull requests don't conflict and every page gets the same metadata and structure. See [ADR 0004](../adr/0004-one-folder-per-tool.md).
 
 ## Pages
 
@@ -65,7 +65,7 @@ Next to every result to download, on tool pages, in the agent activity panel and
 
 ## Search and sorting
 
-Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). Shelves sort by Featured, Most used, Most liked, Newest or A–Z, using the totals below when they are available.
+Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). The home page sorts tools by Most used, Newest, Most liked or A–Z. The two usage sorts use the totals below; when the totals can't load (branch previews have no database), they fall back to A–Z and a note says so.
 
 ## Anonymous usage totals
 
@@ -78,23 +78,31 @@ The Worker writes only for requests from the site's own origin and for known too
 
 ## The look
 
-A minimal shop:
+Design round 4 ("v4"), from the Claude Design project *Free the Tools v4*. The design files are kept outside the repo; the owner has them.
 
-- A full-height sidebar that drills into each group.
-- White space.
-- Each tool shown as a studio "product shot" (`src/data/art.ts`). Tools that have been requested but not built appear as clay prototypes marked "Made to order".
+Layout:
+
+- One 1280 px container (`--content`) shared by the top bar, the page and the footer, with fluid gutters; running text stops at 65 characters (`--measure`). Tool pages put a 340 px side column beside the tool, stacking below 960 px.
+- A sticky top bar: the mark and name, About, Library, and Saved (on the home page) or All tools (elsewhere). On phones the button shows its icon only.
+- Home: one headline, a search box ("What do you need to do?"), group filter chips, a sort control, "Most people come for", then one card per group with its top three tools.
+- Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
+- Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.
+- Each group has a tint and a mark (a Phosphor icon); each tool has its own icon (`icon` in `tool.json`). The studio product shots (`src/data/art.ts`) sit on the group's tint.
+- Chosen files are rows with a thumbnail and the details that matter for the tool (`fileRow`, `photoRow` in `src/lib/files.ts`; PDF pages and paper size from `src/lib/pdfinfo.ts`).
+- Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages as "Not built yet", linking to the request.
 
 Type:
 
-- Follows Cloudflare's open-source Kumo scale (12–30px).
-- Set in Schibsted Grotesk, with Instrument Serif for headings and IBM Plex Mono for code.
-- All three are self-hosted.
+- Bricolage Grotesque for headings, Schibsted Grotesk for text, IBM Plex Mono for code and numbers. All three are self-hosted.
 
 Colour:
 
-- Kumo's neutrals, plus a single yellow accent. The accent and the Sapience wordmark tie the site to Sapience Design.
-- Light, Dark and System themes. The choice is stored per browser and applied before the first paint.
-- Colours and sizes are tokens in `src/styles/global.css`.
+- Cream paper, warm ink and one yellow highlight, with a tint for each group.
+- Light, Dark and System themes, switched in the footer. The choice is stored per browser and applied before the first paint.
+- Dark mode inverts the sticker look (neutral charcoal page, light outlines and shadows) and keeps the coloured parts as pastel "islands", a step dimmer, with ink text. The island list is one selector in `src/styles/global.css`; add an element to it when it sits on a tint.
+- Colours, radii and shadows are tokens in `src/styles/global.css`, which also holds the shared tool classes (steps, choices, pills, fields, file rows, result boxes).
+
+Icons are Phosphor (MIT), inlined at build time by `src/components/Icon.astro`, so pages load no icon files.
 
 ## Search engines and AI
 

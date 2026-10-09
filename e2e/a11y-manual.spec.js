@@ -1,5 +1,5 @@
 // Accessibility checks that axe-core cannot make, written as browser tests (TODO B9). Covers:
-//   1. a keyboard-only walk through the sidebar, search, sorting and one tool per group;
+//   1. a keyboard-only walk through the top bar, group pages, search, sorting and one tool per group;
 //   2. roles, names and live regions on those paths (a stand-in for a screen reader pass);
 //   3. reflow at 320 and 640 CSS px (WCAG 1.4.10) and text spacing (1.4.12);
 //   4. focus that no sticky or fixed bar hides (WCAG 2.4.11).
@@ -35,30 +35,6 @@ async function tabTo(page, selector, { text, max = 120 } = {}) {
     if (hit) return;
   }
   throw new Error(`Tab never reached ${selector}${text ? ` ${text}` : ""} in ${max} presses`);
-}
-
-/**
- * Press Enter on the focused Menu button until the drawer opens. On a busy machine Chromium can
- * drop a key press. Press again only while focus is still on Menu: once the drawer opens, focus
- * moves to its Close button, and another Enter would close it.
- */
-async function enterMenu(page) {
-  for (let i = 0; i < 3; i++) {
-    await page.keyboard.press("Enter");
-    try {
-      await expect(page.locator("#side")).toHaveClass(/open/, { timeout: 3000 });
-      return;
-    } catch (e) {
-      if (i === 2 || (await page.evaluate(() => document.activeElement?.id)) !== "menu") throw e;
-    }
-  }
-}
-
-/** On a phone the sidebar is a drawer: open it with the keyboard. On desktop it is always there. */
-async function openNav(page, isMobile) {
-  if (!isMobile) return;
-  await tabTo(page, "#menu");
-  await enterMenu(page);
 }
 
 const FOCUSABLE = 'a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])';
@@ -97,30 +73,30 @@ async function obscuredStops(page, max) {
 // ---- 1. Keyboard only ----
 
 test.describe("keyboard only", () => {
-  test("sidebar drills into a group and back", async ({ page, isMobile }) => {
+  test("a group card leads into the group, a tool, and back", async ({ page }) => {
     await ready(page, "/");
-    await openNav(page, isMobile);
-    await tabTo(page, ".nav-root a", { text: /^PDF/ });
+    await tabTo(page, '.gcard[data-g="pdf"] .gcard-head');
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/pdf\/$/);
-    await openNav(page, isMobile);
-    await tabTo(page, ".nav-sub a", { text: /^Compress/ });
+    await tabTo(page, "main a.row", { text: /^Make a PDF smaller/ });
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/pdf\/compress\/$/);
     await expect(page.locator("h1")).toBeVisible();
-    await openNav(page, isMobile);
-    await tabTo(page, ".nav-sub a.back");
+    await tabTo(page, "main a.back");
+    await page.keyboard.press("Enter");
+    await expect(page).toHaveURL(/\/pdf\/$/);
+    await tabTo(page, "main a.back");
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/$/);
   });
 
   test("search: type, arrow keys, Enter", async ({ page }) => {
     await ready(page, "/");
-    // "/" is the documented shortcut. It opens the drawer on a phone and focuses the field.
+    // "/" is the documented shortcut. It focuses the search box.
     await page.keyboard.press("/");
     await expect(page.locator("#find")).toBeFocused();
     await page.keyboard.type("pdf");
-    const links = page.locator("#side-results a");
+    const links = page.locator("#search-results a");
     expect(await links.count()).toBeGreaterThan(1);
     await expect(links.first()).toHaveClass(/sel/);
     await page.keyboard.press("ArrowDown");
@@ -133,24 +109,11 @@ test.describe("keyboard only", () => {
     await expect(page).toHaveURL(new RegExp(`${href.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&")}$`));
   });
 
-  test("Escape closes the phone drawer and returns focus to the Menu button", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "The drawer exists on phones only");
-    await ready(page, "/");
-    await tabTo(page, "#menu");
-    await enterMenu(page);
-    // Focus moves into the drawer, so a keyboard user does not tab through the page behind it.
-    expect(await page.evaluate(() => !!document.activeElement.closest("#side"))).toBe(true);
-    await page.keyboard.press("Escape");
-    await expect(page.locator("#side")).not.toHaveClass(/open/);
-    await expect(page.locator("#menu")).toBeFocused();
-  });
-
-  test("the closed phone drawer is not in the tab order", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "The drawer exists on phones only");
-    await ready(page, "/");
-    const reachable = await page.evaluate(() => [...document.querySelectorAll("#side a, #side button, #side input")]
-      .filter((e) => !e.closest("[inert]") && getComputedStyle(e).visibility !== "hidden" && e.getClientRects().length).length);
-    expect(reachable, "focusable controls inside the closed drawer").toBe(0);
+  test("from any page, \"/\" takes the keyboard to search", async ({ page }) => {
+    await ready(page, "/pdf/merge/");
+    await page.keyboard.press("/");
+    await expect(page).toHaveURL(/\/#find$/);
+    await expect(page.locator("#find")).toBeFocused();
   });
 
   test("sorting with arrow keys reorders the shelf", async ({ page }) => {
@@ -159,7 +122,7 @@ test.describe("keyboard only", () => {
     await expect(page.locator('input[name="sort"]:focus')).toBeChecked();
     for (let i = 0; i < 5 && (await page.locator('input[name="sort"]:checked').getAttribute("value")) !== "az"; i++) await page.keyboard.press("ArrowRight");
     await expect(page.locator('input[name="sort"]:checked')).toHaveValue("az");
-    const names = await page.locator("main .grid").first().locator("li.card:not(.planned)").evaluateAll((li) => li.map((l) => l.dataset.name));
+    const names = await page.locator('.gcard[data-g="pdf"] [data-sortable] > li:not(.want)').evaluateAll((li) => li.map((l) => l.dataset.name));
     expect(names.length).toBeGreaterThan(1);
     expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
   });
@@ -247,36 +210,51 @@ test.describe("keyboard only", () => {
 // ---- 2. Roles, names and live regions (what a screen reader reads) ----
 
 test.describe("roles, names and live regions", () => {
-  test("the sidebar exposes landmarks, a search box and the current page", async ({ page, isMobile }) => {
-    await ready(page, "/pdf/compress/");
-    if (isMobile) await page.click("#menu");
-    await expect(page.getByRole("complementary", { name: "Site navigation" })).toBeAttached();
-    await expect(page.getByRole("navigation", { name: "Tools" })).toBeVisible();
-    await expect(page.getByRole("search")).toBeVisible();
-    await expect(page.getByRole("searchbox", { name: "Search tools" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Compress", exact: true })).toHaveAttribute("aria-current", "page");
-    await expect(page.getByRole("link", { name: /All tools/ })).toBeVisible();
+  test("the top bar exposes landmarks, the current page and the theme switch", async ({ page }) => {
+    await ready(page, "/about/");
+    const banner = page.getByRole("banner");
+    await expect(banner.getByRole("link", { name: "Free the Tools" })).toBeVisible();
+    const nav = page.getByRole("navigation", { name: "Site" });
+    await expect(nav.getByRole("link", { name: "About" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Library" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "All tools" })).toBeVisible();
+    await expect(page.getByRole("main")).toBeVisible();
+    await expect(page.getByRole("contentinfo")).toBeAttached();
     const theme = page.getByRole("group", { name: "Theme" });
-    for (const n of ["System theme", "Light theme", "Dark theme"]) await expect(theme.getByRole("button", { name: n })).toHaveAttribute("aria-pressed", /true|false/);
+    for (const n of ["System", "Light", "Dark"]) await expect(theme.getByRole("button", { name: n })).toHaveAttribute("aria-pressed", /true|false/);
+    await ready(page, "/");
+    await expect(page.getByRole("search")).toBeVisible();
+    await expect(page.getByRole("searchbox", { name: "What do you need to do?" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Saved/ })).toBeVisible();
   });
 
-  test("the phone bar has a named Menu button and the drawer a Close button", async ({ page, isMobile }) => {
+  test("on a phone the top bar keeps every link, named, and at least 44 px", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Phone only");
-    await ready(page, "/");
-    await expect(page.getByRole("banner").getByRole("button", { name: "Open menu" })).toBeVisible();
-    await page.click("#menu");
-    await expect(page.getByRole("button", { name: "Close menu" })).toBeVisible();
+    for (const path of ["/", "/pdf/merge/"]) {
+      await ready(page, path);
+      const sizes = await page.evaluate(() => [...document.querySelectorAll(".bar a")].map((a) => {
+        const r = a.getBoundingClientRect();
+        return { name: (a.getAttribute("aria-label") || a.textContent || "").trim(), w: Math.round(r.width), h: Math.round(r.height), shown: r.width > 0 };
+      }));
+      for (const z of sizes) {
+        expect(z.shown, `${path}: ${z.name} is shown`).toBe(true);
+        expect(Math.min(z.w, z.h), `${path}: ${z.name} is at least 44 px`).toBeGreaterThanOrEqual(44);
+      }
+      // The icon-only button still has its words for screen readers.
+      const button = page.getByRole("banner").getByRole("link", { name: path === "/" ? /^Saved/ : "All tools" });
+      await expect(button).toBeVisible();
+    }
   });
 
   test("search announces how many results there are and which one is selected", async ({ page }) => {
     await ready(page, "/");
     await page.keyboard.press("/");
     await page.keyboard.type("pdf");
-    const status = page.locator("#side-status");
+    const status = page.locator("#find-status");
     await expect(status).toHaveAttribute("role", "status");
-    await expect(status).toHaveText(/\d+ results?/);
+    await expect(status).toHaveText(/\d+ tools?/);
     await page.keyboard.press("ArrowDown");
-    const second = await page.locator("#side-results a").nth(1).evaluate((a) => a.firstChild.textContent);
+    const second = await page.locator("#search-results > li").nth(1).getAttribute("data-name");
     await expect(status).toContainText(second);
     await page.keyboard.press("Control+A");
     await page.keyboard.type("zzzz nothing");
@@ -285,19 +263,21 @@ test.describe("roles, names and live regions", () => {
 
   test("sorting is a labelled radio group and announces the new order", async ({ page }) => {
     await ready(page, "/");
-    const group = page.getByRole("group", { name: "Sort tools" });
+    const group = page.getByRole("group", { name: "Sort by" });
     await expect(group.getByRole("radio", { name: "A–Z" })).toBeAttached();
-    await expect(group.getByRole("radio", { name: "Featured" })).toBeChecked();
+    await expect(group.getByRole("radio", { name: "Most used" })).toBeChecked();
     await group.getByText("A–Z", { exact: true }).click();
     await expect(page.locator("#sort-status")).toHaveText(/A–Z/);
   });
 
-  test("shelf cards give the Save button a name and a state", async ({ page }) => {
-    await ready(page, "/");
-    const save = page.getByRole("button", { name: "Save Compress PDF" });
+  test("a tool's Save button has a name and a state", async ({ page }) => {
+    await ready(page, "/pdf/compress/");
+    const save = page.locator(".tp-actions [data-save]");
+    await expect(save).toHaveAccessibleName("Save");
     await expect(save).toHaveAttribute("aria-pressed", "false");
-    await save.click({ force: true });
-    await expect(page.getByRole("button", { name: "Save Compress PDF" })).toHaveAttribute("aria-pressed", "true");
+    await save.click();
+    await expect(save).toHaveAttribute("aria-pressed", "true");
+    await expect(save).toHaveAccessibleName("Saved");
   });
 
   for (const path of GROUP_TOOLS) {
@@ -366,7 +346,7 @@ test.describe("reflow", () => {
         const r = await page.evaluate(() => {
           const w = document.documentElement.clientWidth;
           const wide = [...document.querySelectorAll("body *")]
-            .filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > w + 1 && !e.closest(".side:not(.open)") && getComputedStyle(e).position !== "fixed"; })
+            .filter((e) => { const b = e.getBoundingClientRect(); return b.width > 0 && b.right > w + 1 && getComputedStyle(e).position !== "fixed"; })
             .slice(0, 6).map((e) => `${e.tagName.toLowerCase()}${e.id ? "#" + e.id : ""}.${String(e.className).split(" ")[0]}`);
           return { scrollWidth: document.documentElement.scrollWidth, w, wide };
         });
@@ -422,19 +402,5 @@ test.describe("focus not obscured", () => {
     await ready(page, "/text/case-converter/");
     const { problems } = await obscuredStops(page, 60);
     expect(problems.slice(0, 8)).toEqual([]);
-  });
-
-  test("the open phone drawer keeps focus inside it", async ({ page, isMobile }) => {
-    test.skip(!isMobile, "The drawer exists on phones only");
-    await ready(page, "/");
-    await tabTo(page, "#menu");
-    await page.keyboard.press("Enter");
-    const outside = [];
-    for (let i = 0; i < 40; i++) {
-      await page.keyboard.press("Tab");
-      const where = await page.evaluate(() => (document.activeElement.closest("#side") ? "" : `${document.activeElement.tagName}#${document.activeElement.id}`));
-      if (where) outside.push(where);
-    }
-    expect(outside, "focus left the open drawer, behind the scrim").toEqual([]);
   });
 });

@@ -1,7 +1,9 @@
 {
   "name": "Unlock PDF",
+  "task": "Take the lock off a PDF",
+  "icon": "lock-key-open",
   "short": "Unlock",
-  "tagline": "Take the password or the print and copy limits off a PDF you own. Your files never leave this device.",
+  "tagline": "Remove a PDF's password, or its print and copy limits, on a file you own.",
   "seoTitle": "Unlock PDF without uploading",
   "description": "Remove a PDF's password, or its printing and copying limits, for free in your browser. Files are never uploaded. Pages and forms stay the same.",
   "section": "Security",

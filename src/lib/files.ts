@@ -1,4 +1,4 @@
-// Small helpers shared by tool pages: file sizes, downloads and the drop area.
+// Small helpers shared by tool pages: file sizes, downloads, the drop area and result boxes.
 // Everything stays in the browser: files are read with the File API and handed back as blob: URLs.
 
 export const fmtBytes = (n: number) =>
@@ -34,17 +34,217 @@ export function wireDrop(prefix: string, onFiles: (files: File[]) => void) {
   drop.addEventListener("drop", (e) => onFiles([...((e as DragEvent).dataTransfer?.files ?? [])]));
 }
 
+/** Make a drop zone small once files are in, so the next step is in view. */
+export function compactDrop(prefix: string, on = true) {
+  document.getElementById(`${prefix}-drop`)?.classList.toggle("compact", on);
+}
+
 /** Tell the page a tool could not process something (counted anonymously on /stats; no details are sent). */
 export function reportFailure() {
   document.dispatchEvent(new CustomEvent("ftt:outcome", { detail: { ok: false } }));
 }
 
-/** Show a plain-language error in an element. */
-export function showError(el: HTMLElement, message: string) {
-  reportFailure();
-  el.replaceChildren();
+// Phosphor icons (MIT) for result boxes built in the browser.
+const svg = (d: string) => `<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="${d}"/></svg>`;
+const DONE = svg("M176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z");
+const PROBLEM = svg("M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm-12-80V80a12,12,0,0,1,24,0v52a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,172Z");
+
+function box(cls: string, icon: string, title: string, role: string) {
+  const div = document.createElement("div");
+  div.className = cls;
+  div.setAttribute("role", role);
+  div.tabIndex = -1;
+  const t = document.createElement("span");
+  t.className = "res-title";
+  t.innerHTML = icon;
+  t.append(title);
+  div.append(t);
+  return div;
+}
+
+/**
+ * Put a result box in place. If keyboard focus was lost (the run button disables itself while
+ * it works), move focus to the result, so keyboard and screen-reader users land on it.
+ */
+function place(el: HTMLElement, div: HTMLElement) {
+  const lost = !document.activeElement || document.activeElement === document.body;
+  el.replaceChildren(div);
+  if (lost) div.focus();
+}
+
+/** "Your result will appear here." */
+export function showWait(el: HTMLElement, text: string) {
   const p = document.createElement("p");
-  p.className = "tool-error";
+  p.className = "res-wait";
+  p.textContent = text;
+  el.replaceChildren(p);
+}
+
+/** "Working on it…", with a moving bar. */
+export function showBusy(el: HTMLElement, sub = "This takes a few seconds. Please keep this page open.", title = "Working on it…") {
+  const div = box("res-busy", '<span class="spinner" aria-hidden="true"></span>', title, "status");
+  const meter = document.createElement("div");
+  meter.className = "meter";
+  meter.append(document.createElement("i"));
+  const s = document.createElement("span");
+  s.textContent = sub;
+  div.append(meter, s);
+  place(el, div);
+}
+
+/** A green "Done." box. Extra nodes or text go under the title. Returns the box. */
+export function showDone(el: HTMLElement, title: string, ...extra: (Node | string)[]) {
+  const div = box("res-done", DONE, title, "status");
+  for (const x of extra) {
+    if (typeof x === "string") { const s = document.createElement("span"); s.textContent = x; div.append(s); } else div.append(x);
+  }
+  place(el, div);
+  return div;
+}
+
+/** Show a plain-language problem, what went wrong and what to do next, and count it as a failure. */
+export function showError(el: HTMLElement, message: string, title = "That didn't work") {
+  reportFailure();
+  showProblem(el, message, title);
+}
+
+/** Show a problem without counting it again: for a summary of failures already reported one by one. */
+export function showProblem(el: HTMLElement, message: string, title = "That didn't work") {
+  const div = box("res-bad tool-error", PROBLEM, title, "alert");
+  const p = document.createElement("span");
   p.textContent = message;
-  el.append(p);
+  div.append(p);
+  place(el, div);
+}
+
+/** Before and after bars for a size change, like "Before ████ 1.9 MB / After ██ 830 KB". */
+export function compareBars(before: number, after: number) {
+  const wrap = document.createElement("div");
+  wrap.className = "cmp";
+  const max = Math.max(before, after, 1);
+  for (const [label, n, cls] of [["Before", before, "b"], ["After", after, "a"]] as const) {
+    const row = document.createElement("div");
+    const l = document.createElement("span");
+    l.textContent = label;
+    const track = document.createElement("span");
+    track.className = "cmp-track";
+    const bar = document.createElement("i");
+    bar.className = `cmp-bar ${cls}`;
+    // Set through CSSOM, which the content security policy allows (style attributes it doesn't).
+    bar.style.width = `${Math.max(2, (100 * n) / max)}%`;
+    track.append(bar);
+    const v = document.createElement("em");
+    v.textContent = fmtBytes(n);
+    row.append(l, track, v);
+    wrap.append(row);
+  }
+  return wrap;
+}
+
+const GLYPHS = {
+  up: svg("M216.49,168.49a12,12,0,0,1-17,0L128,97,56.49,168.49a12,12,0,0,1-17-17l80-80a12,12,0,0,1,17,0l80,80A12,12,0,0,1,216.49,168.49Z"),
+  down: svg("M216.49,104.49l-80,80a12,12,0,0,1-17,0l-80-80a12,12,0,0,1,17-17L128,159l71.51-71.52a12,12,0,0,1,17,17Z"),
+  remove: svg("M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"),
+};
+
+/** A square icon button for file rows: move up, move down or remove. `label` is read by screen readers. */
+export function iconButton(kind: keyof typeof GLYPHS, label: string, onClick: () => void, disabled = false) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "icon-btn";
+  b.dataset.kind = kind;
+  b.innerHTML = GLYPHS[kind];
+  b.setAttribute("aria-label", label);
+  b.disabled = disabled;
+  b.onclick = onClick;
+  return b;
+}
+
+/**
+ * After a list re-renders, put focus back where the person was: the same kind of button on the
+ * row at `index` (or the nearest row), or the other arrow when that one is now disabled.
+ */
+export function refocus(list: HTMLElement, index: number, kind: keyof typeof GLYPHS, fallback?: HTMLElement | null) {
+  const rows = list.children;
+  const row = rows[Math.min(index, rows.length - 1)];
+  if (!row) { fallback?.focus(); return; }
+  const pick = (k: string) => row.querySelector<HTMLButtonElement>(`button[data-kind="${k}"]:not(:disabled)`);
+  (pick(kind) ?? pick(kind === "up" ? "down" : kind === "down" ? "up" : "remove") ?? pick("remove"))?.focus();
+}
+
+// ---- File rows: a thumbnail, the name, what matters about the file, and its buttons ----
+
+const tile = (inner: string) => `<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">${inner}</svg>`;
+// Phosphor duotone "file-pdf" and "image" (MIT).
+const PDF_ICON = tile('<path d="M208,88H152V32Z" opacity="0.2"/><path d="M224,152a8,8,0,0,1-8,8H192v16h16a8,8,0,0,1,0,16H192v16a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8h32A8,8,0,0,1,224,152ZM92,172a28,28,0,0,1-28,28H56v8a8,8,0,0,1-16,0V152a8,8,0,0,1,8-8H64A28,28,0,0,1,92,172Zm-16,0a12,12,0,0,0-12-12H56v24h8A12,12,0,0,0,76,172Zm88,8a36,36,0,0,1-36,36H112a8,8,0,0,1-8-8V152a8,8,0,0,1,8-8h16A36,36,0,0,1,164,180Zm-16,0a20,20,0,0,0-20-20h-8v40h8A20,20,0,0,0,148,180ZM40,112V40A16,16,0,0,1,56,24h96a8,8,0,0,1,5.66,2.34l56,56A8,8,0,0,1,216,88v24a8,8,0,0,1-16,0V96H152a8,8,0,0,1-8-8V40H56v72a8,8,0,0,1-16,0ZM160,80h28.69L160,51.31Z"/>');
+const IMAGE_ICON = tile('<path d="M224,56V178.06l-39.72-39.72a8,8,0,0,0-11.31,0L147.31,164,97.66,114.34a8,8,0,0,0-11.32,0L32,168.69V56a8,8,0,0,1,8-8H216A8,8,0,0,1,224,56Z" opacity="0.2"/><path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V158.75l-26.07-26.06a16,16,0,0,0-22.63,0l-20,20-44-44a16,16,0,0,0-22.62,0L40,149.37V56ZM40,172l52-52,80,80H40Zm176,28H194.63l-36-36,20-20L216,181.38V200ZM144,100a12,12,0,1,1,12,12A12,12,0,0,1,144,100Z"/>');
+
+const TYPES: Record<string, string> = {
+  "image/jpeg": "JPG", "image/png": "PNG", "image/webp": "WebP", "image/avif": "AVIF", "image/gif": "GIF", "image/bmp": "BMP",
+  "image/heic": "HEIC", "image/heif": "HEIF", "image/svg+xml": "SVG", "image/tiff": "TIFF", "application/pdf": "PDF",
+};
+/** A file's type in plain words: "JPG", "PNG", "PDF". */
+export const typeLabel = (f: File) => TYPES[f.type] ?? (f.name.includes(".") ? f.name.split(".").pop()!.toUpperCase() : "File");
+
+type Thumb = { box: HTMLElement; w?: number; h?: number; waiting: ((w: number, h: number) => void)[] };
+const thumbs = new WeakMap<Blob, Thumb>();
+
+/**
+ * A square thumbnail of a photo, made by the browser from the file itself (nothing leaves the
+ * page). Made once per file: lists that re-render reuse it. `onSize` gets the size in pixels.
+ */
+export function imageThumb(file: Blob, onSize?: (width: number, height: number) => void) {
+  let t = thumbs.get(file);
+  if (!t) {
+    const box = document.createElement("span");
+    box.className = "fthumb";
+    const img = new Image();
+    img.alt = "";
+    img.decoding = "async";
+    const made: Thumb = { box, waiting: [] };
+    img.onload = () => { made.w = img.naturalWidth; made.h = img.naturalHeight; made.waiting.splice(0).forEach((fn) => fn(made.w!, made.h!)); };
+    img.onerror = () => { img.remove(); box.innerHTML = IMAGE_ICON; made.waiting.length = 0; };
+    img.src = URL.createObjectURL(file);
+    box.append(img);
+    thumbs.set(file, (t = made));
+  }
+  if (onSize) { if (t.w && t.h) onSize(t.w, t.h); else t.waiting.push(onSize); }
+  return t.box;
+}
+
+/** A PDF tile, or a canvas when the caller can draw the first page into it. */
+export function pdfThumb() {
+  const box = document.createElement("span");
+  box.className = "fthumb";
+  box.innerHTML = PDF_ICON;
+  return box;
+}
+
+/**
+ * A file as a row of a `.file-list`: thumbnail, name, a details line (`.fmeta`), optional extra
+ * lines, and buttons. Returns the row; its details line is `row.querySelector(".fmeta")`.
+ */
+export function fileRow(o: { name: string; meta: string; thumb?: HTMLElement; extra?: Node[]; actions?: Node[] }) {
+  const li = document.createElement("li");
+  const info = document.createElement("span");
+  info.className = "finfo";
+  const n = document.createElement("span"); n.className = "fname"; n.textContent = o.name;
+  const m = document.createElement("span"); m.className = "fmeta"; m.textContent = o.meta;
+  info.append(n, m, ...(o.extra ?? []));
+  const act = document.createElement("span"); act.className = "fact"; act.append(...(o.actions ?? []));
+  if (o.thumb) { li.classList.add("has-thumb"); li.append(o.thumb); }
+  li.append(info, act);
+  return li;
+}
+
+/** "JPG · 4032 × 3024 · 4.1 MB" once the size is known, "JPG · 4.1 MB" until then. */
+export const photoMeta = (f: File, w?: number, h?: number) => [typeLabel(f), w && h ? `${w} × ${h}` : "", fmtBytes(f.size)].filter(Boolean).join(" · ");
+
+/** A photo as a row, with its thumbnail and its type, size in pixels and file size. */
+export function photoRow(file: File, actions: Node[] = [], extra: Node[] = []) {
+  const li = fileRow({ name: file.name, meta: photoMeta(file), actions, extra });
+  const meta = li.querySelector(".fmeta")!;
+  li.classList.add("has-thumb");
+  li.prepend(imageThumb(file, (w, h) => (meta.textContent = photoMeta(file, w, h))));
+  return li;
 }

@@ -1,5 +1,7 @@
-/* Share button: the icon size only. Everything else comes from .btn and .btn.line. */
-.share-btn svg { width: 15px; height: 15px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-.share-btn { margin-inline-start: var(--s1); }
-.actions > .share-btn, .agent-files > .share-btn, .records .share-btn { margin-inline-start: 0; }
-.share-note { font-size: var(--t-sm); line-height: var(--lh-sm); }
+/* Share button: a v4 secondary button (.btn.line) with the share mark. */
+.share-btn svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.share-btn { margin-inline-start: 8px; }
+.actions > .share-btn, .agent-files > .share-btn, .records .share-btn, .fact > .share-btn { margin-inline-start: 0; }
+/* In a result column (a grid), Share sits under the full-width Download at its own width. */
+.result > .share-btn { justify-self: start; margin-inline-start: 0; }
+.share-note { font-size: 14px; color: var(--muted); }

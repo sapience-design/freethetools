@@ -1,7 +1,9 @@
 {
   "name": "Convert Image Format",
+  "task": "Change a photo's type",
+  "icon": "arrows-left-right",
   "short": "Convert format",
-  "tagline": "PNG, JPG, WebP and AVIF, back and forth, one or a batch. Nothing is uploaded.",
+  "tagline": "JPG, PNG, WebP and AVIF, whichever you need.",
   "seoTitle": "Convert PNG, JPG and WebP images without uploading",
   "description": "Convert images between PNG, JPG, WebP and AVIF for free in your browser, one or many at once. Your images never leave your device.",
   "section": "Convert",

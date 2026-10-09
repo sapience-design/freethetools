@@ -48,7 +48,7 @@ npm run dev          # http://localhost:4321/text/word-counter/
 | | |
 |---|---|
 | `tools/<group>/<tool>/` | One folder per tool: `tool.json` (name, search text, specs, questions), `Tool.astro` (the interface), `core.js` (the logic) and tests |
-| `src/` | The site: sidebar, catalogue, product pages, API and search files, all built from the tool folders |
+| `src/` | The site: layout, home and group pages, tool pages, API and search files, all built from the tool folders |
 | `astro.config.mjs` | The Content Security Policy that keeps every page on its own origin |
 | `worker/`, `migrations/` | The only server code: anonymous usage totals at `/api/stats/*`, stored in Cloudflare D1 |
 | `packages/freethetools/` | The npm package: an MCP server and command line that run the tools on your computer. Build it with `npm run build:package` |

@@ -1,9 +1,10 @@
 ---
 import Base from "../../layouts/Base.astro";
-import Card from "../../components/Card.astro";
-import SortBar from "../../components/SortBar.astro";
+import Icon from "../../components/Icon.astro";
+import ToolRow from "../../components/ToolRow.astro";
 import { CATEGORIES } from "../../data/categories";
-import { loadCatalogue, REPO } from "../../data/catalogue";
+import { loadCatalogue, REQUEST_URL } from "../../data/catalogue";
+import { artFor } from "../../data/art";
 
 export function getStaticPaths() {
   return CATEGORIES.map((c) => ({ params: { category: c.slug } }));
@@ -12,6 +13,8 @@ export function getStaticPaths() {
 const { category } = Astro.params;
 const { aisles } = await loadCatalogue();
 const a = aisles.find((x) => x.slug === category)!;
+const shot = artFor(a.shot, a.slug, `grp${a.slug}`);
+const secId = (name: string) => `sec-${name.replace(/\W+/g, "-")}`;
 ---
 <Base
   category={a.slug}
@@ -24,33 +27,44 @@ const a = aisles.find((x) => x.slug === category)!;
     hasPart: a.live.map((t) => ({ "@type": "WebApplication", name: t.data.name, url: new URL(t.url, Astro.site).href })),
   }}
 >
-  <section class="opening">
-    <p class="eyebrow">{a.name} · {a.live.length} in stock · {a.wanted.length} made to order</p>
-    <h1>{a.blurb}</h1>
-    <p>Each tool runs in your browser and never uploads your files.</p>
-  </section>
+  <div class="page group" data-g={a.slug}>
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="banner">
+      <div class="banner-text">
+        <span class="tag on-tint"><span class="tag-ic"><Icon name={a.mark} /></span>{a.label}</span>
+        <h1 class="h1">{a.blurb}</h1>
+        <p>{a.sub}</p>
+      </div>
+      <span class="banner-shot" aria-hidden="true" set:html={shot} />
+    </div>
 
-  <SortBar />
+    {a.sectionsUsed.map((s) => (
+      <section class="sec" aria-labelledby={secId(s.name)}>
+        <h2 class="label-caps" id={secId(s.name)}>{s.name}</h2>
+        <ul class="rows card">
+          {s.live.map((t) => <ToolRow href={t.url} task={t.data.task} sub={t.data.tagline} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
+          {s.wanted.map((w) => <ToolRow href={w.url} task={w.name} sub={`${w.blurb} Ask for it on GitHub.`} group={a.slug} icon={a.mark} want />)}
+        </ul>
+      </section>
+    ))}
 
-  {a.sectionsUsed.map((s) => (
-    <section class="shelf" aria-labelledby={`sec-${s.name.replace(/\W+/g, "-")}`}>
-      <div class="shelf-head"><h2 id={`sec-${s.name.replace(/\W+/g, "-")}`}>{s.name}</h2></div>
-      <ul class="grid">
-        {s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} added={t.data.added} />)}
-        {s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />)}
-      </ul>
-    </section>
-  ))}
-
-  <p class="more"><a href={`${REPO}/issues/new?template=tool_request.yml`}>Missing something? Request a tool</a></p>
+    <p class="more">Missing something? <a href={REQUEST_URL}>Suggest a tool</a></p>
+  </div>
 </Base>
 
 <style>
-  .shelf + .shelf { margin-top: var(--s6); }
-  .shelf-head { margin-bottom: var(--s3); }
-  .shelf-head h2 { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--s5) var(--s3); }
-  .more { margin-top: var(--s6); font-size: var(--t-sm); }
-  .more a { color: var(--muted); }
-  .more a:hover { color: var(--ink); }
+  .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 3vw, 32px); }
+  .banner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 440px); gap: clamp(16px, 2.5vw, 28px); align-items: center; padding: clamp(18px, 2.5vw, 28px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--tint); box-shadow: var(--shadow); }
+  .banner-text { display: grid; gap: 14px; justify-items: start; }
+  .banner-text p { color: var(--soft); }
+  .banner-shot { display: block; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--edge); }
+  .banner-shot :global(svg) { display: block; width: 100%; height: 100%; }
+  .sec { display: grid; gap: 10px; }
+  .sec .row { min-height: 68px; }
+  .sec .row-sub { font-size: 15px; }
+  .more { color: var(--soft); }
+  .more a { color: var(--ink); font-weight: 650; }
+  @media (max-width: 760px) {
+    .banner { grid-template-columns: minmax(0, 1fr); }
+  }
 </style>

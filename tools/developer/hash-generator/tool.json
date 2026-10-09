@@ -1,7 +1,9 @@
 {
   "name": "Hash Generator",
+  "task": "Make a fingerprint (hash)",
+  "icon": "fingerprint",
   "short": "Hash generator",
-  "tagline": "SHA-256, SHA-512, SHA-1 and MD5 for text and files. Check a download against its checksum.",
+  "tagline": "SHA-256, SHA-512, SHA-1 and MD5 for any text or file.",
   "seoTitle": "SHA-256 and MD5 hash generator for text and files",
   "description": "Get SHA-256, SHA-512, SHA-1 or MD5 hashes of text or files, and check them against a published checksum. Free, and files never leave your device.",
   "section": "Encode",

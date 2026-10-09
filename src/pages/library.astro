@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
 import { loadCatalogue } from "../data/catalogue";
 
 // Tool id -> name and address, and each agent tool's name -> its tool id, so a record from the
@@ -14,63 +15,69 @@ for (const [path, mod] of Object.entries(agents)) {
 }
 ---
 <Base page="library" title="Library | Free the Tools" description="What the tools on this device did, and the files they made." noindex>
-  <section class="opening">
-    <p class="eyebrow">Library</p>
-    <h1 class="sm">What was done here.</h1>
-    <p>Every job from this browser, whether you or an AI agent ran it. The library stays in this browser. Nothing is sent anywhere.</p>
-  </section>
+  <div class="page narrow library">
+  <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+  <div class="intro">
+    <h1 class="h1">Library</h1>
+    <p class="lede">Every job from this browser, whether you or an AI agent ran it. The library stays in this browser. Nothing is sent anywhere.</p>
+  </div>
 
-  <p class="space muted" id="lib-space"></p>
+  <p class="space" id="lib-space"></p>
   <p class="tool-error" id="lib-note" hidden></p>
 
-  <div class="bar">
-    <button class="btn line" type="button" id="lib-folder">Open the package's folder</button>
-    <button class="btn line" type="button" id="lib-clear" disabled>Clear library</button>
+  <div class="lib-actions">
+    <button class="btn line small" type="button" id="lib-folder"><Icon name="folder-open" />Open the package's folder</button>
+    <button class="btn quiet small" type="button" id="lib-clear" disabled><Icon name="trash" />Clear library</button>
   </div>
-  <p class="muted fine" id="lib-folder-help">The freethetools package for AI assistants keeps its own library in a folder on your computer. Open that folder to see its jobs here. This works in Chrome and Edge.</p>
+  <p class="hint" id="lib-folder-help">The freethetools package for AI assistants keeps its own library in a folder on your computer. Open that folder to see its jobs here. This works in Chrome and Edge.</p>
 
-  <div class="confirm" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
+  <div class="confirm card" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
     <p id="lib-confirm-text">Delete every record and file in this browser's library? This cannot be undone.</p>
-    <div class="bar">
-      <button class="btn" type="button" id="lib-confirm-yes">Yes, clear library</button>
-      <button class="btn line" type="button" id="lib-confirm-no">Keep it</button>
+    <div class="lib-actions">
+      <button class="btn small" type="button" id="lib-confirm-yes">Yes, clear library</button>
+      <button class="btn quiet small" type="button" id="lib-confirm-no">Keep it</button>
     </div>
   </div>
 
   <p class="sr-only" id="lib-status" role="status"></p>
 
   <ul class="records" id="lib-list"></ul>
-  <div class="empty" id="lib-empty" hidden>
+  <div class="empty card" id="lib-empty" hidden>
     <p>Nothing here yet. Download a result from a tool, or let an AI agent use one, and the job appears here.</p>
     <p><a class="btn" href="/">Browse all tools</a></p>
+  </div>
   </div>
 
   <script type="application/json" id="lib-tools" set:html={JSON.stringify({ byId, byAgentName })} />
 </Base>
 
 <style>
-  .space { margin: 0 0 var(--s2); font-size: var(--t-sm); line-height: var(--lh-sm); }
-  .bar { display: flex; flex-wrap: wrap; gap: var(--s1); margin-bottom: var(--s2); }
-  .fine { font-size: var(--t-sm); line-height: var(--lh-sm); max-width: 60ch; margin: 0 0 var(--s4); }
-  #lib-note { max-width: 760px; margin-bottom: var(--s2); }
-  .confirm { max-width: 760px; display: grid; gap: var(--s2); padding: var(--s2) var(--s3); margin-bottom: var(--s3); box-shadow: inset 0 0 0 1px var(--ink); border-radius: 8px; }
-  .confirm p { margin: 0; }
+  .library { display: grid; gap: 16px; }
+  .intro { display: grid; gap: 12px; margin-bottom: 8px; }
+  .space { font-size: 14px; color: var(--muted); }
+  .space:empty { display: none; }
+  .lib-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .library > .hint { max-width: var(--measure); font-size: 14px; color: var(--soft); }
+  .confirm { display: grid; gap: 12px; padding: 16px 18px; }
   .confirm[hidden], .empty[hidden], #lib-note[hidden] { display: none; }
-  .records { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); max-width: 760px; }
-  .records :global(.rec) { display: grid; gap: 8px; padding: var(--s3) 0; border-bottom: 1px solid var(--line); font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .records { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
+  .records:empty { display: none; }
+  .records :global(.rec) { display: grid; gap: 10px; padding: 14px 16px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); font-size: 15px; }
   .records :global(.rec p), .records :global(.rec ul) { margin: 0; }
-  .records :global(.rec-head) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px var(--s2); }
-  .records :global(.rec-head a), .records :global(.rec-head strong) { font-size: var(--t-base); line-height: var(--lh-base); font-weight: 500; }
-  .records :global(.rec-head .who) { color: var(--muted); }
-  .records :global(.rec-head .del) { margin-left: auto; border: 0; background: none; font: inherit; color: var(--muted); cursor: pointer; padding: 4px 0; }
-  .records :global(.rec-head .del:hover) { color: var(--ink); }
+  .records :global(.rec-head) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+  .records :global(.rec-head a), .records :global(.rec-head strong) { font-family: var(--display); font-size: 17px; font-weight: 700; }
+  .records :global(.rec-head a) { color: var(--ink); }
+  .records :global(.rec-head .who) { color: var(--muted); font-size: 14px; }
+  .records :global(.rec-head .del) { margin-left: auto; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); color: var(--soft); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .records :global(.rec-head .del:hover) { border-color: var(--edge); color: var(--ink); }
   .records :global(.bad) { color: var(--bad); }
-  .records :global(.rec dl) { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px var(--s2); margin: 0; }
+  .records :global(.rec dl) { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; }
   .records :global(.rec dt) { color: var(--muted); }
   .records :global(.rec dd) { margin: 0; overflow-wrap: anywhere; }
-  .records :global(.rec dd ul) { list-style: none; padding: 0; display: grid; gap: 6px; }
-  .records :global(.rec dd li) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px var(--s1); }
-  .empty { display: grid; gap: 14px; max-width: 560px; color: var(--ink-soft); }
+  .records :global(.rec dd ul) { list-style: none; padding: 0; display: grid; gap: 8px; }
+  .records :global(.rec dd li) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .records :global(.rec .btn) { min-height: 44px; padding: 0 16px; font-size: 15px; border-radius: var(--r); }
+  .empty { display: grid; gap: 14px; padding: 18px; color: var(--soft); }
   .empty p { margin: 0; }
 </style>
 

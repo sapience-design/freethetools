@@ -1,10 +1,23 @@
 ---
+// File Converter: each file is recognised from its first bytes and converted to the first format it
+// can become at once; pick another format in its row to convert it again.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
 ---
-<section class="tool" aria-label="File Converter">
-  <DropZone prefix="fc" toolId="everyday/file-converter" category="everyday" name="File Converter" accept="*/*" multiple title="Drop files here" hint="Images, audio, CSV, JSON, Markdown or HTML · one or many" pick="Choose files" />
-  <ul class="file-list" id="fc-list" aria-live="polite"></ul>
+<section class="tool" id="fc-tool" aria-label="File Converter">
+  <Step n={1} title="Choose your files">
+    <DropZone prefix="fc" toolId="everyday/file-converter" category="everyday" name="File Converter" accept="*/*" multiple title="Drop your files here" hint="Images, audio, CSV, JSON, Markdown or HTML · one or many" button="Choose files" />
+  </Step>
+  <Step n={2} title="Pick a format and save">
+    <p class="hint">Each file is converted to the first format in its list. Pick another to convert it again.</p>
+    <ul class="file-list" id="fc-list" aria-live="polite"></ul>
+  </Step>
 </section>
+
+<style>
+  #fc-list :global(select) { width: auto; max-width: 100%; min-height: 44px; padding: 6px 36px 6px 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background-color: var(--bg); color: var(--ink); font: inherit; font-size: 15px; }
+  #fc-list :global(.finfo a:not(.btn)) { color: var(--ink); }
+</style>
 
 <script>
   import {
@@ -13,7 +26,7 @@ import DropZone from "../../../src/components/DropZone.astro";
     decodeText, delimiterName, estimateAudio, longAudioWarning,
   } from "./core.js";
   import { decode, encode, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, imageThumb, compactDrop } from "../../../src/lib/files";
 
   const list = document.getElementById("fc-list")!;
   type Det = ReturnType<typeof detectType>;
@@ -136,11 +149,9 @@ import DropZone from "../../../src/components/DropZone.astro";
   }
 
   async function addRow(file: File, before: ChildNode | null) {
-    const li = el("li");
-    const name = el("span", "fname", file.name);
-    const meta = el("span", "fmeta", "Reading…");
-    const act = el("span", "fact");
-    li.append(name, meta, act);
+    // Photos show a thumbnail; other files a plain row.
+    const li = fileRow({ name: file.name, meta: "Reading…", thumb: file.type.startsWith("image/") && file.type !== "image/svg+xml" ? imageThumb(file) : undefined });
+    const meta = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!, info = li.querySelector<HTMLElement>(".finfo")!;
     list.insertBefore(li, before);
 
     let head: Uint8Array, det: Det;
@@ -158,7 +169,7 @@ import DropZone from "../../../src/components/DropZone.astro";
     const extra = (parts: (string | HTMLElement)[]) => {
       const p = el("span", "fmeta");
       p.append(...parts);
-      li.append(p);
+      info.append(p);
     };
     const link = (href: string, text: string) => {
       const a = el("a", "", text);
@@ -183,14 +194,14 @@ import DropZone from "../../../src/components/DropZone.astro";
     }
     if (!outputs.length) return;
 
-    const select = el("select", "input");
+    const select = el("select");
     select.setAttribute("aria-label", `Convert ${file.name} to`);
     for (const o of outputs) select.add(new Option(`${o.label} · ${o.note}`, o.id));
     act.append(select);
     let download: HTMLAnchorElement | null = null;
     const notes = el("span", "fmeta");
     notes.hidden = true;
-    li.append(notes);
+    info.append(notes);
     const setNotes = (t: string) => { notes.textContent = t; notes.hidden = !t; };
     let proceed: HTMLButtonElement | null = null;
 
@@ -203,7 +214,7 @@ import DropZone from "../../../src/components/DropZone.astro";
         const warning = longAudioWarning(estimateAudio(head, file.size, det.format));
         if (warning) {
           meta.textContent = warning;
-          proceed = el("button", "icon-btn", "Convert anyway");
+          proceed = el("button", "btn quiet small", "Convert anyway");
           proceed.type = "button";
           proceed.setAttribute("aria-label", `Convert ${file.name} anyway`);
           proceed.addEventListener("click", () => run(true));
@@ -235,7 +246,7 @@ import DropZone from "../../../src/components/DropZone.astro";
     for (const f of files) await addRow(f, before);
   }
 
-  wireDrop("fc", addFiles);
+  wireDrop("fc", (files) => { if (files.length) compactDrop("fc"); return addFiles(files); });
   // A working example on first load.
   addFiles([new File(["name,city,tools\nAda,London,3\nLinus,Helsinki,5\n"], "example.csv", { type: "text/csv" })]);
 </script>

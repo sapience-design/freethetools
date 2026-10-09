@@ -1,7 +1,9 @@
 {
   "name": "Remove Photo Location",
+  "task": "Remove location from photos",
+  "icon": "gps-slash",
   "short": "Remove location",
-  "tagline": "Strip GPS location, camera details and dates from photos before you share them.",
+  "tagline": "Take out where and when a photo was taken before you share it.",
   "seoTitle": "Remove GPS location and EXIF data from photos",
   "description": "Remove GPS location, camera and date data from JPG, PNG and WebP photos, without losing quality. Free, and photos never leave your device.",
   "section": "Privacy",

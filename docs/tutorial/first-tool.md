@@ -24,7 +24,7 @@ git switch -c feat/word-counter
 npm run new-tool -- text word-counter "Word Counter" "Count & Compare"
 ```
 
-This creates `tools/text/word-counter/` from the template. Open http://localhost:4321/text/word-counter/ and you'll see a working example tool that upper-cases text. The Word Counter tile in the sidebar is no longer marked wanted.
+This creates `tools/text/word-counter/` from the template. Open http://localhost:4321/text/word-counter/ and you'll see a working example tool that upper-cases text. Word Counter is no longer listed as "Not built yet" on the Text tools page.
 
 ## 3. Write the logic
 
@@ -81,11 +81,11 @@ In `Tool.astro`, change the script so the output shows the counts:
 </script>
 ```
 
-Keep the `word-counter-` prefix on every id. The sidebar shares the page, and the build fails on duplicate ids.
+Keep the `word-counter-` prefix on every id; the build fails on duplicate ids. The template lays the tool out as numbered steps (`src/components/Step.astro`); for a tool that takes files, copy the pattern in `tools/pdf/merge/Tool.astro`.
 
 ## 6. Describe it
 
-Fill in the TODOs in `tool.json`. Write the `seoTitle` in the words people type into a search engine ("Word counter online"), and keep `description` between 50 and 160 characters. Put your name and GitHub username under `authors`. The [reference](../reference/tool-json.md) explains every field.
+Fill in the TODOs in `tool.json`. Write the `task` as the job in plain words ("Count words"): it is the page heading and the name in lists. Pick an `icon` from [Phosphor](https://phosphoricons.com/). Write the `seoTitle` in the words people type into a search engine ("Word counter online"), and keep `description` between 50 and 160 characters. Put your name and GitHub username under `authors`. The [reference](../reference/tool-json.md) explains every field.
 
 ### Let AI agents use it (optional)
 

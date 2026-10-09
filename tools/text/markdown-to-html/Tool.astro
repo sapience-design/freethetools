@@ -1,37 +1,44 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+// Markdown to HTML: works as you type. Step 1 the text, step 2 the direction, step 3 the result,
+// shown as a cleaned preview or as code.
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 import { EXAMPLE_MARKDOWN } from "./core.js";
 ---
-<section class="tool" aria-label="Markdown to HTML">
-  <ToolShot toolId="text/markdown-to-html" category="text" name="Markdown to HTML" />
-  <fieldset class="field">
-    <legend class="eyebrow">Direction</legend>
-    <div class="seg">
-      <input type="radio" name="md-dir" id="md-m2h" value="m2h" checked><label for="md-m2h">Markdown → HTML</label>
-      <input type="radio" name="md-dir" id="md-h2m" value="h2m"><label for="md-h2m">HTML → Markdown</label>
+<section class="tool" id="md-tool" aria-label="Markdown to HTML">
+  <Step n={1} title="Type or paste your text">
+    <label class="field"><span id="md-in-label">Markdown</span><textarea id="md-in" rows="10" spellcheck="false">{EXAMPLE_MARKDOWN}</textarea></label>
+    <div class="actions">
+      <button type="button" class="btn quiet small" id="md-open"><Icon name="folder-open" />Open a file instead</button><input type="file" id="md-file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden>
     </div>
-  </fieldset>
-  <label class="field"><span id="md-in-label">Markdown</span><textarea id="md-in" rows="10" spellcheck="false">{EXAMPLE_MARKDOWN}</textarea></label>
-  <div class="actions">
+  </Step>
+  <Step n={2} title="Which way?">
+    <fieldset class="field">
+      <legend class="sr-only">Direction</legend>
+      <div class="seg">
+        <input type="radio" name="md-dir" id="md-m2h" value="m2h" checked><label for="md-m2h">Markdown to HTML</label>
+        <input type="radio" name="md-dir" id="md-h2m" value="h2m"><label for="md-h2m">HTML to Markdown</label>
+      </div>
+    </fieldset>
     <label class="check" id="md-clean-wrap"><input type="checkbox" id="md-clean" checked> Remove scripts and unsafe markup from the HTML</label>
-    <button type="button" class="btn line" id="md-open">Open a file…</button><input type="file" id="md-file" accept=".md,.markdown,.txt,.html,.htm,text/markdown,text/html,text/plain" hidden>
-  </div>
-  <div class="out">
+  </Step>
+  <Step n={3} title="Copy or save the result">
     <div class="md-bar">
-      <span class="eyebrow" id="md-status"></span>
+      <span class="hint" id="md-status"></span>
       <fieldset class="md-view">
         <legend class="sr-only">Show the result as</legend>
         <div class="seg">
-          <input type="radio" name="md-view" id="md-view-preview" value="preview" checked><label for="md-view-preview"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.75" y="2.75" width="12.5" height="10.5" rx="1.75" /><path d="M1.75 6h12.5" /></svg>Preview</label>
-          <input type="radio" name="md-view" id="md-view-code" value="code"><label for="md-view-code"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 4.5 2 8l3.5 3.5M10.5 4.5 14 8l-3.5 3.5" /></svg>Code</label>
+          <input type="radio" name="md-view" id="md-view-preview" value="preview" checked><label for="md-view-preview"><Icon name="eye" />Preview</label>
+          <input type="radio" name="md-view" id="md-view-code" value="code"><label for="md-view-code"><Icon name="code" />Code</label>
         </div>
       </fieldset>
     </div>
     <div class="md-preview" id="md-preview" tabindex="0" role="region" aria-label="Rendered preview"></div>
     <pre class="out-box" id="md-out" tabindex="0" role="region" aria-label="Result code" hidden></pre>
     <p class="sr-only" id="md-live" role="status"></p>
-    <div class="actions" id="md-actions"><button class="btn line" id="md-copy" type="button">Copy result</button></div>
-  </div>
+    <button class="btn run" id="md-copy" type="button"><Icon name="copy" /><span id="md-copy-label">Copy result</span></button>
+    <div class="actions" id="md-actions"></div>
+  </Step>
 </section>
 
 <script>
@@ -60,12 +67,14 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
         status.textContent = clean ? "HTML ready, cleaned" : "HTML ready, exactly as written";
         announce(status.textContent);
         dl = downloadLink(result, `${stem}.html`, "text/html", "Download .html");
+        dl.classList.add("line");
       } else {
         result = htmlToMarkdown(input.value);
         html = markdownToHtml(result);
         status.textContent = "Markdown ready";
         announce(status.textContent);
         dl = downloadLink(result, `${stem}.md`, "text/markdown", "Download .md");
+        dl.classList.add("line");
       }
       out.textContent = result;
       // The preview is always cleaned, and never loads images from other sites.
@@ -110,40 +119,36 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
   );
   showView();
 
-  const copy = $("md-copy") as HTMLButtonElement;
+  const copy = $("md-copy") as HTMLButtonElement, copyLabel = $("md-copy-label");
   copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
-    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select the text to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy result"), 1600);
   });
   update();
 </script>
 
 <style>
-  .md-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2); }
+  .md-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
   .md-view { margin: 0; padding: 0; border: 0; min-width: 0; }
-  .md-view .seg { display: inline-grid; grid-template-columns: repeat(2, auto); }
-  .md-view .seg label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; }
-  .md-view svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
-  .md-view input:not(:checked) + label { color: var(--muted); }
-  .md-view input:not(:checked) + label:hover { color: var(--ink); }
+  .md-view .seg label { display: inline-flex; align-items: center; gap: 8px; }
+  .md-view :global(.ic) { font-size: 18px; }
   .md-preview :global(.md-err) { margin: 0; color: var(--bad); }
   pre.out-box { margin: 0; max-height: 480px; overflow: auto; }
-  pre.out-box.bad { color: var(--bad); }
-  .md-preview { padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; max-height: 480px; overflow: auto; overflow-wrap: anywhere; }
+  .md-preview { padding: 14px 16px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--bg); max-height: 480px; overflow: auto; overflow-wrap: anywhere; }
   .md-preview :global(> :first-child) { margin-top: 0; }
   .md-preview :global(> :last-child) { margin-bottom: 0; }
-  .md-preview :global(.md-h) { margin: 1em 0 .4em; font-weight: 600; line-height: 1.2; }
+  .md-preview :global(.md-h) { margin: 1em 0 .4em; font-family: var(--display); font-weight: 700; line-height: 1.2; }
   .md-preview :global(.md-h1) { font-size: 1.5rem; }
-  .md-preview :global(.md-h2) { font-size: var(--t-lg); }
+  .md-preview :global(.md-h2) { font-size: 1.2rem; }
   .md-preview :global(p), .md-preview :global(ul), .md-preview :global(ol), .md-preview :global(blockquote), .md-preview :global(pre), .md-preview :global(table) { margin: 0 0 .8em; }
   .md-preview :global(ul), .md-preview :global(ol) { padding-left: 1.4em; }
-  .md-preview :global(blockquote) { padding-left: 12px; border-left: 3px solid var(--line); color: var(--muted); }
-  .md-preview :global(code), .md-preview :global(pre) { font-family: var(--mono); font-size: var(--t-sm); background: var(--studio); border-radius: 4px; }
-  .md-preview :global(code) { padding: 1px 4px; }
+  .md-preview :global(blockquote) { padding-left: 12px; border-left: 3px solid var(--hair); color: var(--soft); }
+  .md-preview :global(code), .md-preview :global(pre) { font-family: var(--mono); font-size: 14px; background: var(--well); border-radius: 6px; }
+  .md-preview :global(code) { padding: 1px 5px; }
   .md-preview :global(pre) { padding: 10px 12px; overflow: auto; }
   .md-preview :global(pre code) { padding: 0; background: none; }
   .md-preview :global(table) { border-collapse: collapse; }
-  .md-preview :global(th), .md-preview :global(td) { padding: 6px 10px; border: 1px solid var(--line); text-align: left; }
+  .md-preview :global(th), .md-preview :global(td) { padding: 6px 10px; border: 1px solid var(--hair); text-align: left; }
   .md-preview :global(a) { color: var(--ink); }
   .md-preview :global(img) { max-width: 100%; height: auto; }
 </style>

@@ -1,7 +1,9 @@
 {
   "name": "Unit Converter",
+  "task": "Convert units",
+  "icon": "ruler",
   "short": "Unit converter",
-  "tagline": "Length, weight, temperature, volume, area, speed and data sizes, converted as you type.",
+  "tagline": "Length, weight, temperature and more, as you type.",
   "seoTitle": "Unit converter: length, weight, temperature",
   "description": "Convert length, weight, temperature, cooking volumes, area, speed and data sizes as you type. Exact factors, no ads, and it works offline.",
   "section": "Convert",

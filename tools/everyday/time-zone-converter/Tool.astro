@@ -1,23 +1,27 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
 const CITIES = [
   ["Europe/Oslo", "Oslo"], ["Europe/London", "London"], ["America/New_York", "New York"], ["America/Los_Angeles", "Los Angeles"],
   ["Asia/Kolkata", "Mumbai"], ["Asia/Singapore", "Singapore"], ["Asia/Tokyo", "Tokyo"], ["Australia/Sydney", "Sydney"],
   ["Europe/Berlin", "Berlin"], ["America/Sao_Paulo", "São Paulo"], ["Asia/Dubai", "Dubai"], ["UTC", "UTC"],
 ];
 ---
-<section class="tool" aria-label="Time zone converter">
-  <ToolShot toolId="everyday/time-zone-converter" category="everyday" name="Time Zone Converter" />
-  <div class="tz-row">
-    <label class="field"><span>Date and time</span><input type="datetime-local" id="tz-when" class="input"></label>
-    <label class="field"><span>In</span><select id="tz-from">{CITIES.map(([z, n]) => <option value={z}>{n}</option>)}</select></label>
-  </div>
-  <ul class="file-list" id="tz-list" aria-live="polite"></ul>
-  <label class="field"><span>Add a city or zone</span><select id="tz-add"><option value="">Choose…</option></select></label>
+<section class="tool" id="tz-tool" aria-label="Time zone converter">
+  <Step n={1} title="Pick a time">
+    <div class="tz-row">
+      <label class="field"><span>Date and time</span><input type="datetime-local" id="tz-when" class="input"></label>
+      <label class="field"><span>In</span><select id="tz-from">{CITIES.map(([z, n]) => <option value={z}>{n}</option>)}</select></label>
+    </div>
+  </Step>
+  <Step n={2} title="The same moment elsewhere">
+    <ul class="file-list" id="tz-list" aria-live="polite"></ul>
+    <label class="field"><span>Add a city or zone</span><select id="tz-add"><option value="">Choose…</option></select></label>
+  </Step>
 </section>
 
 <script>
   import { zonedToInstant, inZone, workingHour } from "./core.js";
+  import { iconButton } from "../../../src/lib/files";
   const $ = (id: string) => document.getElementById(id)!;
   const when = $("tz-when") as HTMLInputElement, from = $("tz-from") as HTMLSelectElement, add = $("tz-add") as HTMLSelectElement;
   const KEY = "ftt:tz";
@@ -47,8 +51,7 @@ const CITIES = [
       m.textContent = `${r.date}${r.dayShift ? (r.dayShift > 0 ? " · next day" : " · previous day") : ""} · ${r.offset}${workingHour(r.hour) ? "" : " · outside working hours"}`;
       if (!workingHour(r.hour)) li.classList.add("tz-off");
       const act = document.createElement("span"); act.className = "fact";
-      const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = "✕"; b.setAttribute("aria-label", `Remove ${label(z)}`);
-      b.onclick = () => { zones = zones.filter((x) => x !== z); save(); render(); };
+      const b = iconButton("remove", `Remove ${label(z)}`, () => { zones = zones.filter((x) => x !== z); save(); render(); });
       act.append(b); li.append(n, m, act); return li;
     }));
   }
@@ -58,7 +61,7 @@ const CITIES = [
 </script>
 
 <style>
-  .tz-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--s2); }
-  #tz-list :global(.fname) { font-family: var(--serif); font-weight: 400; font-size: var(--t-xl); line-height: var(--lh-xl); white-space: pre; font-variant-numeric: tabular-nums; }
+  .tz-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+  #tz-list :global(.fname) { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.3; white-space: pre; font-variant-numeric: tabular-nums; }
   #tz-list :global(.tz-off .fname) { color: var(--muted); }
 </style>

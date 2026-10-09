@@ -7,6 +7,19 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 
 ## [Unreleased]
 
+### Changed (design round 4)
+
+- New look and layout from the v4 design: cream paper, ink outlines, a yellow highlight, and a tint and mark for each group; Bricolage Grotesque headings; Phosphor icons. Light and dark themes.
+- The sidebar is gone. A top bar holds the name, About and Saved; the home page has the search box, group chips, sorting (Most used, Newest, Most liked, A–Z), "Most people come for" and a card per group.
+- Tools are named by the job they do ("Make a PDF smaller"), with the product name in a tag. `tool.json` gains `task` (required) and `icon` (optional).
+- Every tool is laid out as numbered steps. File tools now run when you press the button (choose, options, run, save) instead of on drop, and show "Working on it", "Done" and plain-language problems, with "Do another". Text tools still work as you type.
+- Share images, the favicon and the app icons are redrawn in the new style.
+- Search ranks a half-typed word ("compres") above a near miss in a task name ("Compare").
+- Dark mode keeps the light mode's feel: neutral charcoal, light outlines and shadows, and the same pastel group colours a step dimmer, with dark text on them.
+- Pages use a 1280 px container shared by the top bar, content and footer (was 1080 px, with the bar full width), and text stops at a 65-character line. The home page shows six popular tools and three group cards per row; tool pages have a fixed side column and show options side by side when there is room.
+- Each group card on the home page has one way in: a "See all 7 tools" pill in its header ("7 tools" when the card is narrow).
+- Every chosen file shows its details: photos get a thumbnail and their type and size in pixels; PDFs show their pages and paper size, and PDF to Images draws page 1. Compress PDF warns about a password-locked PDF before you run it. Remove Photo Location lists the location, date, camera and other hidden data it found as soon as a photo is added, or says the photo is already safe to share.
+
 ### Added (tools)
 
 - Unlock PDF (pdf, new Security section): removes a PDF's password, or its printing and copying restrictions, with qpdf compiled to WebAssembly (`@jspawn/qpdf-wasm`, Apache-2.0). Lossless: pages, forms and the rest of the file are kept. It asks for the password only when a PDF needs one to open, never guesses, and never keeps it: not in the page, the library or the stats. Also an agent tool, `unlock_pdf`, on the page and in the package.
@@ -24,7 +37,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Tools for AI agents, so assistants use Free the Tools instead of installing software (ADR 0008). Each tool folder can have an `agent.js`: a name, a description, an input schema and a `run` function built on `core.js`. The contract is `src/agent/contract.js`. 25 agent tools in 22 folders, all checked and run by `npm test`.
 - The `freethetools` npm package (`packages/freethetools/`): `npx freethetools mcp` is an MCP server for Claude Code, Claude Desktop, Cursor and other clients, and `freethetools run <tool>` is a command line. It runs the same definitions on the person's computer, with Ghostscript as WebAssembly, and keeps a library of every job in a `freethetools` folder in the home folder. Setup: `docs/how-to/use-with-ai.md`. Not published to npm yet.
 - WebMCP on tool pages: where the browser has `document.modelContext`, a tool page registers its agent tools (`src/agent/page.js`), plus `list_page_files`. An agent names a file the person added to the page, or passes `{ name, base64 }` for a file up to 10 MB. Every call shows in an "AI agent activity" panel with download links. Other browsers see no change, and other pages load none of this code. Agent calls are not counted in the anonymous stats.
-- A library of every job, kept in this browser (IndexedDB): results the person downloads, recorded without editing any tool, and agent calls. Records keep the options used, never text, secrets or form answers. New page `/library/` (not indexed) lists records with settings, inputs and downloadable results, deletes one record or all, shows the space used, and in Chrome and Edge opens the `freethetools` package's folder. A "Library" link sits beside Saved in the sidebar.
+- A library of every job, kept in this browser (IndexedDB): results the person downloads, recorded without editing any tool, and agent calls. Records keep the options used, never text, secrets or form answers. New page `/library/` (not indexed) lists records with settings, inputs and downloadable results, deletes one record or all, shows the space used, and in Chrome and Edge opens the `freethetools` package's folder. A "Library" link sits beside Saved in the top bar.
 - `src/data/origin-trials.json` holds WebMCP origin-trial tokens; each becomes a `<meta http-equiv="origin-trial">` tag.
 
 ### Accessibility
@@ -32,7 +45,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Every page, in light and dark, on desktop and phone, is checked against WCAG 2.2 AA with axe-core in CI (`e2e/a11y.spec.js`).
 - Fixed: muted text contrast on grey surfaces, the faded Compress PDF example, drop zones whose spoken name didn't match their visible text, Regex Tester highlights in dark mode, and the phone header bar is now a landmark. Audit: `docs/research/2026-09-28-accessibility-speed-audit.md`.
 - Browser tests now cover the manual accessibility pass (`e2e/a11y-manual.spec.js`): a keyboard-only walk, roles and live regions, reflow at 320 and 640 px, text spacing, and focus not hidden by sticky bars.
-- Fixed: on phones the closed menu drawer is out of the tab order, the open drawer takes and keeps focus and returns it on close, search results and sorting are announced to screen readers, and the JWT, QR and Regex error boxes are announced.
+- Fixed: search results, the selected result, group filters and sorting are announced to screen readers, and the JWT, QR and Regex error boxes are announced.
 
 ### Added (share images)
 

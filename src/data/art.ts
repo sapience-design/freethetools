@@ -30,14 +30,15 @@ const CLAY: Palette = {
   clay: true,
 };
 
-// Seamless paper backdrops, one per group: [wall, floor].
+// Seamless paper backdrops, one per group: [wall, floor]. The floor is the group's tint; in dark
+// mode the page recolours both from CSS (classes sw, sf and sg below), so shots never glare.
 const BACKDROPS: Record<string, [string, string]> = {
-  pdf: ["#e7eaed", "#d2d7dc"],
-  images: ["#e5e9e1", "#cfd6c9"],
-  text: ["#ece8e3", "#d9d2c9"],
-  data: ["#e7e5ec", "#d3d0db"],
-  developer: ["#353a40", "#202328"],
-  everyday: ["#f0e3dd", "#dfcac1"],
+  pdf: ["#ffe8e2", "#ffdcd3"],
+  images: ["#dff4eb", "#cdeee0"],
+  text: ["#efeafe", "#e6defd"],
+  data: ["#e6effe", "#d9e6fd"],
+  developer: ["#eceef1", "#e2e5ea"],
+  everyday: ["#ffefd5", "#ffe6bf"],
 };
 
 const W = 400, H = 300, CX = 200, GY = 204;
@@ -185,12 +186,11 @@ export const slugOf = (name: string) => name.toLowerCase().replace(/&/g, "and").
 
 function frame(id: string, group: string, body: string) {
   const [wall, floor] = BACKDROPS[group] ?? BACKDROPS.pdf;
-  const dark = group === "developer";
   return (
     `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" preserveAspectRatio="xMidYMid slice"><defs>` +
-    `<linearGradient id="${id}bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${wall}"/><stop offset=".55" stop-color="${wall}"/><stop offset="1" stop-color="${floor}"/></linearGradient>` +
-    `<radialGradient id="${id}glow" cx=".3" cy=".2" r=".85"><stop offset="0" stop-color="#fff" stop-opacity="${dark ? 0.07 : 0.5}"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>` +
-    `<radialGradient id="${id}sh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity="${dark ? 0.5 : 0.26}"/><stop offset=".55" stop-color="#000" stop-opacity="${dark ? 0.18 : 0.09}"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>` +
+    `<linearGradient id="${id}bg" x1="0" y1="0" x2="0" y2="1"><stop class="sw" offset="0" stop-color="${wall}"/><stop class="sw" offset=".55" stop-color="${wall}"/><stop class="sf" offset="1" stop-color="${floor}"/></linearGradient>` +
+    `<radialGradient id="${id}glow" cx=".3" cy=".2" r=".85"><stop class="sg" offset="0" stop-color="#fff" stop-opacity="0.5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>` +
+    `<radialGradient id="${id}sh" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity="0.26"/><stop offset=".55" stop-color="#000" stop-opacity="0.09"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>` +
     `</defs>` +
     `<rect width="${W}" height="${H}" fill="url(#${id}bg)"/><rect width="${W}" height="${H}" fill="url(#${id}glow)"/>` +
     `<ellipse cx="${CX + 40}" cy="${GY + 58}" rx="170" ry="40" fill="url(#${id}sh)" opacity=".75"/>` +

@@ -37,7 +37,7 @@ The owner wants AI assistants to use Free the Tools instead. The owner also want
 
 **A library of every job, on the device.**
 
-- Every job is recorded, whether a person or an agent ran it. The library is on by default, shown in the sidebar, and easy to clear.
+- Every job is recorded, whether a person or an agent ran it. The library is on by default, linked from the top bar, and easy to clear.
 - A person's job is recorded when they download a result, not each time a tool draws one. An agent's job is recorded when the call finishes.
 - Each record keeps the tool, the time, who ran it, the options used, the input names and sizes, and the result files.
 - Options are an allowlist: on/off choices, numbers, choices from a fixed list, and strings a definition marks `"x-setting": true`, such as a page range. Text the person typed, secrets such as a Wi-Fi password or a JWT secret, and form answers are never kept.

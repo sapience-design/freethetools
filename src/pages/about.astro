@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
-import { REPO } from "../data/catalogue";
+import Icon from "../components/Icon.astro";
+import { REPO, REQUEST_URL } from "../data/catalogue";
 ---
 <Base
   page="about"
@@ -8,57 +9,69 @@ import { REPO } from "../data/catalogue";
   description="Why Free the Tools exists, how the tools keep your files on your device, and how anyone can add the next one. An open-source initiative by Sapience Design."
   jsonLd={{ "@type": "AboutPage", name: "About Free the Tools", url: "https://freethetools.com/about/" }}
 >
-  <section class="opening">
-    <p class="eyebrow">About</p>
-    <h1 class="sm">Small tools should be private, open and free to use.</h1>
-    <p>Compressing a PDF or resizing a photo shouldn't need an upload, an account or a subscription. Free the Tools is a growing set of everyday tools that run entirely in your browser, built in the open by Sapience Design and anyone who wants to help.</p>
-  </section>
+  <div class="page narrow about">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">About Free the Tools</h1>
+      <p class="lede">Small tools for everyday file jobs, like making a PDF smaller or turning a photo into a JPG. Each one works inside your browser, so your files stay on your device.</p>
+    </div>
 
-  <div class="cols">
-    <section>
-      <h3 class="eyebrow">The pledge</h3>
-      <ul>
-        <li><b>No strings.</b> No limits, no sign-up, no ads.</li>
-        <li><b>Private.</b> Tools run on your device. Every page carries a security policy that stops it from sending data to any other server, and our automated tests fail if one tries.</li>
-        <li><b>Open.</b> All code is public under AGPL-3.0. You can read it, run it yourself, or improve it.</li>
-        <li><b>No tracking of you.</b> No cookies, no IDs, no analytics scripts. We keep only anonymous daily totals: how often each tool is used, liked and works, and how many visits come from which sites, countries and kinds of device. <a href="/stats/">See exactly what's counted.</a></li>
-      </ul>
-    </section>
-    <section>
-      <h3 class="eyebrow">How a tool gets here</h3>
-      <ol>
-        <li>Someone <a href={`${REPO}/issues/new?template=tool_request.yml`}>requests a tool</a> on GitHub. Others vote with a 👍.</li>
+    <dl class="card pledge">
+      <div><dt>Nothing is uploaded</dt><dd>The tools run on your own device. Every page carries a security policy that stops it sending data to any other server, and our automated tests fail if one tries.</dd></div>
+      <div><dt>No account</dt><dd>We don't ask who you are. No cookies, no IDs, no analytics scripts. We count visits and how often each tool is used, never what you put into it. <a href="/stats/">See exactly what's counted.</a></dd></div>
+      <div><dt>Free to use</dt><dd>No limits, no watermarks, no ads and no paid version.</dd></div>
+      <div><dt>Open source</dt><dd>The code is public under AGPL-3.0, so anyone can check what each tool does, run it themselves or improve it.</dd></div>
+    </dl>
+
+    <div class="actions">
+      <a class="btn" href={REQUEST_URL}><Icon name="plus" />Suggest a tool</a>
+      <a class="btn line" href="mailto:hello@freethetools.com">Contact us</a>
+    </div>
+
+    <section aria-labelledby="how-h">
+      <h2 class="h2" id="how-h">How a tool gets here</h2>
+      <ol class="steps-list">
+        <li>Someone <a href={REQUEST_URL}>suggests a tool</a> on GitHub. Others vote with a 👍.</li>
         <li>A maintainer accepts it and marks it wanted.</li>
         <li>A contributor builds it from the template and opens a pull request.</li>
         <li>Automated checks run and a maintainer reviews it.</li>
         <li>Once merged, it goes live here with the builder's name on it.</li>
       </ol>
-      <p><a class="btn" href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></p>
+      <p><a class="btn line small" href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></p>
     </section>
-    <section>
-      <h3 class="eyebrow">Who is behind it</h3>
+
+    <section aria-labelledby="who-h">
+      <h2 class="h2" id="who-h">Who is behind it</h2>
       <p>Free the Tools is an initiative of <a href="https://sapience.design">Sapience Design</a>, a product design studio. Sapience maintains the project, reviews contributions and pays for the domain. Hosting is free on Cloudflare.</p>
     </section>
-    <section>
-      <h3 class="eyebrow">For developers and AI agents</h3>
+
+    <section aria-labelledby="dev-h">
+      <h2 class="h2" id="dev-h">For developers and AI agents</h2>
       <p>The full catalogue is available as JSON at <a href="/api/tools.json" class="mono">/api/tools.json</a>, described by an <a href={`${REPO}/blob/main/openapi.yaml`}>OpenAPI file</a>, with a plain-text summary at <a href="/llms.txt" class="mono">/llms.txt</a>. Each tool's logic lives in a plain module you can run yourself; some also ship a command-line version.</p>
     </section>
-    <section>
-      <h3 class="eyebrow">Licence and name</h3>
+
+    <section aria-labelledby="lic-h">
+      <h2 class="h2" id="lic-h">Licence and name</h2>
       <p>The code is AGPL-3.0, copyright Sapience Design and contributors. The Free the Tools name and the Sapience name and logo are trademarks and are not covered by the code licence. See <a href="/licenses/">licences</a> and <a href={`${REPO}/blob/main/TRADEMARKS.md`}>trademarks</a>.</p>
     </section>
-    <section>
-      <h3 class="eyebrow">Security</h3>
+
+    <section aria-labelledby="sec-h">
+      <h2 class="h2" id="sec-h">Security</h2>
       <p>Found a vulnerability? Please report it privately through <a href={`${REPO}/security/advisories/new`}>GitHub's private reporting</a>, not in a public issue. Our <a href={`${REPO}/security/policy`}>security policy</a> explains what happens next.</p>
     </section>
   </div>
 </Base>
 
 <style>
-  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 48px 48px; }
-  .cols section { display: grid; gap: 12px; align-content: start; }
-  .cols h3 { font-size: var(--t-base); line-height: var(--lh-base); margin-bottom: 4px; }
-  .cols ul, .cols ol { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--ink-soft); }
-  .cols p { color: var(--ink-soft); }
-  .cols b { color: var(--ink); font-weight: 600; }
+  .about { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 12px; }
+  .pledge { margin: 0; }
+  .pledge div { display: grid; gap: 4px; padding: 16px 18px; }
+  .pledge div + div { border-top: 1px solid var(--hair); }
+  .pledge dt { font-weight: 700; }
+  .pledge dd { margin: 0; color: var(--soft); }
+  .pledge a, section a:not(.btn) { color: var(--ink); }
+  section { display: grid; gap: 10px; padding-top: 8px; }
+  section p { color: var(--soft); }
+  .steps-list { margin: 0; padding-left: 22px; display: grid; gap: 6px; color: var(--soft); }
 </style>

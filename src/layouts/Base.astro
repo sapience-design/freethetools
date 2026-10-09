@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
-import Sidebar from "../components/Sidebar.astro";
-import { loadCatalogue, REPO } from "../data/catalogue";
+import Icon from "../components/Icon.astro";
+import { loadCatalogue, REPO, REQUEST_URL } from "../data/catalogue";
 import originTrials from "../data/origin-trials.json";
 
 interface Props {
@@ -22,6 +22,7 @@ const ogPath = category && tool ? `/og/${category}/${tool}.png`
   : category && aisles.some((a) => a.slug === category && a.live.length) ? `/og/${category}.png`
   : "/og/site.png";
 const ogImage = new URL(ogPath, Astro.site).href;
+const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]];
 ---
 <!doctype html>
 <html lang="en">
@@ -46,8 +47,8 @@ const ogImage = new URL(ogPath, Astro.site).href;
   <meta property="og:image:height" content="630">
   <meta property="og:image:alt" content={title.replace(/ \| Free the Tools$/, "") + ", on Free the Tools"}>
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#fbfbfb" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#1f1f1f" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#fbf8f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#15130f" media="(prefers-color-scheme: dark)">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon-192.png">
   {originTrials.map((token) => <meta http-equiv="origin-trial" content={token}>)}
@@ -56,54 +57,105 @@ const ogImage = new URL(ogPath, Astro.site).href;
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
 </head>
 <body>
-  <div class="shell">
-    <Sidebar category={category} tool={tool} page={page} />
-    <div class="main">
-      <header class="mobilebar">
-        <a class="mw" href="/">Free <i>the</i> Tools</a>
-        <button id="menu" type="button" aria-label="Open menu">Menu</button>
-      </header>
-      <main class="main-in">
-        <slot />
-      </main>
-
-      <footer class="foot">
-        <div class="colophon">
-          <p class="big">Useful tools that stay on your device.</p>
-          <a class="initiative" href="https://sapience.design"><img src="/brand/sapience-wordmark.webp" alt="Sapience" width="86" height="16"><span>A Sapience initiative</span></a>
-        </div>
-        <div class="col">
-          <p class="eyebrow">Groups</p>
-          <ul>{aisles.map((a) => <li><a href={`/${a.slug}/`}>{a.name}</a></li>)}</ul>
-        </div>
-        <div class="col">
-          <p class="eyebrow">Project</p>
-          <ul>
-            <li><a href="/about/">About</a></li>
-            <li><a href="/stats/">Usage stats</a></li>
-            <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Contribute</a></li>
-            <li><a href={REPO}>Source code</a></li>
-          </ul>
-        </div>
-        <div class="col">
-          <p class="eyebrow">Developers</p>
-          <ul>
-            <li><a href="/api/tools.json">API</a></li>
-            <li><a href="/llms.txt">llms.txt</a></li>
-            <li><a href={`${REPO}/blob/main/openapi.yaml`}>OpenAPI</a></li>
-          </ul>
-        </div>
-        <div class="legal">
-          <span>© {new Date().getFullYear()} Sapience Design and contributors</span>
-          <span><a href="/licenses/">Licences</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a></span>
-        </div>
-      </footer>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="bar">
+    <div class="bar-in">
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
+    <nav class="bar-nav" aria-label="Site">
+      <a class="navlink" href="/about/" aria-current={page === "about" ? "page" : undefined}>About</a>
+      <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
+      {page === "home"
+        ? <a class="bar-btn" href="/saved/"><Icon name="bookmark-simple" /><span class="bar-label">Saved</span><span class="count-pill" data-saved-count hidden>0</span></a>
+        : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
+    </nav>
     </div>
-  </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <slot />
+  </main>
+
+  <footer class="foot">
+    <div class="foot-in">
+      <div class="colophon">
+        <p class="foot-big">Useful tools that stay on your device.</p>
+        <a class="initiative" href="https://sapience.design"><img src="/brand/sapience-wordmark.webp" alt="Sapience" width="86" height="16"><span>A Sapience initiative</span></a>
+        <div class="theme" role="group" aria-label="Theme">
+          {themes.map(([v, ic, label], i) => (
+            <button type="button" data-theme-set={v} aria-pressed={i === 0 ? "true" : "false"}><Icon name={ic} />{label}</button>
+          ))}
+        </div>
+      </div>
+      <div class="col">
+        <p class="col-h">Groups</p>
+        <ul>{aisles.map((a) => <li><a href={`/${a.slug}/`}>{a.label}</a></li>)}</ul>
+      </div>
+      <div class="col">
+        <p class="col-h">Project</p>
+        <ul>
+          <li><a href="/about/">About</a></li>
+          <li><a href="/saved/">Saved tools</a></li>
+          <li><a href="/library/">Library</a></li>
+          <li><a href="/stats/">Usage stats</a></li>
+          <li><a href={REQUEST_URL}>Suggest a tool</a></li>
+          <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
+          <li><a href={REPO}>Source code</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <p class="col-h">Developers</p>
+        <ul>
+          <li><a href="/api/tools.json">API</a></li>
+          <li><a href="/llms.txt">llms.txt</a></li>
+          <li><a href={`${REPO}/blob/main/openapi.yaml`}>OpenAPI</a></li>
+        </ul>
+      </div>
+      <div class="legal">
+        <span>© {new Date().getFullYear()} Sapience Design and contributors</span>
+        <span><a href="/licenses/">Licences</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a></span>
+      </div>
+    </div>
+  </footer>
 
   <script>
     import { trackVisit } from "../lib/stats";
     trackVisit();
+
+    // ---- Theme: System (follows the device), Light or Dark; remembered in this browser only ----
+    const THEME = "ftt:theme";
+    const themeButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-theme-set]")];
+    function applyTheme(choice: string) {
+      const root = document.documentElement;
+      const fixed = choice === "light" || choice === "dark";
+      if (fixed) root.dataset.theme = choice; else delete root.dataset.theme;
+      themeButtons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === (fixed ? choice : "system"))));
+    }
+    let stored = "system";
+    try { stored = localStorage.getItem(THEME) || "system"; } catch {}
+    applyTheme(stored);
+    themeButtons.forEach((b) => b.addEventListener("click", () => {
+      const choice = b.dataset.themeSet!;
+      try { choice === "system" ? localStorage.removeItem(THEME) : localStorage.setItem(THEME, choice); } catch {}
+      applyTheme(choice);
+    }));
+
+    // Pills and option cards hide their radio inputs and show the label. When Tab reaches a hidden
+    // input, bring its label into view: the browser would scroll to the input's own box instead.
+    document.addEventListener("focusin", (e) => {
+      const t = e.target;
+      if (!(t instanceof HTMLInputElement) || (t.type !== "radio" && t.type !== "checkbox")) return;
+      if (getComputedStyle(t).opacity !== "0") return;
+      t.labels?.[0]?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    });
+
+    // "/" jumps to search from anywhere.
+    document.addEventListener("keydown", (e) => {
+      const t = e.target as HTMLElement;
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
+      const find = document.getElementById("find") as HTMLInputElement | null;
+      e.preventDefault();
+      if (find) find.focus(); else location.href = "/#find";
+    });
 
     // Saved tools live in this browser only (localStorage). The page works without it.
     const KEY = "ftt:saved";
@@ -111,7 +163,8 @@ const ogImage = new URL(ogPath, Astro.site).href;
     const write = (v: object) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} };
     function paint() {
       const saved = read();
-      document.querySelectorAll<HTMLElement>("[data-saved-count]").forEach((el) => (el.textContent = String(Object.keys(saved).length)));
+      const n = Object.keys(saved).length;
+      document.querySelectorAll<HTMLElement>("[data-saved-count]").forEach((el) => { el.textContent = String(n); el.hidden = n === 0; });
       document.querySelectorAll<HTMLButtonElement>("[data-save]").forEach((b) => b.setAttribute("aria-pressed", String(!!saved[b.dataset.save!])));
       document.dispatchEvent(new CustomEvent("saved-change", { detail: saved }));
     }
@@ -130,29 +183,60 @@ const ogImage = new URL(ogPath, Astro.site).href;
 </html>
 
 <style>
-  .mobilebar { display: none; }
-  .foot {
-    width: 100%; max-width: 1200px; margin: var(--s7) auto 0; padding: var(--s5) 0 var(--s4);
-    border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: var(--s5) var(--s4);
-    color: var(--muted);
+  .bar {
+    position: sticky; top: 0; z-index: 30;
+    padding: 10px var(--gutter); background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--hair);
   }
-  .foot a { color: inherit; text-decoration: none; transition: color .15s; }
-  .foot a:hover { color: var(--ink); }
-  .foot .eyebrow { margin-bottom: 12px; }
-  .foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
-  .colophon { display: grid; gap: var(--s3); align-content: start; }
-  .big { font-family: var(--serif); font-size: var(--t-2xl); line-height: var(--lh-2xl); color: var(--ink-strong); max-width: 18ch; }
-  .initiative { display: inline-flex; align-items: center; gap: 12px; font-size: var(--t-xs); }
-  .initiative img { height: 15px; width: auto; filter: var(--logo-filter); opacity: .8; }
-  .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--s1) var(--s3); padding-top: var(--s3); border-top: 1px solid var(--line); font-size: var(--t-xs); }
-  .legal span:last-child { display: flex; gap: var(--s3); }
-  @media (max-width: 960px) {
-    .mobilebar { display: flex; justify-content: space-between; align-items: center; padding: var(--s1) 0 var(--s3); }
-    .mw { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: var(--t-base); line-height: var(--lh-base); text-decoration: none; }
-    .mw::before { content: ""; width: 22px; height: 22px; border-radius: 6px; background: var(--ink); box-shadow: inset 0 -8px 0 -5px var(--accent); }
-    .mw i { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 17px; }
-    #menu { border: 1px solid var(--control-line); border-radius: 8px; background: var(--paper); font: inherit; font-size: var(--t-sm); color: var(--ink); cursor: pointer; padding: 6px 12px; }
-    .foot { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .bar-in { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px; max-width: var(--content); margin: 0 auto; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-family: var(--display); font-weight: 700; font-size: 17px; text-decoration: none; white-space: nowrap; }
+  .logo { display: grid; place-items: center; width: 32px; height: 32px; border: 1.5px solid #1d1b16; border-radius: 10px; background: #ffe27a; color: #1d1b16; box-shadow: 0 3px 0 #1d1b16; font-size: 18px; }
+  .bar-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
+  .navlink { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: var(--r); font-weight: 650; text-decoration: none; white-space: nowrap; }
+  .navlink:hover, .navlink[aria-current="page"] { background: var(--hover); }
+  .bar-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); font-weight: 650; text-decoration: none; white-space: nowrap; }
+  .bar-btn:hover { border-color: var(--edge); }
+  .bar-btn :global(.ic) { font-size: 20px; }
+  .bar-btn .count-pill { font-size: 12px; padding: 0 8px; }
+
+  .foot { border-top: 1px solid var(--hair); background: var(--bg); }
+  .foot-in {
+    max-width: calc(var(--content) + 2 * var(--gutter)); margin: 0 auto; padding: 48px var(--gutter) 32px; display: grid;
+    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 40px 32px; color: var(--soft);
+  }
+  .foot a { color: inherit; text-decoration: none; }
+  .foot a:hover { color: var(--ink); text-decoration: underline; }
+  .col-h { font-weight: 700; color: var(--ink); margin-bottom: 10px; }
+  .foot ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 15px; }
+  .foot li a { display: inline-block; padding: 2px 0; }
+  .colophon { display: grid; gap: 16px; align-content: start; justify-items: start; }
+  .foot-big { font-family: var(--display); font-weight: 700; font-size: 24px; line-height: 1.15; letter-spacing: -0.01em; color: var(--ink); max-width: 16ch; }
+  .initiative { display: inline-flex; align-items: center; gap: 12px; font-size: 14px; min-height: 32px; }
+  .initiative img { height: 15px; width: auto; filter: var(--logo-filter); opacity: .85; }
+  .theme { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
+  .theme button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .theme button:hover { color: var(--ink); }
+  .theme button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }
+  .legal span:last-child { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+  @media (max-width: 860px) {
+    .foot-in { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .colophon { grid-column: 1 / -1; }
+  }
+  /* Phones: the two buttons show their icon only (the words stay for screen readers), so About,
+     Library, the button and the name all fit; on the narrowest screens the name hides the same way. */
+  @media (max-width: 560px) {
+    .bar-btn { width: 48px; padding: 0; justify-content: center; gap: 0; }
+    .bar-btn .bar-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .bar-btn .count-pill { position: absolute; transform: translate(14px, -14px); }
+    .bar-btn { position: relative; }
+  }
+  @media (max-width: 350px) {
+    .brand-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  }
+  @media (max-width: 520px) {
+    .bar-in { gap: 6px; }
+    .brand { gap: 8px; font-size: 16px; }
+    .navlink { padding: 0 8px; }
+    .foot-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 </style>

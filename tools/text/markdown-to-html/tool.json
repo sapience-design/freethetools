@@ -1,7 +1,9 @@
 {
   "name": "Markdown to HTML",
+  "task": "Turn Markdown into HTML",
+  "icon": "markdown-logo",
   "short": "Markdown to HTML",
-  "tagline": "Turn Markdown into clean HTML, or HTML back into Markdown, with a live preview. Nothing is uploaded.",
+  "tagline": "Clean HTML from Markdown, or Markdown from HTML, with a live preview.",
   "seoTitle": "Markdown to HTML converter (and HTML to Markdown)",
   "description": "Convert Markdown to HTML or HTML to Markdown for free in your browser, with a live preview. Copy or download the result. Nothing is uploaded.",
   "section": "Transform",

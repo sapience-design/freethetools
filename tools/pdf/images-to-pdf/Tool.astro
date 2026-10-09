@@ -1,40 +1,55 @@
 ---
-// Images to PDF: add images, order them, choose page size and margin.
+// Images to PDF: add photos, order them, choose page size and margin.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Images to PDF">
-  <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop images here" hint="JPG, PNG or WebP · as many as you like" pick="Choose images" />
+<section class="tool" id="i2p-tool" aria-label="Images to PDF">
+  <Step n={1} title="Choose your photos">
+    <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG or WebP · as many as you like" button="Choose photos" />
+  </Step>
 
-  <div id="i2p-panel" hidden class="tool">
-    <div><p class="eyebrow">Pages, in order</p><ol class="file-list" id="i2p-list"></ol></div>
-    <fieldset class="field">
-      <legend class="eyebrow">Page size</legend>
-      <div class="seg">
-        <input type="radio" name="i2p-page" id="i2p-fit" value="fit" checked><label for="i2p-fit">Fit to image<small>each page matches its image</small></label>
-        <input type="radio" name="i2p-page" id="i2p-a4" value="a4"><label for="i2p-a4">A4<small>ready to print</small></label>
-      </div>
+  <Step n={2} title="Check the order and page size" state="later">
+    <div id="i2p-panel" class="tool-order" hidden>
+      <ol class="file-list" id="i2p-list"></ol>
+      <p class="hint">Each photo becomes one page, top to bottom.</p>
+    </div>
+    <p class="res-wait" id="i2p-none">Your photos will appear here, in page order.</p>
+    <fieldset class="choices cols">
+      <legend class="sr-only">Page size</legend>
+      <div class="choice"><input type="radio" name="i2p-page" id="i2p-fit" value="fit" checked><label for="i2p-fit"><b>Fit each photo</b><small>Each page is the size of its photo</small></label></div>
+      <div class="choice"><input type="radio" name="i2p-page" id="i2p-a4" value="a4"><label for="i2p-a4"><b>A4</b><small>Standard paper, good for printing</small></label></div>
     </fieldset>
     <fieldset class="field">
-      <legend class="eyebrow">Margin</legend>
+      <legend>Margin</legend>
       <div class="seg">
         <input type="radio" name="i2p-margin" id="i2p-m0" value="none" checked><label for="i2p-m0">None</label>
         <input type="radio" name="i2p-margin" id="i2p-m1" value="small"><label for="i2p-m1">Small</label>
         <input type="radio" name="i2p-margin" id="i2p-m2" value="large"><label for="i2p-m2">Large</label>
       </div>
     </fieldset>
-    <div class="actions"><button class="btn" id="i2p-go" type="button">Create PDF</button></div>
-  </div>
-  <div id="i2p-result" aria-live="polite"></div>
+    <div class="actions">
+      <button class="btn run" id="i2p-go" type="button" disabled><Icon name="file-pdf" /><span id="i2p-go-label">Make PDF</span></button>
+      <button class="btn quiet small" id="i2p-clear" type="button" hidden>Clear the list</button>
+    </div>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="i2p-result" aria-live="polite"><p class="res-wait">Your PDF will appear here.</p></div>
+  </Step>
 </section>
 
 <script>
   import { imagesToPdf } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, photoRow } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
 
   type Item = { file: File; bytes: ArrayBuffer; type: "image/jpeg" | "image/png" };
   const items: Item[] = [];
   const $ = (id: string) => document.getElementById(id)!;
-  const list = $("i2p-list"), result = $("i2p-result");
+  const root = $("i2p-tool"), list = $("i2p-list"), panel = $("i2p-panel"), none = $("i2p-none"), result = $("i2p-result");
+  const go = $("i2p-go") as HTMLButtonElement, goLabel = $("i2p-go-label"), clear = $("i2p-clear");
+  const WAIT = "Your PDF will appear here.";
 
   // JPG and PNG go in untouched; anything else the browser can decode is re-encoded as PNG.
   async function toEmbeddable(file: File): Promise<Item> {
@@ -48,46 +63,50 @@ import DropZone from "../../../src/components/DropZone.astro";
   }
 
   function render() {
-    $("i2p-panel").hidden = !items.length;
+    panel.hidden = !items.length;
+    none.hidden = items.length > 0;
+    clear.hidden = !items.length;
+    go.disabled = !items.length;
+    goLabel.textContent = items.length > 1 ? `Make a ${items.length}-page PDF` : "Make PDF";
+    compactDrop("i2p", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = `${i + 1}. ${it.file.name}`;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(it.file.size);
-      const act = document.createElement("span"); act.className = "fact";
-      const btn = (label: string, title: string, fn: () => void, disabled = false) => {
-        const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = label;
-        b.setAttribute("aria-label", `${title} ${it.file.name}`); b.disabled = disabled; b.onclick = fn; return b;
-      };
-      act.append(
-        btn("↑", "Move up", () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; render(); }, i === 0),
-        btn("↓", "Move down", () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; render(); }, i === items.length - 1),
-        btn("✕", "Remove", () => { items.splice(i, 1); render(); }),
-      );
-      li.append(n, m, act);
-      return li;
+      return photoRow(it.file, [
+        iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),
+        iconButton("down", `Move down ${it.file.name}`, () => { [items[i + 1], items[i]] = [items[i], items[i + 1]]; changed(); refocus(list, i + 1, "down"); }, i === items.length - 1),
+        iconButton("remove", `Remove ${it.file.name}`, () => { items.splice(i, 1); changed(); refocus(list, i, "remove", document.getElementById("i2p-drop")); }),
+      ]);
     }));
+    stepTo(root, items.length ? 2 : 1);
   }
+  // Any change to the list makes an earlier result out of date.
+  function changed() { showWait(result, WAIT); render(); }
 
   wireDrop("i2p", async (files) => {
-    result.replaceChildren();
+    showWait(result, WAIT);
     for (const f of files.filter((x) => x.type.startsWith("image/"))) {
       try { items.push(await toEmbeddable(f)); } catch (e) { showError(result, `${f.name}: ${(e as Error).message}`); }
     }
     render();
   });
 
-  $("i2p-go").addEventListener("click", async () => {
+  clear.onclick = () => { items.length = 0; changed(); };
+
+  go.addEventListener("click", async () => {
+    if (!items.length) return;
     const page = (document.querySelector('input[name="i2p-page"]:checked') as HTMLInputElement).value as "fit" | "a4";
     const margin = (document.querySelector('input[name="i2p-margin"]:checked') as HTMLInputElement).value as "none" | "small" | "large";
+    go.disabled = true;
+    stepTo(root, 3);
+    showBusy(result);
     try {
       const out = await imagesToPdf(items.map((it) => ({ bytes: it.bytes.slice(0), type: it.type })), { page, margin });
-      const ul = document.createElement("ul"); ul.className = "file-list";
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = "images.pdf";
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${items.length} ${items.length === 1 ? "page" : "pages"} · ${fmtBytes(out.byteLength)}`;
-      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, "images.pdf", "application/pdf"));
-      li.append(n, m, a); ul.append(li);
-      result.replaceChildren(ul);
+      const n = items.length;
+      const dl = downloadLink(out, "images.pdf", "application/pdf", "Download PDF");
+      dl.classList.add("run");
+      showDone(result, `Done. ${n} ${n === 1 ? "photo" : "photos"}, ${n} ${n === 1 ? "page" : "pages"}.`, `images.pdf · ${fmtBytes(out.byteLength)}`);
+      result.append(dl);
+      stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
+    go.disabled = !items.length;
   });
 </script>

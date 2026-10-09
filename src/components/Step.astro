@@ -1,0 +1,16 @@
+---
+// One numbered step of a tool: "1 Choose your PDF", "2 Pick how small", "3 Save it".
+// state: "now" (the step to do), "later" (greyed until it's time) or "done" (green tick).
+// Scripts move between steps with stepTo() from src/lib/steps.ts.
+import Icon from "./Icon.astro";
+
+interface Props { n: number; title: string; state?: "now" | "later" | "done"; id?: string; class?: string }
+const { n, title, state = "now", id, class: cls } = Astro.props;
+---
+<section class:list={["step", cls]} data-step={n} data-state={state} id={id}>
+  <div class="step-head">
+    <span class="step-n" aria-hidden="true"><span class="n">{n}</span><Icon name="check" /></span>
+    <h2>{title}</h2>
+  </div>
+  <slot />
+</section>

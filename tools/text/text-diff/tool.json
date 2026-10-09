@@ -1,7 +1,9 @@
 {
   "name": "Text Diff",
+  "task": "Compare two texts",
+  "icon": "git-diff",
   "short": "Text diff",
-  "tagline": "Paste two versions and see exactly what changed, line by line or word by word.",
+  "tagline": "Paste two versions and see exactly what changed.",
   "seoTitle": "Compare two texts online (diff checker)",
   "description": "Compare two texts and see what changed, line by line or word by word. A free diff checker that keeps your text on the page.",
   "section": "Count & Compare",

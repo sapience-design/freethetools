@@ -1,37 +1,40 @@
 ---
-// Unlock PDF: the working area. The page around it (name, specs, FAQ, credits) comes from tool.json.
-// One row per file. A password is read from its field, the field is cleared at once, and the
-// password goes only to qpdf: it is never written to the page, logged or stored.
+// Unlock PDF: choose PDFs and each is checked at once, one row per file. A PDF that only has print
+// or copy limits is unlocked straight away; one that needs a password to open gets a password row.
+// A password is read from its field, the field is cleared at once, and the password goes only to
+// qpdf: it is never written to the page, logged or stored.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
 ---
-<section class="tool" aria-label="Unlock PDFs">
-  <DropZone prefix="unlk" toolId="pdf/unlock" category="pdf" name="Unlock PDF" accept="application/pdf,.pdf" multiple title="Drop locked PDFs here" hint="Several at once is fine" pick="Choose PDFs" />
-
-  <ul class="file-list" id="unlk-list">
-    <li id="unlk-example">
-      <span class="fname">contract.pdf <span class="tag">Example</span></span>
-      <span class="fmeta">Removed the restrictions on printing and copying text and images.</span>
-      <span class="fact muted mono">your files appear here</span>
-    </li>
-  </ul>
-  <p class="sr-only" id="unlk-status" role="status" aria-live="polite"></p>
+<section class="tool" id="unlk-tool" aria-label="Unlock PDFs">
+  <Step n={1} title="Choose your PDFs">
+    <DropZone prefix="unlk" toolId="pdf/unlock" category="pdf" name="Unlock PDF" accept="application/pdf,.pdf" multiple title="Drop locked PDFs here" hint="Several at once is fine" button="Choose PDFs" />
+  </Step>
+  <Step n={2} title="Unlock and save" state="later">
+    <p class="res-wait" id="unlk-wait">Your unlocked PDFs will appear here. A PDF that needs a password to open asks for it here.</p>
+    <ul class="file-list" id="unlk-list"></ul>
+    <p class="sr-only" id="unlk-status" role="status" aria-live="polite"></p>
+  </Step>
 </section>
 
 <style>
-  .tag { border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; margin-left: 8px; font-size: var(--t-xs); font-weight: 400; color: var(--muted); }
-  .file-list :global(.fmsg), .file-list :global(.pw) { grid-column: 1 / -1; }
   .file-list :global(.fmsg:empty) { display: none; }
-  .file-list :global(.pw) { display: grid; gap: 6px; margin-top: 6px; }
-  .file-list :global(.pw label) { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); overflow-wrap: anywhere; }
+  .file-list :global(.fmsg) { margin-top: 6px; }
+  .file-list :global(.pw) { display: grid; gap: 6px; margin-top: 8px; }
+  .file-list :global(.pw label) { font-size: 14px; font-weight: 650; color: var(--soft); overflow-wrap: anywhere; }
   .file-list :global(.pw .pwrow) { display: flex; flex-wrap: wrap; gap: 8px; }
-  .file-list :global(.pw .input) { flex: 1 1 220px; width: auto; min-width: 0; }
+  .file-list :global(.pw .input) { flex: 1 1 220px; width: auto; min-width: 0; min-height: 48px; padding: 8px 14px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--bg); color: var(--ink); font-size: 17px; }
+  .file-list :global(.pw .input:focus) { outline: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  .file-list :global(.pw .btn) { min-height: 48px; }
 </style>
 
 <script>
   import { removedSentence, unlockPdf } from "./core.js";
   import { qpdf } from "../../../src/agent/qpdf.js";
-  import { baseName, downloadLink, fmtBytes, showError, wireDrop } from "../../../src/lib/files";
+  import { baseName, downloadLink, fmtBytes, showError, wireDrop, fileRow, pdfThumb, compactDrop } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
 
+  const root = document.getElementById("unlk-tool")!;
   const list = document.getElementById("unlk-list")!;
   const status = document.getElementById("unlk-status")!;
   let counter = 0;
@@ -52,14 +55,10 @@ import DropZone from "../../../src/components/DropZone.astro";
   type Row = { file: File; bytes: Uint8Array | null; meta: HTMLElement; act: HTMLElement; msg: HTMLElement; li: HTMLElement; form?: HTMLFormElement; input?: HTMLInputElement };
 
   function addRow(file: File): Row {
-    const li = el("li");
-    const name = el("span", "fname", file.name);
-    const meta = el("span", "fmeta", `Checking ${fmtBytes(file.size)}…`);
-    const act = el("span", "fact");
     const msg = el("div", "fmsg");
-    li.append(name, meta, act, msg);
+    const li = fileRow({ name: file.name, meta: `Checking ${fmtBytes(file.size)}…`, thumb: pdfThumb(), extra: [msg] });
     list.prepend(li);
-    return { file, bytes: null, meta, act, msg, li };
+    return { file, bytes: null, meta: li.querySelector<HTMLElement>(".fmeta")!, act: li.querySelector<HTMLElement>(".fact")!, msg, li };
   }
 
   /** The password form for one row. The label names the file; the field is never given a value. */
@@ -80,7 +79,7 @@ import DropZone from "../../../src/components/DropZone.astro";
     const line = el("div", "pwrow");
     line.append(input, button);
     form.append(label, line);
-    row.li.append(form);
+    row.li.querySelector(".finfo")!.append(form);
     row.form = form;
     row.input = input;
     form.addEventListener("submit", async (e) => {
@@ -162,7 +161,10 @@ import DropZone from "../../../src/components/DropZone.astro";
   }
 
   wireDrop("unlk", async (files) => {
-    document.getElementById("unlk-example")?.remove();
+    if (!files.length) return;
+    document.getElementById("unlk-wait")?.remove();
+    compactDrop("unlk");
+    stepTo(root, 2);
     let first: HTMLInputElement | undefined;
     for (const file of files) {
       const row = addRow(file);

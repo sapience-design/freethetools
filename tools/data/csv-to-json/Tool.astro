@@ -1,27 +1,33 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="CSV to JSON">
-  <ToolShot toolId="data/csv-to-json" category="data" name="CSV to JSON" />
-  <fieldset class="field">
-    <legend class="eyebrow">Direction</legend>
-    <div class="seg">
-      <input type="radio" name="cj-dir" id="cj-c2j" value="c2j" checked><label for="cj-c2j">CSV → JSON</label>
-      <input type="radio" name="cj-dir" id="cj-j2c" value="j2c"><label for="cj-j2c">JSON → CSV</label>
-    </div>
-  </fieldset>
-  <label class="field"><span id="cj-in-label">CSV</span><textarea id="cj-in" rows="8" spellcheck="false">name,city,tools
+<section class="tool" id="cj-tool" aria-label="CSV to JSON">
+  <Step n={1} title="Paste your spreadsheet rows">
+    <label class="field"><span id="cj-in-label">CSV</span><textarea id="cj-in" rows="8" spellcheck="false">name,city,tools
 Ada,London,3
 Linus,Helsinki,5</textarea></label>
-  <div class="actions">
+    <div class="actions">
+      <button class="btn quiet small" id="cj-open" type="button"><Icon name="folder-open" />Open a file instead</button><input type="file" id="cj-file" accept=".csv,.tsv,.txt,.json,text/csv,application/json" hidden>
+    </div>
+  </Step>
+  <Step n={2} title="Pick a layout">
+    <fieldset class="field">
+      <legend class="sr-only">Direction</legend>
+      <div class="seg">
+        <input type="radio" name="cj-dir" id="cj-c2j" value="c2j" checked><label for="cj-c2j">CSV → JSON</label>
+        <input type="radio" name="cj-dir" id="cj-j2c" value="j2c"><label for="cj-j2c">JSON → CSV</label>
+      </div>
+    </fieldset>
     <label class="check" id="cj-typed-wrap"><input type="checkbox" id="cj-typed"> Turn numbers and true/false into values</label>
-    <button type="button" class="btn line" id="cj-open">Open a file…</button><input type="file" id="cj-file" accept=".csv,.tsv,.txt,.json,text/csv,application/json" hidden>
-  </div>
-  <div class="out">
-    <span class="eyebrow" id="cj-status"></span>
-    <pre class="out-box" id="cj-out" aria-live="polite"></pre>
-    <div class="actions" id="cj-actions"><button class="btn line" id="cj-copy" type="button">Copy result</button></div>
-  </div>
+  </Step>
+  <Step n={3} title="Copy your JSON" id="cj-step3">
+    <div class="out">
+      <span class="hint" id="cj-status"></span>
+      <pre class="out-box" id="cj-out" aria-live="polite"></pre>
+    </div>
+    <div class="actions" id="cj-actions"><button class="btn run" id="cj-copy" type="button"><Icon name="copy" /><span id="cj-copy-label">Copy</span></button></div>
+  </Step>
 </section>
 
 <script>
@@ -36,6 +42,8 @@ Linus,Helsinki,5</textarea></label>
     const c2j = dir() === "c2j";
     $("cj-in-label").textContent = c2j ? "CSV" : "JSON";
     $("cj-typed-wrap").hidden = !c2j;
+    const heading = document.querySelector("#cj-step3 h2");
+    if (heading) heading.textContent = c2j ? "Copy your JSON" : "Copy the result";
     dl?.remove(); dl = null;
     try {
       if (c2j) {
@@ -49,29 +57,25 @@ Linus,Helsinki,5</textarea></label>
         status.textContent = "CSV ready";
         dl = downloadLink(csv, "data.csv", "text/csv", "Download .csv");
       }
-      $("cj-actions").prepend(dl);
+      dl.classList.add("line");
+      $("cj-actions").append(dl);
       out.classList.remove("bad");
     } catch (e) { out.textContent = (e as Error).message; status.textContent = "Needs fixing"; out.classList.add("bad"); }
   }
 
   input.addEventListener("input", update);
   document.querySelectorAll('input[name="cj-dir"], #cj-typed').forEach((el) => el.addEventListener("change", update));
-  $("cj-open").addEventListener("click", () => ($("cj-file") as HTMLInputElement).click());
+  $("cj-open").addEventListener("click", () => $("cj-file").click());
   ($("cj-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     input.value = await f.text();
     ($(/json$/i.test(f.name) ? "cj-j2c" : "cj-c2j") as HTMLInputElement).checked = true;
     update();
   });
-  const copy = $("cj-copy") as HTMLButtonElement;
+  const copy = $("cj-copy") as HTMLButtonElement, copyLabel = $("cj-copy-label");
   copy.addEventListener("click", async () => {
-    try { await navigator.clipboard.writeText(out.textContent ?? ""); copy.textContent = "Copied"; } catch { copy.textContent = "Select the text to copy"; }
-    setTimeout(() => (copy.textContent = "Copy result"), 1600);
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select the text to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy"), 1600);
   });
   update();
 </script>
-
-<style>
-  pre.out-box { margin: 0; max-height: 420px; overflow: auto; }
-  pre.out-box.bad { color: var(--bad); }
-</style>

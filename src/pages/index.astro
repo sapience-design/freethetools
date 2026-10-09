@@ -1,57 +1,370 @@
 ---
 import Base from "../layouts/Base.astro";
-import Card from "../components/Card.astro";
-import SortBar from "../components/SortBar.astro";
-import { loadCatalogue, REPO } from "../data/catalogue";
+import Icon from "../components/Icon.astro";
+import ToolRow from "../components/ToolRow.astro";
+import { loadCatalogue, REQUEST_URL } from "../data/catalogue";
+import { POPULAR } from "../data/popular";
+import { artFor } from "../data/art";
 
-const { tools, aisles } = await loadCatalogue();
-const planned = aisles.reduce((n, a) => n + a.wanted.length, 0);
+const { tools, aisles, searchIndex } = await loadCatalogue();
+const popular = POPULAR.map(([id, when]) => {
+  const t = tools.find((x) => x.id === id);
+  if (!t) throw new Error(`src/data/popular.ts: no tool "${id}"`);
+  return { t, when };
+});
+const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"], ["az", "A–Z"]];
 ---
 <Base
   page="home"
   title="Free the Tools – everyday tools that never leave your device"
   description="Open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No accounts, no ads, nothing uploaded. A Sapience initiative."
-  jsonLd={{ "@type": "WebSite", name: "Free the Tools", url: "https://freethetools.com/", description: "Open-source tools that run in your browser. Nothing is uploaded." }}
+  jsonLd={{
+    "@type": "WebSite",
+    name: "Free the Tools",
+    url: "https://freethetools.com/",
+    description: "Open-source tools that run in your browser. Nothing is uploaded.",
+    potentialAction: { "@type": "SearchAction", target: "https://freethetools.com/?q={search_term_string}", "query-input": "required name=search_term_string" },
+  }}
 >
-  <section class="opening">
-    <p class="eyebrow">A Sapience initiative</p>
-    <h1>Everyday tools, made to <em>stay with you.</em></h1>
-    <p>Every tool here works inside your browser, so your files never leave your device. {tools.length} in stock, {planned} made to order, and anyone can make the next one.</p>
-  </section>
-
-  <SortBar />
-
-  {aisles.map((a) => (
-    <section class="shelf" aria-labelledby={`s-${a.slug}`}>
-      <div class="shelf-head">
-        <h2 id={`s-${a.slug}`}>{a.name}</h2>
-        <a href={`/${a.slug}/`}>View all</a>
-      </div>
-      <ul class="grid">
-        {a.sectionsUsed.flatMap((s) => [
-          ...s.live.map((t) => <Card name={t.data.name} href={t.url} category={a.slug} number={t.number} blurb={t.data.tagline} toolId={t.id} added={t.data.added} />),
-          ...s.wanted.map((w) => <Card name={w.name} href={w.url} category={a.slug} number={w.number} blurb={w.blurb} planned />),
-        ])}
+  <div class="page home">
+    <section class="hero">
+      <h1>Simple tools for your files. <mark>Nothing is uploaded.</mark></h1>
+      <ul class="trust">
+        <li><Icon name="check-circle" />Stays on your device</li>
+        <li><Icon name="check-circle" />No sign-up</li>
+        <li><Icon name="check-circle" />Free and open source</li>
       </ul>
+      <p class="sr-only" id="find-status" role="status"></p>
+      <form class="find" role="search" action="/" method="get">
+        <label class="find-box">
+          <Icon name="magnifying-glass" />
+          <span class="sr-only">What do you need to do?</span>
+          <input id="find" name="q" type="search" placeholder="What do you need to do?" autocomplete="off" enterkeyhint="go">
+          <kbd id="find-key" aria-hidden="true">/</kbd>
+        </label>
+      </form>
+      <div class="chips" role="group" aria-label="Show tools for">
+        <button type="button" class="chip" data-cat="all" aria-pressed="true"><span class="chip-ic all"><Icon name="sparkle" /></span>All<span class="chip-n">{tools.length}</span></button>
+        {aisles.map((a) => (
+          <button type="button" class="chip" data-cat={a.slug} data-g={a.slug} data-label={a.label} aria-pressed="false"><span class="chip-ic"><Icon name={a.mark} /></span>{a.name}<span class="chip-n">{a.live.length}</span></button>
+        ))}
+      </div>
+      <fieldset class="sortrow" id="sortrow">
+        <legend>Sort by</legend>
+        <div class="segmented">
+          {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
+        </div>
+      </fieldset>
+      <p class="sr-only" id="sort-status" role="status"></p>
+      <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
     </section>
-  ))}
 
-  <section class="about-strip" aria-label="How it works">
-    <div><h3>Stays on your device</h3><p>Each page is locked to this site, so a tool can't send your files anywhere. Our tests check it on every change.</p></div>
-    <div><h3>Made to order</h3><p>Grey prototypes are tools people have asked for. <a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Make one</a> and it goes on the shelf with your name.</p></div>
-    <div><h3>Open source</h3><p>All code is public under AGPL-3.0. A Sapience Design initiative, built with contributors.</p></div>
-  </section>
+    <section class="results" id="results" aria-labelledby="results-title" hidden>
+      <div class="results-head">
+        <h2 class="h2" id="results-title"></h2>
+        <span class="count-pill" id="results-count"></span>
+        <a class="results-group" id="results-group" href="/" hidden><span></span><Icon name="arrow-right" /></a>
+      </div>
+      <ul class="rows card" id="search-results"></ul>
+      <p class="results-empty" id="results-empty" hidden>Try simpler words, like “smaller”, “combine” or “photo”. Or <a href={REQUEST_URL}>ask us to build it</a>.</p>
+      <button type="button" class="btn quiet small" id="results-clear"><Icon name="x" />Show everything</button>
+    </section>
+
+    <div id="default" class="default">
+      <section class="popular" aria-labelledby="popular-h">
+        <h2 class="h2" id="popular-h">Most people come for</h2>
+        <ul class="pops">
+          {popular.map(({ t, when }) => (
+            <li>
+              <a class="pop" href={t.url} data-g={t.category.slug}>
+                <span class="pop-shot" set:html={artFor(t.id, t.category.slug, `pop${t.id.replace(/\W/g, "")}`, t.data.name)} />
+                <span class="pop-task">{t.data.task}</span>
+                <span class="pop-sub">{when}</span>
+                <span class="pop-go"><Icon name="arrow-right" /></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="all" aria-labelledby="all-h">
+        <div class="all-head">
+          <h2 class="h2" id="all-h">All tools</h2>
+          <span class="all-sub" id="all-sub">A to Z in each group</span>
+        </div>
+        <div class="gcards">
+          {aisles.map((a) => (
+            <section class="gcard" data-g={a.slug} aria-labelledby={`g-${a.slug}`}>
+              <a class="gcard-head" href={`/${a.slug}/`}>
+                <span class="gcard-ic"><Icon name={a.mark} /></span>
+                <h3 class="h3" id={`g-${a.slug}`}>{a.name}</h3>
+                <span class="gcard-n"><span class="long">See all {a.live.length} {a.live.length === 1 ? "tool" : "tools"}</span><span class="short">{a.live.length} {a.live.length === 1 ? "tool" : "tools"}</span><Icon name="arrow-right" /></span>
+              </a>
+              <ul class="rows" data-sortable>
+                {a.live.map((t) => <ToolRow href={t.url} task={t.data.task} sub={t.data.name} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
+                {a.wanted.map((w) => <ToolRow href={w.url} task={w.name} sub={w.blurb} group={a.slug} icon={a.mark} want />)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  </div>
+  <script type="application/json" id="search-index" set:html={JSON.stringify(searchIndex)} />
 </Base>
 
 <style>
-  .shelf + .shelf { margin-top: var(--s7); }
-  .shelf-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); margin-bottom: var(--s3); }
-  .shelf-head h2 { font-size: var(--t-lg); line-height: var(--lh-lg); font-weight: 600; }
-  .shelf-head a { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); text-decoration: none; }
-  .shelf-head a:hover { color: var(--ink); }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--s5) var(--s3); }
-  .about-strip { margin-top: var(--s7); padding-top: var(--s4); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s4) var(--s5); }
-  .about-strip h3 { font-family: var(--serif); font-weight: 400; font-size: var(--t-xl); line-height: var(--lh-xl); margin-bottom: 4px; }
-  .about-strip p { font-size: var(--t-sm); line-height: var(--lh-sm-ui); color: var(--muted); max-width: 38ch; }
-  .about-strip a { color: var(--ink); }
+  .home { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(32px, 4vw, 44px); }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; justify-items: center; text-align: center; padding: 20px 0 4px; }
+  .hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 1.2rem + 2.6vw, 42px); line-height: 1.08; letter-spacing: -0.02em; max-width: 18ch; }
+  .hero mark { background: linear-gradient(transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%); color: inherit; }
+  /* At night the highlighter is a solid block, so its words stay readable on the dark page. */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hero mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  }
+  :global(:root[data-theme="dark"]) .hero mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; color: var(--soft); font-size: 15px; }
+  .trust li { display: inline-flex; gap: 7px; align-items: center; }
+  .trust :global(.ic) { color: var(--ok); font-size: 18px; }
+  .find { width: min(640px, 100%); margin-top: 4px; }
+  .find-box { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px 0 18px; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); box-shadow: var(--shadow); text-align: left; cursor: text; }
+  .find-box:focus-within { box-shadow: var(--shadow), 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  .find-box > :global(.ic) { font-size: 24px; color: var(--soft); }
+  .find-box input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; padding: 0; min-height: 52px; }
+  .find-box input:focus { outline: none; }
+  .find-box input::placeholder { color: var(--muted); opacity: 1; }
+  .find-box input::-webkit-search-cancel-button { cursor: pointer; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(1000px, 100%); padding-bottom: 2px; }
+  .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 8px; border: 1.5px solid var(--hair); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 650; font-size: 15px; cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--edge); }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chip-ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tint); color: var(--ink); font-size: 16px; }
+  .chip-ic.all { background: #ffe27a; color: #1d1b16; }
+  .chip-n { font-family: var(--mono); font-size: 13px; font-weight: 400; opacity: .8; }
+  .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+  .sortrow legend { float: left; padding: 0; margin-right: 10px; font-size: 14px; color: var(--soft); line-height: 44px; }
+  .sort-note { font-size: 14px; color: var(--muted); margin-top: -6px; }
+  .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .segmented label:hover { color: var(--ink); }
+  .segmented input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .segmented input:focus-visible + label { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+
+  .results { display: grid; gap: 12px; }
+  .results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .results-group { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 650; text-underline-offset: 3px; white-space: nowrap; }
+  .results-empty { color: var(--soft); }
+  #results-clear { justify-self: start; }
+  .results :global(.rows a.sel) { background: var(--row-hover); box-shadow: inset 4px 0 0 var(--edge); }
+
+  .default { display: grid; gap: clamp(32px, 4vw, 44px); }
+  .popular .h2, .all-head { margin-bottom: 12px; }
+  .pops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 14px; }
+  .pops li { min-width: 0; }
+  .pop {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-content: start; height: 100%; padding: 8px 12px 12px 8px;
+    border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); text-decoration: none; transition: transform .08s, box-shadow .08s;
+  }
+  .pop:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--press); }
+  .pop:active { transform: translateY(3px); box-shadow: none; }
+  .pop-shot { grid-column: 1 / span 2; display: block; aspect-ratio: 2 / 1; border-radius: var(--r-sm); overflow: hidden; background: var(--tint); margin-bottom: 6px; }
+  .pop-shot :global(svg) { display: block; width: 100%; height: 100%; }
+  .pop-shot :global(.obj) { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+  .pop:hover .pop-shot :global(.obj) { transform: translateY(-5px); }
+  .pop-task { grid-column: 1; font-weight: 650; font-size: 15px; line-height: 1.3; }
+  .pop-sub { grid-column: 1; font-size: 13px; color: var(--soft); line-height: 1.35; }
+  .pop-go { grid-column: 2; grid-row: 2 / span 2; align-self: center; font-size: 18px; color: var(--soft); display: grid; }
+
+  .all-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .all-sub { font-size: 14px; color: var(--muted); }
+  .gcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 20px; align-items: start; }
+  .gcard { min-width: 0; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); overflow: hidden; box-shadow: var(--shadow); container-type: inline-size; }
+  .gcard-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--tint); border-bottom: 1.5px solid var(--edge); text-decoration: none; }
+  .gcard-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--card); border: 1.5px solid var(--edge); font-size: 22px; }
+  /* The one way into the group: "See all 7 tools →", or "7 tools →" when the card is narrow. */
+  .gcard-n { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px 0 12px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--edge); font-size: 14px; font-weight: 700; white-space: nowrap; transition: background .12s, color .12s; }
+  .gcard-n :global(.ic) { font-size: 16px; }
+  .gcard-n .short { display: none; }
+  .gcard-head:hover .gcard-n { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  @container (max-width: 400px) {
+    .gcard-n .long { display: none; }
+    .gcard-n .short { display: inline; }
+  }
+  .gcard .rows > :global(li:nth-child(n + 4)), .gcard .rows > :global(li.want) { display: none; }
+
+  @media (max-width: 640px) {
+    .hero { justify-items: stretch; text-align: left; padding: 0; }
+    .trust, .sortrow { justify-content: flex-start; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; margin: 0 calc(var(--gutter) * -1); padding: 2px var(--gutter) 6px; width: calc(100% + 2 * var(--gutter)); }
+    .pops { grid-template-columns: 1fr; }
+    .pop { grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; min-height: 72px; padding: 8px 12px 8px 8px; gap: 2px 12px; }
+    .pop-shot { grid-column: 1; grid-row: 1 / span 2; width: 56px; height: 56px; aspect-ratio: auto; margin: 0; }
+    .pop-task { grid-column: 2; grid-row: 1; align-self: end; }
+    .pop-sub { grid-column: 2; grid-row: 2; align-self: start; }
+    .pop-go { grid-column: 3; grid-row: 1 / span 2; }
+  }
 </style>
+
+<script>
+  import { makeSearch } from "../lib/search.js";
+  import { summary, fmtCount, type ToolStats } from "../lib/stats";
+
+  type Item = { n: string; t?: string; c: string; g?: string; u: string; k: string; w?: 1 };
+  const index: Item[] = JSON.parse(document.getElementById("search-index")!.textContent!);
+  const find = makeSearch(index);
+  const REQUEST = "https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const input = $<HTMLInputElement>("find"), key = $("find-key");
+  const results = $("results"), list = $("search-results"), title = $("results-title"), count = $("results-count");
+  const empty = $("results-empty"), groupLink = $<HTMLAnchorElement>("results-group"), def = $("default");
+  const chips = [...document.querySelectorAll<HTMLButtonElement>(".chip")];
+  const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="sort"]')];
+  const pools = [...document.querySelectorAll<HTMLElement>("[data-sortable]")];
+  const rowFor = (u: string) => document.querySelector<HTMLElement>(`[data-sortable] > li[data-u="${CSS.escape(u)}"]`);
+
+  let cat = "all";
+  // Write to a live region only when the words change, so a screen reader isn't interrupted by the
+  // same message on every keystroke. The arrow-key hint is spoken once per search.
+  const findStatus = $("find-status");
+  const say = (text: string) => { if (findStatus.textContent !== text) findStatus.textContent = text; };
+  let hinted = false;
+  let stats: Record<string, ToolStats> | null = null;
+  let statsTried = false; // the stats request has answered (or failed)
+  const sortBy = () => radios.find((r) => r.checked)?.value ?? "az";
+
+  // ---- Sorting: each group card keeps its rows in the chosen order; planned tools stay last ----
+  const dateFmt = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  function value(li: HTMLElement, by: string): number | string {
+    const s = stats?.[li.dataset.tool ?? ""];
+    if (by === "used") return s?.uses ?? 0;
+    if (by === "liked") return s?.likes ?? 0;
+    if (by === "new") return li.dataset.added ?? "";
+    return li.dataset.name ?? "";
+  }
+  function compare(a: HTMLElement, b: HTMLElement, by: string) {
+    const wa = a.classList.contains("want"), wb = b.classList.contains("want");
+    if (wa !== wb) return wa ? 1 : -1;
+    const az = (a.dataset.name ?? "").localeCompare(b.dataset.name ?? "");
+    if (by === "az" || wa) return az;
+    const va = value(a, by), vb = value(b, by);
+    return va < vb ? 1 : va > vb ? -1 : az;
+  }
+  function statText(li: HTMLElement, by: string) {
+    const s = stats?.[li.dataset.tool ?? ""];
+    if (by === "used" && s?.uses) return ` · ${fmtCount(s.uses)} ${s.uses === 1 ? "use" : "uses"}`;
+    if (by === "liked" && s?.likes) return ` · ${fmtCount(s.likes)} ${s.likes === 1 ? "like" : "likes"}`;
+    if (by === "new" && li.dataset.added) return ` · Added ${dateFmt.format(new Date(`${li.dataset.added}T12:00:00`))}`;
+    return "";
+  }
+  const SUBS: Record<string, string> = { used: "Most used first in each group", new: "Newest first in each group", liked: "Most liked first in each group", az: "A to Z in each group" };
+  function sort() {
+    const by = sortBy();
+    for (const ul of pools) {
+      const rows = [...ul.children] as HTMLElement[];
+      rows.sort((a, b) => compare(a, b, by));
+      ul.append(...rows);
+      for (const li of rows) { const el = li.querySelector("[data-stat]"); if (el) el.textContent = statText(li, by); }
+    }
+    const missing = !stats && (by === "used" || by === "liked");
+    $("all-sub").textContent = missing ? SUBS.az : SUBS[by];
+    $("sort-note").hidden = !missing || !statsTried;
+    if (!results.hidden) render();
+  }
+
+  // ---- Search and group filter ----
+  function cloneRow(u: string) {
+    const li = rowFor(u)?.cloneNode(true) as HTMLElement | undefined;
+    return li ?? null;
+  }
+  function render() {
+    const q = input.value.trim();
+    const show = !!q || cat !== "all";
+    results.hidden = !show;
+    def.hidden = show;
+    if (!q) hinted = false;
+    if (!show) { say(""); return; }
+    const cname = cat !== "all" ? chips.find((c) => c.dataset.cat === cat)?.dataset.label ?? "" : "";
+    let urls: string[];
+    if (q) urls = find(q).filter((h) => cat === "all" || h.g === cat).map((h) => h.u);
+    else urls = ([...document.querySelectorAll<HTMLElement>(`[data-sortable] > li[data-g="${cat}"]:not(.want)`)]).map((li) => li.dataset.u!);
+    const rows = urls.map(cloneRow).filter((x): x is HTMLElement => !!x).slice(0, q ? 12 : 50);
+    rows.forEach((li, i) => li.querySelector("a")?.classList.toggle("sel", !!q && i === 0));
+    list.replaceChildren(...rows);
+    list.hidden = !rows.length;
+    empty.hidden = rows.length > 0;
+    title.textContent = q ? `${rows.length ? "Best matches for" : "Nothing found for"} “${q}”${cname ? ` in ${cname}` : ""}` : cname;
+    count.textContent = rows.length === 1 ? "1 tool" : `${rows.length} tools`;
+    count.hidden = !rows.length;
+    groupLink.hidden = cat === "all";
+    if (cat !== "all") { groupLink.href = `/${cat}/`; groupLink.querySelector("span")!.textContent = `Open the ${cname} page`; }
+    const n = rows.length === 1 ? "1 tool" : `${rows.length} tools`;
+    if (!q) say(`Showing ${cname}: ${n}.`);
+    else if (!rows.length) say("No tool matches yet. Press Enter to ask for it.");
+    else { say(hinted ? `${n}.` : `${n}. Use the up and down arrow keys, then Enter.`); hinted = true; }
+  }
+
+  input.addEventListener("input", render);
+  input.addEventListener("focus", () => (key.hidden = true));
+  input.addEventListener("blur", () => (key.hidden = !!input.value));
+  // Arrow keys move through results; Enter opens the highlighted one, or asks for the tool if nothing matches.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { input.value = ""; render(); return; }
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    const links = [...list.querySelectorAll("a")];
+    if (!links.length) return;
+    e.preventDefault();
+    const at = links.findIndex((l) => l.classList.contains("sel"));
+    const next = (at + (e.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
+    links.forEach((l, i) => l.classList.toggle("sel", i === next));
+    links[next].scrollIntoView({ block: "nearest" });
+    // The highlight is visual only, so say which result is selected.
+    const li = links[next].closest<HTMLElement>("li")!;
+    const group = chips.find((c) => c.dataset.cat === li.dataset.g)?.dataset.label ?? "";
+    say(`${li.dataset.name}${group ? `, ${group}` : ""}, ${next + 1} of ${links.length}`);
+  });
+  input.form!.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!input.value.trim()) return;
+    const first = (list.querySelector("a.sel") ?? list.querySelector("a")) as HTMLAnchorElement | null;
+    location.href = first ? first.href : REQUEST;
+  });
+
+  chips.forEach((c) => c.addEventListener("focus", () => c.scrollIntoView({ block: "nearest", inline: "nearest" })));
+  chips.forEach((c) => c.addEventListener("click", () => {
+    cat = c.dataset.cat!;
+    chips.forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
+    render();
+  }));
+  $("results-clear").addEventListener("click", () => {
+    input.value = "";
+    cat = "all";
+    chips.forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.cat === "all")));
+    render();
+    input.focus();
+  });
+
+  const KEY = "ftt:sort";
+  radios.forEach((r) => r.addEventListener("change", () => {
+    sort();
+    $("sort-status").textContent = `Sorted by ${r.nextElementSibling!.textContent}.`;
+    try { localStorage.setItem(KEY, r.value); } catch {}
+  }));
+  let saved = "used";
+  try { saved = localStorage.getItem(KEY) || "used"; } catch {}
+  (radios.find((r) => r.value === saved) ?? radios[0]).checked = true;
+
+  // All four options always show. Without usage numbers (a preview, offline, blocked), the two
+  // usage sorts fall back to A to Z and a note says why.
+  summary().then((s) => {
+    stats = s;
+    statsTried = true;
+    sort();
+  });
+
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { input.value = q; key.hidden = true; }
+  render();
+  if (location.hash === "#find") input.focus();
+</script>

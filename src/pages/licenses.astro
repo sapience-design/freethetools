@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
 import { REPO } from "../data/catalogue";
 
 // Keep in step with NOTICE. Shipped = sent to your browser; build = used only to make the site.
@@ -9,7 +10,8 @@ const parts = [
   { name: "qpdf 11.0.0", by: "Jay Berkenbilt and contributors", licence: "Apache-2.0", use: "Shipped: PDF engine in Unlock PDF", url: "https://qpdf.org/" },
   { name: "@jspawn/qpdf-wasm 0.0.2", by: "jspawn", licence: "Apache-2.0", use: "Shipped: qpdf compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/qpdf-wasm" },
   { name: "Schibsted Grotesk", by: "Schibsted Media Group", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/schibsted/schibsted-grotesk" },
-  { name: "Instrument Serif", by: "Instrument", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/Instrument/instrument-serif" },
+  { name: "Bricolage Grotesque", by: "The Bricolage Grotesque Project Authors", licence: "OFL-1.1", use: "Shipped: headings typeface", url: "https://github.com/ateliertriay/bricolage" },
+  { name: "Phosphor Icons", by: "Phosphor Icons", licence: "MIT", use: "Shipped: icons, inlined at build time", url: "https://phosphoricons.com/" },
   { name: "pdf-lib 1.17", by: "Andrew Dillon", licence: "MIT", use: "Shipped: Merge, Split, Rotate, Images to PDF", url: "https://pdf-lib.js.org/" },
   { name: "pdf.js 6.3", by: "Mozilla", licence: "Apache-2.0", use: "Shipped: PDF to Images", url: "https://mozilla.github.io/pdf.js/" },
   { name: "MiniSearch 7", by: "Luca Ongaro", licence: "MIT", use: "Shipped: site search", url: "https://lucaong.github.io/minisearch/" },
@@ -28,26 +30,35 @@ const parts = [
 ];
 ---
 <Base page="licenses" title="Licences | Free the Tools" description="Free the Tools is open source under AGPL-3.0. Here are the licences of the open-source projects it is built on.">
-  <section class="opening">
-    <p class="eyebrow">Licences</p>
-    <h1 class="sm">Built in the open, on the work of others.</h1>
-    <p>Free the Tools is licensed under the GNU Affero General Public License v3.0. Copyright © Sapience Design and contributors. The complete source for everything this site runs is at <a href={REPO}>{REPO.replace("https://", "")}</a>.</p>
-  </section>
+  <div class="page licences">
+  <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+  <div class="intro">
+    <h1 class="h1">Built in the open, on the work of others.</h1>
+    <p class="lede">Free the Tools is licensed under the GNU Affero General Public License v3.0. Copyright © Sapience Design and contributors. The complete source for everything this site runs is at <a href={REPO}>{REPO.replace("https://", "")}</a>.</p>
+  </div>
 
+  <div class="card parts-wrap">
   <table class="specs parts">
     <thead><tr><th>Project</th><th>By</th><th>Licence</th><th>Used for</th></tr></thead>
     <tbody>
       {parts.map((p) => <tr><td><a href={p.url}>{p.name}</a></td><td>{p.by}</td><td class="mono">{p.licence}</td><td>{p.use}</td></tr>)}
     </tbody>
   </table>
+  </div>
 
   <p class="note">"Free the Tools" and the Sapience name and logo are trademarks of Sapience Design and are not licensed under AGPL-3.0. Forks are welcome to use the code under a different name. See <a href={`${REPO}/blob/main/TRADEMARKS.md`}>TRADEMARKS.md</a>.</p>
+  </div>
 </Base>
 
 <style>
-  .parts { max-width: 980px; }
-  .parts thead th { width: auto; padding-top: 0; }
-  .parts a { color: var(--ink); }
-  .note { margin-top: 32px; max-width: 70ch; color: var(--ink-soft); font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
-  @media (max-width: 700px) { .parts thead { display: none; } .parts tr { display: grid; padding: 10px 0; border-bottom: 1px solid var(--line); } .parts td { border: 0; padding: 2px 0; } }
+  .licences { display: grid; gap: 24px; }
+  .intro { display: grid; gap: 12px; max-width: 760px; }
+  .intro a { color: var(--ink); }
+  .parts-wrap { padding: 4px 18px; }
+  .parts thead th { width: auto; font-weight: 650; color: var(--soft); }
+  .parts tbody tr:last-child td { border-bottom: 0; }
+  .parts a { color: var(--ink); font-weight: 600; }
+  .note { max-width: 70ch; color: var(--soft); font-size: 15px; }
+  .note a { color: var(--ink); }
+  @media (max-width: 700px) { .parts thead { display: none; } .parts tr { display: grid; padding: 10px 0; border-bottom: 1px solid var(--hair); } .parts tbody tr:last-child { border-bottom: 0; } .parts td { border: 0; padding: 2px 0; } }
 </style>

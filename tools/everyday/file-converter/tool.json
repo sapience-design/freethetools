@@ -1,7 +1,9 @@
 {
   "name": "File Converter",
+  "task": "Convert any file",
+  "icon": "swap",
   "short": "File Converter",
-  "tagline": "Drop any files. It finds out what they are and shows what they can become. Nothing is uploaded.",
+  "tagline": "Drop any files. It works out what each one is and what it can become.",
   "seoTitle": "Free file converter: images, audio, CSV, Markdown",
   "description": "Convert images, audio, CSV, JSON, Markdown and HTML in your browser, one file or many. It detects each file's type. Nothing is uploaded.",
   "section": "Convert",

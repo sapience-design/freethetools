@@ -1,6 +1,7 @@
 ---
 import { getCollection } from "astro:content";
 import Base from "../../../layouts/Base.astro";
+import Icon from "../../../components/Icon.astro";
 import { loadCatalogue, REPO } from "../../../data/catalogue";
 
 export async function getStaticPaths() {
@@ -26,6 +27,10 @@ const specs: [string, string][] = [
   ["Licence", "AGPL-3.0"],
   ["Added", new Date(d.added).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })],
 ];
+const files = category === "pdf" || category === "images";
+const safe = files
+  ? ["Your files stay on this device.", "They are never uploaded, not even to us."]
+  : ["This all happens on your device.", "Nothing you type or add is sent anywhere."];
 ---
 <Base
   category={category}
@@ -55,53 +60,58 @@ const specs: [string, string][] = [
     import { installBlobCapture } from "../../../agent/blob-capture.js";
     installBlobCapture();
   </script>
-  <div class="product">
-    <div class="work" id="tool-work" data-tool={tool.id}>
-      <UI />
+  <div class="page tool-page" data-g={category}>
+    <div class="tp-main">
+      <a class="back" href={`/${category}/`}><Icon name="caret-left" />{tool.category.label}</a>
+      <header class="tp-head">
+        <span class="tag"><span class="tag-ic"><Icon name={tool.category.mark} /></span>{d.name}</span>
+        <h1 class="h1">{d.task}</h1>
+        <p class="lede">{d.tagline}</p>
+        <div class="tp-actions">
+          <button class="pillbtn" type="button" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
+            <Icon name="bookmark-simple" /><span class="off">Save</span><span class="on">Saved</span>
+          </button>
+          <button class="pillbtn like" type="button" id="tool-like" aria-pressed="false">
+            <Icon name="heart" /><span id="tool-like-label">Like</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
+          </button>
+          <span class="usage" id="tool-usage" hidden></span>
+        </div>
+      </header>
+      <div class="work" id="tool-work" data-tool={tool.id}>
+        <UI />
+      </div>
+      {hasAgent && (
+        <section class="agent-activity" id="agent-activity" aria-labelledby="agent-activity-h" hidden>
+          <h2 class="h3" id="agent-activity-h">AI agent activity</h2>
+          <p>An AI agent used this tool on this page. The files stay on this device and are saved in your <a href="/library/">library</a>.</p>
+          <ul class="agent-log" id="agent-log"></ul>
+        </section>
+      )}
+      {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
     </div>
 
-    <aside class="info">
-      <p class="eyebrow"><span class="mono">{tool.number}</span> · <a href={`/${tool.category.slug}/`}>{tool.category.name}</a> · {d.section}</p>
-      <h1>{d.name}</h1>
-      <p class="stock">In stock · runs on your device</p>
-      <p class="tagline">{d.tagline}</p>
-      <div class="actions">
-        <button class="btn line" type="button" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
-          <span class="off">Save</span><span class="on">Saved</span>
-        </button>
-        <button class="btn line like" type="button" id="tool-like" aria-pressed="false" aria-label={`Like ${d.name}`}>
-          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.6 2.9 8.7a3.1 3.1 0 0 1 4.4-4.4l.7.7.7-.7a3.1 3.1 0 0 1 4.4 4.4Z" /></svg>
-          <span id="tool-like-label">Like</span><span class="count" id="tool-like-count"></span>
-        </button>
-      </div>
-      <p class="usage" id="tool-usage" hidden></p>
-      <table class="specs">
-        <tbody>
-          {specs.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
-          <tr><th scope="row">Built by</th><td>{d.authors.map((a, i) => <>{i > 0 && ", "}{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}</>)}</td></tr>
-          <tr><th scope="row">Source</th><td><a href={`${REPO}/tree/main/tools/${tool.id}`}>tools/{tool.id}</a></td></tr>
-          {d.cli && <tr><th scope="row">Command line</th><td><a href={`${REPO}/tree/main/tools/${tool.id}/cli`} class="mono">{d.cli}</a></td></tr>}
-        </tbody>
-      </table>
-      <p class="report"><a href={`${REPO}/issues/new?template=bug_report.yml&tool=${encodeURIComponent(tool.id)}`}>Report a problem</a></p>
+    <aside class="tp-side" aria-label="Help and details">
+      <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]}</span></p>
+      {d.faq.length > 0 && (
+        <section class="help" aria-labelledby="faq">
+          <h2 class="sr-only" id="faq">Questions</h2>
+          {d.faq.map((f) => <details class="qa"><summary>{f.q}<Icon name="plus" /></summary><p>{f.a}</p></details>)}
+        </section>
+      )}
+      <section class="facts" aria-labelledby="facts-h">
+        <h2 class="h3" id="facts-h">About this tool</h2>
+        <table class="specs">
+          <tbody>
+            {specs.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
+            <tr><th scope="row">Built by</th><td>{d.authors.map((a, i) => <>{i > 0 && ", "}{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}</>)}</td></tr>
+            <tr><th scope="row">Source</th><td><a href={`${REPO}/tree/main/tools/${tool.id}`}>tools/{tool.id}</a></td></tr>
+            {d.cli && <tr><th scope="row">Command line</th><td><a href={`${REPO}/tree/main/tools/${tool.id}/cli`} class="mono">{d.cli}</a></td></tr>}
+          </tbody>
+        </table>
+        <p class="report"><a href={`${REPO}/issues/new?template=bug_report.yml&tool=${encodeURIComponent(tool.id)}`}>Report a problem</a></p>
+      </section>
     </aside>
   </div>
-
-  {hasAgent && (
-    <section class="agent-activity" id="agent-activity" aria-labelledby="agent-activity-h" hidden>
-      <h2 id="agent-activity-h">AI agent activity</h2>
-      <p class="muted">An AI agent used this tool on this page. The files stay on this device and are saved in your <a href="/library/">library</a>.</p>
-      <ul class="agent-log" id="agent-log"></ul>
-    </section>
-  )}
-  {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
-
-  {d.faq.length > 0 && (
-    <section class="faq" aria-labelledby="faq">
-      <h2 id="faq">Questions</h2>
-      {d.faq.map((f) => <details class="qa"><summary>{f.q}</summary><p>{f.a}</p></details>)}
-    </section>
-  )}
 </Base>
 
 <script>
@@ -149,41 +159,48 @@ const specs: [string, string][] = [
 </script>
 
 <style>
-  /* The tool gets the room; the details beside it are a narrow column. */
-  .product { display: grid; grid-template-columns: minmax(0, 1fr) clamp(240px, 22vw, 300px); gap: var(--s5) clamp(var(--s4), 3vw, var(--s6)); align-items: start; }
-  .info { display: grid; gap: var(--s3); position: sticky; top: var(--s5); }
-  .info .eyebrow a { color: inherit; text-decoration: none; }
-  .info .eyebrow a:hover { color: var(--ink); }
-  .info h1 { font-family: var(--serif); font-weight: 400; font-size: var(--t-3xl); line-height: var(--lh-3xl); }
-  .stock { font-size: var(--t-xs); line-height: var(--lh-xs); font-weight: 500; margin-top: -12px; }
-  .tagline { color: var(--ink-soft); font-size: var(--t-base); line-height: var(--lh-base); }
-  .specs th, .specs td { padding: 8px 0; }
-  .actions .on { display: none; }
-  .actions [aria-pressed="true"] .on { display: inline; }
-  .actions [aria-pressed="true"] .off { display: none; }
-  .actions [aria-pressed="true"] { background: var(--ink); color: var(--paper); box-shadow: none; }
-  .like svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; transition: transform .2s; }
-  .like .count { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .tool-page { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px clamp(28px, 3vw, 48px); align-items: start; }
+  .tp-main { min-width: 0; display: grid; gap: 22px; }
+  .tp-head { display: grid; gap: 10px; justify-items: start; }
+  .tp-head .h1 { margin-top: 2px; }
+  .tp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+  .pillbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--hair); border-radius: 999px; background: var(--card); font-weight: 650; font-size: 15px; cursor: pointer; }
+  .pillbtn:hover { border-color: var(--edge); }
+  .pillbtn :global(.ic) { font-size: 18px; }
+  .pillbtn .on { display: none; }
+  .pillbtn[aria-pressed="true"] .on { display: inline; }
+  .pillbtn[aria-pressed="true"] .off { display: none; }
+  [data-save][aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .like .count { color: var(--muted); font-family: var(--mono); font-size: 13px; font-weight: 400; }
   .like .count:empty { display: none; }
-  .actions .like[aria-pressed="true"] { background: var(--paper); color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
-  .like[aria-pressed="true"] svg { fill: #e5484d; stroke: #e5484d; transform: scale(1.1); }
-  .usage { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); margin-top: -8px; }
-  .report { font-size: var(--t-sm); }
-  .report a { color: var(--muted); }
-  .report a:hover { color: var(--ink); }
-  .faq { margin-top: var(--s7); max-width: 760px; }
-  .faq h2 { font-size: var(--t-lg); line-height: var(--lh-lg); padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
-  .agent-activity { margin-top: var(--s6); max-width: 760px; display: grid; gap: var(--s2); }
-  .agent-activity h2 { font-size: var(--t-lg); line-height: var(--lh-lg); padding-bottom: var(--s2); border-bottom: 1px solid var(--line); }
+  .like[aria-pressed="true"] { border-color: var(--edge); background: var(--bad-t); }
+  .like[aria-pressed="true"] :global(.ic) { color: var(--bad); }
+  .usage { font-size: 14px; color: var(--muted); }
+
+  .tp-side { min-width: 0; display: grid; gap: 18px; position: sticky; top: 90px; }
+  .safe { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--ok-t); }
+  .safe :global(.ic) { color: var(--ok); font-size: 22px; margin-top: 1px; }
+  .help { border-bottom: 1px solid var(--hair); }
+  .facts { display: grid; gap: 8px; padding: 16px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
+  .facts .specs { font-size: 14px; }
+  .facts .specs tr:last-child th, .facts .specs tr:last-child td { border-bottom: 0; }
+  .report { font-size: 14px; }
+  .report a { color: var(--soft); }
+  @media (max-width: 960px) {
+    .tool-page { grid-template-columns: minmax(0, 1fr); }
+    .tp-side { position: static; }
+  }
+  .agent-activity { display: grid; gap: 12px; padding: clamp(16px, 2vw, 22px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); box-shadow: var(--shadow); }
   .agent-activity[hidden] { display: none; }
-  .agent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-  .agent-log :global(.agent-call) { display: grid; gap: 6px; padding: var(--s2) 0; border-bottom: 1px solid var(--line); font-size: var(--t-sm); line-height: var(--lh-sm); }
+  .agent-activity > p { color: var(--soft); }
+  .agent-activity a:not(.btn) { color: var(--ink); }
+  .agent-log { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .agent-log :global(.agent-call) { display: grid; gap: 6px; padding: 12px 14px; border: 1.5px solid var(--hair); border-radius: var(--r); font-size: 15px; }
   .agent-log :global(.agent-call p) { margin: 0; }
+  .agent-log :global(.agent-head) { font-weight: 650; }
   .agent-log :global(.agent-call.bad .agent-head + p) { color: var(--bad); }
-  .agent-log :global(.agent-data) { color: var(--ink-soft); overflow-wrap: anywhere; }
-  .agent-log :global(.agent-files) { display: flex; flex-wrap: wrap; gap: var(--s1); }
-  @media (max-width: 1080px) {
-    .product { grid-template-columns: 1fr; }
-    .info { position: static; order: -1; }
+  .agent-log :global(.agent-data) { color: var(--soft); overflow-wrap: anywhere; }
+  .agent-log :global(.agent-files) { display: flex; flex-wrap: wrap; gap: 8px; }
+  .agent-log :global(.agent-files .btn) { min-height: 44px; padding: 0 16px; font-size: 15px; border-radius: var(--r); }
   }
 </style>

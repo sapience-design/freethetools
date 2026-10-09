@@ -1,7 +1,9 @@
 {
   "name": "JWT Decoder",
+  "task": "Look inside a login token",
+  "icon": "key",
   "short": "JWT decoder",
-  "tagline": "See what's inside a JSON Web Token, check its expiry, and verify HMAC signatures.",
+  "tagline": "See what a JWT says and when it expires, and check HMAC signatures.",
   "seoTitle": "JWT decoder that never sends your token anywhere",
   "description": "Decode a JWT's header and claims, see when it expires, and verify HS256 signatures with your secret. Your token never leaves the page.",
   "section": "Inspect",

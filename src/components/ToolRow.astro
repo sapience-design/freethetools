@@ -1,0 +1,27 @@
+---
+// One tool in a list: tinted icon tile, the job in plain words, a sub line, a caret.
+// Planned tools ("Not built yet") link to their open request on GitHub. Sorting and search
+// read the data- attributes; [data-stat] is filled with usage figures in the browser.
+import Icon from "./Icon.astro";
+
+interface Props {
+  href: string;
+  task: string;
+  sub: string;
+  group: string;
+  icon: string;
+  tool?: string;
+  added?: string;
+  isNew?: boolean;
+  want?: boolean;
+}
+const { href, task, sub, group, icon, tool, added, isNew = false, want = false } = Astro.props;
+---
+<li class:list={[{ want }]} data-g={group} data-tool={tool} data-added={added} data-name={task} data-u={href}>
+  <a class:list={["row", { want }]} href={href}>
+    <span class="row-ic"><Icon name={icon} weight={want ? "bold" : "duotone"} /></span>
+    <span class="row-title"><b>{task}</b>{isNew && <span class="badge new">New</span>}{want && <span class="badge want">Not built yet</span>}</span>
+    <span class="row-sub">{sub}<span data-stat></span></span>
+    <span class="row-go"><Icon name="caret-right" /></span>
+  </a>
+</li>

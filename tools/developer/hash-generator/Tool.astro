@@ -1,14 +1,20 @@
 ---
-import ToolShot from "../../../src/components/ToolShot.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Hash generator">
-  <ToolShot toolId="developer/hash-generator" category="developer" name="Hash Generator" />
-  <label class="field"><span>Text</span><textarea id="hg-in" rows="4" spellcheck="false">Free the Tools</textarea></label>
-  <div class="actions"><button type="button" class="btn line" id="hg-open">Hash a file instead…</button><input type="file" id="hg-file" hidden></div>
-  <p class="muted" id="hg-source">Hashing the text above</p>
-  <ul class="file-list" id="hg-list" aria-live="polite"></ul>
-  <label class="field"><span>Check against a checksum (optional)</span><input type="text" id="hg-check" placeholder="Paste the expected hash" autocomplete="off" spellcheck="false"></label>
-  <p id="hg-verdict" aria-live="polite"></p>
+<section class="tool" id="hg-tool" aria-label="Hash generator">
+  <Step n={1} title="Type or paste your text">
+    <label class="field"><span>Text</span><textarea id="hg-in" rows="4" spellcheck="false">Free the Tools</textarea></label>
+    <div class="actions">
+      <button class="btn quiet small" id="hg-open" type="button"><Icon name="folder-open" />Hash a file instead</button><input type="file" id="hg-file" hidden>
+    </div>
+    <p class="hint" id="hg-source" aria-live="polite">Hashing the text above</p>
+  </Step>
+  <Step n={2} title="Copy the hash">
+    <ul class="kv" id="hg-list" aria-live="polite"></ul>
+    <label class="field"><span>Check against a checksum (optional)</span><input type="text" id="hg-check" placeholder="Paste the expected hash" autocomplete="off" spellcheck="false"></label>
+    <p id="hg-verdict" aria-live="polite"></p>
+  </Step>
 </section>
 
 <script>
@@ -26,27 +32,26 @@ import ToolShot from "../../../src/components/ToolShot.astro";
     current = Object.fromEntries(results);
     list.replaceChildren(...results.map(([a, h]) => {
       const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = a;
-      const m = document.createElement("span"); m.className = "fmeta mono hg-hash"; m.textContent = h;
-      const act = document.createElement("span"); act.className = "fact";
-      const b = document.createElement("button"); b.type = "button"; b.className = "icon-btn"; b.textContent = "Copy";
+      const n = document.createElement("span"); n.className = "k"; n.textContent = a;
+      const m = document.createElement("span"); m.className = "v hg-hash"; m.textContent = h;
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn line small"; b.textContent = "Copy";
       b.setAttribute("aria-label", `Copy ${a} hash`);
       b.onclick = async () => { try { await navigator.clipboard.writeText(h); b.textContent = "Copied"; } catch { b.textContent = "Select"; } setTimeout(() => (b.textContent = "Copy"), 1400); };
-      act.append(b); li.append(n, m, act); return li;
+      li.append(n, m, b); return li;
     }));
     verdict();
   }
   function verdict() {
     const want = check.value.trim().toLowerCase();
     const el = $("hg-verdict");
-    if (!want) { el.textContent = ""; return; }
+    if (!want) { el.textContent = ""; el.className = ""; return; }
     const hit = Object.entries(current).find(([, h]) => h === want);
     el.textContent = hit ? `Match: this is the ${hit[0]} hash.` : "No match. The file or text differs from the one the checksum was made from.";
-    el.className = hit ? "hg-ok" : "tool-error";
+    el.className = hit ? "ok-text" : "tool-error";
   }
   input.addEventListener("input", () => { $("hg-source").textContent = "Hashing the text above"; run(new TextEncoder().encode(input.value)); });
   check.addEventListener("input", verdict);
-  $("hg-open").addEventListener("click", () => ($("hg-file") as HTMLInputElement).click());
+  $("hg-open").addEventListener("click", () => $("hg-file").click());
   ($("hg-file") as HTMLInputElement).addEventListener("change", async (e) => {
     const f = (e.target as HTMLInputElement).files?.[0]; if (!f) return;
     $("hg-source").textContent = `Hashing ${f.name} (${fmtBytes(f.size)})`;
@@ -56,6 +61,6 @@ import ToolShot from "../../../src/components/ToolShot.astro";
 </script>
 
 <style>
-  .file-list :global(.hg-hash) { overflow-wrap: anywhere; font-size: var(--t-xs); line-height: var(--lh-xs); }
-  :global(.hg-ok) { color: var(--ok); font-weight: 500; }
+  .kv :global(.hg-hash) { font-size: 13px; line-height: 1.5; flex-basis: 100%; order: 3; }
+  .kv :global(li) { align-items: center; }
 </style>

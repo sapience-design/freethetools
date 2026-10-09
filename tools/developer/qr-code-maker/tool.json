@@ -1,7 +1,9 @@
 {
   "name": "QR Code Maker",
+  "task": "Make a QR code",
+  "icon": "qr-code",
   "short": "QR code maker",
-  "tagline": "Links, text and Wi-Fi logins as a crisp QR code. Download as SVG or PNG.",
+  "tagline": "Turn a link, some text or a Wi-Fi login into a QR code you can print.",
   "seoTitle": "Free QR code generator (no sign-up, no expiry)",
   "description": "Make QR codes for links, text or Wi-Fi, free and without sign-up. Codes never expire and aren't tracked. Download SVG or PNG.",
   "section": "Generate",

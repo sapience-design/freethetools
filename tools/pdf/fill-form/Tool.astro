@@ -1,24 +1,43 @@
 ---
+// Fill PDF Form: choose a form, type into its boxes, save.
 import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 ---
-<section class="tool" aria-label="Fill PDF form">
-  <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop a PDF form here" hint="One PDF with fillable fields" pick="Choose a PDF" />
-  <div id="pff-panel" hidden class="tool">
-    <ul class="file-list"><li><span class="fname" id="pff-name"></span><span class="fmeta" id="pff-meta"></span></li></ul>
+<section class="tool" id="pff-tool" aria-label="Fill PDF form">
+  <Step n={1} title="Choose your form">
+    <DropZone prefix="pff" toolId="pdf/fill-form" category="pdf" name="Fill PDF Form" accept="application/pdf,.pdf" title="Drop your form here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
+    <ul class="file-list" id="pff-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="pff-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pff-name"></span><span class="fmeta" id="pff-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="pff-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
+
+  <Step n={2} title="Fill it in" state="later">
     <form id="pff-form" class="pff-fields" novalidate></form>
-    <label class="check"><input type="checkbox" id="pff-flat"> Lock the answers so they can't be changed</label>
-    <div class="actions"><button class="btn" id="pff-go" type="button">Save filled PDF</button></div>
-  </div>
-  <div id="pff-result" aria-live="polite"></div>
+    <label class="check"><input type="checkbox" id="pff-flat"> <span>Lock the answers so they can't be changed</span></label>
+    <button class="btn run" id="pff-go" type="button" disabled><Icon name="pencil-simple" /><span>Save filled form</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="pff-result" aria-live="polite"><p class="res-wait">Your filled form will appear here.</p></div>
+  </Step>
 </section>
 
 <script>
   import { listFields, fillForm } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   let bytes: ArrayBuffer | null = null, file: File | null = null;
   type Field = Awaited<ReturnType<typeof listFields>>[number];
   let fields: Field[] = [];
+  const root = $("pff-tool"), result = $("pff-result"), go = $("pff-go") as HTMLButtonElement;
+  const WAIT = "Your filled form will appear here.";
 
   const pretty = (name: string) => name.replace(/[._]+/g, " ").replace(/([a-z])([A-Z])/g, "$1 $2").trim();
 
@@ -49,45 +68,60 @@ import DropZone from "../../../src/components/DropZone.astro";
     return wrap;
   }
 
+  $("pff-change").addEventListener("click", () => $("pff-file").click());
+
   wireDrop("pff", async (files) => {
     const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
     if (!f) return;
-    $("pff-result").replaceChildren();
+    showWait(result, WAIT);
     try {
       bytes = await f.arrayBuffer();
       fields = await listFields(bytes.slice(0));
       file = f;
       $("pff-name").textContent = f.name;
-      $("pff-meta").textContent = fields.length ? `${fields.length} ${fields.length === 1 ? "field" : "fields"} to fill · ${fmtBytes(f.size)}` : "No fillable fields in this PDF.";
+      $("pff-meta").textContent = [fields.length ? `${fields.length} ${fields.length === 1 ? "box" : "boxes"} to fill` : "", pdfMeta(await pdfFacts(f), f.size)].filter(Boolean).join(" · ");
+      $("pff-picked").hidden = false;
+      compactDrop("pff", true);
       $("pff-form").replaceChildren(...fields.map(control));
-      $("pff-panel").hidden = false;
-      ($("pff-go") as HTMLButtonElement).disabled = !fields.length;
-      if (!fields.length) showError($("pff-result"), "This PDF has no form fields. It may be a scan or have only printed lines to write on.");
-    } catch (e) { showError($("pff-result"), (e as Error).message); }
+      go.disabled = !fields.length;
+      if (!fields.length) {
+        showError(result, "It may be a scanned page. Print it and fill it by hand, or ask the sender for a fillable copy.", "This PDF has no boxes to type in");
+        stepTo(root, 1);
+      } else stepTo(root, 2);
+    } catch (e) { showError(result, (e as Error).message); }
   });
 
-  $("pff-go").addEventListener("click", async () => {
+  go.addEventListener("click", async () => {
     if (!bytes || !file) return;
     const values: Record<string, string | boolean | string[]> = {};
     fields.forEach((f, i) => {
       const el = document.getElementById(`pff-f${i}`) as HTMLInputElement & HTMLSelectElement;
       values[f.name] = f.type === "checkbox" ? el.checked : f.type === "list" ? [...el.selectedOptions].map((o) => o.value) : el.value;
     });
+    go.disabled = true;
+    stepTo(root, 3);
+    showBusy(result);
     try {
       const out = await fillForm(bytes.slice(0), values, { flatten: ($("pff-flat") as HTMLInputElement).checked });
       const name = `${baseName(file.name)}_filled.pdf`;
-      const ul = document.createElement("ul"); ul.className = "file-list";
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname"; n.textContent = name;
-      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = fmtBytes(out.byteLength);
-      const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(out, name, "application/pdf"));
-      li.append(n, m, a); ul.append(li);
-      $("pff-result").replaceChildren(ul);
-    } catch (e) { showError($("pff-result"), (e as Error).message); }
+      const dl = downloadLink(out, name, "application/pdf", "Download PDF");
+      dl.classList.add("run");
+      showDone(result, "Done. Your form is filled in.", `${name} · ${fmtBytes(out.byteLength)}`);
+      result.append(dl);
+      stepTo(root, 4);
+    } catch (e) { showError(result, (e as Error).message); }
+    go.disabled = !fields.length;
+  });
+
+  // Changing anything in step 2 makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    if (!result.querySelector(".res-done, .res-bad")) return;
+    showWait(result, WAIT);
+    stepTo(root, 2);
   });
 </script>
 
 <style>
-  .pff-fields { display: grid; gap: var(--s2); }
+  .pff-fields { display: grid; gap: 16px; }
   .pff-fields :global(select[multiple]) { min-height: 110px; }
 </style>

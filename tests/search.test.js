@@ -47,3 +47,12 @@ test("filler words don't match everything", () => {
   assert.deepEqual(search("zzzz nothing"), []);
   assert.equal(top("merge the pdfs"), "Merge PDFs");
 });
+
+test("a half-typed word beats a near miss in a task name", () => {
+  const s = makeSearch([
+    { n: "Text Diff", t: "Compare two texts", c: "Text", u: "/diff", k: "diff compare" },
+    { n: "Compress PDF", t: "Make a PDF smaller", c: "PDF", u: "/compress", k: "compress smaller" },
+  ]);
+  assert.equal(s("compres")[0].n, "Compress PDF");
+  assert.equal(s("make a pdf smaller")[0].n, "Compress PDF");
+});

@@ -1,7 +1,9 @@
 {
   "name": "JSON Formatter",
+  "task": "Tidy up and check JSON",
+  "icon": "text-indent",
   "short": "JSON formatter",
-  "tagline": "Tidy, validate and minify JSON, with errors that point at the exact line.",
+  "tagline": "Make JSON readable, or find the line that breaks it.",
   "seoTitle": "JSON formatter and validator",
   "description": "Format, validate and minify JSON for free in your browser, with errors that show the line and column. Sort keys too. Your data stays on the page.",
   "section": "Format",

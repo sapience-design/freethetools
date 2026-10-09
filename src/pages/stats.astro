@@ -1,5 +1,6 @@
 ---
 import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
 const { tools } = await loadCatalogue();
 const rows = tools.map((t) => ({ id: t.id, name: t.data.name, url: t.url, group: t.category.name })).sort((a, b) => a.name.localeCompare(b.name));
@@ -10,21 +11,23 @@ const breakdowns = [
 ];
 ---
 <Base page="stats" title="Usage stats | Free the Tools" description="How often each tool is used and liked, where visitors come from, and how reliably each tool works, counted anonymously. Exactly what we count, and what we never collect.">
-  <section class="opening">
-    <p class="eyebrow">Usage stats</p>
-    <h1 class="sm">Counted in totals, never about you.</h1>
-    <p>These numbers help people find the tools that work well, and help us decide what to build next. Here is exactly what's counted.</p>
-  </section>
+  <div class="page stats-page">
+  <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+  <div class="intro">
+    <span class="tag">Usage stats</span>
+    <h1 class="h1">Counted in totals, never about you.</h1>
+    <p class="lede">These numbers help people find the tools that work well, and help us decide what to build next. Here is exactly what's counted.</p>
+  </div>
 
   <div class="counted">
-    <div><h3>What we count</h3><ul>
+    <div class="card"><h2 class="h3">What we count</h2><ul>
       <li><b>Visits:</b> one per browser session. With it: the name of the site that sent you ("Google", never the link), your country as Cloudflare's network sees it, and phone, tablet or desktop. Each is a separate total, so they can't be combined into a picture of anyone.</li>
       <li><b>Views:</b> a tool's page was opened. Once per browser session.</li>
       <li><b>Uses:</b> someone actually worked with the tool (dropped a file, typed, pressed a button). Once per visit.</li>
       <li><b>Results:</b> a result was downloaded or copied, or a tool couldn't process something. Only the count, never the file or the error.</li>
       <li><b>Likes:</b> the Like button. One per browser; you can take it back.</li>
     </ul></div>
-    <div><h3>What we never collect</h3><ul>
+    <div class="card"><h2 class="h3">What we never collect</h2><ul>
       <li>No cookies, no IDs, no fingerprinting.</li>
       <li>No IP addresses stored, no city or precise location, no browser or device details beyond phone, tablet or desktop.</li>
       <li>Nothing you put into a tool. Your files never leave your device.</li>
@@ -33,15 +36,16 @@ const breakdowns = [
   </div>
 
   <section class="site" id="st-site" hidden>
-    <h2>Last 30 days <span class="muted" id="st-visits"></span></h2>
+    <h2 class="h2">Last 30 days <span class="muted" id="st-visits"></span></h2>
     <div class="breakdowns">
       {breakdowns.map((b) => (
-        <div class="bd"><h3>{b.title}</h3><ol class="bars" id={`st-${b.id}`}></ol></div>
+        <div class="bd card"><h3>{b.title}</h3><ol class="bars" id={`st-${b.id}`}></ol></div>
       ))}
     </div>
   </section>
 
-  <h2>Tools</h2>
+  <h2 class="h2">Tools</h2>
+  <div class="card table-wrap" tabindex="0" role="region" aria-label="Totals for each tool">
   <table class="specs stats-table" id="st-table">
     <thead><tr><th>Tool</th><th class="n">Uses</th><th class="n">Last 30 days</th><th class="n">Views</th><th class="n" title="Share of outcomes that ended in a downloaded or copied result">Worked</th><th class="n">Likes</th></tr></thead>
     <tbody>
@@ -50,30 +54,38 @@ const breakdowns = [
       ))}
     </tbody>
   </table>
+  </div>
   <p class="muted note" id="st-note">Totals are stored per day in a Cloudflare D1 database. "Worked" is the share of outcomes that ended in a downloaded or copied result, for tools that produce one. The code is <a href={`${REPO}/tree/main/worker`}>in the open</a>.</p>
+  </div>
 </Base>
 
 <style>
-  .counted { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: var(--s4) var(--s5); margin-bottom: var(--s6); }
-  .counted h3 { font-size: var(--t-base); line-height: var(--lh-base); margin-bottom: 8px; }
-  .counted ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--ink-soft); font-size: var(--t-sm); line-height: var(--lh-sm-ui); }
-  .counted b { color: var(--ink); font-weight: 500; }
-  h2 { font-size: var(--t-lg); line-height: var(--lh-lg); margin-bottom: var(--s3); }
-  h2 .muted { font-weight: 400; font-size: var(--t-sm); margin-left: 6px; }
-  .site { margin-bottom: var(--s6); max-width: 900px; }
-  .breakdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--s4) var(--s5); }
-  .bd h3 { font-size: var(--t-sm); line-height: var(--lh-sm); color: var(--muted); font-weight: 500; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+  .stats-page { display: grid; gap: 24px; }
+  .intro { display: grid; gap: 12px; justify-items: start; max-width: 760px; }
+  .counted { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 16px; }
+  .counted .card { padding: 18px; display: grid; gap: 10px; align-content: start; }
+  .counted ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; color: var(--soft); font-size: 15px; }
+  .counted b { color: var(--ink); font-weight: 650; }
+  h2 .muted { font-family: var(--sans); font-weight: 400; font-size: 15px; margin-left: 6px; }
+  .site { display: grid; gap: 14px; }
+  .breakdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 16px; }
+  .bd { padding: 14px 16px; }
+  .bd h3 { font-size: 14px; color: var(--soft); font-weight: 650; padding-bottom: 8px; border-bottom: 1px solid var(--hair); }
   .bars { list-style: none; margin: 0; padding: 0; }
-  .bars :global(li) { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; font-size: var(--t-sm); line-height: var(--lh-sm); border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
-  .bars :global(li)::before { content: ""; position: absolute; left: 0; bottom: -1px; height: 2px; width: var(--w, 0%); background: var(--accent); }
-  .bars :global(.n) { font-variant-numeric: tabular-nums; color: var(--muted); }
+  .bars :global(li) { position: relative; display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 15px; border-bottom: 1px solid var(--hair); overflow-wrap: anywhere; }
+  .bars :global(li:last-child) { border-bottom: 0; }
+  .bars :global(li)::before { content: ""; position: absolute; left: 0; bottom: -1px; height: 3px; border-radius: 2px; width: var(--w, 0%); background: var(--hl); }
+  .bars :global(.n) { font-variant-numeric: tabular-nums; color: var(--soft); }
   .bars :global(.empty) { color: var(--muted); }
-  .stats-table { max-width: 900px; }
+  .table-wrap { overflow-x: auto; padding: 4px 16px; }
+  .stats-table { min-width: 560px; }
   .stats-table th { width: auto; }
+  .stats-table thead th { font-weight: 650; color: var(--soft); }
+  .stats-table tbody tr:last-child th, .stats-table tbody tr:last-child td { border-bottom: 0; }
   .stats-table .n { text-align: right; font-variant-numeric: tabular-nums; }
-  .stats-table a { color: var(--ink); text-decoration: none; font-weight: 500; }
+  .stats-table a { color: var(--ink); text-decoration: none; font-weight: 650; }
   .stats-table a:hover { text-decoration: underline; }
-  .note { margin-top: var(--s3); font-size: var(--t-sm); max-width: 900px; }
+  .note { font-size: 14px; max-width: 900px; }
   .note a { color: inherit; }
 </style>
 

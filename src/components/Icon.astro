@@ -1,0 +1,8 @@
+---
+// A Phosphor icon, inlined at build time (see src/lib/icons.ts). Sized by font-size: 1em square.
+import { icon, type Weight } from "../lib/icons";
+
+interface Props { name: string; weight?: Weight; class?: string; label?: string }
+const { name, weight = "bold", class: cls = "", label = "" } = Astro.props;
+---
+<Fragment set:html={icon(name, weight, cls ? `ic ${cls}` : "ic", label)} />

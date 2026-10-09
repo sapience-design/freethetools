@@ -1,7 +1,9 @@
 {
   "name": "Regex Tester",
+  "task": "Test a search pattern",
+  "icon": "magnifying-glass",
   "short": "Regex tester",
-  "tagline": "Try a regular expression on your text and see every match and group highlighted.",
+  "tagline": "Try a regular expression and see every match.",
   "seoTitle": "Regex tester for JavaScript regular expressions",
   "description": "Test JavaScript regular expressions live: matches highlighted, groups and named groups listed, clear errors. Free, and your text stays on the page.",
   "section": "Inspect",

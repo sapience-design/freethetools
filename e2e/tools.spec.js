@@ -54,10 +54,29 @@ test.describe("PDF tools", () => {
   test("Split PDF makes one file per page", async ({ page }) => {
     await page.goto("/pdf/split/");
     await page.setInputFiles("#pdfs-file", PDF);
+    await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages · .+ · \d+ KB$/);
     await page.click("#pdfs-go");
     await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
     expect(await pageCount(out)).toBe(1);
+  });
+
+  test("Merge PDFs keeps keyboard focus on the arrows while reordering", async ({ page }) => {
+    await page.goto("/pdf/merge/");
+    await page.setInputFiles("#pdfm-file", [PDF, PDF]);
+    await page.locator("#pdfm-list li").first().locator('button[data-kind="down"]').click();
+    // The moved file is now last, so its down arrow is off; focus moves to its up arrow.
+    await expect(page.locator("#pdfm-list li").nth(1).locator('button[data-kind="up"]')).toBeFocused();
+  });
+
+  test("Split PDF clears an old result when the options change", async ({ page }) => {
+    await page.goto("/pdf/split/");
+    await page.setInputFiles("#pdfs-file", PDF);
+    await page.click("#pdfs-go");
+    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+    await page.click('label[for="pdfs-ranges"]');
+    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(0);
+    await expect(page.locator("#pdfs-result")).toContainText("will appear here");
   });
 
   test("Split PDF rejects a bad range with a clear message", async ({ page }) => {
@@ -80,6 +99,8 @@ test.describe("PDF tools", () => {
   test("Images to PDF makes a page per image", async ({ page }) => {
     await page.goto("/pdf/images-to-pdf/");
     await page.setInputFiles("#i2p-file", [{ name: "a.png", mimeType: "image/png", buffer: PNG }, { name: "b.png", mimeType: "image/png", buffer: PNG }]);
+    await expect(page.locator("#i2p-list .fthumb img")).toHaveCount(2);
+    await expect(page.locator("#i2p-list .fmeta").first()).toContainText("PNG · 2 × 1");
     await page.click("#i2p-go");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.subarray(0, 5).toString()).toBe("%PDF-");
@@ -346,6 +367,38 @@ function jpegWithGps() {
   return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
 }
 
+function jpegWithDetails() {
+  const dirs = [
+    { name: "ifd0", entries: [[0x010f, 2, Buffer.from("Apple\0")], [0x0110, 2, Buffer.from("iPhone 14\0")], [0x8769, 4, { ptr: "exif" }], [0x8825, 4, { ptr: "gps" }]] },
+    { name: "exif", entries: [[0x9003, 2, Buffer.from("2024:03:14 10:32:05\0")]] },
+    { name: "gps", entries: [[1, 2, Buffer.from("N\0")], [2, 5, rationals(59, 1, 54, 1, 5004, 100)], [3, 2, Buffer.from("E\0")], [4, 5, rationals(10, 1, 45, 1, 792, 100)]] },
+  ];
+  const at = {};
+  let o = 8;
+  for (const d of dirs) { at[d.name] = o; o += 2 + d.entries.length * 12 + 4; }
+  const t = Buffer.alloc(512);
+  t.write("II*\0", 0, "latin1");
+  t.writeUInt32LE(at.ifd0, 4);
+  let data = o;
+  for (const d of dirs) {
+    let p = at[d.name];
+    t.writeUInt16LE(d.entries.length, p);
+    p += 2;
+    for (const [tag, type, val] of d.entries) {
+      const count = val.ptr ? 1 : type === 5 ? val.length / 8 : val.length;
+      t.writeUInt16LE(tag, p); t.writeUInt16LE(type, p + 2); t.writeUInt32LE(count, p + 4);
+      if (val.ptr) t.writeUInt32LE(at[val.ptr], p + 8);
+      else if (val.length <= 4) val.copy(t, p + 8);
+      else { val.copy(t, data); t.writeUInt32LE(data, p + 8); data += val.length + (val.length & 1); }
+      p += 12;
+    }
+  }
+  const exif = Buffer.concat([Buffer.from("Exif\0\0", "latin1"), t.subarray(0, data)]);
+  const app1 = Buffer.concat([Buffer.from([0xff, 0xe1, (exif.length + 2) >> 8, (exif.length + 2) & 255]), exif]);
+  return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
+}
+function rationals(...v) { const b = Buffer.alloc(v.length * 4); v.forEach((x, i) => b.writeUInt32LE(x, i * 4)); return b; }
+
 test.describe("image tools", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   const png = () => ({ name: "gradient.png", mimeType: "image/png", buffer: gradientPng(300, 200) });
@@ -354,12 +407,16 @@ test.describe("image tools", () => {
     await page.goto("/images/resize/");
     await page.fill("#rsz-w", "150");
     await page.setInputFiles("#rsz-file", png());
+    await expect(page.locator("#rsz-picked .fthumb img")).toBeVisible();
+    await expect(page.locator("#rsz-picked .fmeta")).toContainText("PNG · 300 × 200");
+    await page.click("#rsz-go");
     await expect(page.locator("#rsz-list .fmeta")).toContainText("300×200 → 150×100");
   });
 
   test("Convert Image Format writes a real JPG", async ({ page }) => {
     await page.goto("/images/convert/");
     await page.setInputFiles("#cvi-file", png());
+    await page.click("#cvi-go");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out[0]).toBe(0xff);
     expect(out[1]).toBe(0xd8);
@@ -368,16 +425,36 @@ test.describe("image tools", () => {
   test("Compress Images reports a result", async ({ page }) => {
     await page.goto("/images/compress/");
     await page.setInputFiles("#cmi-file", png());
+    await page.click("#cmi-go");
     await expect(page.locator("#cmi-list .fmeta")).toContainText(/smaller|Already compact/);
   });
 
   test("Remove Photo Location strips GPS", async ({ page }) => {
     await page.goto("/images/remove-location/");
     await page.setInputFiles("#rml-file", { name: "photo.jpg", mimeType: "image/jpeg", buffer: jpegWithGps() });
+    await expect(page.locator("#rml-picked .ffacts .warn")).toContainText("Location");
+    await page.click("#rml-go");
     await expect(page.locator("#rml-list .fmeta")).toContainText("Removed GPS location");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.toString("hex")).not.toContain("ffe1");
   });
+});
+
+test("Remove Photo Location shows where, when and with what a photo was taken", async ({ page, isMobile }) => {
+  test.skip(isMobile, "file flows run once, on desktop");
+  await page.goto("/images/remove-location/");
+  await page.setInputFiles("#rml-file", { name: "trip.jpg", mimeType: "image/jpeg", buffer: jpegWithDetails() });
+  const facts = page.locator("#rml-picked .ffacts");
+  await expect(facts).toContainText("Location: 59.9139° N, 10.7522° E");
+  await expect(facts).toContainText("Camera: Apple iPhone 14");
+  await expect(facts).toContainText("Taken:");
+});
+
+test("Remove Photo Location says when there is nothing to remove", async ({ page, isMobile }) => {
+  test.skip(isMobile, "file flows run once, on desktop");
+  await page.goto("/images/remove-location/");
+  await page.setInputFiles("#rml-file", { name: "plain.png", mimeType: "image/png", buffer: gradientPng(4, 4) });
+  await expect(page.locator("#rml-picked .ffacts .good")).toContainText("already safe to share");
 });
 
 test.describe("PDF to images", () => {
@@ -385,6 +462,8 @@ test.describe("PDF to images", () => {
   test("renders every page as a PNG", async ({ page }) => {
     await page.goto("/pdf/to-images/");
     await page.setInputFiles("#p2i-file", PDF);
+    await expect(page.locator("#p2i-thumb canvas")).toBeVisible();
+    await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
     await page.click("#p2i-go");
     await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3, { timeout: 30_000 });
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
@@ -458,16 +537,42 @@ test.describe("theme, search, sorting, likes and stats", () => {
   test("search understands other words and typos", async ({ page }) => {
     await page.goto("/");
     await page.fill("#find", "combine pdf");
-    await expect(page.locator("#side-results a").first()).toContainText("Merge PDFs");
+    await expect(page.locator("#search-results a").first()).toContainText("Merge PDFs");
     await page.fill("#find", "compres");
-    await expect(page.locator("#side-results a").first()).toContainText("Compress");
+    await expect(page.locator("#search-results a").first()).toContainText("Compress");
+    await page.fill("#find", "make a pdf smaller");
+    await expect(page.locator("#search-results a").first()).toContainText("Compress PDF");
   });
 
-  test("A–Z sorts each shelf, made-to-order last", async ({ page }) => {
-    await page.goto("/pdf/");
+  test("A–Z sorts each group, not-built-yet last", async ({ page }) => {
+    await page.goto("/");
     await page.click('label[for="sort-az"]');
-    const names = await page.locator("main .grid").first().locator("li:not(.planned)").evaluateAll((els) => els.map((e) => e.dataset.name));
-    expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+    for (const g of ["pdf", "images"]) {
+      const rows = page.locator(`.gcard[data-g="${g}"] [data-sortable] > li`);
+      const names = await rows.locator("xpath=self::li[not(contains(@class,'want'))]").evaluateAll((els) => els.map((e) => e.dataset.name));
+      expect(names).toEqual([...names].sort((a, b) => a.localeCompare(b)));
+      const want = await rows.evaluateAll((els) => els.map((e) => e.classList.contains("want")));
+      expect(want).toEqual([...want].sort((a, b) => Number(a) - Number(b)));
+    }
+  });
+
+  test("all four sorts show, with or without usage numbers", async ({ page }) => {
+    const labels = ["Most used", "Newest", "Most liked", "A–Z"];
+    await page.goto("/");
+    for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
+    await expect(page.locator("#sort-note")).toBeHidden();
+
+    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z.
+    // (An empty answer takes the same path as the preview's 503, without a console error.)
+    await page.route("**/api/stats/summary", (r) => r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+    await page.reload();
+    for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
+    await page.click('label[for="sort-liked"]');
+    await expect(page.locator("#sort-note")).toBeVisible();
+    const names = await page.locator('.gcard[data-g="pdf"] [data-sortable] > li:not(.want)').evaluateAll((els) => els.map((e) => e.dataset.name));
+    expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
+    await page.click('label[for="sort-new"]');
+    await expect(page.locator("#sort-note")).toBeHidden();
   });
 
   test("liking a tool is remembered and counted", async ({ page }) => {
@@ -693,23 +798,23 @@ test.describe("File Converter text files", () => {
   });
 });
 
-test.describe("sidebar search status", () => {
+test.describe("home search status", () => {
   test.skip(({ isMobile }) => isMobile, "run once, on desktop");
 
   test("the arrow-key hint is spoken once per search, and the selected result reads as name, group and position", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    const status = page.locator("#side-status");
+    const status = page.locator("#find-status");
     await page.locator("#find").focus();
     await page.keyboard.type("p");
     await expect(status).toContainText("arrow keys");
     await page.keyboard.type("df");
-    await expect(status).toHaveText(/^\d+ results?\.$/);
+    await expect(status).toHaveText(/^\d+ tools?\.$/);
     await page.keyboard.press("ArrowDown");
-    const link = page.locator("#side-results a").nth(1);
-    const name = await link.getAttribute("data-name");
-    const group = await link.getAttribute("data-group");
-    const total = await page.locator("#side-results a").count();
+    const row = page.locator("#search-results > li").nth(1);
+    const name = await row.getAttribute("data-name");
+    const group = await page.locator(`.chip[data-cat="${await row.getAttribute("data-g")}"]`).getAttribute("data-label");
+    const total = await page.locator("#search-results a").count();
     await expect(status).toHaveText(`${name}, ${group}, 2 of ${total}`);
     // A new search says the hint again.
     await page.fill("#find", "");
@@ -722,32 +827,29 @@ test.describe("sidebar search status", () => {
     await page.waitForLoadState("networkidle");
     await page.locator("#find").focus();
     await page.keyboard.type("zzzz");
-    await expect(page.locator("#side-status")).toContainText(/no tool matches/i);
-    await watchWrites(page, "#side-status");
+    await expect(page.locator("#find-status")).toContainText(/no tool matches/i);
+    await watchWrites(page, "#find-status");
     await page.keyboard.type("zz");
     expect(await writes(page)).toBe(0);
   });
 
-  test("focus moves to the Menu button when the window narrows to phone width", async ({ page }) => {
+  test("a group chip says what it shows", async ({ page }) => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
-    await page.locator("#find").focus();
-    await page.setViewportSize({ width: 700, height: 900 });
-    await expect(page.locator("#menu")).toBeFocused();
+    await page.locator('.chip[data-cat="text"]').click();
+    await expect(page.locator("#find-status")).toHaveText(/^Showing Text tools: \d+ tools?\.$/);
   });
 });
 
-test.describe("phone drawer without JavaScript", () => {
+test.describe("without JavaScript", () => {
   test.skip(({ isMobile }) => !isMobile, "phone only");
   test.use({ javaScriptEnabled: false });
 
-  test("the closed drawer is hidden from keyboard and screen readers before any script runs", async ({ page }) => {
+  test("the top bar works and every tool is linked from the home page", async ({ page }) => {
     await page.goto("/");
-    expect(await page.evaluate(() => getComputedStyle(document.getElementById("side")).visibility)).toBe("hidden");
-    for (let i = 0; i < 6; i++) {
-      await page.keyboard.press("Tab");
-      expect(await page.evaluate(() => !!document.activeElement?.closest("#side"))).toBe(false);
-    }
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "About" })).toBeVisible();
+    const linked = await page.locator("[data-sortable] > li:not(.want) a").evaluateAll((as) => as.map((a) => new URL(a.href).pathname));
+    for (const path of TOOLS) expect(linked, `${path} is linked`).toContain(path);
   });
 });
 
@@ -755,10 +857,10 @@ test.describe("a click opens the file picker", () => {
   test.skip(({ isMobile }) => isMobile, "runs once, on desktop");
   // Every drop area shows a Choose button; tools without one have an "Open a file" button.
   const PICKERS = [
-    ["/pdf/merge/", ".drop .pick"], ["/pdf/split/", ".drop .pick"], ["/pdf/rotate/", ".drop .pick"],
-    ["/pdf/fill-form/", ".drop .pick"], ["/pdf/images-to-pdf/", ".drop .pick"], ["/pdf/to-images/", ".drop .pick"],
-    ["/pdf/compress/", ".drop .pick"], ["/images/compress/", ".drop .pick"], ["/images/convert/", ".drop .pick"],
-    ["/images/resize/", ".drop .pick"], ["/images/remove-location/", ".drop .pick"], ["/everyday/file-converter/", ".drop .pick"],
+    ["/pdf/merge/", ".drop .drop-btn"], ["/pdf/split/", ".drop .drop-btn"], ["/pdf/rotate/", ".drop .drop-btn"],
+    ["/pdf/fill-form/", ".drop .drop-btn"], ["/pdf/images-to-pdf/", ".drop .drop-btn"], ["/pdf/to-images/", ".drop .drop-btn"],
+    ["/pdf/compress/", ".drop .drop-btn"], ["/images/compress/", ".drop .drop-btn"], ["/images/convert/", ".drop .drop-btn"],
+    ["/images/resize/", ".drop .drop-btn"], ["/images/remove-location/", ".drop .drop-btn"], ["/everyday/file-converter/", ".drop .drop-btn"],
     ["/text/markdown-to-html/", "#md-open"], ["/data/csv-to-json/", "#cj-open"], ["/developer/base64/", "#b64-open"], ["/developer/hash-generator/", "#hg-open"],
   ];
   for (const [path, button] of PICKERS) {
