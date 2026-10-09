@@ -74,8 +74,10 @@ test("Cloudflare headers file is published", () => {
 
 test("the footer names the released version and links to its notes", () => {
   const { version } = JSON.parse(readFileSync("package.json", "utf8"));
-  const v = version.replace(/\./g, "\\.");
   for (const page of ["index.html", "pdf/compress/index.html", "404.html"]) {
-    assert.match(html(page), new RegExp(`<a href="[^"]+/releases/tag/v${v}" id="site-version"[^>]*>Version ${v}</a>`), page);
+    const link = /<a href="([^"]+)" id="site-version"[^>]*>([^<]+)<\/a>/.exec(html(page));
+    assert.ok(link, `${page} has the version link`);
+    assert.ok(link[1].endsWith(`/releases/tag/v${version}`), page);
+    assert.equal(link[2], `Version ${version}`, page);
   }
 });

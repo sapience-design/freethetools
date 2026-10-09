@@ -40,7 +40,7 @@ export function cut(text, version, date) {
   const after = start + "## [Unreleased]".length;
   const rest = text.slice(after);
   if (!rest.slice(0, sectionEnd(rest)).trim()) throw new Error("Nothing is listed under Unreleased in CHANGELOG.md.");
-  if (new RegExp(`^## \\[${version.replace(/\./g, "\\.")}\\]`, "m").test(text)) throw new Error(`CHANGELOG.md already has ${version}.`);
+  if (lineStarting(text, `## [${version}]`) >= 0) throw new Error(`CHANGELOG.md already has ${version}.`);
   const prev = HEADING.exec(rest)?.[1];
 
   let out = `${text.slice(0, after)}\n\n## [${version}] - ${date}${rest}`;
@@ -55,13 +55,24 @@ export function cut(text, version, date) {
 
 /** The notes for one version: its section, plus its compare link when there is one. */
 export function notes(text, version) {
-  const m = new RegExp(`^## \\[${version.replace(/\./g, "\\.")}\\][^\\n]*\\n`, "m").exec(text);
-  if (!m) throw new Error(`CHANGELOG.md has no section for ${version}.`);
-  const rest = text.slice(m.index + m[0].length);
+  const head = lineStarting(text, `## [${version}]`);
+  if (head < 0) throw new Error(`CHANGELOG.md has no section for ${version}.`);
+  const eol = text.indexOf("\n", head);
+  const rest = eol < 0 ? "" : text.slice(eol + 1);
   const body = rest.slice(0, sectionEnd(rest)).trim();
   if (!body) throw new Error(`The ${version} section of CHANGELOG.md is empty.`);
-  const link = new RegExp(`^\\[${version.replace(/\./g, "\\.")}\\]: (\\S+)$`, "m").exec(text)?.[1];
-  return link?.includes("/compare/") ? `${body}\n\n**All changes:** ${link}\n` : `${body}\n`;
+  const ref = `[${version}]: `;
+  const at = lineStarting(text, ref);
+  const link = at < 0 ? "" : text.slice(at + ref.length).split("\n")[0].trim();
+  return link.includes("/compare/") ? `${body}\n\n**All changes:** ${link}\n` : `${body}\n`;
+}
+
+// Where the first line starting with `prefix` begins, or -1. Plain text, so a version never
+// becomes part of a regular expression.
+function lineStarting(text, prefix) {
+  if (text.startsWith(prefix)) return 0;
+  const at = text.indexOf(`\n${prefix}`);
+  return at < 0 ? -1 : at + 1;
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
