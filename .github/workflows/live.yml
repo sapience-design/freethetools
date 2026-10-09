@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: live-check
-  cancel-in-progress: true
-
 jobs:
   live:
     name: Live site is clean
@@ -27,6 +23,11 @@ jobs:
         startsWith(github.event.check_run.name, 'Workers Builds') &&
         github.event.check_run.conclusion == 'success' &&
         github.event.check_run.check_suite.head_branch == 'main')
+    # On the job, not the workflow: every finished check starts this workflow, and a workflow-level
+    # group let those skipped runs cancel the real check while it waited for the deploy.
+    concurrency:
+      group: live-check
+      cancel-in-progress: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
