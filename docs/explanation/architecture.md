@@ -65,7 +65,7 @@ Next to every result to download, on tool pages, in the agent activity panel and
 
 ## Search and sorting
 
-Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). Shelves sort by Featured, Most used, Most liked, Newest or A–Z, using the totals below when they are available.
+Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). The home page sorts tools by Most used, Newest, Most liked or A–Z. The two usage sorts use the totals below; when the totals can't load (branch previews have no database), they fall back to A–Z and a note says so.
 
 ## Anonymous usage totals
 

@@ -37,7 +37,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Tools for AI agents, so assistants use Free the Tools instead of installing software (ADR 0008). Each tool folder can have an `agent.js`: a name, a description, an input schema and a `run` function built on `core.js`. The contract is `src/agent/contract.js`. 25 agent tools in 22 folders, all checked and run by `npm test`.
 - The `freethetools` npm package (`packages/freethetools/`): `npx freethetools mcp` is an MCP server for Claude Code, Claude Desktop, Cursor and other clients, and `freethetools run <tool>` is a command line. It runs the same definitions on the person's computer, with Ghostscript as WebAssembly, and keeps a library of every job in a `freethetools` folder in the home folder. Setup: `docs/how-to/use-with-ai.md`. Not published to npm yet.
 - WebMCP on tool pages: where the browser has `document.modelContext`, a tool page registers its agent tools (`src/agent/page.js`), plus `list_page_files`. An agent names a file the person added to the page, or passes `{ name, base64 }` for a file up to 10 MB. Every call shows in an "AI agent activity" panel with download links. Other browsers see no change, and other pages load none of this code. Agent calls are not counted in the anonymous stats.
-- A library of every job, kept in this browser (IndexedDB): results the person downloads, recorded without editing any tool, and agent calls. Records keep the options used, never text, secrets or form answers. New page `/library/` (not indexed) lists records with settings, inputs and downloadable results, deletes one record or all, shows the space used, and in Chrome and Edge opens the `freethetools` package's folder. A "Library" link sits beside Saved in the sidebar.
+- A library of every job, kept in this browser (IndexedDB): results the person downloads, recorded without editing any tool, and agent calls. Records keep the options used, never text, secrets or form answers. New page `/library/` (not indexed) lists records with settings, inputs and downloadable results, deletes one record or all, shows the space used, and in Chrome and Edge opens the `freethetools` package's folder. A "Library" link sits beside Saved in the top bar.
 - `src/data/origin-trials.json` holds WebMCP origin-trial tokens; each becomes a `<meta http-equiv="origin-trial">` tag.
 
 ### Accessibility
@@ -45,7 +45,7 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Every page, in light and dark, on desktop and phone, is checked against WCAG 2.2 AA with axe-core in CI (`e2e/a11y.spec.js`).
 - Fixed: muted text contrast on grey surfaces, the faded Compress PDF example, drop zones whose spoken name didn't match their visible text, Regex Tester highlights in dark mode, and the phone header bar is now a landmark. Audit: `docs/research/2026-09-28-accessibility-speed-audit.md`.
 - Browser tests now cover the manual accessibility pass (`e2e/a11y-manual.spec.js`): a keyboard-only walk, roles and live regions, reflow at 320 and 640 px, text spacing, and focus not hidden by sticky bars.
-- Fixed: on phones the closed menu drawer is out of the tab order, the open drawer takes and keeps focus and returns it on close, search results and sorting are announced to screen readers, and the JWT, QR and Regex error boxes are announced.
+- Fixed: search results, the selected result, group filters and sorting are announced to screen readers, and the JWT, QR and Regex error boxes are announced.
 
 ### Added (share images)
 
