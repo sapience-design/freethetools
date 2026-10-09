@@ -49,14 +49,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
           <button type="button" class="chip" data-cat={a.slug} data-g={a.slug} data-label={a.label} aria-pressed="false"><span class="chip-ic"><Icon name={a.mark} /></span>{a.name}<span class="chip-n">{a.live.length}</span></button>
         ))}
       </div>
-      <fieldset class="sortrow" id="sortrow">
-        <legend>Sort by</legend>
-        <div class="segmented">
-          {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
-        </div>
-      </fieldset>
       <p class="sr-only" id="sort-status" role="status"></p>
-      <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
     </section>
 
     <section class="results" id="results" aria-labelledby="results-title" hidden>
@@ -91,6 +84,16 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
         <div class="all-head">
           <h2 class="h2" id="all-h">All tools</h2>
           <span class="all-sub" id="all-sub">A to Z in each group</span>
+          {/* The sort control sits with the list it sorts; a group filter moves it to the results header. */}
+          <div class="sortbox" id="sortbox">
+            <fieldset class="sortrow" id="sortrow">
+              <legend>Sort by</legend>
+              <div class="segmented">
+                {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
+              </div>
+            </fieldset>
+            <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
+          </div>
         </div>
         <div class="gcards">
           {aisles.map((a) => (
@@ -141,9 +144,10 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .chip-ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tint); color: var(--ink); font-size: 16px; }
   .chip-ic.all { background: #ffe27a; color: #1d1b16; }
   .chip-n { font-family: var(--mono); font-size: 13px; font-weight: 400; opacity: .8; }
-  .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+  .sortbox { margin-left: auto; align-self: center; display: grid; justify-items: end; gap: 4px; min-width: 0; }
+  .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
   .sortrow legend { float: left; padding: 0; margin-right: 10px; font-size: 14px; color: var(--soft); line-height: 44px; }
-  .sort-note { font-size: 14px; color: var(--muted); margin-top: -6px; }
+  .sort-note { font-size: 14px; color: var(--muted); text-align: right; }
   .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
   .segmented input { position: absolute; opacity: 0; pointer-events: none; }
   .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -154,7 +158,12 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .results { display: grid; gap: 12px; }
   .results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
   .results-group { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 650; text-underline-offset: 3px; white-space: nowrap; }
+  .results-head .sortbox + .results-group { margin-left: 0; }
   .results-empty { color: var(--soft); }
+  /* Nothing found: centred under the centred search box. */
+  .results.is-empty { justify-items: center; text-align: center; }
+  .results.is-empty .results-head { justify-content: center; }
+  .results.is-empty #results-clear { justify-self: center; }
   #results-clear { justify-self: start; }
   .results :global(.rows a.sel) { background: var(--row-hover); box-shadow: inset 4px 0 0 var(--edge); }
 
@@ -196,6 +205,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   @media (max-width: 640px) {
     .hero { justify-items: stretch; text-align: left; padding: 0; }
     .trust, .sortrow { justify-content: flex-start; }
+    .sortbox { margin-left: 0; justify-items: start; width: 100%; }
+    .sort-note { text-align: left; }
+    .results.is-empty { justify-items: stretch; text-align: left; }
+    .results.is-empty .results-head { justify-content: flex-start; }
+    .results.is-empty #results-clear { justify-self: start; }
     .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; margin: 0 calc(var(--gutter) * -1); padding: 2px var(--gutter) 6px; width: calc(100% + 2 * var(--gutter)); }
     .pops { grid-template-columns: 1fr; }
     .pop { grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; min-height: 72px; padding: 8px 12px 8px 8px; gap: 2px 12px; }
@@ -219,6 +233,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   const input = $<HTMLInputElement>("find"), key = $("find-key");
   const results = $("results"), list = $("search-results"), title = $("results-title"), count = $("results-count");
   const empty = $("results-empty"), groupLink = $<HTMLAnchorElement>("results-group"), def = $("default");
+  const sortbox = $("sortbox"), allHead = sortbox.parentElement!, resultsHead = groupLink.parentElement!;
   const chips = [...document.querySelectorAll<HTMLButtonElement>(".chip")];
   const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="sort"]')];
   const pools = [...document.querySelectorAll<HTMLElement>("[data-sortable]")];
@@ -274,6 +289,16 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   }
 
   // ---- Search and group filter ----
+  // The sort control sits with the list it sorts: beside "All tools", or in a group's results
+  // header. A text search lists best matches first, so the control hides. It moves only when its
+  // place changes, so a focused option never loses focus.
+  function placeSort(q: string, show: boolean) {
+    sortbox.hidden = !!q;
+    const home = show ? resultsHead : allHead;
+    if (sortbox.parentElement === home) return;
+    if (show) resultsHead.insertBefore(sortbox, groupLink);
+    else allHead.append(sortbox);
+  }
   function cloneRow(u: string) {
     const li = rowFor(u)?.cloneNode(true) as HTMLElement | undefined;
     return li ?? null;
@@ -283,6 +308,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     const show = !!q || cat !== "all";
     results.hidden = !show;
     def.hidden = show;
+    placeSort(q, show);
     if (!q) hinted = false;
     if (!show) { say(""); return; }
     const cname = cat !== "all" ? chips.find((c) => c.dataset.cat === cat)?.dataset.label ?? "" : "";
@@ -294,6 +320,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     list.replaceChildren(...rows);
     list.hidden = !rows.length;
     empty.hidden = rows.length > 0;
+    results.classList.toggle("is-empty", !rows.length);
     title.textContent = q ? `${rows.length ? "Best matches for" : "Nothing found for"} “${q}”${cname ? ` in ${cname}` : ""}` : cname;
     count.textContent = rows.length === 1 ? "1 tool" : `${rows.length} tools`;
     count.hidden = !rows.length;

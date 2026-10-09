@@ -575,6 +575,33 @@ test.describe("theme, search, sorting, likes and stats", () => {
     await expect(page.locator("#sort-note")).toBeHidden();
   });
 
+  test("Sort by sits on the All tools line, moves to a group's results, and hides for a text search", async ({ page }) => {
+    await page.goto("/");
+    const sort = page.getByRole("group", { name: "Sort by" });
+    await expect(page.locator(".all-head #sortrow")).toBeVisible();
+    const middle = (b) => b.y + b.height / 2;
+    const heading = await page.locator("#all-h").boundingBox();
+    expect(Math.abs(middle(await sort.boundingBox()) - middle(heading))).toBeLessThan(24);
+    await page.click('.chip[data-cat="pdf"]');
+    await expect(page.locator(".results-head #sortrow")).toBeVisible();
+    // Search results are in best-match order, so there is nothing to sort.
+    await page.fill("#find", "pdf");
+    await expect(sort).toBeHidden();
+    await page.fill("#find", "");
+    await page.click('.chip[data-cat="all"]');
+    await expect(page.locator(".all-head #sortrow")).toBeVisible();
+  });
+
+  test("nothing found is centred under the search box", async ({ page }) => {
+    await page.goto("/");
+    await page.fill("#find", "zzzz");
+    await expect(page.locator("#results-empty")).toBeVisible();
+    await expect(page.locator("#results")).toHaveCSS("text-align", "center");
+    const centre = (b) => b.x + b.width / 2;
+    const box = await page.locator(".find-box").boundingBox();
+    expect(Math.abs(centre(await page.locator("#results-clear").boundingBox()) - centre(box))).toBeLessThan(4);
+  });
+
   test("liking a tool is remembered and counted", async ({ page }) => {
     await page.goto("/text/case-converter/");
     await page.click("#tool-like");
