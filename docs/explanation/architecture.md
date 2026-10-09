@@ -71,7 +71,8 @@ Type:
 Colour:
 
 - Cream paper, warm ink and one yellow highlight, with a tint for each group.
-- Light, Dark and System themes, switched in the footer. The choice is stored per browser and applied before the first paint. Product shots recolour their backdrop in dark mode.
+- Light, Dark and System themes, switched in the footer. The choice is stored per browser and applied before the first paint.
+- Dark mode inverts the sticker look (neutral charcoal page, light outlines and shadows) and keeps the coloured parts as pastel "islands", a step dimmer, with ink text. The island list is one selector in `src/styles/global.css`; add an element to it when it sits on a tint.
 - Colours, radii and shadows are tokens in `src/styles/global.css`, which also holds the shared tool classes (steps, choices, pills, fields, file rows, result boxes).
 
 Icons are Phosphor (MIT), inlined at build time by `src/components/Icon.astro`, so pages load no icon files.

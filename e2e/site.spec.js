@@ -37,7 +37,8 @@ test("home lists the live tools, and groups list wanted ones", async ({ page }) 
 
 test("a group card leads to its page, and back", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("link", { name: /See all \d+ PDF tools/ }).click();
+  await expect(page.locator('.gcard[data-g="pdf"] .gcard-head')).toContainText(/See all \d+ tools/);
+  await page.locator('.gcard[data-g="pdf"] .gcard-head').click();
   await expect(page).toHaveURL(/\/pdf\/$/);
   await expect(page.locator("main").getByRole("link", { name: /Make a PDF smaller/ })).toBeVisible();
   await page.locator("main .back").click();

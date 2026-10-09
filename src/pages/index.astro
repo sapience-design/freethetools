@@ -95,13 +95,12 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
               <a class="gcard-head" href={`/${a.slug}/`}>
                 <span class="gcard-ic"><Icon name={a.mark} /></span>
                 <h3 class="h3" id={`g-${a.slug}`}>{a.name}</h3>
-                <span class="gcard-n">{a.live.length} {a.live.length === 1 ? "tool" : "tools"}</span>
+                <span class="gcard-n"><span class="long">See all {a.live.length} {a.live.length === 1 ? "tool" : "tools"}</span><span class="short">{a.live.length} {a.live.length === 1 ? "tool" : "tools"}</span><Icon name="arrow-right" /></span>
               </a>
               <ul class="rows" data-sortable>
                 {a.live.map((t) => <ToolRow href={t.url} task={t.data.task} sub={t.data.name} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
                 {a.wanted.map((w) => <ToolRow href={w.url} task={w.name} sub={w.blurb} group={a.slug} icon={a.mark} want />)}
               </ul>
-              <a class="gcard-more" href={`/${a.slug}/`}>See all {a.live.length} {a.label}<Icon name="arrow-right" /></a>
             </section>
           ))}
         </div>
@@ -116,6 +115,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .hero { display: grid; gap: 16px; justify-items: center; text-align: center; padding: 20px 0 4px; }
   .hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 1.2rem + 2.6vw, 42px); line-height: 1.08; letter-spacing: -0.02em; max-width: 18ch; }
   .hero mark { background: linear-gradient(transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%); color: inherit; }
+  /* At night the highlighter is a solid block, so its words stay readable on the dark page. */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hero mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  }
+  :global(:root[data-theme="dark"]) .hero mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
   .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; color: var(--soft); font-size: 15px; }
   .trust li { display: inline-flex; gap: 7px; align-items: center; }
   .trust :global(.ic) { color: var(--ok); font-size: 18px; }
@@ -171,14 +175,19 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .all-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
   .all-sub { font-size: 14px; color: var(--muted); }
   .gcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr)); gap: 16px; align-items: start; }
-  .gcard { min-width: 0; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); overflow: hidden; box-shadow: var(--shadow); }
+  .gcard { min-width: 0; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); overflow: hidden; box-shadow: var(--shadow); container-type: inline-size; }
   .gcard-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--tint); border-bottom: 1.5px solid var(--edge); text-decoration: none; }
   .gcard-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--card); border: 1.5px solid var(--edge); font-size: 22px; }
-  .gcard-n { margin-left: auto; display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--edge); font-size: 14px; font-weight: 700; white-space: nowrap; }
+  /* The one way into the group: "See all 7 tools →", or "7 tools →" when the card is narrow. */
+  .gcard-n { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px 0 12px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--edge); font-size: 14px; font-weight: 700; white-space: nowrap; transition: background .12s, color .12s; }
+  .gcard-n :global(.ic) { font-size: 16px; }
+  .gcard-n .short { display: none; }
+  .gcard-head:hover .gcard-n { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  @container (max-width: 400px) {
+    .gcard-n .long { display: none; }
+    .gcard-n .short { display: inline; }
+  }
   .gcard .rows > :global(li:nth-child(n + 4)), .gcard .rows > :global(li.want) { display: none; }
-  .gcard-more { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 0 16px; border-top: 1.5px solid var(--edge); font-weight: 700; font-size: 15px; text-decoration: none; background: var(--card); }
-  .gcard-more:hover { background: var(--tint); }
-  .gcard-more :global(.ic) { font-size: 20px; }
 
   @media (max-width: 640px) {
     .hero { justify-items: stretch; text-align: left; padding: 0; }

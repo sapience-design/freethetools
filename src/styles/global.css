@@ -42,26 +42,39 @@
   --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   color-scheme: light;
 }
-/* Dark: warm charcoal paper, cream ink, the same tints at night strength. */
+/* Dark: neutral charcoal, warm off-white text, soft light outlines and shadows (the same sticker
+   look as light mode, inverted). The coloured parts stay pastel, a step dimmer, with ink text. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #15130f; --card: #1f1c17; --ink: #f5efe3; --soft: #d6cfc2; --muted: #a9a295; --edge: #6d665a; --hair: #2e2a23;
-    --press: #000000; --hl: #6b5500; --hl-ink: #fff6d8; --accent: #f5efe3; --on-accent: #15130f;
-    --ok: #56d68f; --ok-t: #163424; --bad: #ff8a7d; --bad-t: #3d1d18; --busy: #8ab4ff; --busy-t: #192a45;
-    --well: #2b2721; --hover: #29251f; --row-hover: #24211b; --pick: #3b3315; --glass: rgba(21, 19, 15, .9);
-    --tint-pdf: #4a2922; --tint-images: #1d3f33; --tint-text: #352c55; --tint-data: #1f3252; --tint-developer: #2d3036; --tint-everyday: #4a3718;
-    --logo-filter: invert(1); --scroll: #4a453c;
+    --bg: #18181b; --card: #222226; --ink: #f2f0ea; --soft: #d4d1ca; --muted: #a9a7a1; --edge: #dcd9d2; --hair: #36363c;
+    --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --accent: #ebe8e1; --on-accent: #18181b;
+    --ok: #8ad9ab; --ok-t: #bbcfc4; --bad: #ff9d92; --bad-t: #d9c3c0; --busy: #a9c6ff; --busy-t: #c2cad8;
+    --well: #2c2c31; --hover: #28282d; --row-hover: #26262a; --pick: #dad0af; --glass: rgba(24, 24, 27, .9);
+    --tint-pdf: #dabdb6; --tint-images: #b1ccc1; --tint-text: #c5bfd9; --tint-data: #bbc5d9; --tint-developer: #c2c5c9; --tint-everyday: #dac5a6;
+    --tint: #cdc9c0; --logo-filter: invert(1); --scroll: #4a4a50;
     color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .res-busy, .res-done, .res-bad, .tool-error,
+  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
+    --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
+    --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);
+    color: var(--ink);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #15130f; --card: #1f1c17; --ink: #f5efe3; --soft: #d6cfc2; --muted: #a9a295; --edge: #6d665a; --hair: #2e2a23;
-  --press: #000000; --hl: #6b5500; --hl-ink: #fff6d8; --accent: #f5efe3; --on-accent: #15130f;
-  --ok: #56d68f; --ok-t: #163424; --bad: #ff8a7d; --bad-t: #3d1d18; --busy: #8ab4ff; --busy-t: #192a45;
-  --well: #2b2721; --hover: #29251f; --row-hover: #24211b; --pick: #3b3315; --glass: rgba(21, 19, 15, .9);
-  --tint-pdf: #4a2922; --tint-images: #1d3f33; --tint-text: #352c55; --tint-data: #1f3252; --tint-developer: #2d3036; --tint-everyday: #4a3718;
-  --logo-filter: invert(1); --scroll: #4a453c;
+  --bg: #18181b; --card: #222226; --ink: #f2f0ea; --soft: #d4d1ca; --muted: #a9a7a1; --edge: #dcd9d2; --hair: #36363c;
+  --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --accent: #ebe8e1; --on-accent: #18181b;
+  --ok: #8ad9ab; --ok-t: #bbcfc4; --bad: #ff9d92; --bad-t: #d9c3c0; --busy: #a9c6ff; --busy-t: #c2cad8;
+  --well: #2c2c31; --hover: #28282d; --row-hover: #26262a; --pick: #dad0af; --glass: rgba(24, 24, 27, .9);
+  --tint-pdf: #dabdb6; --tint-images: #b1ccc1; --tint-text: #c5bfd9; --tint-data: #bbc5d9; --tint-developer: #c2c5c9; --tint-everyday: #dac5a6;
+  --tint: #cdc9c0; --logo-filter: invert(1); --scroll: #4a4a50;
   color-scheme: dark;
+}
+:root[data-theme="dark"] :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .res-busy, .res-done, .res-bad, .tool-error,
+  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
+  --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
+  --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);
+  color: var(--ink);
 }
 /* Each group's tint, wherever data-g is set. */
 [data-g="pdf"] { --tint: var(--tint-pdf); }
@@ -297,15 +310,16 @@ fieldset.field legend { padding: 0; margin-bottom: 6px; }
 .kv .k { color: var(--soft); }
 .kv .v { font-family: var(--mono); overflow-wrap: anywhere; }
 
-/* Product shots at night: the backdrop takes the dark tint, the white glow fades. */
+/* Product shots at night: the backdrop keeps its pastel, a step dimmer, and the glow softens. */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .sw { stop-color: color-mix(in srgb, var(--tint) 70%, var(--bg)); }
+  :root:not([data-theme="light"]) .sw { stop-color: color-mix(in oklab, var(--tint) 65%, #ecebe7); }
   :root:not([data-theme="light"]) .sf { stop-color: var(--tint); }
-  :root:not([data-theme="light"]) .sg { stop-opacity: .06; }
+  :root:not([data-theme="light"]) .sg { stop-opacity: .25; }
 }
-:root[data-theme="dark"] .sw { stop-color: color-mix(in srgb, var(--tint) 70%, var(--bg)); }
+:root[data-theme="dark"] .sw { stop-color: color-mix(in oklab, var(--tint) 65%, #ecebe7); }
 :root[data-theme="dark"] .sf { stop-color: var(--tint); }
-:root[data-theme="dark"] .sg { stop-opacity: .06; }
+:root[data-theme="dark"] .sg { stop-opacity: .25; }
+
 main:focus { outline: none; }
 
 /* Before / after size bars */
