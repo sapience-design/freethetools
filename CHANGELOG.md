@@ -25,6 +25,10 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - The site answers only on freethetools.com and www.freethetools.com, not on a workers.dev address.
 - Branch previews are made on demand by a maintainer (`npm run preview:cloud`) instead of automatically, so their links, which show account details, are no longer posted to public pull requests.
 
+### Added (releases)
+
+- Releases: `npm run release -- <version>` cuts a release on a branch, and merging it tags the commit and publishes a GitHub Release with the notes from this file (`docs/how-to/release.md`). The footer of every page shows the version, linked to its notes.
+
 ### Added (tools)
 
 - Unlock PDF (pdf, new Security section): removes a PDF's password, or its printing and copying restrictions, with qpdf compiled to WebAssembly (`@jspawn/qpdf-wasm`, Apache-2.0). Lossless: pages, forms and the rest of the file are kept. It asks for the password only when a PDF needs one to open, never guesses, and never keeps it: not in the page, the library or the stats. Also an agent tool, `unlock_pdf`, on the page and in the package.

@@ -58,7 +58,7 @@ npx wrangler deployments list
 npx wrangler rollback <version-id>
 ```
 
-Then revert the commit on `main`.
+Then undo the cause on `main`: press **Revert** on the merged pull request, and merge the pull request GitHub opens. To go back to a named version, see [How to release](release.md#go-back-to-a-version).
 
 ## Email
 

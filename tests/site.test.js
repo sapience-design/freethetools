@@ -71,3 +71,11 @@ test("robots.txt points at the sitemap", () => {
 test("Cloudflare headers file is published", () => {
   assert.match(html("_headers"), /X-Content-Type-Options: nosniff/);
 });
+
+test("the footer names the released version and links to its notes", () => {
+  const { version } = JSON.parse(readFileSync("package.json", "utf8"));
+  const v = version.replace(/\./g, "\\.");
+  for (const page of ["index.html", "pdf/compress/index.html", "404.html"]) {
+    assert.match(html(page), new RegExp(`<a href="[^"]+/releases/tag/v${v}" id="site-version"[^>]*>Version ${v}</a>`), page);
+  }
+});
