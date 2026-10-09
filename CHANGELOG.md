@@ -20,6 +20,11 @@ version, a fix is a patch, and a change to URLs, `tool.json` or the API is a maj
 - Each group card on the home page has one way in: a "See all 7 tools" pill in its header ("7 tools" when the card is narrow).
 - Every chosen file shows its details: photos get a thumbnail and their type and size in pixels; PDFs show their pages and paper size, and PDF to Images draws page 1. Compress PDF warns about a password-locked PDF before you run it. Remove Photo Location lists the location, date, camera and other hidden data it found as soon as a photo is added, or says the photo is already safe to share.
 
+### Changed (hosting)
+
+- The site answers only on freethetools.com and www.freethetools.com, not on a workers.dev address.
+- Branch previews are made on demand by a maintainer (`npm run preview:cloud`) instead of automatically, so their links, which show account details, are no longer posted to public pull requests.
+
 ### Added (tools)
 
 - Unlock PDF (pdf, new Security section): removes a PDF's password, or its printing and copying restrictions, with qpdf compiled to WebAssembly (`@jspawn/qpdf-wasm`, Apache-2.0). Lossless: pages, forms and the rest of the file are kept. It asks for the password only when a PDF needs one to open, never guesses, and never keeps it: not in the page, the library or the stats. Also an agent tool, `unlock_pdf`, on the page and in the package.

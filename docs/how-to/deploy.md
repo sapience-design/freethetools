@@ -13,11 +13,24 @@ Cloudflare is connected to this repository and builds it on its own infrastructu
 | Production branch | `main` |
 | Build command | `npm ci && npm run build && npm test && npm run test:site` |
 | Deploy command | `npx wrangler deploy` |
-| Non-production branch builds | On |
-| Non-production deploy command | `npx wrangler preview` (the default; needs the `previews` block in `wrangler.jsonc`). **Never** `wrangler deploy`, which would publish the branch to production. |
+| Enable Preview Builds (Branch control) | **Off** |
 
 - A push to `main` builds, tests and publishes freethetools.com. If the tests fail, nothing is published.
-- A push to any other branch **in this repository** uploads a preview version with its own `*.workers.dev` link. Production is untouched. Forks are never built.
+- A push to any other branch builds nothing on Cloudflare. GitHub Actions still runs every check on it.
+- The site answers only on freethetools.com and www.freethetools.com: `wrangler.jsonc` sets `workers_dev` to `false`.
+
+## Previews of a branch
+
+Automatic preview builds are off because Cloudflare posts each preview's link, with account details, as a comment on the pull request, and this repository is public. Cloudflare has no setting to keep the builds and drop the comments.
+
+A maintainer makes a preview on demand instead:
+
+1. Check out the branch.
+2. Run `npm run preview:cloud`. It builds the site and uploads a Preview named after the branch, using your own `wrangler login`.
+3. Open the link it prints. Share it privately; never paste it into a pull request, issue or commit.
+4. After the merge, delete it: `npx wrangler preview delete --name <branch>`.
+
+Previews have no database binding, so usage totals show as unavailable and never touch the real numbers. To try a branch without Cloudflare, run `npm run build` and then `npm run preview`.
 - Build logs: Workers & Pages → freethetools → Deployments.
 
 GitHub Actions still runs the full checks (CI with browser tests, CodeQL, DCO, Scorecard); none of them need secrets.
