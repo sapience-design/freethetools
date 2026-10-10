@@ -12,14 +12,14 @@ import { REPO } from "../data/catalogue";
   description="What comes in, what stays on your device and what goes out when you use Free the Tools, and how to check each one yourself."
   jsonLd={{ "@type": "WebPage", name: "How Free the Tools works", url: "https://freethetools.com/how-it-works/" }}
 >
-  <div class="page how">
+  <div class="page narrow how">
     <a class="back" href="/about/"><Icon name="caret-left" />About</a>
     <div class="intro">
       <h1 class="h1">How it works</h1>
       <p class="lede">Every tool runs inside your browser. Here is what comes in, what stays on your device and what goes out, and how to check each one yourself.</p>
     </div>
 
-    <figure class="flow" aria-labelledby="flow-cap">
+    <figure class="flow wide" aria-labelledby="flow-cap">
       <div class="flow-grid">
         <div class="box server">
           <span class="tag-k">Server</span>
@@ -122,17 +122,16 @@ import { REPO } from "../data/catalogue";
 </Base>
 
 <style>
-  /* Text at reading width; the diagram breaks out to the full 1040px. */
-  .how { max-width: calc(1040px + 2 * var(--gutter)); display: grid; grid-template-columns: minmax(0, 1fr) min(760px, 100%) minmax(0, 1fr); gap: 32px 0; }
-  .how > * { grid-column: 2; }
-  .how > .flow { grid-column: 1 / -1; }
+  .how { display: grid; gap: 32px; }
   .intro { display: grid; gap: 12px; }
   section { display: grid; gap: 12px; }
   section > p { color: var(--soft); }
   section a:not(.btn), .flow a { color: var(--ink); }
 
   /* ---- The diagram: hairlines, no shadows, one accent (the device) ---- */
+  /* The diagram is the one part wider than the text column. */
   .flow { margin: 0; display: grid; gap: 14px; }
+  .how > .flow { max-width: 1040px; }
   .flow-grid {
     display: grid; grid-template-columns: minmax(150px, 1fr) minmax(120px, 1fr) minmax(0, 2.2fr);
     grid-template-areas: "server in device" "server out device" "blocked cut device";

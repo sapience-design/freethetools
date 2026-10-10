@@ -76,7 +76,8 @@ const icons = [...new Set([...tools.map((t) => t.icon), "file", "file-pdf", "fil
 </Base>
 
 <style>
-  .library { max-width: calc(1040px + 2 * var(--gutter)); display: grid; gap: 20px; }
+  .library { display: grid; gap: 20px; }
+  .library > .intro { max-width: var(--read); }
   .intro { display: grid; gap: 12px; }
 
   /* ---- Toolbar: search, who made it, space used, clear ---- */

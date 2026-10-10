@@ -38,6 +38,7 @@
   --gutter: clamp(16px, 4vw, 40px);
   --content: 1280px;       /* header, page and footer share these edges */
   --measure: 65ch;         /* longest line of running text */
+  --read: 760px;           /* the text column of reading pages, left-aligned like everything else */
 
   --display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -114,7 +115,10 @@ kbd { font-family: var(--mono); font-size: 12px; line-height: 16px; padding: 1px
 .skip { position: absolute; left: 12px; top: -60px; z-index: 50; padding: 10px 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 650; text-decoration: none; }
 .skip:focus { top: 12px; }
 .page { width: 100%; max-width: calc(var(--content) + 2 * var(--gutter)); margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--gutter) 72px; }
-.page.narrow { max-width: calc(760px + 2 * var(--gutter)); }
+/* Reading pages share the container and left edge of every page; their text stops at --read.
+   A part marked .wide (a diagram, a table) may use more of the width. */
+.page.narrow > * { max-width: var(--read); }
+.page.narrow > .wide { max-width: none; }
 main { display: block; min-height: 60vh; }
 
 /* Display type */
