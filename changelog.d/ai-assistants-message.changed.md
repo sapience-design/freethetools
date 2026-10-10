@@ -1,1 +1,0 @@
-- Home, About, the README and `/llms.txt` say how AI assistants such as Claude and Cursor can use the tools: free, with no login, on the person's own computer through the `freethetools` package, so files are never uploaded. About also says how much a browser can do, and what comes next.

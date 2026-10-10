@@ -1,1 +1,0 @@
-- Adding a file shows "Reading…" on the drop area at once, and every file tool shows "Working on it…" before it starts, with a bar that keeps moving while the page is busy. Split PDF reads a file once instead of three times, says early when a PDF is locked, and shows how many files it has made.

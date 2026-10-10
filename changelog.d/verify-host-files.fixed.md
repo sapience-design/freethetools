@@ -1,1 +1,0 @@
-- Verify this site no longer reports `_headers` as a mismatch. It is an instruction file for the host, not a file the site serves, so it is left out of the fingerprint list.
