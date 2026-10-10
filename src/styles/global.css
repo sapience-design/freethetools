@@ -394,8 +394,15 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
   .file-list > li.has-thumb > .fact { grid-row: 2; grid-column: 2; }
 }
 
-/* The quiet donation note under a result (src/lib/files.ts). */
-.donate-line { margin: 10px 0 0; font-size: 14px; color: var(--soft); }
-.donate-line a { color: var(--ink); }
-.donate-no { margin-left: 6px; padding: 2px 8px; border: 1px solid var(--hair); border-radius: 999px; background: none; color: var(--soft); font: inherit; font-size: 13px; cursor: pointer; }
-.donate-no:hover { color: var(--ink); border-color: var(--edge); }
+/* Donate: yellow, never black, so it reads as an invitation, not a command. Top bar and the card below. */
+.donate-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--ink); border-radius: var(--r); background: var(--hl); color: var(--hl-ink); font-weight: 700; text-decoration: none; white-space: nowrap; }
+.donate-btn:hover { box-shadow: 0 2px 0 var(--ink); }
+.donate-btn .ic { font-size: 20px; }
+
+/* The donation card under a result (src/lib/files.ts): visible, calm, once per visit. */
+.donate-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 16px; margin-top: 14px; padding: 14px 16px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--card); }
+.donate-ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--hl); color: var(--hl-ink); font-size: 24px; }
+.donate-text { display: grid; gap: 2px; }
+.donate-text span { color: var(--soft); font-size: 14px; }
+.donate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 640px) { .donate-card { grid-template-columns: auto minmax(0, 1fr); } .donate-actions { grid-column: 1 / -1; } }

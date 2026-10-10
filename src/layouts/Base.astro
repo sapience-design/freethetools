@@ -66,13 +66,12 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     <div class="bar-in">
     <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
     <nav class="bar-nav" aria-label="Site">
-      <a class="navlink" href="/about/" aria-current={page === "about" ? "page" : undefined}>About</a>
       <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
-      <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
-      <a class="navlink donate" href="https://ko-fi.com/freethetools"><Icon name="hand-heart" /><span class="donate-label">Donate</span></a>
       {page === "home"
-        ? <a class="bar-btn" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
-        : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
+        ? <a class="navlink with-ic" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
+        : <a class="navlink with-ic" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
+      <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
+      <a class="donate-btn" href="https://ko-fi.com/freethetools"><Icon name="hand-heart" /><span class="donate-label">Donate</span></a>
     </nav>
     </div>
   </header>
@@ -281,9 +280,17 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .bar-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
   .navlink { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: var(--r); font-weight: 650; text-decoration: none; white-space: nowrap; }
   .navlink:hover, .navlink[aria-current="page"] { background: var(--hover); }
-  .navlink.donate { gap: 6px; }
-  .navlink.donate :global(.ic) { font-size: 20px; }
-  @media (max-width: 560px) { .navlink.donate { width: 48px; padding: 0; justify-content: center; } .donate-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
+  .navlink.with-ic { gap: 6px; position: relative; }
+  .navlink.with-ic :global(.ic) { font-size: 20px; }
+  .navlink .count-pill { font-size: 12px; padding: 0 8px; }
+  /* Donate (styled in global.css): the one highlighted button, last in the bar, as most sites place their main action. */
+  .bar-nav .donate-btn { margin-left: 4px; }
+  @media (max-width: 560px) {
+    .bar-nav .donate-btn { width: 48px; min-height: 48px; padding: 0; justify-content: center; margin-left: 0; }
+    .donate-label, .navlink.with-ic .bar-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .navlink.with-ic { width: 48px; padding: 0; justify-content: center; gap: 0; }
+    .navlink.with-ic .count-pill { position: absolute; transform: translate(14px, -14px); }
+  }
   .navlink.gh { width: 48px; padding: 0; justify-content: center; font-size: 22px; }
   /* On phones the top bar has no room for it; the footer's "Source code" link stays. */
   @media (max-width: 560px) { .navlink.gh { display: none; } }
@@ -319,7 +326,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     .foot-in { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .colophon { grid-column: 1 / -1; }
   }
-  /* Phones: the two buttons show their icon only (the words stay for screen readers), so About,
+  /* Phones: Favourites, All tools and Donate show their icon only (the words stay for screen readers), so Library,
      Library, the button and the name all fit; on the narrowest screens the name hides the same way. */
   @media (max-width: 560px) {
     .bar-btn { width: 48px; min-height: 48px; padding: 0; justify-content: center; gap: 0; }

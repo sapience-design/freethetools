@@ -978,7 +978,7 @@ test.describe("without JavaScript", () => {
 
   test("the top bar works and every tool is linked from the home page", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "About" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "Library" })).toBeVisible();
     const linked = await page.locator("[data-sortable] > li:not(.want) a").evaluateAll((as) => as.map((a) => new URL(a.href).pathname));
     for (const path of TOOLS) expect(linked, `${path} is linked`).toContain(path);
   });
