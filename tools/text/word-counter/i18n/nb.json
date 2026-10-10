@@ -1,0 +1,32 @@
+{
+  "name": "Ordteller",
+  "task": "Tell ord",
+  "tagline": "Ord, tegn, setninger og lesetid, mens du skriver.",
+  "seoTitle": "Ord- og tegnteller",
+  "description": "Tell ord, tegn, setninger og avsnitt mens du skriver, med lese- og taletid. Gratis og privat: teksten forlater aldri siden.",
+  "keywords": [
+    "ordtelling",
+    "tegntelling",
+    "bokstaver",
+    "lesetid",
+    "stil",
+    "tegngrense",
+    "tell"
+  ],
+  "specs": {
+    "Motor": "Vanlig JavaScript med Intl.Segmenter",
+    "Språk": "Teller også ord korrekt på kinesisk, japansk og thai",
+    "Lesehastighet": "238 ord i minuttet; tale 150",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lagres eller sendes teksten min noe sted?",
+      "a": "Nei. Tellingen skjer i denne fanen mens du skriver, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Hvordan regnes lesetiden ut?",
+      "a": "Med 238 ord i minuttet, som er gjennomsnittlig stille lesefart for voksne på engelsk, rundet av til nærmeste minutt."
+    }
+  ]
+}

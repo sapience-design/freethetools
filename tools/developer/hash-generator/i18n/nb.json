@@ -1,0 +1,31 @@
+{
+  "name": "Hash-generator",
+  "task": "Lag et fingeravtrykk (hash)",
+  "tagline": "SHA-256, SHA-512, SHA-1 og MD5 for hvilken som helst tekst eller fil.",
+  "seoTitle": "SHA-256- og MD5-hash for tekst og filer",
+  "description": "Få SHA-256, SHA-512, SHA-1 eller MD5 av tekst eller filer, og sjekk dem mot en oppgitt sjekksum. Gratis, og filer forlater aldri enheten din.",
+  "keywords": [
+    "hash",
+    "sha256",
+    "md5",
+    "sha1",
+    "sjekksum",
+    "verifiser nedlasting",
+    "fingeravtrykk"
+  ],
+  "specs": {
+    "Motor": "Web Crypto API; MD5 i vanlig JavaScript",
+    "Filer": "Hashes på enheten din, aldri lastet opp",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filen min opp for å bli hashet?",
+      "a": "Nei. Filen leses og hashes i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Bør jeg bruke MD5?",
+      "a": "Bruk MD5 bare når du skal sammenligne med en publisert MD5-sjekksum. MD5 er ikke lenger sikker for kryptografisk bruk. Bruk SHA-256 for nye bruksområder."
+    }
+  ]
+}

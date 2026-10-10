@@ -2,6 +2,8 @@
 // server only adds to a total for the day (1, or the sample weight when traffic is high). Visits, views, uses and outcomes are not sent at
 // all if your browser asks sites not to track (Global Privacy Control or Do Not Track).
 
+import { txtN } from "./ui";
+
 export type ToolStats = { views: number; uses: number; likes: number; uses30: number; successes: number; errors: number };
 export type SiteStats = { visits30: number; countries: [string, number][]; referrers: [string, number][]; devices: [string, number][] };
 export type Summary = { tools: Record<string, ToolStats>; wants?: Record<string, number>; site: SiteStats; sample?: { visits: number; events: number } };
@@ -153,7 +155,7 @@ export async function wantThis(tool: string): Promise<number | null> {
   return null;
 }
 
-export const wantText = (n: number) => `${fmtCount(n)} ${n === 1 ? "wants" : "want"} this`;
+export const wantText = (n: number) => txtN("want", n, { one: "{n} wants this", other: "{n} want this" }, { n: fmtCount(n) });
 
 /** Fill "12 want this" on every planned-tool row on the page, once the totals arrive. */
 export function showWants(root: ParentNode = document) {

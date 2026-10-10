@@ -1,0 +1,1 @@
+- Norwegian bokmål (Norsk bokmål): the home page, groups, tool pages and the "not built yet" pages are now in Norwegian at /nb/, with a language switcher in the footer. The tools themselves are still in English, and the Norwegian text is a machine draft that has not been checked yet.
