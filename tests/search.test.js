@@ -63,4 +63,9 @@ test("finds Unlock PDF by the words people use for a locked file", () => {
   assert.equal(top("open protected pdf"), "Unlock PDF");
   assert.equal(top("decrypt pdf"), "Unlock PDF");
 });
-
+
+test("finds Unit Converter by quantity and long unit names", () => {
+  assert.equal(top("weight"), "Unit Converter");
+  assert.equal(top("miles"), "Unit Converter");
+  assert.equal(top("kilometres"), "Unit Converter");
+});

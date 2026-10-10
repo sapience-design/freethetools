@@ -23,7 +23,7 @@ export const SYNONYMS = [
   ["password", "passphrase", "secret", "random", "generate"],
   ["jwt", "token", "bearer", "claims"],
   ["regex", "regexp", "regular expression", "pattern", "match"],
-  ["unit", "units", "measure", "metric", "imperial", "cm", "inches", "kg", "lbs", "celsius", "fahrenheit"],
+  ["unit", "units", "measure", "metric", "imperial", "cm", "inches", "kg", "lbs", "celsius", "fahrenheit", "weight", "distance", "miles", "kilometres", "kilometers", "metres", "meters", "feet", "pounds"],
   ["time zone", "timezone", "time", "clock", "meeting", "utc", "gmt"],
   ["pdf", "pdfs", "document", "documents", "acrobat"],
 ];
