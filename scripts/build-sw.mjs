@@ -51,6 +51,7 @@ export function buildServiceWorker(dist = join(root, "dist")) {
   // The version changes whenever any published file changes, so a new deploy starts a new cache.
   const hash = createHash("sha256");
   for (const p of all) hash.update(urlOf(p)).update(readFileSync(p));
+  hash.update(readFileSync(join(root, "src/sw/sw.template.js")));
   const version = hash.digest("hex").slice(0, 12);
 
   const template = readFileSync(join(root, "src/sw/sw.template.js"), "utf8");

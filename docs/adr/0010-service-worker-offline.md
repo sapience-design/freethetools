@@ -22,7 +22,8 @@ A hand-written service worker, `/sw.js`, with scope `/`. It has no dependencies 
 ## Consequences
 
 - **Size.** The shell is about 130 KB. A tool adds its page, scripts and vendor files: a few hundred KB for most, about 13 MB for Compress PDF. Browsers cap storage per site and may clear it when the disk is low. Then the site works online as before.
-- **Updates.** The cache is named after a hash of every published file. A new deploy gives a new worker, which installs, takes over at once, and deletes the older caches. Tools then need one visit online to be kept again. Online visitors see new pages straight away, as pages are network first. An old tab may mix old and new files until it is reloaded; hashed file names keep them from clashing.
+- **Updates.** The cache is named after a hash of every published file. A new deploy gives a new worker, which installs, replaces the old one at once, and deletes the older caches. Tools then need one visit online to be kept again. Online visitors see new pages straight away, as pages are network first. An old tab may mix old and new files until it is reloaded; hashed file names keep them from clashing.
 - **Busting the cache.** Deploy any change, and the version changes. To clear one browser by hand: DevTools, Application, Storage, Clear site data. To remove the worker for everyone, publish a `/sw.js` that unregisters itself.
 - **Privacy.** Nothing new leaves the device. The worker keeps only files from this site.
 - **Tests.** `tests/site.test.js` checks the built worker. `e2e/offline.spec.js` opens a tool, switches the network off and merges two PDFs.
+- **First visit.** The worker does not claim pages that are already open, because that aborts the page's view transition on the next click. The page that registered it is served by the network, and the worker controls the next one.

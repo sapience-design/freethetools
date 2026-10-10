@@ -29,7 +29,10 @@ self.addEventListener("activate", (event) => {
         const names = await caches.keys();
         await Promise.all(names.filter((n) => n.startsWith("ftt-") && n !== CACHE).map((n) => caches.delete(n)));
       } catch {}
-      await self.clients.claim();
+      // No clients.claim(): taking over a page mid-load aborts its cross-document view transition
+      // (see Base.astro). A first visit is served by the network; the worker
+      // controls the page from the next navigation, and a worker that replaces an older one
+      // already controls the open pages.
     })(),
   );
 });
