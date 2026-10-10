@@ -1,0 +1,15 @@
+{
+  "name": "freethetools",
+  "description": "Free the Tools for Claude Code: file jobs on your own computer, with nothing uploaded.",
+  "owner": {
+    "name": "Sapience Design",
+    "url": "https://sapience.design"
+  },
+  "plugins": [
+    {
+      "name": "freethetools",
+      "source": "./plugins/freethetools",
+      "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer. Nothing is uploaded."
+    }
+  ]
+}
