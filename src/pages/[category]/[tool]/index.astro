@@ -49,7 +49,10 @@ const safe = files
         isAccessibleForFree: true,
         offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
         license: "https://www.gnu.org/licenses/agpl-3.0.html",
-        author: d.authors.map((a) => ({ "@type": "Person", name: a.name, ...(a.github ? { url: `https://github.com/${a.github}` } : {}) })),
+        // The studio is an organisation; contributors are people.
+        author: d.authors.map((a) => a.name === "Sapience Design"
+          ? { "@type": "Organization", name: a.name, url: "https://sapience.design" }
+          : { "@type": "Person", name: a.name, ...(a.github ? { url: `https://github.com/${a.github}` } : {}) }),
       },
       ...(d.faq.length ? [{ "@type": "FAQPage", mainEntity: d.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) }] : []),
     ],

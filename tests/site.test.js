@@ -3,7 +3,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const DIST = "dist";
 const html = (p) => readFileSync(join(DIST, p), "utf8");
@@ -161,3 +162,48 @@ test("the service worker is built, same-origin only, and registered from the pag
   assert.ok(registers, "no script on the tool page registers /sw.js");
   assert.match(html("offline/index.html"), /You're offline|You&#39;re offline/);
 });
+
+test("the AI assistants page is in the sitemap, and /ai.md has the prompt and every agent tool name", async () => {
+  assert.match(html("sitemap.xml"), /<loc>https:\/\/freethetools\.com\/ai\/<\/loc>/);
+  assert.ok(existsSync(join(DIST, "ai.md")), "dist/ai.md is missing");
+  const md = html("ai.md");
+  assert.ok(md.includes("I'd like you to use Free the Tools for file jobs on my computer"), "ai.md must contain the prompt");
+  assert.ok(md.includes("`npx -y freethetools list` shows the tools"), "ai.md must contain the whole prompt");
+  const names = [];
+  for (const g of readdirSync("tools")) {
+    if (g.startsWith("_") || !statSync(join("tools", g)).isDirectory()) continue;
+    for (const s of readdirSync(join("tools", g))) {
+      const f = join("tools", g, s, "agent.js");
+      if (existsSync(f)) for (const d of [(await import(pathToFileURL(resolve(f)).href)).default].flat()) names.push(d.name);
+    }
+  }
+  assert.ok(names.length > 0);
+  for (const n of names) assert.ok(md.includes("`" + n + "`"), `ai.md lacks ${n}`);
+  assert.match(html("ai/index.html"), /<h1[^>]*>Use these tools from your AI assistant/);
+  assert.match(html("llms.txt"), /\/ai\.md/);
+});
+
+// Structured data search engines read: breadcrumbs on every page but home, and the studio as an
+// organisation (docs/explanation/seo-policy.md).
+const ldBlocks = (h) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+for (const page of pages.filter((p) => p !== "index.html" && p !== "404.html")) {
+  test(`${page}: breadcrumbs end at this page`, () => {
+    const h = html(page);
+    const crumbs = ldBlocks(h).find((b) => b["@type"] === "BreadcrumbList");
+    assert.ok(crumbs, "no BreadcrumbList");
+    const items = crumbs.itemListElement;
+    assert.ok(items.length >= 2, "needs at least two steps");
+    assert.equal(items[0].item, "https://freethetools.com/");
+    assert.deepEqual(items.map((i) => i.position), items.map((_, n) => n + 1));
+    const canonical = h.match(/<link rel="canonical" href="([^"]+)"/)[1];
+    assert.equal(items.at(-1).item, canonical, "the last step is this page");
+  });
+}
+for (const t of tools) {
+  test(`${t.id}: breadcrumbs go home, group, tool, and the studio is an organisation`, () => {
+    const blocks = ldBlocks(html(`${t.id}/index.html`));
+    assert.equal(blocks.find((b) => b["@type"] === "BreadcrumbList").itemListElement.length, 3);
+    const app = blocks.flatMap((b) => b["@graph"] ?? [b]).find((b) => b["@type"] === "WebApplication");
+    for (const a of app.author) if (a.name === "Sapience Design") assert.equal(a["@type"], "Organization");
+  });
+}

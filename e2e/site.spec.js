@@ -191,3 +191,22 @@ test("the donation card shows once per visit, under the Download button, and Nex
   await merge();
   await expect(page.locator(".donate-card")).toHaveCount(1);
 });
+
+test("the Copy button on the AI assistants page copies the prompt", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, permissions: ["clipboard-read", "clipboard-write"] });
+  const page = await context.newPage();
+  const offsite = [];
+  page.on("request", (r) => { const u = new URL(r.url()); if (u.protocol.startsWith("http") && u.hostname !== new URL(baseURL).hostname) offsite.push(r.url()); });
+  await page.goto("/ai/");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Use these tools from your AI assistant");
+  const shown = (await page.locator("#ai-prompt").textContent()).trim();
+  expect(shown).toContain("npx -y freethetools mcp");
+  await page.getByRole("button", { name: "Copy the prompt" }).click();
+  await expect(page.getByRole("button", { name: "Copied" })).toBeVisible();
+  const copied = await page.evaluate(() => navigator.clipboard.readText());
+  // The system clipboard may turn line ends into CR LF, so compare with white space collapsed.
+  expect(copied.replace(/\s+/g, " ")).toBe(shown.replace(/\s+/g, " "));
+  await expect(page.locator("nav.toc-rail a[href='#safety-h']")).toHaveCount(1);
+  expect(offsite, "requests to other origins").toEqual([]);
+  await context.close();
+});

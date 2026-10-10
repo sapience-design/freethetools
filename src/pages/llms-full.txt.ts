@@ -11,7 +11,7 @@ export const GET: APIRoute = async ({ site }) => {
     "",
     "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no tracking of people. A Sapience Design initiative (https://sapience.design), licensed AGPL-3.0.",
     "",
-    `Short index: ${abs("/llms.txt")}. Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Source code: ${REPO}.`,
+    `Short index: ${abs("/llms.txt")}. AI assistant setup as Markdown: ${abs("/ai.md")}. Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Source code: ${REPO}.`,
     "",
     "## How to use the tools from an AI assistant",
     "",

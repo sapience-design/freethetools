@@ -12,12 +12,22 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "how" | "licenses" | "saved" | "library" | "stats";
+  page?: "home" | "about" | "how" | "ai" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const publisher = { "@type": "Organization", name: "Sapience Design", url: "https://sapience.design" };
-const { aisles } = await loadCatalogue();
+const { aisles, tools } = await loadCatalogue();
+// Breadcrumbs for search engines: Free the Tools › group › tool, or Free the Tools › this page.
+const home = new URL("/", Astro.site).href;
+const group = category ? aisles.find((a) => a.slug === category) : undefined;
+const toolEntry = category && tool ? tools.find((x) => x.id === `${category}/${tool}`) : undefined;
+const crumbs = page === "home" || Astro.url.pathname === "/" ? [] : [
+  { name: "Free the Tools", url: home },
+  ...(group ? [{ name: group.label, url: new URL(`/${group.slug}/`, Astro.site).href }] : []),
+  ...(toolEntry ? [{ name: toolEntry.data.name, url: canonical }] : group ? [] : [{ name: title.split(" | ")[0], url: canonical }]),
+];
+const breadcrumbs = crumbs.length > 1 ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.url })) } : null;
 // Share image, drawn at build time by src/pages/og/[...slug].png.ts. Groups with no tools yet use the site's.
 const ogPath = category && tool ? `/og/${category}/${tool}.png`
   : category && aisles.some((a) => a.slug === category && a.live.length) ? `/og/${category}.png`
@@ -59,6 +69,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <link rel="alternate" type="application/rss+xml" title="Free the Tools: what's new" href="/changelog.xml">
   <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
+  {breadcrumbs && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />}
 </head>
 <body>
   <a class="skip" href="#main">Skip to content</a>
@@ -120,6 +131,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       <div class="col">
         <p class="col-h">Developers</p>
         <ul>
+          <li><a href="/ai/">AI assistants</a></li>
           <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
           <li><a href={REPO}>Source code</a></li>
           <li><a href="/api/tools.json">API</a></li>
