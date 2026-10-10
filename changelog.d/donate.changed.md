@@ -1,4 +1,4 @@
-- The top bar reads Library, Favourites (All tools on other pages), GitHub, then a yellow "Donate" button, which goes straight to Ko-fi. About moves to the footer. On phones the bar fits on one line.
+- The top bar reads Library (with a books icon), Favourites (All tools on other pages), GitHub, then a yellow "Donate" button, which goes straight to Ko-fi. About moves to the footer. On phones the bar fits on one line.
 - After a tool finishes, a small card under the Download button asks for a donation, at most once per visit and never after an error. "Next time" hides it for that visit.
 - The footer has "Donate" and "Sponsor a tool". Group pages and the "Nothing found" search message offer to sponsor a missing tool so it is built sooner.
 - About explains why the tools are free and what donations pay for. The support page is now "Donate or sponsor a tool".

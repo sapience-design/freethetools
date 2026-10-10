@@ -66,7 +66,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     <div class="bar-in">
     <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
     <nav class="bar-nav" aria-label="Site">
-      <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
+      <a class="navlink with-ic" href="/library/" aria-current={page === "library" ? "page" : undefined}><Icon name="books" /><span class="bar-label">Library</span></a>
       {page === "home"
         ? <a class="navlink with-ic" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
         : <a class="navlink with-ic" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
