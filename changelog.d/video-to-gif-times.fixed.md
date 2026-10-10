@@ -1,0 +1,1 @@
+- Video to GIF: a clip is never shorter than 1 second. When the end is before the start, the end moves to 2 seconds after it, and a line under the times says what changed. Before, it silently made a 0.1-second GIF.
