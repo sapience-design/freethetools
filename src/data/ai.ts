@@ -33,9 +33,12 @@ export const SAFETY = [
   "It returns at most 1 MB of text or data in the conversation. Larger results are saved in the library folder.",
 ];
 
-export interface AgentRow { url: string; page: string; name: string; title: string }
+export interface AgentRow { url: string; page: string; name: string; title: string; does: string }
 
-const modules = import.meta.glob("../../tools/*/*/agent.js", { eager: true }) as Record<string, { default: { name: string; title: string } | { name: string; title: string }[] }>;
+/** The first sentence of a definition's description: what the tool does, in its own words. */
+const firstSentence = (s: string) => (s.match(/^.*?[.!?](?=\s|$)/)?.[0] ?? s).trim();
+
+const modules = import.meta.glob("../../tools/*/*/agent.js", { eager: true }) as Record<string, { default: { name: string; title: string; description?: string } | { name: string; title: string; description?: string }[] }>;
 
 /** One row for every agent tool of every tool, in catalogue order. */
 export async function agentRows(): Promise<AgentRow[]> {
@@ -46,7 +49,7 @@ export async function agentRows(): Promise<AgentRow[]> {
     const id = path.split("/").slice(-3, -1).join("/");
     const tool = byId.get(id);
     if (!tool) continue;
-    for (const def of [mod.default].flat()) rows.push({ url: tool.url, page: tool.data.name, name: def.name, title: def.title });
+    for (const def of [mod.default].flat()) rows.push({ url: tool.url, page: tool.data.name, name: def.name, title: def.title, does: firstSentence(def.description ?? def.title) });
   }
   return rows.sort((a, b) => a.url.localeCompare(b.url) || a.name.localeCompare(b.name));
 }
