@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import ToolRow from "../components/ToolRow.astro";
-import { loadCatalogue, REQUEST_URL } from "../data/catalogue";
+import { loadCatalogue, SUGGEST_URL } from "../data/catalogue";
 import { POPULAR } from "../data/popular";
 import { artFor } from "../data/art";
 
@@ -60,7 +60,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
         <a class="results-group" id="results-group" href="/" hidden><span></span><Icon name="arrow-right" /></a>
       </div>
       <ul class="rows card" id="search-results"></ul>
-      <p class="results-empty" id="results-empty" hidden>Try simpler words, like “smaller”, “combine” or “photo”. Or <a href={REQUEST_URL}>ask us to build it</a>, or <a href="/support/#company-h">sponsor it</a> so it is built sooner.</p>
+      <p class="results-empty" id="results-empty" hidden>Try simpler words, like “smaller”, “combine” or “photo”. Or <a href={SUGGEST_URL}>ask us to build it</a>, or <a href="/support/#company-h">sponsor it</a> so it is built sooner.</p>
       <button type="button" class="btn quiet small" id="results-clear"><Icon name="x" />Show everything</button>
     </section>
 
@@ -121,7 +121,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
               </a>
               <ul class="rows" data-sortable>
                 {a.live.map((t) => <ToolRow href={t.url} task={t.data.task} sub={t.data.name} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
-                {a.wanted.map((w) => <ToolRow href={w.url} task={w.name} sub={w.blurb} group={a.slug} icon={a.mark} want />)}
+                {a.wanted.map((w) => <ToolRow href={w.url} task={w.name} wantId={w.id} sub={w.blurb} group={a.slug} icon={a.mark} want />)}
               </ul>
             </section>
           ))}
@@ -286,7 +286,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
 <script>
   import { makeSearch } from "../lib/search.js";
-  import { summary, fmtCount, type ToolStats } from "../lib/stats";
+  import { summary, showWants, fmtCount, type ToolStats } from "../lib/stats";
 
   type Item = { n: string; t?: string; c: string; g?: string; u: string; k: string; w?: 1 };
   const index: Item[] = JSON.parse(document.getElementById("search-index")!.textContent!);
@@ -450,6 +450,7 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     stats = s;
     sort();
   });
+  showWants();
 
   // ---- Most people come for: four at a time; swipe or the arrows show the rest ----
   const pops = $("pops"), popNav = $("pop-nav");

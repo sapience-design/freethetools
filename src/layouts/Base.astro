@@ -1,7 +1,7 @@
 ---
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
-import { loadCatalogue, REPO, REQUEST_URL } from "../data/catalogue";
+import { loadCatalogue, REPO, SUGGEST_URL } from "../data/catalogue";
 import originTrials from "../data/origin-trials.json";
 import { version } from "../../package.json";
 
@@ -12,9 +12,11 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
+  /** Last breadcrumb for a page under a group that is not a built tool, such as a wanted tool. */
+  crumb?: string;
   page?: "home" | "about" | "how" | "ai" | "licenses" | "saved" | "library" | "stats";
 }
-const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
+const { title, description, jsonLd, noindex = false, category, tool, crumb, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const publisher = { "@type": "Organization", name: "Sapience Design", url: "https://sapience.design" };
 const { aisles, tools } = await loadCatalogue();
@@ -25,7 +27,7 @@ const toolEntry = category && tool ? tools.find((x) => x.id === `${category}/${t
 const crumbs = page === "home" || Astro.url.pathname === "/" ? [] : [
   { name: "Free the Tools", url: home },
   ...(group ? [{ name: group.label, url: new URL(`/${group.slug}/`, Astro.site).href }] : []),
-  ...(toolEntry ? [{ name: toolEntry.data.name, url: canonical }] : group ? [] : [{ name: title.split(" | ")[0], url: canonical }]),
+  ...(toolEntry ? [{ name: toolEntry.data.name, url: canonical }] : crumb ? [{ name: crumb, url: canonical }] : group ? [] : [{ name: title.split(" | ")[0], url: canonical }]),
 ];
 const breadcrumbs = crumbs.length > 1 ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.url })) } : null;
 // Share image, drawn at build time by src/pages/og/[...slug].png.ts. Groups with no tools yet use the site's.
@@ -114,7 +116,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
           <li><a href="/changelog/">What's new</a></li>
           <li><a href="/saved/">Favourites</a></li>
           <li><a href="/library/">Library</a></li>
-          <li><a href={REQUEST_URL}>Suggest a tool</a></li>
+          <li><a href={SUGGEST_URL}>Suggest a tool</a></li>
           <li><a href="https://ko-fi.com/freethetools">Donate</a></li>
           <li><a href="/support/#company-h">Sponsor a tool</a></li>
         </ul>

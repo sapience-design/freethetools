@@ -1,0 +1,188 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { loadCatalogue } from "../data/catalogue";
+
+// Tool names for the "Which tool?" list: people pick a name, the email carries the id.
+const { aisles } = await loadCatalogue();
+---
+<Base
+  title="Suggest a tool or report a problem | Free the Tools"
+  description="Ask for a tool we do not have yet, or tell us something went wrong. No account needed."
+  noindex
+>
+  <div class="page narrow suggest">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Suggest a tool or report a problem</h1>
+      <p class="lede">Tell us in your own words. No account needed.</p>
+    </div>
+
+    <form class="tool card form" id="fb-form" novalidate>
+      <fieldset class="field">
+        <legend>What would you like to do?</legend>
+        <div class="seg">
+          <input type="radio" name="kind" id="kind-suggestion" value="suggestion" checked><label for="kind-suggestion">Suggest a tool</label>
+          <input type="radio" name="kind" id="kind-problem" value="problem"><label for="kind-problem">Report a problem</label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="fb-message"><span id="fb-message-label">What should it do?</span></label>
+        <textarea class="prose" id="fb-message" name="message" rows="6" maxlength="2000" required aria-describedby="fb-message-hint fb-error"></textarea>
+        <span class="hint" id="fb-message-hint">10 to 2000 characters.</span>
+      </div>
+
+      <div class="field" id="fb-use-field">
+        <label for="fb-use"><span>What do you use today?</span></label>
+        <input type="text" id="fb-use" name="use" maxlength="300" autocomplete="off" aria-describedby="fb-use-hint">
+        <span class="hint" id="fb-use-hint">Optional. A program, a website or a workaround.</span>
+      </div>
+
+      <div class="field">
+        <label for="fb-tool"><span>Which tool?</span></label>
+        <select id="fb-tool" name="tool" aria-describedby="fb-tool-hint">
+          <option value="">Not about one tool</option>
+          {aisles.map((a) => (
+            <optgroup label={a.label}>
+              {a.live.map((x) => <option value={x.id}>{x.data.name}</option>)}
+              {a.wanted.map((w) => <option value={`${a.slug}/${w.slug}`}>{w.name} (not built yet)</option>)}
+            </optgroup>
+          ))}
+        </select>
+        <span class="hint" id="fb-tool-hint">Optional. Pick the tool this is about.</span>
+      </div>
+
+      <div class="field">
+        <label for="fb-email"><span>Your email, if you want a reply</span></label>
+        <input type="email" id="fb-email" name="email" maxlength="254" autocomplete="email" aria-describedby="fb-email-hint">
+        <span class="hint" id="fb-email-hint">Optional. We use it only to answer you.</span>
+      </div>
+
+      <!-- A trap for bots: people never see this field and cannot reach it. -->
+      <div class="trap" aria-hidden="true" inert>
+        <label for="fb-website">Leave this empty</label>
+        <input type="text" id="fb-website" name="website" tabindex="-1" autocomplete="off">
+      </div>
+
+      <p class="tool-error" id="fb-error" role="alert" hidden></p>
+      <div class="send">
+        <button class="btn" type="submit" id="fb-send"><Icon name="paper-plane-tilt" />Send</button>
+      </div>
+    </form>
+
+    <div class="status" id="fb-status" role="status" aria-live="polite"></div>
+
+    <section class="notes" aria-labelledby="what-h">
+      <h2 class="h3" id="what-h">What happens to your message</h2>
+      <ul>
+        <li>It is emailed to the maintainers at <a href="mailto:hello@freethetools.com">hello@freethetools.com</a>.</li>
+        <li>This site does not store it.</li>
+        <li>Cloudflare carries the email. The <a href="/privacy/#form-h">privacy page</a> has the details.</li>
+        <li>No account needed.</li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<script>
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const form = $<HTMLFormElement>("fb-form");
+  const message = $<HTMLTextAreaElement>("fb-message");
+  const use = $<HTMLInputElement>("fb-use");
+  const tool = $<HTMLSelectElement>("fb-tool");
+  const email = $<HTMLInputElement>("fb-email");
+  const website = $<HTMLInputElement>("fb-website");
+  const send = $<HTMLButtonElement>("fb-send");
+  const error = $("fb-error");
+  const status = $("fb-status");
+  const kindOf = () => (form.querySelector<HTMLInputElement>('input[name="kind"]:checked')!.value === "problem" ? "problem" : "suggestion");
+
+  // The words on the form follow the choice.
+  function applyKind() {
+    const problem = kindOf() === "problem";
+    $("fb-message-label").textContent = problem ? "What went wrong?" : "What should it do?";
+    $("fb-use-field").hidden = problem;
+  }
+  form.addEventListener("change", (e) => { if ((e.target as HTMLInputElement).name === "kind") applyKind(); });
+
+  // A link from a tool page or a wanted page fills in the tool, and can open the problem report.
+  const params = new URLSearchParams(location.search);
+  // Arriving from a tool page fills in that tool; an unknown id is ignored.
+  const asked = (params.get("tool") ?? "").replace(/[^\w\-/.]/g, "").slice(0, 100);
+  if ([...tool.options].some((o) => o.value === asked)) tool.value = asked;
+  if (params.get("kind") === "problem") $<HTMLInputElement>("kind-problem").checked = true;
+  applyKind();
+
+  const EMAIL = /^[^\s@<>()[\],;:"\\]+@[^\s@<>()[\],;:"\\]+\.[^\s@<>()[\],;:"\\]{2,}$/;
+  function problemWith(): string {
+    const text = message.value.trim();
+    if (text.length < 10) return "Please write at least 10 characters.";
+    if (text.length > 2000) return "Please keep it to 2000 characters or fewer.";
+    if (email.value.trim() && !EMAIL.test(email.value.trim())) return "That email address does not look right. You can also leave it empty.";
+    return "";
+  }
+
+  function body() {
+    const kind = kindOf();
+    return { kind, message: message.value.trim(), use: kind === "suggestion" ? use.value.trim() : "", tool: tool.value.trim(), email: email.value.trim(), website: website.value };
+  }
+
+  // When the message cannot be sent from here, offer an email with everything filled in.
+  function fallback(b: ReturnType<typeof body>) {
+    const lines = [b.message];
+    if (b.use) lines.push("", `What I use today: ${b.use}`);
+    if (b.tool) lines.push("", `Tool: ${b.tool}`);
+    const subject = b.kind === "problem" ? `Problem: ${b.tool || "the site"}` : `Suggestion: ${b.tool || "new tool"}`;
+    const a = document.createElement("a");
+    a.href = `mailto:hello@freethetools.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
+    a.textContent = "Email it to hello@freethetools.com";
+    const p = document.createElement("p");
+    p.append("We could not send this from the page. Nothing is lost: ", a, ".");
+    status.replaceChildren(p);
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const bad = problemWith();
+    error.hidden = !bad;
+    error.textContent = bad;
+    if (bad) { (bad.includes("email") ? email : message).focus(); return; }
+    const b = body();
+    send.disabled = true;
+    status.replaceChildren();
+    try {
+      const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+      if (!res.ok) throw new Error(String(res.status));
+      const p = document.createElement("p");
+      p.textContent = "Thanks. We read every message.";
+      status.replaceChildren(p);
+      form.reset();
+      tool.value = "";
+      applyKind();
+    } catch {
+      fallback(b);
+    } finally {
+      send.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .suggest { display: grid; gap: 24px; }
+  .intro { display: grid; gap: 10px; }
+  .form { display: grid; gap: 18px; padding: clamp(16px, 2.5vw, 24px); }
+  .form legend { font-weight: 650; }
+  .field[hidden] { display: none; }
+  .form .field > label { font-weight: 650; }
+  .form .send { display: flex; }
+  /* Off the page for people and screen readers; bots that read the markup still fill it. */
+  .trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  .status:empty { display: none; }
+  .status { padding: 14px 16px; border-radius: var(--r-lg); background: var(--ok-t); font-weight: 600; }
+  .status :global(p) { margin: 0; }
+  .status :global(a) { color: var(--ink); }
+  .notes { display: grid; gap: 8px; }
+  .notes ul { margin: 0; padding-left: 20px; color: var(--soft); }
+  .notes a { color: var(--ink); }
+</style>

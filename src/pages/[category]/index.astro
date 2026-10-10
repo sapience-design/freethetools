@@ -3,7 +3,7 @@ import Base from "../../layouts/Base.astro";
 import Icon from "../../components/Icon.astro";
 import ToolRow from "../../components/ToolRow.astro";
 import { CATEGORIES } from "../../data/categories";
-import { loadCatalogue, REQUEST_URL } from "../../data/catalogue";
+import { loadCatalogue, SUGGEST_URL } from "../../data/catalogue";
 import { artFor } from "../../data/art";
 
 export function getStaticPaths() {
@@ -43,14 +43,19 @@ const secId = (name: string) => `sec-${name.replace(/\W+/g, "-")}`;
         <h2 class="label-caps" id={secId(s.name)}>{s.name}</h2>
         <ul class="rows card">
           {s.live.map((t) => <ToolRow href={t.url} task={t.data.task} sub={t.data.tagline} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
-          {s.wanted.map((w) => <ToolRow href={w.url} task={w.name} sub={`${w.blurb} Ask for it on GitHub.`} group={a.slug} icon={a.mark} want />)}
+          {s.wanted.map((w) => <ToolRow href={w.url} task={w.name} wantId={w.id} sub={w.blurb} group={a.slug} icon={a.mark} want />)}
         </ul>
       </section>
     ))}
 
-    <p class="more">Missing something? <a href={REQUEST_URL}>Suggest a tool</a>, or <a href="/support/#company-h">sponsor one</a> so it is built sooner.</p>
+    <p class="more">Missing something? <a href={SUGGEST_URL}>Suggest a tool</a>, or <a href="/support/#company-h">sponsor one</a> so it is built sooner.</p>
   </div>
 </Base>
+
+<script>
+  import { showWants } from "../../lib/stats";
+  showWants();
+</script>
 
 <style>
   .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 3vw, 32px); }

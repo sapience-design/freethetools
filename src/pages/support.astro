@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
-import { REPO, REQUEST_URL } from "../data/catalogue";
+import { REPO, SUGGEST_URL } from "../data/catalogue";
 
 // Each donation link shows only once its account exists. Turn one on with live: true, and list it
 // in .github/FUNDING.yml ("github: sapience-design", "ko_fi: freethetools") so the repository's
@@ -39,7 +39,7 @@ const description = DONATIONS
 
     <section aria-labelledby="build-h">
       <h2 class="h2" id="build-h">Build or request a tool</h2>
-      <p>Most tools take an afternoon, and the <a href={`${REPO}/blob/main/CONTRIBUTING.md`}>contributor guide</a> walks you through it. Your name goes on the tool page. If you cannot build it, <a href={REQUEST_URL}>ask for it</a> and others can vote.</p>
+      <p>Most tools take an afternoon, and the <a href={`${REPO}/blob/main/CONTRIBUTING.md`}>contributor guide</a> walks you through it. Your name goes on the tool page. If you cannot build it, <a href={SUGGEST_URL}>ask for it</a> and others can press "I want this".</p>
     </section>
 
     <section aria-labelledby="spread-h">

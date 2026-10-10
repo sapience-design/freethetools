@@ -1,32 +1,181 @@
 [
-  { "name": "Merge PDFs", "category": "pdf", "section": "Organize", "blurb": "Combine several PDFs into one, in the order you choose." },
-  { "name": "Split PDF", "category": "pdf", "section": "Organize", "blurb": "Pull pages out into separate files." },
-  { "name": "Rotate Pages", "category": "pdf", "section": "Organize", "blurb": "Turn sideways pages the right way up." },
-  { "name": "Images to PDF", "category": "pdf", "section": "Convert", "blurb": "Turn photos and scans into a single PDF." },
-  { "name": "PDF to Images", "category": "pdf", "section": "Convert", "blurb": "Save every page as a PNG or JPG." },
-  { "name": "Compress Images", "category": "images", "section": "Optimize", "blurb": "Smaller photos with no visible loss." },
-  { "name": "Resize Images", "category": "images", "section": "Optimize", "blurb": "Exact sizes, one image or a whole batch." },
-  { "name": "Convert Image Format", "category": "images", "section": "Convert", "blurb": "PNG, JPG and WebP, back and forth." },
-  { "name": "Remove Photo Location", "category": "images", "section": "Privacy", "blurb": "Strip GPS and camera details before you share." },
-  { "name": "Word Counter", "category": "text", "section": "Count & Compare", "blurb": "Words, characters and reading time as you type." },
-  { "name": "Text Diff", "category": "text", "section": "Count & Compare", "blurb": "See exactly what changed between two texts." },
-  { "name": "Case Converter", "category": "text", "section": "Transform", "blurb": "UPPER, lower, Title and Sentence case." },
-  { "name": "CSV to JSON", "category": "data", "section": "Convert", "blurb": "Turn spreadsheets into clean JSON, and back." },
-  { "name": "JSON Formatter", "category": "data", "section": "Format", "blurb": "Tidy, validate and minify JSON." },
-  { "name": "Base64", "category": "developer", "section": "Encode", "blurb": "Encode and decode text and files." },
-  { "name": "Hash Generator", "category": "developer", "section": "Encode", "blurb": "SHA-256, SHA-1 and friends for text and files." },
-  { "name": "QR Code Maker", "category": "developer", "section": "Generate", "blurb": "Links, Wi-Fi and text as a crisp QR code." },
-  { "name": "UUID Generator", "category": "developer", "section": "Generate", "blurb": "Random v4 and time-ordered v7 IDs." },
-  { "name": "Unit Converter", "category": "everyday", "section": "Convert", "blurb": "Length, weight, temperature and more." },
-  { "name": "Time Zone Converter", "category": "everyday", "section": "Time", "blurb": "Find a time that works across cities." },
-  { "name": "PDF Page Delete and Reorder", "category": "pdf", "section": "Organize", "blurb": "Drop pages, or put them in a new order, with a thumbnail of each." },
-  { "name": "PDF Watermark and Page Numbers", "category": "pdf", "section": "Organize", "blurb": "Stamp text on every page, or number the pages." },
-  { "name": "Zip and Unzip", "category": "everyday", "section": "Convert", "blurb": "Pack files into a ZIP, or open one, without installing anything." },
-  { "name": "Image Crop", "category": "images", "section": "Optimize", "blurb": "Cut a photo to the part you want, or to a fixed ratio." },
-  { "name": "JSON to YAML", "category": "data", "section": "Convert", "blurb": "Turn JSON into YAML and back." },
-  { "name": "URL Encode and Decode", "category": "developer", "section": "Encode", "blurb": "Make text safe for a link, or read an encoded one." },
-  { "name": "Unix Timestamp Converter", "category": "everyday", "section": "Time", "blurb": "Turn a timestamp into a date and time, and back." },
-  { "name": "Cron Expression Explainer", "category": "developer", "section": "Generate", "blurb": "Read a cron schedule in plain words, or build one." },
-  { "name": "Colour Converter", "category": "everyday", "section": "Convert", "blurb": "HEX, RGB, HSL and names, back and forth." },
-  { "name": "IBAN and Phone Number Checker", "category": "developer", "section": "Encode", "blurb": "Check a bank account number or a phone number, and format it." }
+  {
+    "name": "PDF Page Delete and Reorder",
+    "category": "pdf",
+    "section": "Organize",
+    "blurb": "Drop pages, or put them in a new order, with a thumbnail of each.",
+    "slug": "page-delete",
+    "issue": 63,
+    "task": "Delete or reorder PDF pages",
+    "concept": {
+      "in": "One PDF.",
+      "out": "A new PDF with pages removed or in a new order.",
+      "options": [
+        "Pick the pages to drop",
+        "Drag pages into a new order",
+        "See a thumbnail of every page"
+      ]
+    }
+  },
+  {
+    "name": "PDF Watermark and Page Numbers",
+    "category": "pdf",
+    "section": "Organize",
+    "blurb": "Stamp text on every page, or number the pages.",
+    "slug": "watermark",
+    "issue": 64,
+    "task": "Add a watermark or page numbers",
+    "concept": {
+      "in": "One PDF, plus watermark text or a choice of page numbers.",
+      "out": "A new PDF with the text on every page.",
+      "options": [
+        "Watermark text such as DRAFT",
+        "Page numbers",
+        "Pages to mark"
+      ]
+    }
+  },
+  {
+    "name": "Zip and Unzip",
+    "category": "everyday",
+    "section": "Convert",
+    "blurb": "Pack files into a ZIP, or open one, without installing anything.",
+    "slug": "zip",
+    "issue": 65,
+    "task": "Make or open a zip file",
+    "concept": {
+      "in": "Several files, or one .zip file.",
+      "out": "One .zip file, or the files inside it.",
+      "options": [
+        "Pack files into a zip",
+        "Open a zip and save the files",
+        "Refuses zip files that unpack to an unsafe size"
+      ]
+    }
+  },
+  {
+    "name": "Image Crop",
+    "category": "images",
+    "section": "Optimize",
+    "blurb": "Cut a photo to the part you want, or to a fixed ratio.",
+    "slug": "crop",
+    "issue": 66,
+    "task": "Crop a photo",
+    "concept": {
+      "in": "One image and a crop box.",
+      "out": "The cropped image as PNG, JPG or WebP.",
+      "options": [
+        "Free shape, square, 4:3 or 16:9",
+        "Move and resize the box with the keyboard",
+        "PNG, JPG or WebP output"
+      ]
+    }
+  },
+  {
+    "name": "JSON to YAML",
+    "category": "data",
+    "section": "Convert",
+    "blurb": "Turn JSON into YAML and back.",
+    "slug": "json-to-yaml",
+    "issue": 67,
+    "task": "Convert JSON to YAML and back",
+    "concept": {
+      "in": "JSON or YAML text.",
+      "out": "The same data in the other format.",
+      "options": [
+        "JSON to YAML",
+        "YAML to JSON",
+        "Safe reading: custom tags are refused"
+      ]
+    }
+  },
+  {
+    "name": "URL Encode and Decode",
+    "category": "developer",
+    "section": "Encode",
+    "blurb": "Make text safe for a link, or read an encoded one.",
+    "slug": "url-encode",
+    "issue": 68,
+    "task": "Encode or decode a web address",
+    "concept": {
+      "in": "Text or a web address.",
+      "out": "The percent-encoded form, or the decoded text.",
+      "options": [
+        "Encode a whole address or one part of it",
+        "Decode",
+        "A clear message for a broken % sequence"
+      ]
+    }
+  },
+  {
+    "name": "Unix Timestamp Converter",
+    "category": "everyday",
+    "section": "Time",
+    "blurb": "Turn a timestamp into a date and time, and back.",
+    "slug": "unix-timestamp",
+    "issue": 69,
+    "task": "Convert a Unix timestamp to a date",
+    "concept": {
+      "in": "A Unix timestamp in seconds or milliseconds, or a date.",
+      "out": "The date in UTC and in a time zone you choose, or the timestamp.",
+      "options": [
+        "Guesses seconds or milliseconds, and says which",
+        "Choose a time zone",
+        "Date to timestamp"
+      ]
+    }
+  },
+  {
+    "name": "Cron Expression Explainer",
+    "category": "developer",
+    "section": "Generate",
+    "blurb": "Read a cron schedule in plain words, or build one.",
+    "slug": "cron-explainer",
+    "issue": 70,
+    "task": "Explain a cron schedule",
+    "concept": {
+      "in": "A cron expression such as */15 9-17 * * 1-5.",
+      "out": "A plain sentence, and the next few run times.",
+      "options": [
+        "Plain-words sentence",
+        "Next run times"
+      ]
+    }
+  },
+  {
+    "name": "Colour Converter",
+    "category": "everyday",
+    "section": "Convert",
+    "blurb": "HEX, RGB, HSL and names, back and forth.",
+    "slug": "colour-converter",
+    "issue": 71,
+    "task": "Convert a colour between formats",
+    "concept": {
+      "in": "A colour as HEX, RGB, HSL or a name.",
+      "out": "The same colour in every format, with a swatch and a contrast ratio against black and white.",
+      "options": [
+        "HEX, RGB, HSL and colour names",
+        "Swatch",
+        "Contrast against black and white"
+      ]
+    }
+  },
+  {
+    "name": "IBAN and Phone Number Checker",
+    "category": "developer",
+    "section": "Encode",
+    "blurb": "Check a bank account number or a phone number, and format it.",
+    "slug": "iban-phone-check",
+    "issue": 72,
+    "task": "Check an IBAN or phone number",
+    "concept": {
+      "in": "An IBAN or a phone number.",
+      "out": "Valid or not, the country, and the number in a standard format.",
+      "options": [
+        "IBAN check by country rules",
+        "Phone number check and format",
+        "Country shown"
+      ]
+    }
+  }
 ]

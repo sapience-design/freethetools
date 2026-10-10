@@ -1,0 +1,108 @@
+---
+// The page for a tool that people have asked for and nobody has built yet, at the address the
+// tool will have. It cannot do the job, so it is kept out of search results and the sitemap
+// (docs/explanation/seo-policy.md). When the tool is built its entry leaves src/data/wanted.json
+// and this address becomes the tool.
+import Base from "../layouts/Base.astro";
+import Icon from "./Icon.astro";
+import { loadCatalogue, SUGGEST_URL } from "../data/catalogue";
+
+interface Props { category: string; slug: string }
+const { category, slug } = Astro.props;
+const { aisles } = await loadCatalogue();
+const group = aisles.find((a) => a.slug === category)!;
+const w = group.wanted.find((x) => x.slug === slug)!;
+const ask = `${SUGGEST_URL}?tool=${encodeURIComponent(w.id)}`;
+---
+<Base
+  category={category}
+  crumb={w.name}
+  noindex
+  title={`${w.name}, not built yet | Free the Tools`}
+  description={`${w.name} is not built yet. Say you want it, tell us what you need, or help build it.`}
+>
+  <div class="page narrow wanted" data-g={category}>
+    <a class="back" href={`/${category}/`}><Icon name="caret-left" />{group.label}</a>
+    <header class="head">
+      <span class="tag"><span class="tag-ic"><Icon name={group.mark} /></span>Not built yet</span>
+      <h1 class="h1">{w.task}</h1>
+      <p class="lede">{w.name} is on our list. Nobody has built it yet, so there is nothing to use on this page.</p>
+    </header>
+
+    <section class="card concept" aria-labelledby="concept-h">
+      <h2 class="h3" id="concept-h">What it will do</h2>
+      <dl>
+        <div><dt>What goes in</dt><dd>{w.concept.in}</dd></div>
+        <div><dt>What comes out</dt><dd>{w.concept.out}</dd></div>
+        <div>
+          <dt>Options</dt>
+          <dd><ul>{w.concept.options.map((o) => <li>{o}</li>)}</ul></dd>
+        </div>
+      </dl>
+      <p class="safe-note"><Icon name="shield-check" /><span>Like every tool here, it will run on your device. Nothing will be uploaded.</span></p>
+    </section>
+
+    <section class="card want" aria-labelledby="want-h">
+      <h2 class="h3" id="want-h">Do you need this?</h2>
+      <p class="count" id="want-count" role="status" data-id={w.id}></p>
+      <div class="actions">
+        <button class="btn" type="button" id="want-btn"><Icon name="thumbs-up" />I want this</button>
+        <a class="btn line" href={ask}><Icon name="chat-circle-text" />Tell us what you need</a>
+        <a class="btn line" href="/support/#company-h"><Icon name="hand-heart" />Sponsor this tool</a>
+      </div>
+      <p class="privacy">Pressing the button counts one vote for today. It sends no name, email or ID.</p>
+    </section>
+
+    <p class="dev"><a href={w.request}><Icon name="code" />For developers: build it</a></p>
+  </div>
+</Base>
+
+<script>
+  import { fullSummary, hasWanted, wantThis, fmtCount } from "../lib/stats";
+  const box = document.getElementById("want-count")!;
+  const btn = document.getElementById("want-btn") as HTMLButtonElement;
+  const id = box.dataset.id!;
+  const label = btn.lastChild!;
+  let total: number | null = null;
+
+  const show = () => {
+    const n = total ?? 0;
+    box.textContent = total === null ? "" : n > 0 ? (n === 1 ? "1 person wants this." : `${fmtCount(n)} people want this.`) : "Nobody has asked for this yet. Be the first.";
+  };
+  const done = () => { btn.setAttribute("aria-pressed", "true"); btn.disabled = true; label.textContent = "You want this"; };
+
+  if (hasWanted(id)) done();
+  fullSummary().then((s) => { if (s) { total = s.wants?.[id] ?? 0; show(); } });
+
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const n = await wantThis(id);
+    if (n === null) {
+      btn.disabled = false;
+      box.textContent = "We could not count that just now. Please try again later.";
+      return;
+    }
+    total = n;
+    done();
+    show();
+  });
+</script>
+
+<style>
+  .wanted { display: grid; gap: 22px; }
+  .head { display: grid; gap: 10px; justify-items: start; }
+  .concept, .want { display: grid; gap: 14px; padding: clamp(16px, 2.5vw, 24px); }
+  .concept dl { display: grid; gap: 14px; margin: 0; }
+  .concept dt { font-weight: 650; }
+  .concept dd { margin: 2px 0 0; color: var(--soft); }
+  .concept dd ul { margin: 0; padding-left: 20px; }
+  .safe-note { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--ok-t); margin: 0; }
+  .safe-note :global(.ic) { color: var(--ok); font-size: 22px; margin-top: 1px; flex: none; }
+  .count { font-size: 19px; font-weight: 650; margin: 0; min-height: 1.5em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .privacy { font-size: 14px; color: var(--muted); margin: 0; }
+  .dev { font-size: 14px; margin: 0; }
+  .dev a { color: var(--soft); display: inline-flex; align-items: center; gap: 6px; }
+  #want-btn[aria-pressed="true"] { opacity: 1; background: var(--ok-t); color: var(--ink); border-color: var(--ok); box-shadow: none; }
+</style>

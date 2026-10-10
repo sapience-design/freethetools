@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
-import { REQUEST_URL } from "../data/catalogue";
+import { SUGGEST_URL } from "../data/catalogue";
 ---
 <Base title="Not on the shelf | Free the Tools" description="This page is not on the shelf. Browse all free tools or search for the one you need." noindex>
   <div class="page narrow lost">
@@ -10,7 +10,7 @@ import { REQUEST_URL } from "../data/catalogue";
     <p class="lede">The tool may have moved, or it hasn't been built yet. Search for it, or ask us to build it.</p>
     <div class="actions">
       <a class="btn" href="/#find"><Icon name="magnifying-glass" />Search all tools</a>
-      <a class="btn line" href={REQUEST_URL}>Suggest a tool</a>
+      <a class="btn line" href={SUGGEST_URL}>Suggest a tool</a>
     </div>
   </div>
 </Base>
