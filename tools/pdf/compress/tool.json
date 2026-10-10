@@ -19,7 +19,7 @@
     "Works offline": "Yes, once the page has loaded"
   },
   "faq": [
-    { "q": "Are my files uploaded anywhere?", "a": "No. The compressor is Ghostscript compiled to WebAssembly, served from this site and run inside your browser tab. The page's security policy blocks it from sending data anywhere. Once the page has loaded you can go offline and it still works." },
+    { "q": "Are my files uploaded anywhere?", "a": "No. The compressor is Ghostscript compiled to WebAssembly, served from this site and run inside your browser tab. The page's security policy blocks it from sending data anywhere. After you have opened this tool once on this device, it keeps working without a connection." },
     { "q": "Which quality should I pick?", "a": "Balanced suits email and sharing. Smallest suits reading on screen. Print keeps images sharp enough for paper. Prepress keeps colour profiles for professional printing." },
     { "q": "Why did my file get bigger?", "a": "PDFs made mostly of text and vector drawings are often already compact. Ghostscript rewrites the whole file, so the result can come out slightly larger. Keep the original in that case." },
     { "q": "Can it open password-protected PDFs?", "a": "Not yet. Remove the password in your PDF reader first." },

@@ -8,6 +8,14 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- Tools work offline after a visit. A small service worker keeps the home page and each tool you open, so the tool still runs with the network off. Tool pages say "Works offline" once this is active. An offline page lists the tools kept on your device.
+
+### Changed
+
+- The Compress PDF FAQ now says the tool works offline after you have opened it once.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.

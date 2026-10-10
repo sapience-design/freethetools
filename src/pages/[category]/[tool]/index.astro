@@ -77,7 +77,7 @@ const safe = files
           <span class="usage" id="tool-usage" hidden></span>
         </div>
       </header>
-      <div class="work" id="tool-work" data-tool={tool.id}>
+      <div class="work" id="tool-work" data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => `/${tool.id}/vendor/${v.to}`))}>
         <UI />
       </div>
       {hasAgent && (
@@ -92,6 +92,7 @@ const safe = files
 
     <aside class="tp-side" aria-label="Help and details">
       <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]}</span></p>
+      {d.offline && <p class="safe offline-note" data-offline-note hidden><Icon name="wifi-slash" /><span><b>Works offline:</b> you can turn off Wi-Fi and this tool still runs.</span></p>}
       {d.faq.length > 0 && (
         <section class="help" aria-labelledby="faq">
           <h2 class="sr-only" id="faq">Questions</h2>
@@ -128,6 +129,20 @@ const safe = files
   watchUse(tool, work);
   watchOutcomes(tool, work);
   startAgentPage(work, tool);
+
+  // When the service worker is serving this page, say the tool works offline. Its vendor files
+  // (WebAssembly engines) load only on first use, so fetch them on the first touch of the tool;
+  // the service worker keeps them.
+  import { isOfflineReady } from "../../../lib/offline";
+  if (isOfflineReady()) {
+    document.querySelector<HTMLElement>("[data-offline-note]")?.removeAttribute("hidden");
+    const vendor: string[] = JSON.parse(work.dataset.vendor || "[]");
+    if (vendor.length) {
+      const warm = () => vendor.forEach((u) => fetch(u).then((r) => r.arrayBuffer()).catch(() => {}));
+      work.addEventListener("pointerdown", warm, { once: true });
+      work.addEventListener("change", warm, { once: true });
+    }
+  }
 
   // A Share button next to every result link, where this browser can share the file.
   import { watchShare, liveRegion } from "../../../lib/share";

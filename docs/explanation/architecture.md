@@ -21,6 +21,10 @@ The one piece of server code is a small Worker (`worker/`) for anonymous usage t
 
 See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 
+## Works offline
+
+A service worker (`/sw.js`, built by `scripts/build-sw.mjs`) keeps the home page and the app shell on first visit. It keeps each tool the first time you open it, with its scripts and WebAssembly files. After that the tool runs with the network off. Pages come from the network first, so online visitors always get the newest version. The worker ignores `/api/stats/*` and other origins. See [ADR 0010](../adr/0010-service-worker-offline.md).
+
 ## One folder per tool
 
 `tools/<group>/<slug>/` holds everything about a tool. The site reads every `tool.json` through an Astro content collection (`src/content.config.ts`) and generates the home page, group pages, tool page, search index, sitemap, `llms.txt` and `/api/tools.json`. Contributors never edit shared files, so pull requests don't conflict and every page gets the same metadata and structure. See [ADR 0004](../adr/0004-one-folder-per-tool.md).
