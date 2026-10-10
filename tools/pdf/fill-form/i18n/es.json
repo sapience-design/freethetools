@@ -1,0 +1,36 @@
+{
+  "name": "Rellenar formulario PDF",
+  "task": "Rellenar un formulario PDF",
+  "tagline": "Escribe en las casillas del formulario y guarda una copia terminada.",
+  "seoTitle": "Rellenar formularios PDF online sin subirlos",
+  "description": "Rellena los campos de formularios PDF gratis en tu navegador: texto, casillas, listas desplegables y opciones. Bloquea las respuestas si quieres. No se sube nada.",
+  "keywords": [
+    "rellenar pdf",
+    "formulario pdf",
+    "pdf rellenable",
+    "acroform",
+    "completar formulario",
+    "escribir en pdf",
+    "aplanar"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Campos": "Texto, casillas de verificación, listas desplegables, botones de opción y listas",
+    "Todavía no": "Firmas y formularios que son solo líneas impresas sin campos reales",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se sube mi formulario?",
+      "a": "No. Los formularios suelen contener datos personales, así que se rellena dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "Dice que mi PDF no tiene campos. ¿Por qué?",
+      "a": "Algunos formularios son solo líneas impresas, sin campos reales dentro del archivo. Para esos hace falta una herramienta que coloque texto en cualquier parte de la página, y está prevista."
+    },
+    {
+      "q": "¿Qué hace bloquear las respuestas?",
+      "a": "Aplana el formulario: tus respuestas pasan a formar parte de la página y ya no se pueden cambiar en un lector de PDF."
+    }
+  ]
+}

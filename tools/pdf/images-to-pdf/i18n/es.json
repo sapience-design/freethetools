@@ -1,0 +1,36 @@
+{
+  "name": "Imágenes a PDF",
+  "task": "Convertir fotos en un PDF",
+  "tagline": "Fotos, escaneos y capturas de pantalla en un solo PDF, en el orden que quieras.",
+  "seoTitle": "JPG y PNG a PDF sin subir nada",
+  "description": "Convierte imágenes JPG, PNG y WebP en un solo PDF gratis en tu navegador. Ajusta a la imagen o a A4 y reordena las páginas. No se sube nada.",
+  "keywords": [
+    "jpg a pdf",
+    "png a pdf",
+    "imagen a pdf",
+    "imágenes a pdf",
+    "fotos a pdf",
+    "escaneos",
+    "convertir",
+    "webp a pdf"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Formatos": "JPG y PNG tal cual; WebP, GIF y otros se convierten antes a PNG",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis imágenes?",
+      "a": "No. Las imágenes se colocan en el PDF dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Perderán calidad mis fotos?",
+      "a": "Las imágenes JPG y PNG se incrustan exactamente como están. Los demás formatos se convierten a PNG, que no pierde calidad."
+    },
+    {
+      "q": "¿Puedo usar fotos HEIC de iPhone?",
+      "a": "Todavía no directamente. La mayoría de los teléfonos pueden compartir una foto como JPG; la compatibilidad con HEIC está en la lista."
+    }
+  ]
+}

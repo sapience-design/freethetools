@@ -1,0 +1,35 @@
+{
+  "name": "Bilder til PDF",
+  "task": "Gjør bilder om til en PDF",
+  "tagline": "Bilder, skanninger og skjermbilder i én PDF, i den rekkefølgen du vil.",
+  "seoTitle": "JPG og PNG til PDF uten å laste opp",
+  "description": "Gjør JPG-, PNG- og WebP-bilder om til én PDF, gratis i nettleseren. Tilpass til bildet eller A4, og bytt rekkefølge på sidene. Ingenting lastes opp.",
+  "keywords": [
+    "jpg til pdf",
+    "png til pdf",
+    "bilde til pdf",
+    "bilder",
+    "skanninger",
+    "konverter",
+    "webp til pdf"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
+    "Formater": "JPG og PNG som de er; WebP, GIF og andre gjøres først om til PNG",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes bildene mine opp?",
+      "a": "Nei. Bildene legges inn i PDF-en inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Mister bildene kvalitet?",
+      "a": "JPG- og PNG-bilder legges inn nøyaktig som de er. Andre formater gjøres om til PNG, som er tapsfritt."
+    },
+    {
+      "q": "Kan jeg bruke HEIC-bilder fra iPhone?",
+      "a": "Ikke direkte ennå. De fleste telefoner kan dele et bilde som JPG. HEIC-støtte står på lista."
+    }
+  ]
+}

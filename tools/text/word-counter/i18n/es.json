@@ -1,0 +1,33 @@
+{
+  "name": "Contador de palabras",
+  "task": "Contar palabras",
+  "tagline": "Palabras, caracteres, frases y tiempo de lectura, mientras escribes.",
+  "seoTitle": "Contador de palabras y caracteres",
+  "description": "Cuenta palabras, caracteres, frases y párrafos mientras escribes, con el tiempo de lectura y de locución. Gratis y privado: tu texto no sale de la página.",
+  "keywords": [
+    "contador de palabras",
+    "contar palabras",
+    "contador de caracteres",
+    "contar caracteres",
+    "letras",
+    "tiempo de lectura",
+    "ensayo",
+    "límite de caracteres"
+  ],
+  "specs": {
+    "Motor": "JavaScript puro con Intl.Segmenter",
+    "Idiomas": "También cuenta bien las palabras en chino, japonés y tailandés",
+    "Velocidad de lectura": "238 palabras por minuto; hablando, 150",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se guarda o se envía mi texto a algún sitio?",
+      "a": "No. El recuento ocurre en esta pestaña mientras escribes, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Cómo se calcula el tiempo de lectura?",
+      "a": "A 238 palabras por minuto, la velocidad media de lectura silenciosa de los adultos en inglés, redondeada al minuto más cercano."
+    }
+  ]
+}

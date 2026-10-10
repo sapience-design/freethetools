@@ -1,0 +1,35 @@
+{
+  "name": "Del PDF",
+  "task": "Del en PDF i deler",
+  "tagline": "Ta ut sidene du trenger som nye filer.",
+  "seoTitle": "Del PDF-sider uten å laste opp",
+  "description": "Del en PDF i egne filer, gratis i nettleseren: hver side for seg, eller egne områder som 1-3, 5, 8-. Ingenting lastes opp.",
+  "keywords": [
+    "del",
+    "trekk ut sider",
+    "skill",
+    "sideområde",
+    "del opp",
+    "pdf",
+    "klipp"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
+    "Områder": "Enkeltsider, områder og åpne områder, for eksempel 1-3, 5, 8-",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. PDF-en leses og deles inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Hvordan skriver jeg sideområder?",
+      "a": "Skill områdene med komma. 2 er én side, 4-7 er side 4 til 7, 8- går til slutten og -3 begynner på side 1. Hvert område blir en egen fil."
+    },
+    {
+      "q": "Kan jeg ta ut noen få sider til én fil?",
+      "a": "Ja. Velg egne områder og skriv inn ett område, for eksempel 3-6."
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "name": "Bokstavstørrelse",
+  "task": "Bytt mellom STORE og små bokstaver",
+  "tagline": "STORE, små, Tittel- og Setningsstil, pluss camelCase og snake_case.",
+  "seoTitle": "Bytt bokstavstørrelse: store, små, tittelstil",
+  "description": "Gjør tekst om til store eller små bokstaver, tittelstil eller setningsstil, eller til camelCase, snake_case og kebab-case. Gratis, og teksten blir på siden.",
+  "keywords": [
+    "store bokstaver",
+    "små bokstaver",
+    "tittelstil",
+    "setningsstil",
+    "camelcase",
+    "snake case",
+    "stor forbokstav"
+  ],
+  "specs": {
+    "Motor": "Vanlig JavaScript",
+    "Tittelstil": "Beholder små ord som og, i og av med små bokstaver",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Sendes teksten min noe sted?",
+      "a": "Nei. Den konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Hvilke ord forblir med små bokstaver i tittelstil?",
+      "a": "Korte bindeord som en, et, og, av, i, på og til, med mindre de står først i teksten."
+    },
+    {
+      "q": "Hva skjer med tall og emoji?",
+      "a": "Tall og emoji forblir som de er i de enkle stilene, som STORE BOKSTAVER og Tittelstil. Kodestilene, som camelCase og snake_case, fjerner emoji og tegnsetting og beholder tallene."
+    }
+  ]
+}

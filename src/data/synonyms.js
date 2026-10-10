@@ -29,9 +29,9 @@ export const SYNONYMS = [
 ];
 
 /** Expand text with every synonym group it touches, so the search index knows the other words. */
-export function expand(text) {
+export function expand(text, groups = SYNONYMS) {
   const t = ` ${text.toLowerCase()} `;
   const extra = new Set();
-  for (const group of SYNONYMS) if (group.some((w) => t.includes(` ${w} `) || t.includes(` ${w}s `))) group.forEach((w) => extra.add(w));
+  for (const group of groups) if (group.some((w) => t.includes(` ${w} `) || t.includes(` ${w}s `))) group.forEach((w) => extra.add(w));
   return extra.size ? `${text} ${[...extra].join(" ")}` : text;
 }

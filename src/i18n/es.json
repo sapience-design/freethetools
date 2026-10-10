@@ -1,0 +1,434 @@
+{
+  "meta": { "name": "Español", "dir": "ltr", "locale": "es_ES", "reviewed": false },
+  "ui": {
+    "skip": "Saltar al contenido",
+    "bar": {
+      "nav": "Sitio",
+      "library": "Biblioteca",
+      "favourites": "Favoritos",
+      "allTools": "Todas las herramientas",
+      "github": "Código fuente en GitHub",
+      "donate": "Donar"
+    },
+    "foot": {
+      "tagline": "Herramientas útiles que se quedan en tu dispositivo.",
+      "initiative": "Una iniciativa de Sapience Design",
+      "theme": "Tema",
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "slash": "Pulsa {key} para ir al buscador",
+      "groups": "Grupos",
+      "project": "Proyecto",
+      "trust": "Confianza",
+      "developers": "Desarrolladores",
+      "about": "Acerca de",
+      "changelog": "Novedades",
+      "favourites": "Favoritos",
+      "library": "Biblioteca",
+      "suggest": "Sugerir una herramienta",
+      "donate": "Donar",
+      "sponsor": "Patrocinar una herramienta",
+      "howItWorks": "Cómo funciona",
+      "verify": "Verificar este sitio",
+      "stats": "Estadísticas de uso",
+      "privacy": "Privacidad",
+      "ai": "Asistentes de IA",
+      "build": "Crear una herramienta",
+      "source": "Código fuente",
+      "api": "API",
+      "llms": "llms.txt",
+      "openapi": "OpenAPI",
+      "copyright": "© {year} Sapience Design y colaboradores",
+      "licences": "Licencias",
+      "trademarks": "Marcas registradas",
+      "security": "Seguridad",
+      "version": "Versión {version}"
+    },
+    "lang": { "label": "Idioma" },
+    "review": {
+      "note": "Esta página se tradujo automáticamente y todavía no se ha revisado.",
+      "report": "Informar de un problema"
+    },
+    "toolNote": "Los botones de esta herramienta siguen en inglés.",
+    "row": { "new": "Nueva", "notBuilt": "Aún no existe" },
+    "home": {
+      "title": "Free the Tools – herramientas de uso diario que nunca salen de tu dispositivo",
+      "description": "Herramientas de código abierto que funcionan en tu navegador. Comprime PDF y mucho más sin subir nada. Sin cuentas ni anuncios. Una iniciativa de Sapience Design.",
+      "schemaDescription": "Herramientas de código abierto que funcionan en tu navegador. No se sube nada.",
+      "h1a": "Las herramientas de uso diario",
+      "h1b": "deberían ser gratis.",
+      "trustNoAds": "Sin anuncios",
+      "trustNoSignup": "Sin registro",
+      "trustFiles": "Los archivos se quedan en tu dispositivo",
+      "trustOpen": "Código abierto",
+      "findLabel": "¿Qué necesitas hacer?",
+      "findPlaceholder": "¿Qué necesitas hacer?",
+      "chipsLabel": "Mostrar herramientas de",
+      "chipAll": "Todas",
+      "empty": "Prueba con palabras más sencillas, como “reducir”, “unir” o “foto”. O {ask}, o {sponsor} para que se cree antes.",
+      "emptyAsk": "pídenos que la creemos",
+      "emptySponsor": "patrocínala",
+      "clear": "Mostrar todo",
+      "favourites": "Tus favoritos",
+      "manage": "Gestionar",
+      "popular": "Lo que busca la mayoría",
+      "prevTools": "Herramientas anteriores",
+      "nextTools": "Más herramientas",
+      "allTools": "Todas las herramientas",
+      "sortBy": "Ordenar por",
+      "sortUsed": "Más usadas",
+      "sortNew": "Más recientes",
+      "sortLiked": "Más favoritos",
+      "sortAz": "A–Z",
+      "seeAll": { "one": "Ver {n} herramienta", "other": "Ver las {n} herramientas" },
+      "countShort": { "one": "{n} herramienta", "other": "{n} herramientas" },
+      "aiTitle": "¿Usas un asistente de IA?",
+      "aiText": "Claude, Cursor y otros asistentes pueden ejecutar estas herramientas en tu propio ordenador, gratis y sin iniciar sesión, así que tus archivos nunca se suben. Está en npm y en el registro oficial de MCP.",
+      "aiLink": "Cómo configurarlo",
+      "whyTitle": "Por qué existe esto",
+      "why1": "Las herramientas de uso diario no deberían costar dinero.",
+      "why2": "No deberían traer anuncios.",
+      "why3": "No deberían poner en riesgo tus archivos.",
+      "why4": "No deberían ser difíciles de encontrar.",
+      "whyEnd": "Por eso están aquí: un solo sitio, todas las herramientas, {mark}",
+      "whyEndMark": "gratis para todos.",
+      "aboutLink": "Acerca del proyecto"
+    },
+    "group": {
+      "back": "Todas las herramientas",
+      "title": "{title} que funcionan en tu navegador | Free the Tools",
+      "description": "{blurb} Código abierto, sin cuentas y sin subir nada.",
+      "more": "¿Echas algo en falta? {suggest}, o {sponsor} para que se cree antes.",
+      "moreSuggest": "Sugiere una herramienta",
+      "moreSponsor": "patrocina una"
+    },
+    "tool": {
+      "favAdd": "Añadir a favoritos",
+      "favOn": "En favoritos",
+      "agentTitle": "Actividad de un agente de IA",
+      "agentText": "Un agente de IA usó esta herramienta en esta página. Los archivos se quedan en este dispositivo y se guardan en tu {library}.",
+      "agentLibrary": "biblioteca",
+      "sideLabel": "Ayuda y detalles",
+      "safeFilesA": "Tus archivos se quedan en este dispositivo.",
+      "safeFilesB": "Nunca se suben, ni siquiera a nosotros.",
+      "safeOtherA": "Todo esto ocurre en tu dispositivo.",
+      "safeOtherB": "Nada de lo que escribes o añades se envía a ninguna parte.",
+      "check": "Compruébalo tú mismo",
+      "offlineBold": "Funciona sin conexión:",
+      "offlineText": "puedes apagar el wifi y la herramienta sigue funcionando.",
+      "questions": "Preguntas",
+      "about": "Acerca de esta herramienta",
+      "specRuns": "Se ejecuta",
+      "specRunsOffline": "En tu navegador. No se sube nada.",
+      "specRunsOnline": "En tu navegador",
+      "specLicence": "Licencia",
+      "specAdded": "Añadida",
+      "specBuilt": "Creada por",
+      "specSource": "Código fuente",
+      "report": "Informar de un problema",
+      "titleSuffix": "{title} | Free the Tools"
+    },
+    "wanted": {
+      "title": "{name}, aún no existe | Free the Tools",
+      "description": "{name} aún no existe. Di que la quieres, cuéntanos qué necesitas o ayuda a crearla.",
+      "tag": "Aún no existe",
+      "lede": "{name} está en nuestra lista. Nadie la ha creado todavía, así que en esta página no hay nada que usar.",
+      "conceptTitle": "Qué hará",
+      "in": "Qué entra",
+      "out": "Qué sale",
+      "options": "Opciones",
+      "safe": "Como todas las herramientas de aquí, se ejecutará en tu dispositivo. No se subirá nada.",
+      "needTitle": "¿La necesitas?",
+      "want": "La quiero",
+      "tell": "Cuéntanos qué necesitas",
+      "sponsor": "Patrocinar esta herramienta",
+      "privacy": "Al pulsar el botón se cuenta un voto por hoy. No envía nombre, correo ni identificador.",
+      "dev": "Para desarrolladores: créala"
+    },
+    "notFound": {
+      "title": "No está en la estantería | Free the Tools",
+      "description": "Esta página no está en la estantería. Explora todas las herramientas gratuitas o busca la que necesitas.",
+      "h1": "Esta página no está aquí.",
+      "lede": "Puede que la herramienta se haya movido o que aún no exista. Búscala o pídenos que la creemos.",
+      "search": "Buscar en todas las herramientas",
+      "suggest": "Sugerir una herramienta"
+    },
+    "js": {
+      "common": {
+        "donateLabel": "Donar",
+        "donateTitle": "¿Te hemos ahorrado tiempo?",
+        "donateBody": "Esta herramienta es gratuita y se ejecutó en tu navegador. Una pequeña donación ayuda a que siga así.",
+        "donateButton": "Donar",
+        "donateLater": "La próxima vez",
+        "toc": "En esta página",
+        "used": { "one": "Usada {n} vez", "other": "Usada {n} veces" },
+        "want": { "one": "{n} persona la quiere", "other": "{n} personas la quieren" }
+      },
+      "home": {
+        "best": "Mejores resultados para",
+        "none": "No se encontró nada para",
+        "inGroup": " en {group}",
+        "tools": { "one": "{n} herramienta", "other": "{n} herramientas" },
+        "uses": { "one": "{n} uso", "other": "{n} usos" },
+        "likes": { "one": "{n} favorito", "other": "{n} favoritos" },
+        "added": "Añadida el {date}",
+        "subUsed": "Primero las más usadas de cada grupo",
+        "subNew": "Primero las más recientes de cada grupo",
+        "subLiked": "Primero las más favoritas de cada grupo",
+        "subAz": "De la A a la Z en cada grupo",
+        "openGroup": "Abrir la página de {group}",
+        "showing": "Mostrando {group}: {count}.",
+        "noMatch": "Todavía no hay ninguna herramienta que coincida. Pulsa Intro para pedirla.",
+        "count": "{count}.",
+        "countHint": "{count}. Usa las flechas arriba y abajo y pulsa Intro.",
+        "selected": "{name}, {group}, {i} de {n}",
+        "selectedNoGroup": "{name}, {i} de {n}",
+        "sorted": "Ordenadas por {label}."
+      },
+      "wanted": {
+        "people": { "one": "{n} persona quiere esto.", "other": "{n} personas quieren esto." },
+        "none": "Nadie lo ha pedido todavía. Sé la primera persona.",
+        "failed": "No pudimos contar eso ahora mismo. Inténtalo de nuevo más tarde.",
+        "done": "Quieres esto"
+      }
+    }
+  },
+  "groups": {
+    "pdf": {
+      "name": "PDF",
+      "label": "Herramientas PDF",
+      "title": "Herramientas PDF gratuitas",
+      "blurb": "Comprime, une, divide, rellena y convierte PDF.",
+      "sub": "Elige lo que quieres hacer. Tus archivos se quedan en este dispositivo."
+    },
+    "images": {
+      "name": "Imágenes",
+      "label": "Herramientas de imagen",
+      "title": "Herramientas de imagen gratuitas",
+      "blurb": "Cambia el tamaño, comprime y convierte fotos.",
+      "sub": "Elige lo que quieres hacer. Tus fotos se quedan en este dispositivo."
+    },
+    "text": {
+      "name": "Texto",
+      "label": "Herramientas de texto",
+      "title": "Herramientas de texto gratuitas",
+      "blurb": "Cuenta, compara y cambia texto.",
+      "sub": "Elige lo que quieres hacer. Tu texto se queda en este dispositivo."
+    },
+    "data": {
+      "name": "Datos",
+      "label": "Herramientas de datos",
+      "title": "Herramientas de datos gratuitas",
+      "blurb": "Convierte y ordena CSV y JSON.",
+      "sub": "Elige lo que quieres hacer. Tus datos se quedan en este dispositivo."
+    },
+    "developer": {
+      "name": "Desarrollo",
+      "label": "Herramientas para desarrolladores",
+      "title": "Herramientas para desarrolladores gratuitas",
+      "blurb": "Codificadores, hashes, generadores, decodificadores y probadores.",
+      "sub": "Elige lo que quieres hacer. Nada de lo que pegues sale de este dispositivo."
+    },
+    "everyday": {
+      "name": "Día a día",
+      "label": "Herramientas de uso diario",
+      "title": "Herramientas de uso diario gratuitas",
+      "blurb": "Conversores de unidades y de zonas horarias.",
+      "sub": "Elige lo que quieres hacer. Todo se ejecuta en este dispositivo."
+    }
+  },
+  "sections": {
+    "Optimize": "Optimizar",
+    "Organize": "Organizar",
+    "Edit": "Editar",
+    "Convert": "Convertir",
+    "Security": "Seguridad",
+    "Privacy": "Privacidad",
+    "Count & Compare": "Contar y comparar",
+    "Transform": "Transformar",
+    "Format": "Formatear",
+    "Encode": "Codificar",
+    "Inspect": "Inspeccionar",
+    "Generate": "Generar",
+    "Time": "Hora"
+  },
+  "popular": {
+    "pdf/compress": "Para el correo o un límite de subida",
+    "pdf/merge": "Pon las páginas en el orden que quieras",
+    "pdf/images-to-pdf": "Escaneos, recibos, capturas de pantalla",
+    "images/compress": "Igual de nítida, con menos peso",
+    "images/convert": "Como de PNG a JPG, o de JPG a WebP",
+    "images/remove-location": "Antes de compartirlas en internet"
+  },
+  "wanted": {
+    "pdf/page-delete": {
+      "name": "Eliminar y reordenar páginas de PDF",
+      "task": "Eliminar o reordenar páginas de PDF",
+      "blurb": "Quita páginas o cámbialas de orden, con una miniatura de cada una.",
+      "concept": {
+        "in": "Un PDF.",
+        "out": "Un PDF nuevo con páginas quitadas o en otro orden.",
+        "options": [
+          "Elige las páginas que quitar",
+          "Arrastra las páginas para cambiar el orden",
+          "Mira una miniatura de cada página"
+        ]
+      }
+    },
+    "pdf/watermark": {
+      "name": "Marca de agua y números de página en PDF",
+      "task": "Añadir una marca de agua o números de página",
+      "blurb": "Estampa texto en cada página o numera las páginas.",
+      "concept": {
+        "in": "Un PDF, más el texto de la marca de agua o la opción de numerar páginas.",
+        "out": "Un PDF nuevo con el texto en cada página.",
+        "options": [
+          "Texto de marca de agua, como BORRADOR",
+          "Números de página",
+          "Páginas que marcar"
+        ]
+      }
+    },
+    "everyday/zip": {
+      "name": "Comprimir y descomprimir ZIP",
+      "task": "Crear o abrir un archivo zip",
+      "blurb": "Agrupa archivos en un ZIP o abre uno, sin instalar nada.",
+      "concept": {
+        "in": "Varios archivos o un archivo .zip.",
+        "out": "Un archivo .zip o los archivos que contiene.",
+        "options": [
+          "Agrupar archivos en un zip",
+          "Abrir un zip y guardar los archivos",
+          "Rechaza los zip que al descomprimirse alcanzan un tamaño peligroso"
+        ]
+      }
+    },
+    "images/crop": {
+      "name": "Recortar imagen",
+      "task": "Recortar una foto",
+      "blurb": "Recorta una foto a la parte que quieras o a una proporción fija.",
+      "concept": {
+        "in": "Una imagen y un marco de recorte.",
+        "out": "La imagen recortada en PNG, JPG o WebP.",
+        "options": [
+          "Forma libre, cuadrada, 4:3 o 16:9",
+          "Mueve y cambia el tamaño del marco con el teclado",
+          "Salida en PNG, JPG o WebP"
+        ]
+      }
+    },
+    "data/json-to-yaml": {
+      "name": "JSON a YAML",
+      "task": "Convertir JSON a YAML y al revés",
+      "blurb": "Convierte JSON en YAML y al revés.",
+      "concept": {
+        "in": "Texto JSON o YAML.",
+        "out": "Los mismos datos en el otro formato.",
+        "options": [
+          "JSON a YAML",
+          "YAML a JSON",
+          "Lectura segura: se rechazan las etiquetas personalizadas"
+        ]
+      }
+    },
+    "developer/url-encode": {
+      "name": "Codificar y decodificar URL",
+      "task": "Codificar o decodificar una dirección web",
+      "blurb": "Prepara texto para usarlo en un enlace o lee uno codificado.",
+      "concept": {
+        "in": "Texto o una dirección web.",
+        "out": "La forma con codificación porcentual o el texto decodificado.",
+        "options": [
+          "Codificar una dirección entera o solo una parte",
+          "Decodificar",
+          "Un mensaje claro si una secuencia % está rota"
+        ]
+      }
+    },
+    "everyday/unix-timestamp": {
+      "name": "Conversor de marca de tiempo Unix",
+      "task": "Convertir una marca de tiempo Unix en una fecha",
+      "blurb": "Convierte una marca de tiempo en fecha y hora, y al revés.",
+      "concept": {
+        "in": "Una marca de tiempo Unix en segundos o milisegundos, o una fecha.",
+        "out": "La fecha en UTC y en la zona horaria que elijas, o la marca de tiempo.",
+        "options": [
+          "Detecta si son segundos o milisegundos e indica cuál",
+          "Elige una zona horaria",
+          "De fecha a marca de tiempo"
+        ]
+      }
+    },
+    "developer/cron-explainer": {
+      "name": "Explicador de expresiones cron",
+      "task": "Explicar una programación cron",
+      "blurb": "Lee una programación cron con palabras sencillas o crea una.",
+      "concept": {
+        "in": "Una expresión cron como */15 9-17 * * 1-5.",
+        "out": "Una frase sencilla y las próximas horas de ejecución.",
+        "options": [
+          "Frase con palabras sencillas",
+          "Próximas horas de ejecución"
+        ]
+      }
+    },
+    "everyday/colour-converter": {
+      "name": "Conversor de color",
+      "task": "Convertir un color entre formatos",
+      "blurb": "HEX, RGB, HSL y nombres, de ida y vuelta.",
+      "concept": {
+        "in": "Un color en HEX, RGB, HSL o por su nombre.",
+        "out": "El mismo color en todos los formatos, con una muestra y la relación de contraste con el negro y el blanco.",
+        "options": [
+          "HEX, RGB, HSL y nombres de color",
+          "Muestra de color",
+          "Contraste con el negro y el blanco"
+        ]
+      }
+    },
+    "developer/iban-phone-check": {
+      "name": "Comprobador de IBAN y de teléfono",
+      "task": "Comprobar un IBAN o un número de teléfono",
+      "blurb": "Comprueba un número de cuenta bancaria o de teléfono y dale formato.",
+      "concept": {
+        "in": "Un IBAN o un número de teléfono.",
+        "out": "Si es válido o no, el país y el número en un formato estándar.",
+        "options": [
+          "Comprobación de IBAN según las reglas de cada país",
+          "Comprobación y formato de números de teléfono",
+          "Se muestra el país"
+        ]
+      }
+    }
+  },
+  "search": {
+    "stop": [
+      "el", "la", "los", "las", "un", "una", "unos", "unas", "de", "del", "al", "a", "en", "y", "o",
+      "para", "por", "con", "sin", "que", "es", "mi", "mis", "tu", "tus", "quiero", "necesito",
+      "puedo", "como", "cómo", "se", "lo", "archivo", "archivos", "hacer", "haz"
+    ],
+    "synonyms": [
+      ["unir", "combinar", "juntar", "fusionar", "agrupar", "concatenar", "anexar"],
+      ["comprimir", "reducir", "achicar", "encoger", "aligerar", "optimizar", "peso", "más pequeño", "menos peso"],
+      ["dividir", "separar", "partir", "cortar", "extraer", "trocear"],
+      ["girar", "rotar", "voltear", "orientación", "de lado", "al revés"],
+      ["convertir", "pasar", "cambiar", "transformar", "exportar", "guardar como"],
+      ["foto", "imagen", "imágenes", "fotos", "fotografía", "jpg", "png", "webp"],
+      ["tamaño", "escalar", "redimensionar", "dimensiones", "píxeles", "ampliar", "agrandar", "reducir tamaño"],
+      ["quitar", "eliminar", "borrar", "limpiar", "suprimir"],
+      ["ubicación", "gps", "exif", "metadatos", "localización", "privacidad"],
+      ["rellenar", "formulario", "rellenable", "firmar", "escribir"],
+      ["contar", "contador", "longitud", "cuántas", "caracteres", "letras", "palabras"],
+      ["comparar", "diferencia", "diferencias", "cambios", "versiones", "diff"],
+      ["mayúsculas", "minúsculas", "capitalizar", "mayúscula inicial"],
+      ["formato", "formatear", "ordenar", "embellecer", "validar", "comprobar"],
+      ["hoja de cálculo", "tabla", "excel", "csv"],
+      ["contraseña", "clave", "frase de contraseña", "secreto", "aleatorio", "generar"],
+      ["zona horaria", "huso horario", "reloj", "hora", "reunión", "tiempo"],
+      ["unidad", "unidades", "medida", "medidas", "pulgadas", "libras", "kilos", "metros"],
+      ["pdf", "documento", "documentos"],
+      ["desbloquear", "contraseña", "quitar contraseña", "descifrar", "desproteger"]
+    ]
+  }
+}

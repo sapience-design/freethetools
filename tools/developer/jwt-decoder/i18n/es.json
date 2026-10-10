@@ -1,0 +1,31 @@
+{
+  "name": "Decodificador de JWT",
+  "task": "Mirar dentro de un token de inicio de sesión",
+  "tagline": "Mira qué dice un JWT y cuándo caduca, y comprueba firmas HMAC.",
+  "seoTitle": "Decodificador de JWT que nunca envía tu token a ningún sitio",
+  "description": "Decodifica la cabecera y las claims de un JWT, mira cuándo caduca y verifica firmas HS256 con tu secreto. Tu token no sale de la página.",
+  "keywords": [
+    "decodificar jwt",
+    "jwt",
+    "json web token",
+    "depurador jwt",
+    "claims",
+    "hs256",
+    "token bearer"
+  ],
+  "specs": {
+    "Motor": "API Web Crypto",
+    "Verifica": "HS256, HS384, HS512 con un secreto compartido",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Es seguro pegar un token real?",
+      "a": "Más que en la mayoría de sitios: se decodifica en esta pestaña y la política de seguridad de la página bloquea cualquier conexión externa. Aun así, trata los tokens activos como contraseñas y revoca los que hayas compartido."
+    },
+    {
+      "q": "¿Puede verificar tokens RS256?",
+      "a": "Todavía no. Necesitan la clave pública del emisor; los tokens HMAC (HS256 y similares) ya se pueden comprobar con tu secreto."
+    }
+  ]
+}

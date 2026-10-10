@@ -1,0 +1,40 @@
+{
+  "name": "Vídeo a GIF",
+  "task": "Convertir un vídeo en GIF",
+  "tagline": "Convierte un clip corto o una grabación de pantalla en un GIF.",
+  "seoTitle": "Conversor de vídeo a GIF sin subir nada",
+  "description": "Convierte un vídeo corto MP4, WebM o MOV en un GIF animado gratis, en tu navegador. Elige el inicio, el final, el ancho y la velocidad. Tu vídeo no se sube.",
+  "keywords": [
+    "vídeo a gif",
+    "mp4 a gif",
+    "webm a gif",
+    "mov a gif",
+    "grabación de pantalla",
+    "crear gif",
+    "gif animado"
+  ],
+  "specs": {
+    "Entrada": "MP4, WebM o MOV, lo que tu navegador pueda reproducir",
+    "Ancho": "320, 480 o 640 píxeles",
+    "Fotogramas por segundo": "5, 10 o 15 por segundo",
+    "Motor": "El reproductor de vídeo de tu navegador y el codificador gifenc"
+  },
+  "faq": [
+    {
+      "q": "¿Se sube mi vídeo?",
+      "a": "No. Tu navegador reproduce el vídeo y esta página convierte los fotogramas en un GIF dentro de la pestaña. La política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Por qué no se abre mi vídeo?",
+      "a": "Tu navegador solo puede abrir los tipos de vídeo que sabe reproducir. MP4 y WebM funcionan en todos los navegadores modernos. MOV funciona en Safari y en algunos otros. Si el tuyo falla, abre el vídeo en otro navegador o conviértelo antes a MP4."
+    },
+    {
+      "q": "¿Por qué mi GIF pesa tanto?",
+      "a": "Un GIF guarda cada fotograma como una imagen. El archivo crece con el ancho, los fotogramas por segundo y la duración. Acorta el clip, elige un ancho menor o 5 fotogramas por segundo."
+    },
+    {
+      "q": "¿El GIF tiene sonido?",
+      "a": "No. Los archivos GIF no pueden contener sonido."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Conversor de zonas horarias",
+  "task": "Convertir zonas horarias",
+  "tagline": "Elige una hora en una ciudad y mírala en otras.",
+  "seoTitle": "Conversor de zonas horarias y planificador de reuniones",
+  "description": "Convierte una hora entre ciudades y zonas horarias, con el horario de verano tratado con exactitud y las horas de trabajo marcadas. Gratis, sin registro y sin conexión.",
+  "keywords": [
+    "zona horaria",
+    "conversor de zonas horarias",
+    "convertir hora",
+    "planificador de reuniones",
+    "utc",
+    "hora mundial",
+    "horario de verano",
+    "reloj mundial"
+  ],
+  "specs": {
+    "Motor": "La base de datos de zonas horarias de tu navegador (Intl)",
+    "Horario de verano": "Se aplica según la fecha exacta que elijas",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Tiene en cuenta el horario de verano?",
+      "a": "Sí. Usa la base de datos de zonas horarias integrada en tu navegador, así que el desfase es correcto para la fecha que elijas, no solo para hoy."
+    },
+    {
+      "q": "¿Qué cuenta como horas de trabajo?",
+      "a": "De 08:00 a 18:00, hora local. Las horas fuera de ese tramo se marcan, para que veas de un vistazo una mala hora para una reunión."
+    }
+  ]
+}

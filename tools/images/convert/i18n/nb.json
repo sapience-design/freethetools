@@ -1,0 +1,31 @@
+{
+  "name": "Bytt bildeformat",
+  "task": "Bytt filtype på et bilde",
+  "tagline": "JPG, PNG, WebP og AVIF, det du trenger.",
+  "seoTitle": "Konverter PNG-, JPG- og WebP-bilder uten å laste opp",
+  "description": "Gjør bilder om mellom PNG, JPG, WebP og AVIF, gratis i nettleseren, ett eller mange om gangen. Bildene forblir på enheten din.",
+  "keywords": [
+    "png til jpg",
+    "webp til png",
+    "jpg til webp",
+    "avif",
+    "konverter bilde",
+    "bildeformat",
+    "webp til jpg"
+  ],
+  "specs": {
+    "Motor": "Nettleserens egne bildekodere",
+    "AVIF": "Tilbys når nettleseren din kan skrive det",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes bildene mine opp?",
+      "a": "Nei. De konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Hvilket format bør jeg velge?",
+      "a": "JPG for bilder du skal dele hvor som helst, PNG for skjermbilder og grafikk med gjennomsiktighet, WebP for nettsider. AVIF er minst, men ikke alle programmer åpner det ennå."
+    }
+  ]
+}

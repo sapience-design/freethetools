@@ -158,8 +158,11 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/stats/")) return stats(request, env, ctx, url);
     if (url.pathname.replace(/\/+$/, "") === "/api/feedback") return feedback(request, env);
-    // Anything else reaching the Worker had no matching static file: serve the site's 404 page.
-    const page = await env.ASSETS.fetch(new URL("/404.html", url));
+    // Anything else reaching the Worker had no matching static file: serve the site's 404 page,
+    // in the language of the address when that language has one (/nb/404.html).
+    const lang = /^\/([a-z]{2,3})\//.exec(url.pathname)?.[1];
+    let page = lang ? await env.ASSETS.fetch(new URL(`/${lang}/404.html`, url)) : null;
+    if (!page?.ok) page = await env.ASSETS.fetch(new URL("/404.html", url));
     return new Response(page.body, { status: 404, headers: page.headers });
   },
 };
