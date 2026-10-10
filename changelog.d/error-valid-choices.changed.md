@@ -1,0 +1,1 @@
+- Hash Generator and Unit Converter: when you give an unknown algorithm or category, the error now lists the choices that work.
