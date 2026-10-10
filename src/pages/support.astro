@@ -8,7 +8,7 @@ import { REPO, REQUEST_URL } from "../data/catalogue";
 // Sponsor button offers it too. The section hides while no link is live.
 const GIVE = [
   { live: false, href: "https://github.com/sponsors/sapience-design", label: "Sponsor on GitHub", icon: "heart" },
-  { live: false, href: "https://ko-fi.com/freethetools", label: "One-off on Ko-fi" },
+  { live: true, href: "https://ko-fi.com/freethetools", label: "One-off on Ko-fi", icon: "coffee" },
 ].filter((g) => g.live);
 const DONATIONS = GIVE.length > 0;
 const description = DONATIONS
