@@ -15,6 +15,7 @@
   "specs": { "Engine": "Plain JavaScript", "Title case": "Keeps small words like of, the and and lower case" },
   "faq": [
     { "q": "Is my text sent anywhere?", "a": "No. It's converted in this tab, and the page's security policy blocks it from sending data anywhere." },
-    { "q": "Which words stay lower case in title case?", "a": "Short joining words such as a, an, and, of, the, to and in, unless they start the text." }
+    { "q": "Which words stay lower case in title case?", "a": "Short joining words such as a, an, and, of, the, to and in, unless they start the text." },
+    { "q": "What happens to numbers and emoji?", "a": "Numbers and emoji stay as they are in the plain cases, such as UPPER CASE and Title Case. The code styles, such as camelCase and snake_case, drop emoji and punctuation and keep the numbers." }
   ]
 }
