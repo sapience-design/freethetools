@@ -20,6 +20,7 @@ major version.
 - HEIC to JPG (Images, Convert): turn iPhone HEIC photos into JPG or PNG in the browser, one or many at once. Safari uses its own decoder; other browsers use libheif compiled to WebAssembly, run in a worker.
 - "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
 - Tools work offline after a visit. A small service worker keeps the home page and each tool you open, so the tool still runs with the network off. Tool pages say "Works offline" once this is active. An offline page lists the tools kept on your device.
+- Docs: how to self-host a copy of the site, and the search policy that says which pages are built for search (ADR 0011).
 
 ### Changed
 
