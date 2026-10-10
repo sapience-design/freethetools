@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Your browser's own image encoders", "AVIF": "Offered when your browser can write it" },
+  "specs": { "Engine": "Your browser's own image encoders", "AVIF": "Offered when your browser can write it", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Are my images uploaded?", "a": "No. They're converted inside this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Which format should I choose?", "a": "JPG for photos you'll share anywhere, PNG for screenshots and graphics with transparency, WebP for websites. AVIF is smallest but not every app opens it yet." }

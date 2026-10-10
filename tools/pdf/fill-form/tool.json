@@ -15,7 +15,8 @@
   "specs": {
     "Engine": "pdf-lib 1.17 (MIT), in your browser",
     "Fields": "Text, checkboxes, dropdowns, radio buttons and lists",
-    "Not yet": "Signatures, and forms that are just printed lines without real fields"
+    "Not yet": "Signatures, and forms that are just printed lines without real fields",
+    "Works offline": "Yes, once the page has loaded"
   },
   "faq": [
     { "q": "Is my form uploaded?", "a": "No. Forms often hold personal details, so it's filled inside this tab, and the page's security policy blocks it from sending data anywhere." },

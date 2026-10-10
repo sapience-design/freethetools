@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Plain JavaScript", "Title case": "Keeps small words like of, the and and lower case" },
+  "specs": { "Engine": "Plain JavaScript", "Title case": "Keeps small words like of, the and and lower case", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is my text sent anywhere?", "a": "No. It's converted in this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Which words stay lower case in title case?", "a": "Short joining words such as a, an, and, of, the, to and in, unless they start the text." },

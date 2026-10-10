@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "jsdiff 9 (BSD-3-Clause), in your browser", "Modes": "By line or by word" },
+  "specs": { "Engine": "jsdiff 9 (BSD-3-Clause), in your browser", "Modes": "By line or by word", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Are my texts sent anywhere?", "a": "No. The comparison runs in this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Lines or words?", "a": "Lines suits code and lists. Words suits prose, where a sentence changes by a word or two." }
