@@ -119,6 +119,15 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
         </div>
       </section>
 
+      <section class="ai-note card" aria-labelledby="ai-note-h">
+        <span class="ai-ic" aria-hidden="true"><Icon name="robot" /></span>
+        <div>
+          <h2 class="h3" id="ai-note-h">Using an AI assistant?</h2>
+          <p>Claude, Cursor and other assistants can run these tools on your own computer, free and with no login, so your files are never uploaded.</p>
+        </div>
+        <a class="btn line small" href="/about/#ai-h">How to set it up<Icon name="arrow-right" /></a>
+      </section>
+
       <section class="why" aria-labelledby="why-h">
         <h2 class="why-h" id="why-h">Why this exists</h2>
         <div class="why-lines">
@@ -230,6 +239,13 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     .gcard-n .short { display: inline; }
   }
   .gcard .rows > :global(li:nth-child(n + 4)), .gcard .rows > :global(li.want) { display: none; }
+
+  /* Using an AI assistant? One quiet row: icon, two lines, a link. */
+  .ai-note { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 18px; padding: 18px 20px; }
+  .ai-note .h3 { margin: 0 0 2px; }
+  .ai-note p { margin: 0; color: var(--soft); }
+  .ai-ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--well); font-size: 22px; }
+  @media (max-width: 640px) { .ai-note { grid-template-columns: auto minmax(0, 1fr); } .ai-note .btn { grid-column: 1 / -1; justify-self: start; } }
 
   /* Why this exists: the belief behind the site, set apart by space rather than a box. */
   .why { display: grid; justify-items: center; gap: 20px; text-align: center; padding: clamp(32px, 5vw, 64px) 0 clamp(8px, 2vw, 24px); border-top: 1px solid var(--hair); }
