@@ -417,6 +417,24 @@ function jpegWithDetails() {
 }
 function rationals(...v) { const b = Buffer.alloc(v.length * 4); v.forEach((x, i) => b.writeUInt32LE(x, i * 4)); return b; }
 
+test.describe("Video to GIF", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("Video to GIF turns a short video into a GIF", async ({ page }) => {
+    await page.goto("/images/video-to-gif/");
+    await page.setInputFiles("#v2g-file", "tools/images/video-to-gif/tests/fixtures/sample.webm");
+    await expect(page.locator("#v2g-meta")).toContainText("seconds");
+    await expect(page.locator("#v2g-estimate")).toContainText(/^About .+ frames/);
+    await page.locator('label[for="v2g-w320"]').click();
+    await page.locator('label[for="v2g-f5"]').click();
+    await page.click("#v2g-go");
+    await expect(page.locator("#v2g-out img")).toBeVisible({ timeout: 30000 });
+    const out = await download(page, () => page.locator("#v2g-out").getByRole("link", { name: /^Download/ }).click());
+    expect(out.subarray(0, 6).toString("latin1")).toBe("GIF89a");
+    expect(out.readUInt16LE(6)).toBe(320);
+  });
+});
+
 test.describe("image tools", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   const png = () => ({ name: "gradient.png", mimeType: "image/png", buffer: gradientPng(300, 200) });

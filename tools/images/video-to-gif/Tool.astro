@@ -1,0 +1,237 @@
+---
+// Video to GIF: choose a short video, pick the part, width and speed, press the button.
+// The browser's own video player gives the pictures; gifenc joins them into a GIF.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+import { WIDTHS, FPS, MAX_SECONDS } from "./core.js";
+const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: "Smoothest" };
+---
+<section class="tool" id="v2g-tool" aria-label="Video to GIF">
+  <Step n={1} title="Choose your video">
+    <DropZone prefix="v2g" toolId="images/video-to-gif" category="images" name="Video to GIF" accept="video/*,.mp4,.webm,.mov,.m4v" title="Drop your video here" hint={`MP4, WebM or MOV · short clips work best (up to ${MAX_SECONDS} seconds)`} button="Choose video" />
+    <ul class="file-list" id="v2g-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="v2g-thumb"><Icon name="film-strip" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="v2g-name"></span><span class="fmeta" id="v2g-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="v2g-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
+
+  <Step n={2} title="Pick the part and the size" state="later">
+    <div class="v2g-times">
+      <label class="field"><span>Start (seconds)</span><input type="number" id="v2g-start" min="0" step="0.1" value="0" inputmode="decimal"></label>
+      <label class="field"><span>End (seconds)</span><input type="number" id="v2g-end" min="0" step="0.1" value="3" inputmode="decimal"></label>
+    </div>
+    <fieldset class="field">
+      <legend>Width</legend>
+      <div class="seg">
+        {WIDTHS.map((w) => (<><input type="radio" name="v2g-width" id={`v2g-w${w}`} value={w} checked={w === 480} /><label for={`v2g-w${w}`}>{w} px</label></>))}
+      </div>
+    </fieldset>
+    <fieldset class="field">
+      <legend>Frames per second</legend>
+      <div class="seg">
+        {FPS.map((f) => (<><input type="radio" name="v2g-fps" id={`v2g-f${f}`} value={f} checked={f === 10} /><label for={`v2g-f${f}`}>{f}<small>{speed[f]}</small></label></>))}
+      </div>
+    </fieldset>
+    <label class="check"><input type="checkbox" id="v2g-loop" checked> Play again and again</label>
+    <p class="v2g-estimate" id="v2g-estimate" aria-live="polite">Pick a video to see the expected size.</p>
+    <button class="btn run" id="v2g-go" type="button" disabled><Icon name="gif" /><span>Make the GIF</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="v2g-result" aria-live="polite"><p class="res-wait">Your GIF will appear here.</p></div>
+    <div class="v2g-out" id="v2g-out" hidden></div>
+    <button class="btn quiet" id="v2g-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
+</section>
+
+<style>
+  .v2g-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
+  .v2g-estimate { margin: 0; font-weight: 600; }
+  .v2g-out { display: grid; gap: 12px; justify-items: start; }
+  .v2g-out :global(img) { max-width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--hair); }
+</style>
+
+<script>
+  import { GIFEncoder, quantize, applyPalette } from "gifenc";
+  import { clampOptions, frameTimes, outputSize, estimateBytes, isLarge, gifName, frameDelay } from "./core.js";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, showBusy, showDone, showError, showWait } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $("v2g-tool"), result = $("v2g-result"), out = $("v2g-out"), again = $("v2g-again");
+  const go = $("v2g-go") as HTMLButtonElement, startIn = $("v2g-start") as HTMLInputElement, endIn = $("v2g-end") as HTMLInputElement;
+  const loopIn = $("v2g-loop") as HTMLInputElement, estimate = $("v2g-estimate");
+  const WAIT = "Your GIF will appear here.";
+  let file: File | null = null, url = "", video: HTMLVideoElement | null = null, duration = 0, running = false;
+  let gifUrl = "";
+
+  const radio = (name: string) => +(document.querySelector(`input[name="${name}"]:checked`) as HTMLInputElement).value;
+  const nap = () => new Promise<void>((r) => setTimeout(r, 0));
+  function withTimeout<T>(p: Promise<T>, ms: number, msg: string) {
+    return new Promise<T>((res, rej) => {
+      const t = setTimeout(() => rej(new Error(msg)), ms);
+      p.then((v) => { clearTimeout(t); res(v); }, (e) => { clearTimeout(t); rej(e); });
+    });
+  }
+
+  function once(v: HTMLVideoElement, ok: string) {
+    return new Promise<void>((res, rej) => {
+      const done = () => { v.removeEventListener(ok, onOk); v.removeEventListener("error", onBad); };
+      const onOk = () => { done(); res(); };
+      const onBad = () => { done(); rej(new Error("Your browser could not play this video.")); };
+      v.addEventListener(ok, onOk); v.addEventListener("error", onBad);
+    });
+  }
+
+  async function seek(v: HTMLVideoElement, t: number) {
+    if (Math.abs(v.currentTime - t) < 0.001 && v.readyState >= 2) return;
+    const p = once(v, "seeked");
+    v.currentTime = t;
+    await withTimeout(p, 10000, "The video took too long to seek. Try a shorter clip.");
+  }
+
+  function options() {
+    return clampOptions({ start: parseFloat(startIn.value), end: parseFloat(endIn.value), duration, width: radio("v2g-width"), fps: radio("v2g-fps"), loop: loopIn.checked });
+  }
+
+  function plan() {
+    const o = options();
+    const times = frameTimes(o);
+    const size = outputSize(video?.videoWidth ?? 0, video?.videoHeight ?? 0, o.width);
+    return { o, times, size, bytes: estimateBytes({ frames: times.length, ...size }) };
+  }
+
+  function refresh() {
+    if (!video) return;
+    const { times, size, bytes } = plan();
+    const large = isLarge(bytes);
+    estimate.textContent = `About ${fmtBytes(bytes)} · ${times.length === 1 ? "1 frame" : `${times.length} frames`} · ${size.width} × ${size.height} px.` +
+      (large ? " That is a large GIF. Shorten the clip, pick a narrower width or fewer frames per second." : "");
+  }
+
+  function clear() {
+    if (gifUrl) { URL.revokeObjectURL(gifUrl); gifUrl = ""; }
+    out.replaceChildren(); out.hidden = true; again.hidden = true;
+  }
+
+  $("v2g-change").addEventListener("click", () => $("v2g-file").click());
+
+  wireDrop("v2g", async (picks) => {
+    const f = picks.find((x) => x.type.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogv)$/i.test(x.name));
+    if (!f) { showError(result, "That is not a video file. Choose an MP4, WebM or MOV file."); stepTo(root, 1); return; }
+    clear();
+    showWait(result, WAIT);
+    const next = URL.createObjectURL(f);
+    const v = document.createElement("video");
+    v.muted = true; v.preload = "auto"; v.playsInline = true;
+    try {
+      const meta = once(v, "loadedmetadata");
+      v.src = next;
+      await withTimeout(meta, 15000, "Your browser could not read this video.");
+      if (!isFinite(v.duration)) {
+        // Some recordings do not say how long they are. Jumping far ahead makes the browser find out.
+        const known = once(v, "durationchange");
+        v.currentTime = 1e7;
+        await withTimeout(known, 10000, "Your browser could not find the length of this video.");
+        await seek(v, 0).catch(() => {});
+      }
+      if (!v.videoWidth || !isFinite(v.duration) || v.duration <= 0) throw new Error("no picture");
+    } catch (e) {
+      URL.revokeObjectURL(next);
+      const msg = (e as Error).message;
+      showError(result, /seek|length|read/.test(msg) ? msg : "Your browser can't play this video. MP4 and WebM work best. Try another file, or open it in another browser.");
+      stepTo(root, 1);
+      return;
+    }
+    if (url) URL.revokeObjectURL(url);
+    url = next; video = v; file = f; duration = v.duration;
+    $("v2g-name").textContent = f.name;
+    $("v2g-meta").textContent = `${duration.toFixed(1)} seconds · ${v.videoWidth} × ${v.videoHeight} · ${fmtBytes(f.size)}`;
+    $("v2g-picked").hidden = false;
+    startIn.max = endIn.max = String(duration);
+    startIn.value = "0";
+    endIn.value = String(Math.round(Math.min(duration, 3) * 10) / 10);
+    compactDrop("v2g", true);
+    go.disabled = false;
+    refresh();
+    stepTo(root, 2);
+  });
+
+  // Changing an option makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    refresh();
+    if (!video || running || !result.querySelector(".res-done, .res-bad")) return;
+    clear();
+    showWait(result, WAIT);
+    stepTo(root, 2);
+  });
+  for (const el of [startIn, endIn]) el.addEventListener("change", () => {
+    if (!video) return;
+    const o = options();
+    startIn.value = String(o.start); endIn.value = String(o.end);
+    refresh();
+  });
+
+  go.addEventListener("click", async () => {
+    if (!video || !file || running) return;
+    running = true;
+    go.disabled = true;
+    clear();
+    const { o, times, size } = plan();
+    startIn.value = String(o.start); endIn.value = String(o.end);
+    stepTo(root, 3);
+    await showBusy(result, "This can take a minute. Please keep this page open.", "Making your GIF…");
+    const note = result.querySelector<HTMLElement>(".res-busy > span:last-child");
+    const canvas = document.createElement("canvas");
+    canvas.width = size.width; canvas.height = size.height;
+    const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
+    const enc = GIFEncoder();
+    const delay = frameDelay(o.fps);
+    try {
+      for (let i = 0; i < times.length; i++) {
+        if (note) note.textContent = `Frame ${i + 1} of ${times.length}. Please keep this page open.`;
+        await nap(); // let the page draw the new number before this frame's work
+        await seek(video, Math.min(times[i], Math.max(0, duration - 0.05)));
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, size.width, size.height);
+        ctx.drawImage(video, 0, 0, size.width, size.height);
+        const { data } = ctx.getImageData(0, 0, size.width, size.height);
+        const palette = quantize(data, 256, { format: "rgb444" });
+        const index = applyPalette(data, palette, "rgb444");
+        enc.writeFrame(index, size.width, size.height, { palette, delay, repeat: o.loop ? 0 : -1 });
+      }
+      enc.finish();
+      const blob = new Blob([enc.bytes()], { type: "image/gif" });
+      gifUrl = URL.createObjectURL(blob);
+      const img = document.createElement("img");
+      img.src = gifUrl; img.width = size.width; img.height = size.height;
+      img.alt = "Preview of your GIF";
+      const name = gifName(file.name);
+      out.replaceChildren(img, downloadLink(blob, name, "image/gif", `Download ${name} (${fmtBytes(blob.size)})`));
+      out.hidden = false; again.hidden = false;
+      showDone(result, `Done. Your GIF has ${times.length} ${times.length === 1 ? "frame" : "frames"} and is ${fmtBytes(blob.size)}.`);
+      stepTo(root, 4);
+    } catch (e) {
+      showError(result, `${(e as Error).message || "Something went wrong."} Try a shorter clip or a narrower width.`);
+      stepTo(root, 2);
+    }
+    running = false;
+    go.disabled = false;
+  });
+
+  again.addEventListener("click", () => {
+    clear();
+    showWait(result, WAIT);
+    if (url) URL.revokeObjectURL(url);
+    url = ""; video = null; file = null;
+    $("v2g-picked").hidden = true;
+    go.disabled = true;
+    estimate.textContent = "Pick a video to see the expected size.";
+    compactDrop("v2g", false);
+    stepTo(root, 1);
+    $("v2g-drop").focus();
+  });
+</script>

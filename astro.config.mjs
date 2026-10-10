@@ -33,6 +33,7 @@ export default defineConfig({
         "connect-src 'self'",
         "worker-src 'self' blob:",
         "img-src 'self' data: blob:",
+        "media-src 'self' blob:",
         "font-src 'self'",
         "object-src 'none'",
         "base-uri 'self'",
