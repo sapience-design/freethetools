@@ -66,8 +66,15 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
     <div id="default" class="default">
       <section class="popular" aria-labelledby="popular-h">
-        <h2 class="h2" id="popular-h">Most people come for</h2>
-        <ul class="pops">
+        <div class="pop-head">
+          <h2 class="h2" id="popular-h">Most people come for</h2>
+          {/* Four at a time; swipe, or use these, for the rest. Shown only when there is more. */}
+          <div class="pop-nav" id="pop-nav" hidden>
+            <button type="button" class="icon-btn" id="pop-prev" aria-controls="pops" aria-label="Previous tools"><Icon name="caret-left" /></button>
+            <button type="button" class="icon-btn" id="pop-next" aria-controls="pops" aria-label="More tools"><Icon name="caret-right" /></button>
+          </div>
+        </div>
+        <ul class="pops" id="pops">
           {popular.map(({ t, when }) => (
             <li>
               <a class="pop" href={t.url} data-g={t.category.slug}>
@@ -93,7 +100,6 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
                 {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
               </div>
             </fieldset>
-            <p class="sort-note" id="sort-note" role="status" hidden>Usage numbers can't load right now, so tools are shown A to Z.</p>
           </div>
         </div>
         <div class="gcards">
@@ -162,7 +168,6 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .sortbox { margin-left: auto; align-self: center; display: grid; justify-items: end; gap: 4px; min-width: 0; }
   .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
   .sortrow legend { float: left; padding: 0; margin-right: 10px; font-size: 14px; color: var(--soft); line-height: 44px; }
-  .sort-note { font-size: 14px; color: var(--muted); text-align: right; }
   .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
   .segmented input { position: absolute; opacity: 0; pointer-events: none; }
   .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
@@ -183,10 +188,18 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .results :global(.rows a.sel) { background: var(--row-hover); box-shadow: inset 4px 0 0 var(--edge); }
 
   .default { display: grid; gap: clamp(56px, 7vw, 96px); }
-  .popular .h2, .all-head { margin-bottom: 20px; }
-  /* Three wide cards per row, so each title fits on one line. */
-  .pops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-  .pops li { min-width: 0; }
+  .pop-head, .all-head { margin-bottom: 20px; }
+  .pop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .pop-nav { display: flex; gap: 8px; }
+  /* Four cards at a time (two on tablets, one and a peek on phones); the rest scroll sideways.
+     The padding keeps the cards' hard shadow and hover lift inside the scrolling box. */
+  .pops {
+    list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 3 * 24px) / 4); gap: 24px;
+    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none;
+    margin: -4px -4px -8px; padding: 4px 4px 8px; scroll-padding-inline: 4px;
+  }
+  .pops::-webkit-scrollbar { display: none; }
+  .pops li { min-width: 0; scroll-snap-align: start; }
   .pop {
     display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-content: start; height: 100%; padding: 10px 16px 16px 10px;
     border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); text-decoration: none; transition: transform .08s, box-shadow .08s;
@@ -224,27 +237,22 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .why-lines { display: grid; gap: 4px; }
   .why-lines p, .why-end { margin: 0; font-family: var(--display); font-size: clamp(22px, 1rem + 1.2vw, 30px); line-height: 1.25; letter-spacing: -0.01em; }
   .why-lines p { color: var(--soft); }
-  .why-end { font-weight: 700; max-width: 22ch; }
+  .why-end { font-weight: 700; }
 
   @media (max-width: 960px) {
-    .pops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pops { grid-auto-columns: calc((100% - 24px) / 2); }
   }
 
   @media (max-width: 640px) {
     .hero { justify-items: stretch; text-align: left; padding: 0; }
     .trust, .sortrow { justify-content: flex-start; }
     .sortbox { margin-left: 0; justify-items: start; width: 100%; }
-    .sort-note { text-align: left; }
     .results.is-empty { justify-items: stretch; text-align: left; }
     .results.is-empty .results-head { justify-content: flex-start; }
     .results.is-empty #results-clear { justify-self: start; }
     .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; margin: 0 calc(var(--gutter) * -1); padding: 2px var(--gutter) 6px; width: calc(100% + 2 * var(--gutter)); }
-    .pops { grid-template-columns: 1fr; }
-    .pop { grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; min-height: 72px; padding: 8px 12px 8px 8px; gap: 2px 12px; }
-    .pop-shot { grid-column: 1; grid-row: 1 / span 2; width: 56px; height: 56px; aspect-ratio: auto; margin: 0; }
-    .pop-task { grid-column: 2; grid-row: 1; align-self: end; }
-    .pop-sub { grid-column: 2; grid-row: 2; align-self: start; }
-    .pop-go { grid-column: 3; grid-row: 1 / span 2; }
+    /* One card and a peek of the next, running to the screen's edges like the chips. */
+    .pops { grid-auto-columns: 80%; gap: 16px; margin: -4px calc(var(--gutter) * -1) -8px; padding: 4px var(--gutter) 8px; scroll-padding-inline: var(--gutter); }
   }
 </style>
 
@@ -274,7 +282,6 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   const say = (text: string) => { if (findStatus.textContent !== text) findStatus.textContent = text; };
   let hinted = false;
   let stats: Record<string, ToolStats> | null = null;
-  let statsTried = false; // the stats request has answered (or failed)
   const sortBy = () => radios.find((r) => r.checked)?.value ?? "az";
 
   // ---- Sorting: each group card keeps its rows in the chosen order; planned tools stay last ----
@@ -312,7 +319,6 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     }
     const missing = !stats && (by === "used" || by === "liked");
     $("all-sub").textContent = missing ? SUBS.az : SUBS[by];
-    $("sort-note").hidden = !missing || !statsTried;
     if (!results.hidden) render();
   }
 
@@ -411,12 +417,32 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   (radios.find((r) => r.value === saved) ?? radios[0]).checked = true;
 
   // All four options always show. Without usage numbers (a preview, offline, blocked), the two
-  // usage sorts fall back to A to Z and a note says why.
+  // usage sorts fall back to A to Z, and the label beside "All tools" says so.
   summary().then((s) => {
     stats = s;
-    statsTried = true;
     sort();
   });
+
+  // ---- Most people come for: four at a time; swipe or the arrows show the rest ----
+  const pops = $("pops"), popNav = $("pop-nav");
+  const prev = $<HTMLButtonElement>("pop-prev"), next = $<HTMLButtonElement>("pop-next");
+  function popState() {
+    const max = pops.scrollWidth - pops.clientWidth;
+    popNav.hidden = max <= 1;
+    prev.disabled = pops.scrollLeft <= 1;
+    next.disabled = pops.scrollLeft >= max - 1;
+    // A button that just became disabled can't keep focus; hand it to the other one.
+    if (document.activeElement === next && next.disabled) prev.focus();
+    if (document.activeElement === prev && prev.disabled) next.focus();
+  }
+  const slide = (dir: number) => pops.scrollBy({ left: dir * pops.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  prev.addEventListener("click", () => slide(-1));
+  next.addEventListener("click", () => slide(1));
+  pops.addEventListener("scroll", popState, { passive: true });
+  // A card that is only peeking counts as visible, so the browser won't scroll to it on Tab.
+  pops.addEventListener("focusin", (e) => (e.target as HTMLElement).closest("li")?.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  // Also after a search hides and shows the section again, which changes its size.
+  new ResizeObserver(popState).observe(pops);
 
   const q = new URLSearchParams(location.search).get("q");
   if (q) { input.value = q; key.hidden = true; }

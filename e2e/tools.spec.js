@@ -569,19 +569,40 @@ test.describe("theme, search, sorting, likes and stats", () => {
     const labels = ["Most used", "Newest", "Most liked", "A–Z"];
     await page.goto("/");
     for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
-    await expect(page.locator("#sort-note")).toBeHidden();
+    await expect(page.locator("#all-sub")).toHaveText("Most used first in each group");
 
-    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z.
-    // (An empty answer takes the same path as the preview's 503, without a console error.)
+    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z,
+    // and the label beside "All tools" says so. (An empty answer takes the same path as the
+    // preview's 503, without a console error.)
     await page.route("**/api/stats/summary", (r) => r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
     await page.reload();
     for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
     await page.click('label[for="sort-liked"]');
-    await expect(page.locator("#sort-note")).toBeVisible();
+    await expect(page.locator("#all-sub")).toHaveText("A to Z in each group");
     const names = await page.locator('.gcard[data-g="pdf"] [data-sortable] > li:not(.want)').evaluateAll((els) => els.map((e) => e.dataset.name));
     expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
     await page.click('label[for="sort-new"]');
-    await expect(page.locator("#sort-note")).toBeHidden();
+    await expect(page.locator("#all-sub")).toHaveText("Newest first in each group");
+  });
+
+  test("Most people come for shows four at a time, and More tools shows the rest", async ({ page }) => {
+    await page.goto("/");
+    const pops = page.locator("#pops");
+    const whole = () => pops.evaluate((ul) => {
+      const box = ul.getBoundingClientRect();
+      return [...ul.children].filter((li) => { const r = li.getBoundingClientRect(); return r.left >= box.left - 1 && r.right <= box.right + 1; }).length;
+    });
+    expect(await whole()).toBe(4);
+    const prev = page.getByRole("button", { name: "Previous tools" }), more = page.getByRole("button", { name: "More tools" });
+    await expect(prev).toBeDisabled();
+    await more.click();
+    await expect(more).toBeDisabled();
+    await expect(pops.locator("li").last()).toBeInViewport({ ratio: 0.9 });
+    // The button that ran out hands keyboard focus to the other one.
+    await expect(prev).toBeFocused();
+    await prev.click();
+    await expect(prev).toBeDisabled();
+    await expect(more).toBeFocused();
   });
 
   test("Sort by sits on the All tools line, moves to a group's results, and hides for a text search", async ({ page }) => {

@@ -11,7 +11,8 @@ major version.
 ### Changed
 
 - The home page headline is "Everyday tools should be free." A "Why this exists" section near the bottom says what the site stands for: everyday tools shouldn't cost money, come with ads, put your files at risk or be hard to find. The About page and the README open with the same lines.
-- The home page has more room: three popular tools per row (two on tablets) with one-line titles, and wider gaps between sections and cards.
+- The home page has more room: "Most people come for" shows four tools at a time (two on tablets, one on phones) and the rest scroll sideways, with arrow buttons for mouse and keyboard; sections and cards have wider gaps.
+- The note "Usage numbers can't load right now" is gone. When usage numbers are missing, the label beside "All tools" already says the tools are shown A to Z.
 
 ## [1.1.0] - 2026-10-09
 
