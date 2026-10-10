@@ -7,7 +7,6 @@
   { "name": "Compress Images", "category": "images", "section": "Optimize", "blurb": "Smaller photos with no visible loss." },
   { "name": "Resize Images", "category": "images", "section": "Optimize", "blurb": "Exact sizes, one image or a whole batch." },
   { "name": "Convert Image Format", "category": "images", "section": "Convert", "blurb": "PNG, JPG and WebP, back and forth." },
-  { "name": "HEIC to JPG", "category": "images", "section": "Convert", "blurb": "Open iPhone photos anywhere." },
   { "name": "Remove Photo Location", "category": "images", "section": "Privacy", "blurb": "Strip GPS and camera details before you share." },
   { "name": "Word Counter", "category": "text", "section": "Count & Compare", "blurb": "Words, characters and reading time as you type." },
   { "name": "Text Diff", "category": "text", "section": "Count & Compare", "blurb": "See exactly what changed between two texts." },

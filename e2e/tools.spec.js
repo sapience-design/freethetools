@@ -457,6 +457,21 @@ test("Remove Photo Location says when there is nothing to remove", async ({ page
   await expect(page.locator("#rml-picked .ffacts .good")).toContainText("already safe to share");
 });
 
+test.describe("HEIC to JPG", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("converts a HEIC photo to a JPEG", async ({ page }) => {
+    await page.goto("/images/heic-to-jpg/");
+    await page.setInputFiles("#heic-file", "tools/images/heic-to-jpg/tests/fixtures/sample.heic");
+    await page.click("#heic-go");
+    const link = page.getByRole("link", { name: "Download" });
+    await expect(link).toBeVisible({ timeout: 30000 });
+    await expect(page.locator("#heic-list .fmeta")).toContainText("HEIC → JPG");
+    const out = await download(page, () => link.click());
+    expect([...out.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+  });
+});
+
 test.describe("PDF to images", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   test("renders every page as a PNG", async ({ page }) => {
