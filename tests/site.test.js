@@ -182,3 +182,28 @@ test("the AI assistants page is in the sitemap, and /ai.md has the prompt and ev
   assert.match(html("ai/index.html"), /<h1[^>]*>Use these tools from your AI assistant/);
   assert.match(html("llms.txt"), /\/ai\.md/);
 });
+
+// Structured data search engines read: breadcrumbs on every page but home, and the studio as an
+// organisation (docs/explanation/seo-policy.md).
+const ldBlocks = (h) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+for (const page of pages.filter((p) => p !== "index.html" && p !== "404.html")) {
+  test(`${page}: breadcrumbs end at this page`, () => {
+    const h = html(page);
+    const crumbs = ldBlocks(h).find((b) => b["@type"] === "BreadcrumbList");
+    assert.ok(crumbs, "no BreadcrumbList");
+    const items = crumbs.itemListElement;
+    assert.ok(items.length >= 2, "needs at least two steps");
+    assert.equal(items[0].item, "https://freethetools.com/");
+    assert.deepEqual(items.map((i) => i.position), items.map((_, n) => n + 1));
+    const canonical = h.match(/<link rel="canonical" href="([^"]+)"/)[1];
+    assert.equal(items.at(-1).item, canonical, "the last step is this page");
+  });
+}
+for (const t of tools) {
+  test(`${t.id}: breadcrumbs go home, group, tool, and the studio is an organisation`, () => {
+    const blocks = ldBlocks(html(`${t.id}/index.html`));
+    assert.equal(blocks.find((b) => b["@type"] === "BreadcrumbList").itemListElement.length, 3);
+    const app = blocks.flatMap((b) => b["@graph"] ?? [b]).find((b) => b["@type"] === "WebApplication");
+    for (const a of app.author) if (a.name === "Sapience Design") assert.equal(a["@type"], "Organization");
+  });
+}

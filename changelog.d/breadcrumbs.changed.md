@@ -1,0 +1,1 @@
+- Every page except home tells search engines where it sits (Free the Tools › group › tool), and tool pages name Sapience Design as an organisation, not a person.
