@@ -139,7 +139,7 @@ claude mcp add freethetools -- npx -y freethetools mcp --allow-save ~/Documents/
 **File names**
 
 - The package never saves a file whose name starts with a dot, or has no extension.
-- It never saves a file that can run a program or start by itself: `.bat .cmd .com .exe .dll .msi .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .hta .scr .pif .lnk .url .reg .sh .bash .zsh .command .desktop .app .jar .py .rb .pl`.
+- It never saves a file that can run a program or start by itself: `.bat .cmd .com .exe .dll .msi .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .hta .scr .pif .lnk .url .reg .sh .bash .zsh .command .desktop .app .jar .py .rb .pl .mjs .cjs .scpt .workflow .ps1xml .inf .cpl`.
 - This holds for the library as well. The error names the file and asks for another name.
 
 ## Limits
