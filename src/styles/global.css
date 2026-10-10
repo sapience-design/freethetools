@@ -57,7 +57,7 @@
     --tint: #cdc9c0; --logo-filter: invert(1); --scroll: #4a4a50;
     color-scheme: dark;
   }
-  :root:not([data-theme="light"]) :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .res-busy, .res-done, .res-bad, .tool-error,
+  :root:not([data-theme="light"]) :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .safe-note, .res-busy, .res-done, .res-bad, .tool-error,
   .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
     --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
     --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);
@@ -73,7 +73,7 @@
   --tint: #cdc9c0; --logo-filter: invert(1); --scroll: #4a4a50;
   color-scheme: dark;
 }
-:root[data-theme="dark"] :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .res-busy, .res-done, .res-bad, .tool-error,
+:root[data-theme="dark"] :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .safe-note, .res-busy, .res-done, .res-bad, .tool-error,
   .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
   --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
   --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);

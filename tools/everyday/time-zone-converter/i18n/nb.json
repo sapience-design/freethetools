@@ -1,0 +1,31 @@
+{
+  "name": "Tidssoneomregner",
+  "task": "Regn om mellom tidssoner",
+  "tagline": "Velg et klokkeslett i én by og se det i andre.",
+  "seoTitle": "Tidssoneomregner og møteplanlegger",
+  "description": "Regn om et klokkeslett mellom byer og tidssoner, med sommertid håndtert nøyaktig og arbeidstid markert. Gratis, uten registrering, virker frakoblet.",
+  "keywords": [
+    "tidssone",
+    "regn om tid",
+    "møteplanlegger",
+    "utc",
+    "cet",
+    "verdensklokke",
+    "sommertid"
+  ],
+  "specs": {
+    "Motor": "Nettleserens tidssonedatabase (Intl)",
+    "Sommertid": "Håndtert for den nøyaktige datoen du velger",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Håndterer den sommertid?",
+      "a": "Ja. Den bruker nettleserens innebygde tidssonedatabase, så forskjellen er riktig for datoen du velger, ikke bare for i dag."
+    },
+    {
+      "q": "Hva regnes som arbeidstid?",
+      "a": "08:00 til 18:00 lokal tid. Tidspunkter utenfor er markert, så du ser et dårlig møtetidspunkt med et blikk."
+    }
+  ]
+}

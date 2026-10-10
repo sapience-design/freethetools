@@ -1,0 +1,43 @@
+{
+  "name": "Komprimer PDF",
+  "task": "Gjør en PDF mindre",
+  "tagline": "Krymp en PDF så den passer i en e-post eller under en opplastingsgrense.",
+  "seoTitle": "Komprimer PDF uten å laste opp",
+  "description": "Gjør en PDF mindre, gratis og rett i nettleseren. Filer lastes aldri opp. Velg kvalitet, eller behold bare første side. Ingen registrering.",
+  "keywords": [
+    "komprimer",
+    "mindre",
+    "krymp",
+    "filstørrelse",
+    "redusere",
+    "første side",
+    "ghostscript"
+  ],
+  "specs": {
+    "Motor": "Ghostscript 9.56, kompilert til WebAssembly",
+    "Første gang": "16 MB, deretter lagret av nettleseren din",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp noe sted?",
+      "a": "Nei. Komprimeringen er Ghostscript kompilert til WebAssembly. Den lastes fra dette nettstedet og kjører i nettleserfanen din. Sidens sikkerhetspolicy hindrer at noe sendes ut. Etter at du har åpnet verktøyet én gang på denne enheten, fungerer det også uten nett."
+    },
+    {
+      "q": "Hvilken kvalitet bør jeg velge?",
+      "a": "Balansert passer for e-post og deling. Minst passer for lesing på skjerm. Utskrift beholder bilder skarpe nok for papir. Prepress beholder fargeprofiler for profesjonell trykking."
+    },
+    {
+      "q": "Hvorfor ble filen større?",
+      "a": "PDF-er som mest består av tekst og vektortegninger er ofte små fra før. Ghostscript skriver om hele filen, så resultatet kan bli litt større. Behold originalen i så fall."
+    },
+    {
+      "q": "Kan den åpne passordbeskyttede PDF-er?",
+      "a": "Ikke ennå. Fjern passordet i PDF-leseren din først."
+    },
+    {
+      "q": "Kan jeg kjøre den fra et skript eller en KI-assistent?",
+      "a": "Ja. npm-pakken freethetools kjører den samme komprimeringen på datamaskinen din, for skript og KI-assistenter: npx -y freethetools run compress_pdf '{\"file\":\"report.pdf\"}'. Ingenting lastes opp."
+    }
+  ]
+}

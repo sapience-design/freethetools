@@ -1,0 +1,40 @@
+{
+  "name": "Video til GIF",
+  "task": "Gjør en video om til en GIF",
+  "tagline": "Gjør et kort klipp eller en skjermopptak om til en GIF.",
+  "seoTitle": "Video til GIF uten å laste opp",
+  "description": "Gjør en kort MP4-, WebM- eller MOV-video om til en animert GIF, gratis i nettleseren. Velg start, slutt, bredde og fart. Videoen lastes aldri opp.",
+  "keywords": [
+    "video til gif",
+    "mp4 til gif",
+    "webm til gif",
+    "mov til gif",
+    "skjermopptak",
+    "lag en gif",
+    "animert gif"
+  ],
+  "specs": {
+    "Inndata": "MP4, WebM eller MOV, det nettleseren din kan spille",
+    "Bredde": "320, 480 eller 640 piksler",
+    "Bildefrekvens": "5, 10 eller 15 per sekund",
+    "Motor": "Nettleserens videospiller og gifenc-koderen"
+  },
+  "faq": [
+    {
+      "q": "Lastes videoen min opp?",
+      "a": "Nei. Nettleseren spiller videoen, og denne siden gjør bildene om til en GIF inni fanen. Sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Hvorfor vil ikke videoen min åpne seg?",
+      "a": "Nettleseren kan bare åpne videotyper den kan spille. MP4 og WebM virker i alle moderne nettlesere. MOV virker i Safari og noen andre. Hvis din feiler, åpne videoen i en annen nettleser eller gjør den om til MP4 først."
+    },
+    {
+      "q": "Hvorfor er GIF-en min så stor?",
+      "a": "En GIF lagrer hvert bilde som et bilde. Filen vokser med bredden, bildefrekvensen og lengden. Kort ned klippet, velg en smalere bredde eller velg 5 bilder per sekund."
+    },
+    {
+      "q": "Har GIF-en lyd?",
+      "a": "Nei. GIF-filer kan ikke ha lyd."
+    }
+  ]
+}

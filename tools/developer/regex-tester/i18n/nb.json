@@ -1,0 +1,31 @@
+{
+  "name": "Regex-tester",
+  "task": "Test et søkemønster",
+  "tagline": "Prøv et regulært uttrykk og se hvert treff.",
+  "seoTitle": "Regex-tester for JavaScript",
+  "description": "Test regulære uttrykk i JavaScript direkte: treff utheves, grupper og navngitte grupper listes, tydelige feil. Gratis, og teksten blir på siden.",
+  "keywords": [
+    "regex",
+    "regulært uttrykk",
+    "regex-tester",
+    "regexp",
+    "mønster",
+    "treff",
+    "javascript"
+  ],
+  "specs": {
+    "Motor": "Nettleserens egen regex-motor for JavaScript",
+    "Flagg": "g, i, m, s, u og y",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Hvilken regex-variant er dette?",
+      "a": "JavaScript (ECMAScript), slik den brukes i nettlesere og Node.js. De fleste mønstre virker likt i andre språk. Lookbehind og navngitte grupper støttes."
+    },
+    {
+      "q": "Sendes teksten min noe sted?",
+      "a": "Nei. Søkingen kjører i denne fanen, og sidens sikkerhetspolicy blokkerer alle tilkoblinger utenfra."
+    }
+  ]
+}

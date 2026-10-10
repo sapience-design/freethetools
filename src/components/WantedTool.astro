@@ -5,60 +5,69 @@
 // and this address becomes the tool.
 import Base from "../layouts/Base.astro";
 import Icon from "./Icon.astro";
-import { loadCatalogue, SUGGEST_URL } from "../data/catalogue";
+import { loadCatalogue, groupIn, wantedIn, SUGGEST_URL } from "../data/catalogue";
+import { t as ui, jsStrings, localePath } from "../i18n/index";
 
-interface Props { category: string; slug: string }
-const { category, slug } = Astro.props;
+interface Props { category: string; slug: string; lang?: string }
+const { category, slug, lang = "en" } = Astro.props;
+const T = (key: string, vars: Record<string, string | number> = {}) => ui(lang, `wanted.${key}`, vars);
 const { aisles } = await loadCatalogue();
 const group = aisles.find((a) => a.slug === category)!;
-const w = group.wanted.find((x) => x.slug === slug)!;
+const w0 = group.wanted.find((x) => x.slug === slug)!;
+const w = { ...w0, ...wantedIn(w0, lang) };
+const groupText = groupIn(group, lang);
 const ask = `${SUGGEST_URL}?tool=${encodeURIComponent(w.id)}`;
+const wantedJs = JSON.stringify(jsStrings(lang, "wanted")).replace(/</g, "\\u003c");
 ---
 <Base
   category={category}
+  lang={lang}
   crumb={w.name}
   noindex
-  title={`${w.name}, not built yet | Free the Tools`}
-  description={`${w.name} is not built yet. Say you want it, tell us what you need, or help build it.`}
+  title={T("title", { name: w.name })}
+  description={T("description", { name: w.name })}
 >
   <div class="page narrow wanted" data-g={category}>
-    <a class="back" href={`/${category}/`}><Icon name="caret-left" />{group.label}</a>
+    <a class="back" href={localePath(lang, `/${category}/`)}><Icon name="caret-left" />{groupText.label}</a>
     <header class="head">
-      <span class="tag"><span class="tag-ic"><Icon name={group.mark} /></span>Not built yet</span>
+      <span class="tag"><span class="tag-ic"><Icon name={group.mark} /></span>{T("tag")}</span>
       <h1 class="h1">{w.task}</h1>
-      <p class="lede">{w.name} is on our list. Nobody has built it yet, so there is nothing to use on this page.</p>
+      <p class="lede">{T("lede", { name: w.name })}</p>
     </header>
 
     <section class="card concept" aria-labelledby="concept-h">
-      <h2 class="h3" id="concept-h">What it will do</h2>
+      <h2 class="h3" id="concept-h">{T("conceptTitle")}</h2>
       <dl>
-        <div><dt>What goes in</dt><dd>{w.concept.in}</dd></div>
-        <div><dt>What comes out</dt><dd>{w.concept.out}</dd></div>
+        <div><dt>{T("in")}</dt><dd>{w.concept.in}</dd></div>
+        <div><dt>{T("out")}</dt><dd>{w.concept.out}</dd></div>
         <div>
-          <dt>Options</dt>
+          <dt>{T("options")}</dt>
           <dd><ul>{w.concept.options.map((o) => <li>{o}</li>)}</ul></dd>
         </div>
       </dl>
-      <p class="safe-note"><Icon name="shield-check" /><span>Like every tool here, it will run on your device. Nothing will be uploaded.</span></p>
+      <p class="safe-note"><Icon name="shield-check" /><span>{T("safe")}</span></p>
     </section>
 
     <section class="card want" aria-labelledby="want-h">
-      <h2 class="h3" id="want-h">Do you need this?</h2>
+      <h2 class="h3" id="want-h">{T("needTitle")}</h2>
       <p class="count" id="want-count" role="status" data-id={w.id}></p>
       <div class="actions">
-        <button class="btn" type="button" id="want-btn"><Icon name="thumbs-up" />I want this</button>
-        <a class="btn line" href={ask}><Icon name="chat-circle-text" />Tell us what you need</a>
-        <a class="btn line" href="/support/#company-h"><Icon name="hand-heart" />Sponsor this tool</a>
+        <button class="btn" type="button" id="want-btn"><Icon name="thumbs-up" />{T("want")}</button>
+        <a class="btn line" href={ask}><Icon name="chat-circle-text" />{T("tell")}</a>
+        <a class="btn line" href="/support/#company-h"><Icon name="hand-heart" />{T("sponsor")}</a>
       </div>
-      <p class="privacy">Pressing the button counts one vote for today. It sends no name, email or ID.</p>
+      <p class="privacy">{T("privacy")}</p>
     </section>
 
-    <p class="dev"><a href={w.request}><Icon name="code" />For developers: build it</a></p>
+    <p class="dev"><a href={w.request}><Icon name="code" />{T("dev")}</a></p>
   </div>
+  <script type="application/json" id="ftt-wanted" set:html={wantedJs} />
 </Base>
 
 <script>
   import { fullSummary, hasWanted, wantThis, fmtCount } from "../lib/stats";
+  import { txt, txtN } from "../lib/ui";
+  const w = (key: string, fallback: string) => txt(key, fallback, {}, "ftt-wanted");
   const box = document.getElementById("want-count")!;
   const btn = document.getElementById("want-btn") as HTMLButtonElement;
   const id = box.dataset.id!;
@@ -67,9 +76,9 @@ const ask = `${SUGGEST_URL}?tool=${encodeURIComponent(w.id)}`;
 
   const show = () => {
     const n = total ?? 0;
-    box.textContent = total === null ? "" : n > 0 ? (n === 1 ? "1 person wants this." : `${fmtCount(n)} people want this.`) : "Nobody has asked for this yet. Be the first.";
+    box.textContent = total === null ? "" : n > 0 ? txtN("people", n, { one: "{n} person wants this.", other: "{n} people want this." }, { n: fmtCount(n) }, "ftt-wanted") : w("none", "Nobody has asked for this yet. Be the first.");
   };
-  const done = () => { btn.setAttribute("aria-pressed", "true"); btn.disabled = true; label.textContent = "You want this"; };
+  const done = () => { btn.setAttribute("aria-pressed", "true"); btn.disabled = true; label.textContent = w("done", "You want this"); };
 
   if (hasWanted(id)) done();
   fullSummary().then((s) => { if (s) { total = s.wants?.[id] ?? 0; show(); } });
@@ -80,7 +89,7 @@ const ask = `${SUGGEST_URL}?tool=${encodeURIComponent(w.id)}`;
     const n = await wantThis(id);
     if (n === null) {
       btn.disabled = false;
-      box.textContent = "We could not count that just now. Please try again later.";
+      box.textContent = w("failed", "We could not count that just now. Please try again later.");
       return;
     }
     total = n;

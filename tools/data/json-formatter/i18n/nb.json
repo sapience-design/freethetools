@@ -1,0 +1,31 @@
+{
+  "name": "JSON-formaterer",
+  "task": "Rydd opp i og sjekk JSON",
+  "tagline": "Gjør JSON lesbar, eller finn linjen som ødelegger den.",
+  "seoTitle": "JSON-formaterer og validering",
+  "description": "Formater, valider og minimer JSON gratis i nettleseren, med feil som viser linje og kolonne. Sorter nøkler også. Dataene blir på siden.",
+  "keywords": [
+    "json",
+    "formater",
+    "pen utskrift",
+    "valider",
+    "minimer",
+    "sorter nøkler",
+    "rydd"
+  ],
+  "specs": {
+    "Motor": "Nettleserens egen JSON-leser",
+    "Valg": "2 eller 4 mellomrom, tabulatorer, minimert; sorter nøkler",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Sendes JSON-en min noe sted?",
+      "a": "Nei. Den leses i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut. Da er det trygt med API-nøkler og kundedata."
+    },
+    {
+      "q": "Hvorfor sier den at JSON-en min er ugyldig?",
+      "a": "De vanligste årsakene er et komma for mye på slutten, enkle anførselstegn i stedet for doble, eller en manglende lukkeparentes. Feilmeldingen viser linjen og kolonnen du skal se på."
+    }
+  ]
+}

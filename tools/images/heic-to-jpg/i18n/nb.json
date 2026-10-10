@@ -1,0 +1,36 @@
+{
+  "name": "HEIC til JPG",
+  "task": "Åpne iPhone-bilder overalt",
+  "tagline": "Gjør HEIC-bilder fra iPhone om til JPG eller PNG som åpnes overalt.",
+  "seoTitle": "Konverter HEIC til JPG uten å laste opp",
+  "description": "Gjør HEIC- og HEIF-bilder fra en iPhone om til JPG eller PNG, gratis i nettleseren, ett eller mange om gangen. Bildene forlater aldri enheten din.",
+  "keywords": [
+    "heic til jpg",
+    "heic til png",
+    "heif",
+    "iphone-bilde",
+    "konverter heic",
+    "åpne heic",
+    "heic-konverterer"
+  ],
+  "specs": {
+    "Motor": "libheif 1.22 (LGPL-3.0) kompilert til WebAssembly, pakket av heic-to",
+    "Safari": "Bruker nettleserens egen HEIC-dekoder, uten nedlasting",
+    "Første gang": "Omtrent 3 MB i andre nettlesere, deretter lagret",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes bildene mine opp?",
+      "a": "Nei. De dekodes og kodes på nytt inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut. Når siden er lastet, kan du gå frakoblet, og det virker fortsatt."
+    },
+    {
+      "q": "Hvorfor vil ikke noen HEIC-filer åpne seg?",
+      "a": "Dekoderen takler stillbildene en iPhone tar. Den kan ikke åpne HEIC-filer med video, en bildeserie eller en uvanlig kodek, og heller ikke en fil som ble kuttet av under overføring. Raden for den filen sier at den ikke kunne leses, og de andre konverteres likevel."
+    },
+    {
+      "q": "Hva skjer med Live Photos?",
+      "a": "Et Live Photo er et stillbilde i HEIC pluss en kort video. Du får stillbildet som JPG eller PNG. Videodelen er en egen .mov-fil som dette verktøyet lar være."
+    }
+  ]
+}

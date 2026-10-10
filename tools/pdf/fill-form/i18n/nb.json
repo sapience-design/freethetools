@@ -1,0 +1,36 @@
+{
+  "name": "Fyll ut PDF-skjema",
+  "task": "Fyll ut et PDF-skjema",
+  "tagline": "Skriv i boksene i skjemaet og lagre en ferdig kopi.",
+  "seoTitle": "Fyll ut PDF-skjemaer på nett uten å laste opp",
+  "description": "Fyll ut felt i PDF-skjemaer gratis i nettleseren: tekst, avkrysningsbokser, nedtrekkslister og valg. Lås svarene hvis du vil. Ingenting lastes opp.",
+  "keywords": [
+    "fyll ut pdf",
+    "pdf-skjema",
+    "utfyllbar pdf",
+    "acroform",
+    "fullfør skjema",
+    "skriv på pdf",
+    "flat ut"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Felt": "Tekst, avkrysningsbokser, nedtrekkslister, radioknapper og lister",
+    "Ikke ennå": "Signaturer, og skjemaer som bare er trykte streker uten ekte felt",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes skjemaet mitt opp?",
+      "a": "Nei. Skjemaer inneholder ofte personlige opplysninger, så det fylles ut inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Den sier at PDF-en min ikke har felt. Hvorfor?",
+      "a": "Noen skjemaer er bare trykte streker, uten ekte felt i filen. De trenger et verktøy som plasserer tekst hvor som helst på siden. Det er planlagt."
+    },
+    {
+      "q": "Hva gjør det å låse svarene?",
+      "a": "Det flater ut skjemaet: svarene dine blir en del av siden og kan ikke lenger endres i en PDF-leser."
+    }
+  ]
+}

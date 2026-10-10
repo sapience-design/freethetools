@@ -1,0 +1,355 @@
+{
+  "meta": { "name": "Norsk bokmål", "dir": "ltr", "locale": "nb_NO", "reviewed": false },
+  "ui": {
+    "skip": "Hopp til innholdet",
+    "bar": {
+      "nav": "Nettsted",
+      "library": "Bibliotek",
+      "favourites": "Favoritter",
+      "allTools": "Alle verktøy",
+      "github": "Kildekode på GitHub",
+      "donate": "Gi et bidrag"
+    },
+    "foot": {
+      "tagline": "Nyttige verktøy som blir på enheten din.",
+      "initiative": "Et initiativ fra Sapience Design",
+      "theme": "Tema",
+      "system": "System",
+      "light": "Lys",
+      "dark": "Mørk",
+      "slash": "Trykk {key} for å hoppe til søk",
+      "groups": "Grupper",
+      "project": "Prosjekt",
+      "trust": "Tillit",
+      "developers": "Utviklere",
+      "about": "Om prosjektet",
+      "changelog": "Nytt",
+      "favourites": "Favoritter",
+      "library": "Bibliotek",
+      "suggest": "Foreslå et verktøy",
+      "donate": "Gi et bidrag",
+      "sponsor": "Finansier et verktøy",
+      "howItWorks": "Slik fungerer det",
+      "verify": "Kontroller dette nettstedet",
+      "stats": "Bruksstatistikk",
+      "privacy": "Personvern",
+      "ai": "KI-assistenter",
+      "build": "Bygg et verktøy",
+      "source": "Kildekode",
+      "api": "API",
+      "llms": "llms.txt",
+      "openapi": "OpenAPI",
+      "copyright": "© {year} Sapience Design og bidragsytere",
+      "licences": "Lisenser",
+      "trademarks": "Varemerker",
+      "security": "Sikkerhet",
+      "version": "Versjon {version}"
+    },
+    "lang": { "label": "Språk" },
+    "review": {
+      "note": "Denne siden er oversatt maskinelt og er ikke kontrollert ennå.",
+      "report": "Meld fra om et problem"
+    },
+    "toolNote": "Knappene i dette verktøyet er fortsatt på engelsk.",
+    "row": { "new": "Ny", "notBuilt": "Ikke bygget ennå" },
+    "home": {
+      "title": "Free the Tools – hverdagsverktøy som aldri forlater enheten din",
+      "description": "Åpen kildekode-verktøy som kjører i nettleseren din. Komprimer PDF-er og mer uten å laste opp noe. Ingen kontoer, ingen reklame. Et initiativ fra Sapience Design.",
+      "schemaDescription": "Åpen kildekode-verktøy som kjører i nettleseren din. Ingenting lastes opp.",
+      "h1a": "Hverdagsverktøy",
+      "h1b": "bør være gratis.",
+      "trustNoAds": "Ingen reklame",
+      "trustNoSignup": "Ingen registrering",
+      "trustFiles": "Filene blir på enheten din",
+      "trustOpen": "Åpen kildekode",
+      "findLabel": "Hva trenger du å gjøre?",
+      "findPlaceholder": "Hva trenger du å gjøre?",
+      "chipsLabel": "Vis verktøy for",
+      "chipAll": "Alle",
+      "empty": "Prøv enklere ord, som “mindre”, “slå sammen” eller “bilde”. Eller {ask}, eller {sponsor} slik at det bygges raskere.",
+      "emptyAsk": "be oss bygge det",
+      "emptySponsor": "finansier det",
+      "clear": "Vis alt",
+      "favourites": "Favorittene dine",
+      "manage": "Administrer",
+      "popular": "Dette kommer folk for",
+      "prevTools": "Forrige verktøy",
+      "nextTools": "Flere verktøy",
+      "allTools": "Alle verktøy",
+      "sortBy": "Sorter etter",
+      "sortUsed": "Mest brukt",
+      "sortNew": "Nyeste",
+      "sortLiked": "Flest favoritter",
+      "sortAz": "A–Å",
+      "seeAll": { "one": "Se {n} verktøy", "other": "Se alle {n} verktøy" },
+      "countShort": { "one": "{n} verktøy", "other": "{n} verktøy" },
+      "aiTitle": "Bruker du en KI-assistent?",
+      "aiText": "Claude, Cursor og andre assistenter kan kjøre disse verktøyene på din egen datamaskin, gratis og uten pålogging, så filene dine aldri lastes opp. Pakken finnes på npm og i det offisielle MCP-registeret.",
+      "aiLink": "Slik setter du det opp",
+      "whyTitle": "Hvorfor dette finnes",
+      "why1": "Hverdagsverktøy bør ikke koste penger.",
+      "why2": "De bør ikke komme med reklame.",
+      "why3": "De bør ikke sette filene dine i fare.",
+      "why4": "De bør ikke være vanskelige å finne.",
+      "whyEnd": "Så her er de: ett sted, alle verktøy, {mark}",
+      "whyEndMark": "gratis for alle.",
+      "aboutLink": "Om prosjektet"
+    },
+    "group": {
+      "back": "Alle verktøy",
+      "title": "{title} som kjører i nettleseren din | Free the Tools",
+      "description": "{blurb} Åpen kildekode, ingen kontoer, og ingenting lastes opp.",
+      "more": "Savner du noe? {suggest}, eller {sponsor} slik at det bygges raskere.",
+      "moreSuggest": "Foreslå et verktøy",
+      "moreSponsor": "finansier ett"
+    },
+    "tool": {
+      "favAdd": "Legg til i favoritter",
+      "favOn": "I favoritter",
+      "agentTitle": "Aktivitet fra KI-agent",
+      "agentText": "En KI-agent brukte dette verktøyet på denne siden. Filene blir på denne enheten og lagres i {library} ditt.",
+      "agentLibrary": "biblioteket",
+      "sideLabel": "Hjelp og detaljer",
+      "safeFilesA": "Filene dine blir på denne enheten.",
+      "safeFilesB": "De lastes aldri opp, ikke engang til oss.",
+      "safeOtherA": "Alt dette skjer på enheten din.",
+      "safeOtherB": "Ingenting du skriver eller legger til sendes noe sted.",
+      "check": "Sjekk selv",
+      "offlineBold": "Fungerer frakoblet:",
+      "offlineText": "du kan slå av Wi-Fi, og verktøyet kjører likevel.",
+      "questions": "Spørsmål",
+      "about": "Om dette verktøyet",
+      "specRuns": "Kjører",
+      "specRunsOffline": "I nettleseren din. Ingenting lastes opp.",
+      "specRunsOnline": "I nettleseren din",
+      "specLicence": "Lisens",
+      "specAdded": "Lagt til",
+      "specBuilt": "Laget av",
+      "specSource": "Kilde",
+      "report": "Meld fra om et problem",
+      "titleSuffix": "{title} | Free the Tools"
+    },
+    "wanted": {
+      "title": "{name}, ikke bygget ennå | Free the Tools",
+      "description": "{name} er ikke bygget ennå. Si at du vil ha det, fortell oss hva du trenger, eller hjelp til å bygge det.",
+      "tag": "Ikke bygget ennå",
+      "lede": "{name} står på lista vår. Ingen har bygget det ennå, så det er ikke noe å bruke på denne siden.",
+      "conceptTitle": "Hva det skal gjøre",
+      "in": "Hva som går inn",
+      "out": "Hva som kommer ut",
+      "options": "Valg",
+      "safe": "Som alle verktøy her skal det kjøre på enheten din. Ingenting skal lastes opp.",
+      "needTitle": "Trenger du dette?",
+      "want": "Jeg vil ha dette",
+      "tell": "Fortell oss hva du trenger",
+      "sponsor": "Finansier dette verktøyet",
+      "privacy": "Når du trykker på knappen, teller det én stemme for i dag. Den sender hverken navn, e-post eller ID.",
+      "dev": "For utviklere: bygg det"
+    },
+    "notFound": {
+      "title": "Ikke på hylla | Free the Tools",
+      "description": "Denne siden er ikke på hylla. Bla gjennom alle gratis verktøy, eller søk etter det du trenger.",
+      "h1": "Denne siden finnes ikke.",
+      "lede": "Verktøyet kan ha flyttet, eller det er ikke bygget ennå. Søk etter det, eller be oss bygge det.",
+      "search": "Søk i alle verktøy",
+      "suggest": "Foreslå et verktøy"
+    },
+    "js": {
+      "common": {
+        "donateLabel": "Gi et bidrag",
+        "donateTitle": "Sparte du litt tid?",
+        "donateBody": "Dette verktøyet er gratis og kjørte i nettleseren din. Et lite bidrag hjelper oss å holde det slik.",
+        "donateButton": "Gi et bidrag",
+        "donateLater": "Neste gang",
+        "toc": "På denne siden",
+        "used": { "one": "Brukt {n} gang", "other": "Brukt {n} ganger" },
+        "want": { "one": "{n} vil ha dette", "other": "{n} vil ha dette" }
+      },
+      "home": {
+        "best": "Beste treff for",
+        "none": "Fant ingenting for",
+        "inGroup": " i {group}",
+        "tools": { "one": "{n} verktøy", "other": "{n} verktøy" },
+        "uses": { "one": "{n} bruk", "other": "{n} bruk" },
+        "likes": { "one": "{n} favoritt", "other": "{n} favoritter" },
+        "added": "Lagt til {date}",
+        "subUsed": "Mest brukt først i hver gruppe",
+        "subNew": "Nyeste først i hver gruppe",
+        "subLiked": "Flest favoritter først i hver gruppe",
+        "subAz": "A til Å i hver gruppe",
+        "openGroup": "Åpne siden for {group}",
+        "showing": "Viser {group}: {count}.",
+        "noMatch": "Ingen verktøy passer ennå. Trykk Enter for å be om det.",
+        "count": "{count}.",
+        "countHint": "{count}. Bruk pil opp og pil ned, og trykk så Enter.",
+        "selected": "{name}, {group}, {i} av {n}",
+        "selectedNoGroup": "{name}, {i} av {n}",
+        "sorted": "Sortert etter {label}."
+      },
+      "wanted": {
+        "people": { "one": "{n} person vil ha dette.", "other": "{n} personer vil ha dette." },
+        "none": "Ingen har bedt om dette ennå. Vær den første.",
+        "failed": "Vi kunne ikke telle det akkurat nå. Prøv igjen senere.",
+        "done": "Du vil ha dette"
+      }
+    }
+  },
+  "groups": {
+    "pdf": { "name": "PDF", "label": "PDF-verktøy", "title": "Gratis PDF-verktøy", "blurb": "Komprimer, slå sammen, del, fyll ut og konverter PDF-er.", "sub": "Velg hva du vil gjøre. Filene dine blir på denne enheten." },
+    "images": { "name": "Bilder", "label": "Bildeverktøy", "title": "Gratis bildeverktøy", "blurb": "Endre størrelse på, komprimer og konverter bilder.", "sub": "Velg hva du vil gjøre. Bildene dine blir på denne enheten." },
+    "text": { "name": "Tekst", "label": "Tekstverktøy", "title": "Gratis tekstverktøy", "blurb": "Tell, sammenlign og endre tekst.", "sub": "Velg hva du vil gjøre. Teksten din blir på denne enheten." },
+    "data": { "name": "Data", "label": "Dataverktøy", "title": "Gratis dataverktøy", "blurb": "Konverter og rydd opp i CSV og JSON.", "sub": "Velg hva du vil gjøre. Dataene dine blir på denne enheten." },
+    "developer": { "name": "Utvikler", "label": "Utviklerverktøy", "title": "Gratis utviklerverktøy", "blurb": "Kodere, hasher, generatorer, dekodere og testere.", "sub": "Velg hva du vil gjøre. Ingenting du limer inn forlater denne enheten." },
+    "everyday": { "name": "Hverdag", "label": "Hverdagsverktøy", "title": "Gratis hverdagsverktøy", "blurb": "Omregnere for enheter og tidssoner.", "sub": "Velg hva du vil gjøre. Alt kjører på denne enheten." }
+  },
+  "sections": {
+    "Optimize": "Optimaliser",
+    "Organize": "Organiser",
+    "Edit": "Rediger",
+    "Convert": "Konverter",
+    "Security": "Sikkerhet",
+    "Privacy": "Personvern",
+    "Count & Compare": "Tell og sammenlign",
+    "Transform": "Endre",
+    "Format": "Formater",
+    "Encode": "Kode",
+    "Inspect": "Undersøk",
+    "Generate": "Lag",
+    "Time": "Tid"
+  },
+  "popular": {
+    "pdf/compress": "Til e-post eller en opplastingsgrense",
+    "pdf/merge": "Sett sidene i den rekkefølgen du vil",
+    "pdf/images-to-pdf": "Skanninger, kvitteringer, skjermbilder",
+    "images/compress": "Samme utseende, mindre fil",
+    "images/convert": "For eksempel PNG til JPG, eller JPG til WebP",
+    "images/remove-location": "Før du deler dem på nett"
+  },
+  "wanted": {
+    "pdf/page-delete": {
+      "name": "Slett og sorter PDF-sider",
+      "task": "Slett eller sorter PDF-sider",
+      "blurb": "Fjern sider, eller sett dem i ny rekkefølge, med et miniatyrbilde av hver.",
+      "concept": {
+        "in": "Én PDF.",
+        "out": "En ny PDF med sider fjernet eller i ny rekkefølge.",
+        "options": ["Velg sidene som skal bort", "Dra sider til en ny rekkefølge", "Se et miniatyrbilde av hver side"]
+      }
+    },
+    "pdf/watermark": {
+      "name": "PDF-vannmerke og sidetall",
+      "task": "Legg til vannmerke eller sidetall",
+      "blurb": "Stemple tekst på hver side, eller nummerer sidene.",
+      "concept": {
+        "in": "Én PDF, pluss vannmerketekst eller et valg av sidetall.",
+        "out": "En ny PDF med teksten på hver side.",
+        "options": ["Vannmerketekst som UTKAST", "Sidetall", "Sidene som skal merkes"]
+      }
+    },
+    "everyday/zip": {
+      "name": "Zip og pakk ut",
+      "task": "Lag eller åpne en zip-fil",
+      "blurb": "Pakk filer i en ZIP, eller åpne en, uten å installere noe.",
+      "concept": {
+        "in": "Flere filer, eller én .zip-fil.",
+        "out": "Én .zip-fil, eller filene som ligger i den.",
+        "options": ["Pakk filer i en zip", "Åpne en zip og lagre filene", "Nekter zip-filer som pakkes ut til en usikker størrelse"]
+      }
+    },
+    "images/crop": {
+      "name": "Beskjær bilde",
+      "task": "Beskjær et bilde",
+      "blurb": "Skjær et bilde til den delen du vil ha, eller til et fast forhold.",
+      "concept": {
+        "in": "Ett bilde og en beskjæringsramme.",
+        "out": "Det beskårede bildet som PNG, JPG eller WebP.",
+        "options": ["Fri form, kvadrat, 4:3 eller 16:9", "Flytt og endre rammen med tastaturet", "PNG-, JPG- eller WebP-utdata"]
+      }
+    },
+    "data/json-to-yaml": {
+      "name": "JSON til YAML",
+      "task": "Gjør JSON om til YAML og tilbake",
+      "blurb": "Gjør JSON om til YAML og tilbake.",
+      "concept": {
+        "in": "JSON- eller YAML-tekst.",
+        "out": "De samme dataene i det andre formatet.",
+        "options": ["JSON til YAML", "YAML til JSON", "Trygg lesing: egendefinerte tagger nektes"]
+      }
+    },
+    "developer/url-encode": {
+      "name": "URL-koding og -dekoding",
+      "task": "Kod eller dekod en nettadresse",
+      "blurb": "Gjør tekst trygg for en lenke, eller les en kodet adresse.",
+      "concept": {
+        "in": "Tekst eller en nettadresse.",
+        "out": "Den prosentkodede formen, eller den dekodede teksten.",
+        "options": ["Kod en hel adresse eller bare én del", "Dekod", "En tydelig melding for en ødelagt %-sekvens"]
+      }
+    },
+    "everyday/unix-timestamp": {
+      "name": "Unix-tidsstempel",
+      "task": "Gjør et Unix-tidsstempel om til en dato",
+      "blurb": "Gjør et tidsstempel om til dato og klokkeslett, og tilbake.",
+      "concept": {
+        "in": "Et Unix-tidsstempel i sekunder eller millisekunder, eller en dato.",
+        "out": "Datoen i UTC og i en tidssone du velger, eller tidsstempelet.",
+        "options": ["Gjetter sekunder eller millisekunder, og sier hvilket", "Velg en tidssone", "Dato til tidsstempel"]
+      }
+    },
+    "developer/cron-explainer": {
+      "name": "Cron-uttrykk forklart",
+      "task": "Forklar en cron-tidsplan",
+      "blurb": "Les en cron-tidsplan med vanlige ord, eller lag en.",
+      "concept": {
+        "in": "Et cron-uttrykk som */15 9-17 * * 1-5.",
+        "out": "En vanlig setning, og de neste kjøretidene.",
+        "options": ["Setning med vanlige ord", "Neste kjøretider"]
+      }
+    },
+    "everyday/colour-converter": {
+      "name": "Fargeomregner",
+      "task": "Regn om en farge mellom formater",
+      "blurb": "HEX, RGB, HSL og navn, fram og tilbake.",
+      "concept": {
+        "in": "En farge som HEX, RGB, HSL eller et navn.",
+        "out": "Samme farge i alle formater, med en fargeprøve og kontrastforhold mot svart og hvitt.",
+        "options": ["HEX, RGB, HSL og fargenavn", "Fargeprøve", "Kontrast mot svart og hvitt"]
+      }
+    },
+    "developer/iban-phone-check": {
+      "name": "IBAN- og telefonnummersjekk",
+      "task": "Sjekk et IBAN eller telefonnummer",
+      "blurb": "Sjekk et kontonummer eller et telefonnummer, og formater det.",
+      "concept": {
+        "in": "Et IBAN eller et telefonnummer.",
+        "out": "Gyldig eller ikke, landet, og nummeret i et standardformat.",
+        "options": ["IBAN-sjekk etter landets regler", "Sjekk og formatering av telefonnummer", "Landet vises"]
+      }
+    }
+  },
+  "search": {
+    "stop": ["og", "en", "et", "ei", "av", "på", "til", "med", "for", "som", "å", "det", "den", "de", "jeg", "vil", "trenger", "min", "mitt", "mine", "fil", "filer", "gjør", "lag"],
+    "synonyms": [
+      ["slå sammen", "kombiner", "sett sammen", "slå", "bind", "føy"],
+      ["komprimer", "krymp", "mindre", "reduser", "optimaliser", "størrelse", "lettere"],
+      ["del", "skill", "trekk ut", "klipp", "splitt", "del opp"],
+      ["roter", "snu", "sidelengs", "retning", "opp ned"],
+      ["konverter", "endre", "gjør om", "bytt", "regn om", "eksporter", "lagre som"],
+      ["bilde", "bilder", "foto", "fotografi", "bildefil", "jpg", "png", "webp"],
+      ["størrelse", "skaler", "dimensjoner", "piksler", "større", "forstørr", "forminsk"],
+      ["fjern", "slett", "rens", "visk ut", "stripp"],
+      ["posisjon", "gps", "exif", "metadata", "stedsdata", "personvern"],
+      ["fyll ut", "skjema", "utfyllbar", "signer", "skriv"],
+      ["tell", "teller", "lengde", "hvor mange", "tegn", "bokstaver", "ord"],
+      ["sammenlign", "forskjell", "endringer", "versjoner", "diff"],
+      ["store bokstaver", "små bokstaver", "stor forbokstav", "versaler"],
+      ["format", "pen", "rydd", "valider", "kontroller"],
+      ["regneark", "tabell", "excel", "csv"],
+      ["passord", "passfrase", "hemmelig", "tilfeldig", "lag"],
+      ["tidssone", "klokke", "klokkeslett", "møte", "tid"],
+      ["enhet", "enheter", "mål", "regn om", "tommer", "pund", "kilo", "meter"],
+      ["pdf", "dokument", "dokumenter"],
+      ["lås opp", "passord", "fjern passord", "dekrypter"]
+    ]
+  }
+}

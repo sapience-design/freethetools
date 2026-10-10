@@ -1,0 +1,30 @@
+{
+  "name": "Passordgenerator",
+  "task": "Lag et sterkt passord",
+  "tagline": "Tilfeldige passord eller passfraser som er lette å skrive.",
+  "seoTitle": "Generator for sterke passord og passfraser",
+  "description": "Lag sterke tilfeldige passord eller passfraser du husker, med tydelig styrkevurdering. Laget på enheten din, aldri sendt eller lagret noe sted.",
+  "keywords": [
+    "passordgenerator",
+    "sterkt passord",
+    "passfrase",
+    "tilfeldig passord",
+    "sikker",
+    "diceware"
+  ],
+  "specs": {
+    "Motor": "crypto.getRandomValues, uten modulo-skjevhet",
+    "Tegn som ligner": "l, I, O, 0 og 1 er utelatt med mindre du ber om dem",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Sendes eller lagres passordet noe sted?",
+      "a": "Nei. Det lages i denne fanen med enhetens sikre tilfeldighetsgenerator og blir aldri lagret eller sendt. Sidens sikkerhetspolicy blokkerer alle tilkoblinger utenfra."
+    },
+    {
+      "q": "Passord eller passfrase?",
+      "a": "En passfrase på fem eller seks tilfeldige ord er lettere å huske og skrive, og like vanskelig å gjette som en lang rekke tegn. Bruk en passordbehandler til resten."
+    }
+  ]
+}

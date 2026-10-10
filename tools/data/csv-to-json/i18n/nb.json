@@ -1,0 +1,31 @@
+{
+  "name": "CSV til JSON",
+  "task": "Gjør et regneark om til JSON",
+  "tagline": "Lim inn rader fra et regneark og få ryddig JSON. Det virker begge veier.",
+  "seoTitle": "CSV til JSON-konverterer (og JSON til CSV)",
+  "description": "Gjør CSV om til JSON, eller JSON til CSV, gratis i nettleseren. Finner komma og semikolon selv, og håndterer anførselstegn. Dataene forlater aldri siden.",
+  "keywords": [
+    "csv",
+    "json",
+    "regneark",
+    "excel",
+    "konverter",
+    "tabell",
+    "tsv"
+  ],
+  "specs": {
+    "Motor": "Papa Parse 5.7 (MIT), i nettleseren din",
+    "Skilletegn": "Komma, semikolon, tabulator og loddrett strek, funnet automatisk",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes dataene mine opp?",
+      "a": "Nei. De konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Kan jeg bruke en Excel-fil?",
+      "a": "Lagre den som CSV først (Fil, Lagre som, CSV). Å lese .xlsx direkte står på lista."
+    }
+  ]
+}

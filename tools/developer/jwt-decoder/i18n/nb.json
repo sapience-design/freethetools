@@ -1,0 +1,31 @@
+{
+  "name": "JWT-dekoder",
+  "task": "Se inni et påloggingstoken",
+  "tagline": "Se hva en JWT sier og når den utløper, og sjekk HMAC-signaturer.",
+  "seoTitle": "JWT-dekoder som aldri sender tokenet ditt noe sted",
+  "description": "Dekod hodet og påstandene i en JWT, se når den utløper, og sjekk HS256-signaturer med hemmeligheten din. Tokenet forlater aldri siden.",
+  "keywords": [
+    "jwt",
+    "dekode jwt",
+    "json web token",
+    "token",
+    "påstander",
+    "hs256",
+    "pålogging"
+  ],
+  "specs": {
+    "Motor": "Web Crypto API",
+    "Sjekker": "HS256, HS384, HS512 med delt hemmelighet",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Er det trygt å lime inn et ekte token?",
+      "a": "Tryggere enn de fleste steder: det dekodes i denne fanen, og sidens sikkerhetspolicy blokkerer alle tilkoblinger utenfra. Behandle likevel aktive tokener som passord, og tilbakekall de du har delt."
+    },
+    {
+      "q": "Kan den sjekke RS256-tokener?",
+      "a": "Ikke ennå. De trenger utstederens offentlige nøkkel. HMAC-tokener (HS256 og slektninger) kan sjekkes med hemmeligheten din nå."
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "Roter sider",
+  "task": "Snu PDF-sider riktig vei",
+  "tagline": "Rett opp sider som ligger på siden eller opp ned, alle eller bare noen.",
+  "seoTitle": "Roter PDF-sider uten å laste opp",
+  "description": "Roter PDF-sider 90 eller 180 grader, gratis i nettleseren. Snu alle sidene eller bare de du velger. Ingenting lastes opp.",
+  "keywords": [
+    "roter",
+    "snu",
+    "sidelengs",
+    "opp ned",
+    "liggende",
+    "stående",
+    "pdf",
+    "retning"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Kvalitet": "Tapsfritt: sidene snus, de tegnes ikke på nytt",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. PDF-en endres inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Gir rotering lavere kvalitet?",
+      "a": "Nei. Verktøyet endrer rotasjonsinnstillingen for hver side. Ingenting tegnes på nytt eller komprimeres."
+    }
+  ]
+}

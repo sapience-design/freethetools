@@ -1,0 +1,45 @@
+{
+  "name": "Markdown til HTML",
+  "task": "Gjør Markdown om til HTML",
+  "tagline": "Ren HTML fra Markdown, eller Markdown fra HTML, med direkte forhåndsvisning.",
+  "seoTitle": "Markdown til HTML (og HTML til Markdown)",
+  "description": "Gjør Markdown om til HTML, eller HTML til Markdown, gratis i nettleseren, med direkte forhåndsvisning. Kopier eller last ned resultatet. Ingenting lastes opp.",
+  "keywords": [
+    "markdown",
+    "html",
+    "md til html",
+    "html til markdown",
+    "konverter markdown",
+    "forhåndsvisning",
+    "readme",
+    "commonmark"
+  ],
+  "specs": {
+    "Motorer": "marked 18 (Markdown til HTML), Turndown 7 (HTML til Markdown), DOMPurify 3 (rensing)",
+    "Markdown-variant": "CommonMark pluss tabeller, gjennomstreking og oppgavelister fra GitHub",
+    "Sikkerhet": "Forhåndsvisningen renses alltid og henter aldri bilder fra andre nettsteder",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes teksten min opp?",
+      "a": "Nei. Den konverteres inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Er HTML-en trygg å publisere?",
+      "a": "Med rensing slått på fjernes skript, hendelsesbehandlere og javascript:-lenker. Slå det av bare når du stoler på Markdown-en og vil ha HTML-en nøyaktig som skrevet."
+    },
+    {
+      "q": "Hvilken Markdown forstår den?",
+      "a": "CommonMark, standarden, pluss tilleggene fra GitHub: tabeller, gjennomstreking og oppgavelister."
+    },
+    {
+      "q": "Hvorfor endrer HTML til Markdown oppsettet mitt?",
+      "a": "Markdown har ikke farger, kolonner eller klasser. Overskrifter, lister, lenker, bilder, kode, sitater og enkle tabeller blir med. Alt annet reduseres til teksten."
+    },
+    {
+      "q": "Hvorfor mangler et bilde i forhåndsvisningen?",
+      "a": "Forhåndsvisningen henter aldri bilder fra andre nettsteder, så ingenting forlater enheten din. Den viser bildets beskrivelse i klammer. HTML-en du kopierer beholder bildet."
+    }
+  ]
+}

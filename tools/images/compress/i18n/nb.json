@@ -1,0 +1,35 @@
+{
+  "name": "Komprimer bilder",
+  "task": "Gjør bilder mindre",
+  "tagline": "Mindre filer som ser like ut, ett bilde eller mange.",
+  "seoTitle": "Komprimer bilder uten å laste opp (JPG, PNG, WebP)",
+  "description": "Gjør JPG-, PNG- og WebP-bilder mindre, gratis i nettleseren, ett eller mange om gangen. Velg kvaliteten. Bilder forlater aldri enheten din.",
+  "keywords": [
+    "komprimer bilde",
+    "reduser bildestørrelse",
+    "optimaliser",
+    "jpg",
+    "png",
+    "webp",
+    "mindre bilde"
+  ],
+  "specs": {
+    "Motor": "Nettleserens egne bildekodere",
+    "PNG": "Gjøres om til WebP (beholder gjennomsiktighet) med mindre du velger noe annet",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes bildene mine opp?",
+      "a": "Nei. De kodes på nytt i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Hvorfor ble ikke ett av bildene mindre?",
+      "a": "Noen bilder er allerede godt komprimert. Hvis den nye filen ikke er mindre, sier verktøyet fra, og du kan beholde originalen."
+    },
+    {
+      "q": "Fjerner den posisjonsdata også?",
+      "a": "Ja, bilder som kodes på nytt tar ikke med de opprinnelige EXIF-dataene. For tapsfri fjerning uten ny koding, bruk Fjern posisjon fra bilder."
+    }
+  ]
+}

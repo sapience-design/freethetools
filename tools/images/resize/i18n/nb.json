@@ -1,0 +1,30 @@
+{
+  "name": "Endre bildestørrelse",
+  "task": "Endre størrelse på bilder",
+  "tagline": "Gjør bilder til en nøyaktig størrelse for e-post, nettsider eller skjemaer.",
+  "seoTitle": "Endre bildestørrelse på nett uten å laste opp",
+  "description": "Endre størrelsen på JPG-, PNG- og WebP-bilder til eksakte piksler eller en prosent, ett eller mange om gangen. Gratis, privat, og bildene forlater aldri enheten din.",
+  "keywords": [
+    "endre bildestørrelse",
+    "endre størrelse",
+    "piksler",
+    "skaler",
+    "mange bilder",
+    "dimensjoner"
+  ],
+  "specs": {
+    "Motor": "Nettleserens lerret, utjevning av høy kvalitet",
+    "Mange om gangen": "Endre størrelse på mange bilder samtidig",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes bildene mine opp?",
+      "a": "Nei. Størrelsen endres inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Hvorfor blir resultatet litt uskarpt når jeg gjør det større?",
+      "a": "Når du forstørrer, må det lages piksler som ikke fantes. Å forminske ser skarpt ut. Å forstørre langt forbi den opprinnelige størrelsen gir alltid et mykere bilde."
+    }
+  ]
+}

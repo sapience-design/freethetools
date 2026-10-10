@@ -1,0 +1,31 @@
+{
+  "name": "Enhetsomregner",
+  "task": "Regn om enheter",
+  "tagline": "Lengde, vekt, temperatur og mer, mens du skriver.",
+  "seoTitle": "Enhetsomregner: lengde, vekt, temperatur",
+  "description": "Regn om lengde, vekt, temperatur, kjøkkenvolum, areal, fart og datamengder mens du skriver. Nøyaktige faktorer, ingen reklame, virker frakoblet.",
+  "keywords": [
+    "enhetsomregner",
+    "cm til tommer",
+    "kg til pund",
+    "celsius til fahrenheit",
+    "kopper til ml",
+    "mph",
+    "gb"
+  ],
+  "specs": {
+    "Grupper": "Lengde, vekt, temperatur, volum, areal, fart, data",
+    "Nøyaktighet": "Eksakte definisjoner der de finnes (yard og pund fra 1959)",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Er kopper og gallon amerikanske eller britiske?",
+      "a": "Kopper, pints og flytende unser er amerikanske mål. Gallon finnes i begge, og er merket."
+    },
+    {
+      "q": "Hva er forskjellen på GB og GiB?",
+      "a": "En gigabyte (GB) er 1 000 000 000 byte, slik produsenter av disker bruker det. En gibibyte (GiB) er 1 073 741 824 byte, som mange operativsystemer viser."
+    }
+  ]
+}

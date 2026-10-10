@@ -17,6 +17,10 @@ const pages = [];
   }
 })(DIST);
 const tools = JSON.parse(html("api/tools.json")).categories.flatMap((c) => c.tools);
+// Translated pages live under /<lang>/ (docs/adr/0014-languages.md). tests/i18n.test.js checks them in full.
+const LANGS = readdirSync("src/i18n").filter((f) => f.endsWith(".json") && f !== "en.json").map((f) => f.slice(0, -5));
+const langHome = (p) => LANGS.some((l) => p === `${l}/index.html`);
+const notFound = (p) => p === "404.html" || LANGS.some((l) => p === `${l}/404.html`);
 
 test("the site built pages and at least one tool", () => {
   assert.ok(pages.includes("index.html"));
@@ -26,10 +30,11 @@ test("the site built pages and at least one tool", () => {
 for (const page of pages) {
   test(`${page}: title, description, canonical, language and CSP`, () => {
     const h = html(page);
-    assert.match(h, /<html lang="en"[\s>]/);
+    const lang = LANGS.find((l) => page.startsWith(`${l}/`)) ?? "en";
+    assert.match(h, new RegExp(`<html lang="${lang}"[\\s>]`));
     assert.match(h, /<title>[^<]{10,}<\/title>/);
     assert.match(h, /<meta name="description" content="[^"]{30,}"/);
-    if (page !== "404.html") assert.match(h, /<link rel="canonical" href="https:\/\/freethetools\.com\//);
+    if (!notFound(page)) assert.match(h, /<link rel="canonical" href="https:\/\/freethetools\.com\//);
     assert.match(h, /http-equiv="content-security-policy"[^>]*connect-src 'self'/, "CSP must block outside connections");
   });
 
@@ -44,7 +49,7 @@ for (const page of pages) {
     const h = html(page);
     const external = [...h.matchAll(/<(?:script|link|img|iframe|source)\b[^>]*?(?:src|href)="(https?:\/\/[^"]+)"/g)]
       .map((m) => m[0])
-      .filter((tag) => !/<link[^>]+rel="canonical"/.test(tag));
+      .filter((tag) => !/<link[^>]+rel="(canonical|alternate)"[^>]+href="https:\/\/freethetools\.com\//.test(tag));
     assert.deepEqual(external, []);
   });
 
@@ -186,14 +191,14 @@ test("the AI assistants page is in the sitemap, and /ai.md has the prompt and ev
 // Structured data search engines read: breadcrumbs on every page but home, and the studio as an
 // organisation (docs/explanation/seo-policy.md).
 const ldBlocks = (h) => [...h.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
-for (const page of pages.filter((p) => p !== "index.html" && p !== "404.html")) {
+for (const page of pages.filter((p) => p !== "index.html" && !notFound(p) && !langHome(p))) {
   test(`${page}: breadcrumbs end at this page`, () => {
     const h = html(page);
     const crumbs = ldBlocks(h).find((b) => b["@type"] === "BreadcrumbList");
     assert.ok(crumbs, "no BreadcrumbList");
     const items = crumbs.itemListElement;
     assert.ok(items.length >= 2, "needs at least two steps");
-    assert.equal(items[0].item, "https://freethetools.com/");
+    assert.match(items[0].item, new RegExp(`^https://freethetools\\.com/(${LANGS.join("|")}/)?$`));
     assert.deepEqual(items.map((i) => i.position), items.map((_, n) => n + 1));
     const canonical = h.match(/<link rel="canonical" href="([^"]+)"/)[1];
     assert.equal(items.at(-1).item, canonical, "the last step is this page");

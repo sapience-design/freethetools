@@ -1,0 +1,31 @@
+{
+  "name": "QR-kodelager",
+  "task": "Lag en QR-kode",
+  "tagline": "Gjør en lenke, en tekst eller en Wi-Fi-pålogging om til en QR-kode du kan skrive ut.",
+  "seoTitle": "Gratis QR-kodegenerator (uten registrering, uten utløp)",
+  "description": "Lag QR-koder for lenker, tekst eller Wi-Fi, gratis og uten registrering. Kodene utløper aldri og spores ikke. Last ned som SVG eller PNG.",
+  "keywords": [
+    "qr-kode",
+    "qr",
+    "wifi",
+    "lenke",
+    "svg",
+    "png",
+    "uten utløp"
+  ],
+  "specs": {
+    "Motor": "qrcode-generator 2 (MIT), i nettleseren din",
+    "Sporing": "Ingen: koden inneholder teksten din direkte, ikke en omdirigering",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Utløper disse QR-kodene?",
+      "a": "Aldri. Mange gratis QR-sider koder en lenke til sin egen tjener, så de kan spore skanninger eller slå av koden senere. Denne legger lenken eller teksten din rett i koden."
+    },
+    {
+      "q": "Hvilken feilretting bør jeg velge?",
+      "a": "Middels passer til det meste. Velg Høy hvis koden skal skrives ut liten, på tekstil, eller med en logo oppå."
+    }
+  ]
+}

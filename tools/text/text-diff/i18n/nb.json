@@ -1,0 +1,30 @@
+{
+  "name": "Tekstforskjeller",
+  "task": "Sammenlign to tekster",
+  "tagline": "Lim inn to versjoner og se nøyaktig hva som er endret.",
+  "seoTitle": "Sammenlign to tekster på nett (diff)",
+  "description": "Sammenlign to tekster og se hva som er endret, linje for linje eller ord for ord. En gratis diff-sjekker som lar teksten bli på siden.",
+  "keywords": [
+    "diff",
+    "sammenlign tekst",
+    "forskjell",
+    "endringer",
+    "versjoner",
+    "sammenligning"
+  ],
+  "specs": {
+    "Motor": "jsdiff 9 (BSD-3-Clause), i nettleseren din",
+    "Moduser": "Etter linje eller etter ord",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Sendes tekstene mine noe sted?",
+      "a": "Nei. Sammenligningen kjører i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+    },
+    {
+      "q": "Linjer eller ord?",
+      "a": "Linjer passer til kode og lister. Ord passer til løpende tekst, der en setning endres med et ord eller to."
+    }
+  ]
+}
