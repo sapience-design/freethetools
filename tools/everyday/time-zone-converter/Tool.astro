@@ -12,6 +12,7 @@ const CITIES = [
       <label class="field"><span>Date and time</span><input type="datetime-local" id="tz-when" class="input"></label>
       <label class="field"><span>In</span><select id="tz-from">{CITIES.map(([z, n]) => <option value={z}>{n}</option>)}</select></label>
     </div>
+    <p class="hint" id="tz-note" role="status" hidden></p>
   </Step>
   <Step n={2} title="The same moment elsewhere">
     <ul class="file-list" id="tz-list" aria-live="polite"></ul>
@@ -20,7 +21,7 @@ const CITIES = [
 </section>
 
 <script>
-  import { zonedToInstant, inZone, workingHour } from "./core.js";
+  import { zonedToInstant, clockChange, inZone, workingHour } from "./core.js";
   import { iconButton } from "../../../src/lib/files";
   const $ = (id: string) => document.getElementById(id)!;
   const when = $("tz-when") as HTMLInputElement, from = $("tz-from") as HTMLSelectElement, add = $("tz-add") as HTMLSelectElement;
@@ -42,6 +43,17 @@ const CITIES = [
   function render() {
     let t: Date;
     try { t = zonedToInstant(when.value, from.value); } catch { $("tz-list").replaceChildren(); return; }
+    const note = $("tz-note"), change = clockChange(when.value, from.value);
+    note.hidden = !change;
+    if (change) {
+      const [d, hm] = when.value.split("T");
+      const day = new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
+      const shown = inZone(t, from.value).time;
+      const hh = (x: string) => String(+x.slice(0, 2)) + x.slice(2);
+      note.textContent = change === "gap"
+        ? `${hh(hm)} does not exist on ${day} in ${label(from.value)}, because the clocks go forward. Showing ${hh(shown)}.`
+        : `${hh(hm)} happens twice on ${day} in ${label(from.value)}, because the clocks go back. Showing the first time.`;
+    }
     $("tz-list").replaceChildren(...zones.filter((z) => z !== from.value).map((z, i) => {
       const r = inZone(t, z, from.value);
       const li = document.createElement("li");

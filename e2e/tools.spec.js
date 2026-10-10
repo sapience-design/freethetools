@@ -359,6 +359,18 @@ test.describe("text, data and everyday tools", () => {
     await page.goto("/everyday/time-zone-converter/");
     await expect(page.locator("#tz-list li").first()).toBeVisible();
   });
+
+  test("Time Zone Converter says when a time is skipped or repeated", async ({ page }) => {
+    await page.goto("/everyday/time-zone-converter/");
+    await page.selectOption("#tz-from", "America/New_York");
+    await page.fill("#tz-when", "2026-03-08T02:30");
+    await expect(page.locator("#tz-note")).toContainText("2:30 does not exist on 8 March in New York");
+    await expect(page.locator("#tz-note")).toContainText("Showing 3:30");
+    await page.fill("#tz-when", "2026-11-01T01:30");
+    await expect(page.locator("#tz-note")).toContainText("happens twice");
+    await page.fill("#tz-when", "2026-09-27T09:00");
+    await expect(page.locator("#tz-note")).toBeHidden();
+  });
 });
 
 // ---- Image tools -------------------------------------------------------------------------------
