@@ -1,0 +1,1 @@
+- Search shortcut switch: a new checkbox in the footer turns off the "/" key that jumps to search. Your choice is kept in this browser.
