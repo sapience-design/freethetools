@@ -245,7 +245,7 @@ test("saveTo works in an allowed folder, the working directory and a folder give
 });
 
 test("names that can run a program, hidden names and names without an extension are refused", async () => {
-  const refused = ["evil.bat", "RUN.PS1", "x.js", "tool.exe", "a.sh", "evil.bat.", "evil.lnk", "installer.msi", "noextension", ".hidden.txt", ".env"];
+  const refused = ["evil.bat", "RUN.PS1", "x.js", "mod.mjs", "mod.cjs", "run.scpt", "Do.workflow", "tool.exe", "a.sh", "evil.bat.", "evil.lnk", "installer.msi", "noextension", ".hidden.txt", ".env"];
   for (const fileName of refused) {
     const before = entries().length;
     const r = await decodeToFile({ fileName, saveTo: join(tmp, "names") });

@@ -9,7 +9,7 @@ const fail = (message) => Object.assign(new Error(message), { plain: true });
 
 /** Extensions of files that run a program or start on their own. Refused wherever the package writes. */
 export const BLOCKED_EXTENSIONS = new Set(
-  ".bat .cmd .com .exe .dll .msi .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .hta .scr .pif .lnk .url .reg .sh .bash .zsh .command .desktop .app .jar .py .rb .pl".split(" "),
+  ".bat .cmd .com .exe .dll .msi .ps1 .psm1 .vbs .vbe .js .jse .wsf .wsh .hta .scr .pif .lnk .url .reg .sh .bash .zsh .command .desktop .app .jar .py .rb .pl .mjs .cjs .scpt .workflow .ps1xml .inf .cpl".split(" "),
 );
 
 /** The real path of `p`. A path that does not exist yet gets the real path of its nearest folder that does. */
