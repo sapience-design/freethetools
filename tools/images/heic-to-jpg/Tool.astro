@@ -120,7 +120,7 @@ const qualities = [
     list.replaceChildren();
     stepTo(root, 3);
     compactDrop("heic", true);
-    showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
+    await showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
     let done = 0;
     for (const f of files) {
       const li = fileRow({ name: f.name, meta: "Converting…" });

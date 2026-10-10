@@ -196,7 +196,8 @@ details.qa p { padding-bottom: 14px; color: var(--soft); }
 
 /* The page-change animation (@view-transition) is switched on by a script in Base.astro. */
 @keyframes ft-spin { to { transform: rotate(360deg); } }
-@keyframes ft-fill { from { width: 4%; } to { width: 88%; } }
+/* Transform, not width: the browser draws it apart from the page's own work, so it keeps moving while a tool is busy. */
+@keyframes ft-fill { from { transform: scaleX(.04); } to { transform: scaleX(.88); } }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
@@ -290,6 +291,11 @@ fieldset.field legend { padding: 0; margin-bottom: 6px; }
 .result { display: grid; gap: 12px; }
 .res-wait { padding: 16px; border-radius: var(--r-lg); border: 2px dashed var(--hair); color: var(--muted); }
 .res-busy, .res-done, .res-bad { display: grid; gap: 10px; padding: 16px; border-radius: var(--r-lg); }
+.res-progress { font-weight: 650; font-variant-numeric: tabular-nums; }
+/* "Reading your file…" over the drop area, from the moment files are added until the tool has read them. */
+.drop[aria-busy="true"] > :not(.drop-reading) { visibility: hidden; }
+.drop-reading { position: absolute; inset: 0; z-index: 2; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; border-radius: inherit; background: color-mix(in srgb, var(--bg) 86%, transparent); color: var(--ink); font-weight: 650; text-align: center; overflow-wrap: anywhere; cursor: progress; }
+.res-progress:empty { display: none; }
 .res-busy { background: var(--busy-t); }
 .res-done { background: var(--ok-t); }
 .res-bad { background: var(--bad-t); }
@@ -300,7 +306,7 @@ fieldset.field legend { padding: 0; margin-bottom: 6px; }
 .res-bad .res-title { color: var(--bad); }
 .spinner { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 3px solid color-mix(in srgb, var(--busy) 25%, transparent); border-top-color: var(--busy); animation: ft-spin 1s linear infinite; }
 .meter { height: 12px; border-radius: 999px; background: color-mix(in srgb, var(--busy) 18%, transparent); overflow: hidden; }
-.meter i { display: block; height: 100%; border-radius: inherit; background: var(--busy); animation: ft-fill 2.4s cubic-bezier(.3, .6, .3, 1) forwards; }
+.meter i { display: block; height: 100%; border-radius: inherit; background: var(--busy); transform-origin: left; animation: ft-fill 2.4s cubic-bezier(.3, .6, .3, 1) forwards; }
 .tool-error:not(.res-bad) { margin: 0; padding: 14px 16px; border-radius: var(--r-lg); background: var(--bad-t); color: var(--bad); font-weight: 600; overflow-wrap: anywhere; }
 .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--hair); border-top-color: var(--ink); border-radius: 50%; animation: ft-spin .8s linear infinite; vertical-align: -2px; margin-right: 6px; }
 

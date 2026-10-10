@@ -38,8 +38,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { parseRanges, everyPage, splitPdf } from "./core.js";
-  import { pageCount } from "../merge/core.js";
-  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, showError, showBusy, showDone, showWait, compactDrop, baseName, paint, progress, working } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
 
@@ -59,17 +58,31 @@ import Icon from "../../../src/components/Icon.astro";
     if (!f) return;
     showWait(result, WAIT);
     files.replaceChildren();
+    // Show the file straight away, with a spinner, and let the page draw it before reading:
+    // a large PDF takes a while, and without this the page looks frozen.
+    file = null;
+    bytes = null;
+    go.disabled = true;
+    $("pdfs-name").textContent = f.name;
+    working($("pdfs-meta"), `Reading ${fmtBytes(f.size)}…`);
+    picked.hidden = false;
+    compactDrop("pdfs", true);
+    await paint();
     try {
+      // One read gives the page count and the details line.
+      const facts = await pdfFacts(f);
+      if (!facts) throw new Error("This file isn't a readable PDF.");
+      if (facts.locked) throw new Error("This PDF is password-protected. Take the lock off first, for example with Unlock PDF.");
       bytes = await f.arrayBuffer();
-      total = await pageCount(bytes.slice(0));
+      total = facts.pages;
       file = f;
-      $("pdfs-name").textContent = f.name;
-      $("pdfs-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
-      picked.hidden = false;
-      compactDrop("pdfs", true);
+      $("pdfs-meta").textContent = pdfMeta(facts, f.size);
       go.disabled = false;
       stepTo(root, 2);
-    } catch (e) { showError(result, (e as Error).message); }
+    } catch (e) {
+      $("pdfs-meta").textContent = fmtBytes(f.size);
+      showError(result, (e as Error).message);
+    }
   });
 
   go.addEventListener("click", async () => {
@@ -78,10 +91,12 @@ import Icon from "../../../src/components/Icon.astro";
     go.disabled = true;
     files.replaceChildren();
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result, total > 50 ? "A large PDF can take a minute. Please keep this page open." : undefined);
+    const show = progress(result);
     try {
       const ranges = mode === "each" ? everyPage(total) : parseRanges(($("pdfs-range") as HTMLInputElement).value, total);
-      const parts = await splitPdf(bytes.slice(0), ranges);
+      await show(`Reading ${total} ${total === 1 ? "page" : "pages"}…`, true);
+      const parts = await splitPdf(bytes.slice(0), ranges, (done, n) => show(`Making file ${done} of ${n}`));
       const rows: HTMLElement[] = [];
       const made: { name: string; blob: Blob }[] = [];
       for (const p of parts) {

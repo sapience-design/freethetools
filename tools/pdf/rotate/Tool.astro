@@ -83,7 +83,7 @@ import Icon from "../../../src/components/Icon.astro";
     const turn = +(document.querySelector('input[name="pdfr-turn"]:checked') as HTMLInputElement).value as 90 | 180 | 270;
     go.disabled = true;
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result);
     try {
       const some = ($("pdfr-some") as HTMLInputElement).checked;
       const pages = some ? pagesFromRanges(parseRanges(($("pdfr-range") as HTMLInputElement).value, total)) : null;

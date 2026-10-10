@@ -100,7 +100,7 @@ import Icon from "../../../src/components/Icon.astro";
     });
     go.disabled = true;
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result);
     try {
       const out = await fillForm(bytes.slice(0), values, { flatten: ($("pff-flat") as HTMLInputElement).checked });
       const name = `${baseName(file.name)}_filled.pdf`;
