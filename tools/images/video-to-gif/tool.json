@@ -1,0 +1,27 @@
+{
+  "name": "Video to GIF",
+  "task": "Turn a video into a GIF",
+  "icon": "gif",
+  "short": "Video to GIF",
+  "tagline": "Turn a short clip or screen recording into a GIF.",
+  "seoTitle": "Video to GIF converter without uploading",
+  "description": "Turn a short MP4, WebM or MOV video into an animated GIF for free, in your browser. Pick the start, end, width and speed. Your video is never uploaded.",
+  "section": "Convert",
+  "keywords": ["video to gif", "mp4 to gif", "webm to gif", "mov to gif", "screen recording", "make a gif", "animated gif"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-10",
+  "offline": true,
+  "specs": {
+    "Input": "MP4, WebM or MOV, whatever your browser can play",
+    "Width": "320, 480 or 640 pixels",
+    "Frame rate": "5, 10 or 15 per second",
+    "Engine": "Your browser's video player and the gifenc encoder"
+  },
+  "faq": [
+    { "q": "Is my video uploaded?", "a": "No. Your browser plays the video and this page turns the frames into a GIF inside the tab. The page's security policy blocks it from sending data anywhere." },
+    { "q": "Why won't my video open?", "a": "Your browser can only open video types it can play. MP4 and WebM work in every modern browser. MOV works in Safari and in some other browsers. If yours fails, open the video in another browser or convert it to MP4 first." },
+    { "q": "Why is my GIF so big?", "a": "A GIF stores every frame as a picture. The file grows with the width, the frame rate and the length. Shorten the clip, pick a narrower width or choose 5 frames per second." },
+    { "q": "Does the GIF have sound?", "a": "No. GIF files cannot hold sound." }
+  ]
+}
