@@ -10,7 +10,7 @@ type Card = { eyebrow: string; title: string; text: string; art: string; group?:
 export const getStaticPaths: GetStaticPaths = async () => {
   const { tools, aisles } = await loadCatalogue();
   const site: Card = {
-    eyebrow: "A Sapience initiative",
+    eyebrow: "A Sapience Design initiative",
     title: "Everyday tools should be free.",
     text: `${tools.length} free, open-source tools that work inside your browser.`,
     art: artFor("pdf/compress", "pdf", "ogsite"),

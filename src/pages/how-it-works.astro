@@ -237,7 +237,7 @@ import { REPO } from "../data/catalogue";
   // Plain-language names for what the site keeps. Anything not listed is still shown, by its key.
   const LOCAL: Record<string, [string, (v: string) => string]> = {
     "ftt:theme": ["Theme", (v) => (v === "dark" ? "Dark" : v === "light" ? "Light" : v)],
-    "ftt:saved": ["Saved tools", (v) => plural(Object.keys(parse(v) || {}).length, "tool")],
+    "ftt:saved": ["My tools", (v) => plural(Object.keys(parse(v) || {}).length, "tool")],
     "ftt:liked": ["Tools you liked", (v) => plural((parse(v) || []).length, "tool")],
     "ftt:sort": ["Home page sorting", (v) => SORTS[v] ?? v],
     "ftt:tz": ["Time zones you added", (v) => { const z = parse(v); return Array.isArray(z) ? z.join(", ") || "None" : String(v); }],

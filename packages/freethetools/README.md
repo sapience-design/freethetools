@@ -159,4 +159,4 @@ claude mcp add freethetools -- npx -y freethetools mcp --allow-save ~/Documents/
 
 AGPL-3.0-only, like the website. The source is at [github.com/sapience-design/freethetools](https://github.com/sapience-design/freethetools/tree/main/packages/freethetools). Third-party code is listed in `NOTICE`.
 
-A [Sapience](https://sapience.design) initiative.
+A [Sapience Design](https://sapience.design) initiative.

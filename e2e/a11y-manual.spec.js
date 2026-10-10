@@ -225,7 +225,7 @@ test.describe("roles, names and live regions", () => {
     await ready(page, "/");
     await expect(page.getByRole("search")).toBeVisible();
     await expect(page.getByRole("searchbox", { name: "What do you need to do?" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Saved/ })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^My tools/ })).toBeVisible();
   });
 
   test("on a wide screen the top bar links to the source code, by name", async ({ page, isMobile }) => {

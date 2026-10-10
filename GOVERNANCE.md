@@ -1,6 +1,6 @@
 # Governance
 
-Free the Tools is a Sapience initiative. Sapience Design founded it, maintains it and holds its name. The code belongs to everyone under AGPL-3.0.
+Free the Tools is a Sapience Design initiative. Sapience Design founded it, maintains it and holds its name. The code belongs to everyone under AGPL-3.0.
 
 ## Roles
 
