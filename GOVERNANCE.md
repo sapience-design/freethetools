@@ -31,3 +31,13 @@ Anyone can step back at any time. Maintainers who have been inactive for 12 mont
 ## The name and the pledge
 
 The pledge (free, private, open, no tracking of people) is what makes this project worth contributing to. It can only change through the decision process above, and Sapience Design will not change it to add paid features or tracking of individuals. If Sapience Design ever stops maintaining the project, it will hand the repository and domain to a new maintainer group or a non-profit foundation rather than let it lapse.
+
+## Money
+
+Free the Tools takes donations and company sponsorship, and the rules are the same for both:
+
+- **Donations** (GitHub Sponsors, Ko-fi) pay for the domain and the maintainers' time. A donor gets thanks, and nothing else. Nothing is unlocked by paying, and nothing is taken away by not paying.
+- **Sponsoring a tool**: a company may fund the build of a requested tool. The tool page credits the company by name, with a plain link. A sponsor gets no placement, no ranking, no data about visitors, no logo loaded from another site, and no say over the pledge or over which tools are accepted. Sapience AS invoices sponsorship with Norwegian VAT.
+- The site links to donation pages as plain links only. It never loads scripts, images or badges from a payment service.
+- Money never changes the pledge. Ads, a paid tier and tracking of individuals stay out, whoever offers to pay for them.
+- Where the money goes is described on [/support/](https://freethetools.com/support/).
