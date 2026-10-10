@@ -1,1 +1,0 @@
-- Reading pages (About, How it works, Privacy, Support, What's new, Verify) list their sections in an "On this page" panel beside the text on wide screens, and mark the one being read. The text keeps a comfortable line length.

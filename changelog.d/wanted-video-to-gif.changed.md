@@ -1,1 +1,0 @@
-- Image tools list Video to GIF as wanted, linked to its request (#93).

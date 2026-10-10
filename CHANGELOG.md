@@ -8,8 +8,11 @@ major version.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-10
+
 ### Added
 
+- The `freethetools` package for AI assistants is published: version 0.1.0 on npm, and listed in the official MCP Registry. Claude Code, Claude Desktop, Cursor and other assistants can run the tools on your own computer with `npx -y freethetools mcp`. The package has its own version number, separate from the site.
 - "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; six checks anyone can do (the Network tab, going offline, where files go, the security policy, the code, and Verify this site); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
 - `/llms-full.txt`: every tool with its details and questions in one plain-text file for language models, linked from `/llms.txt`.
 - A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
@@ -21,6 +24,7 @@ major version.
 - "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
 - Tools work offline after a visit. A small service worker keeps the home page and each tool you open, so the tool still runs with the network off. Tool pages say "Works offline" once this is active. An offline page lists the tools kept on your device.
 - Docs: how to self-host a copy of the site, and the search policy that says which pages are built for search (ADR 0011).
+- Reading pages (About, How it works, Privacy, Support, What's new, Verify) list their sections in an "On this page" panel beside the text on wide screens, and mark the one being read. The text keeps a comfortable line length.
 
 ### Changed
 
@@ -34,10 +38,18 @@ major version.
 - Usage counts are harder to inflate: a tool's likes for one day stay within plus or minus 500, and each daily count of views, uses, results and errors stops at 100,000. Requests with more than 5 fields are refused.
 - A tool added by a new release counts right away. The stats service looks for new tools again (at most once a minute) instead of rejecting them until it restarts.
 - The Compress PDF FAQ now says the tool works offline after you have opened it once.
+- Home, About, the README and `/llms.txt` say how AI assistants such as Claude and Cursor can use the tools: free, with no login, on the person's own computer through the `freethetools` package, so files are never uploaded. About also says how much a browser can do, and what comes next.
+- Links to other sites, such as GitHub, Ko-fi and the licence pages, open in a new tab. The page you were on stays put, so a job half done in a tool is not lost, and screen readers say "opens in a new tab".
+- Adding a file shows "Reading…" on the drop area at once, and every file tool shows "Working on it…" before it starts, with a bar that keeps moving while the page is busy. Split PDF reads a file once instead of three times, says early when a PDF is locked, and shows how many files it has made.
+- Image tools list Video to GIF as wanted, linked to its request (#93).
 
 ### Removed
 
 - The Python command-line version of Compress PDF (`shrink_pdf.py`) and the `cli` field of `tool.json`. The `freethetools` npm package runs every tool on your computer instead, with one engine for the site, the package and agents.
+
+### Fixed
+
+- Verify this site no longer reports `_headers` as a mismatch. It is an instruction file for the host, not a file the site serves, so it is left out of the fingerprint list.
 
 ## [1.1.0] - 2026-10-09
 
@@ -151,6 +163,7 @@ The first release since launch: 27 new tools (28 in all), a new design, tools fo
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/sapience-design/freethetools/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sapience-design/freethetools/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sapience-design/freethetools/releases/tag/v1.0.0
