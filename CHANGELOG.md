@@ -8,6 +8,11 @@ major version.
 
 ## [Unreleased]
 
+### Changed
+
+- The home page headline is "Everyday tools should be free." A "Why this exists" section near the bottom says what the site stands for: everyday tools shouldn't cost money, come with ads, put your files at risk or be hard to find. The About page and the README open with the same lines.
+- The home page has more room: three popular tools per row (two on tablets) with one-line titles, and wider gaps between sections and cards.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
