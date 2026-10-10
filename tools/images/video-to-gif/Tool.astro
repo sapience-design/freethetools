@@ -24,6 +24,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
       <label class="field"><span>Start (seconds)</span><input type="number" id="v2g-start" min="0" step="0.1" value="0" inputmode="decimal"></label>
       <label class="field"><span>End (seconds)</span><input type="number" id="v2g-end" min="0" step="0.1" value="3" inputmode="decimal"></label>
     </div>
+    <p class="hint v2g-range-note" id="v2g-range-note" role="status"></p>
     <fieldset class="field">
       <legend>Width</legend>
       <div class="seg">
@@ -49,6 +50,8 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
 </section>
 
 <style>
+  /* Stays in the page so screen readers announce it; takes no space while empty. */
+  .v2g-range-note:empty { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
   .v2g-times { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; }
   .v2g-estimate { margin: 0; font-weight: 600; }
   .v2g-out { display: grid; gap: 12px; justify-items: start; }
@@ -57,12 +60,13 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
 
 <script>
   import { GIFEncoder, quantize, applyPalette } from "gifenc";
-  import { clampOptions, frameTimes, outputSize, estimateBytes, isLarge, gifName, frameDelay } from "./core.js";
+  import { clampOptions, rangeNote, frameTimes, outputSize, estimateBytes, isLarge, gifName, frameDelay } from "./core.js";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, showBusy, showDone, showError, showWait } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
 
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("v2g-tool"), result = $("v2g-result"), out = $("v2g-out"), again = $("v2g-again");
+  const rangeNoteEl = $("v2g-range-note");
   const go = $("v2g-go") as HTMLButtonElement, startIn = $("v2g-start") as HTMLInputElement, endIn = $("v2g-end") as HTMLInputElement;
   const loopIn = $("v2g-loop") as HTMLInputElement, estimate = $("v2g-estimate");
   const WAIT = "Your GIF will appear here.";
@@ -173,6 +177,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
     if (!video) return;
     const o = options();
     startIn.value = String(o.start); endIn.value = String(o.end);
+    rangeNoteEl.textContent = rangeNote(o.changed, o);
     refresh();
   });
 
