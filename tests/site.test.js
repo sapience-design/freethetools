@@ -81,3 +81,32 @@ test("the footer names the released version and links to its notes", () => {
     assert.equal(link[2], `Version ${version}`, page);
   }
 });
+
+// Verifiable builds: dist/integrity.json lists the SHA-256 of every deployed file (ADR 0012).
+test("integrity.json lists every file in dist with a SHA-256", async () => {
+  const { createHash } = await import("node:crypto");
+  const doc = JSON.parse(html("integrity.json"));
+  assert.equal(typeof doc.commit, "string");
+  assert.ok(!Number.isNaN(Date.parse(doc.built)), "built must be an ISO time");
+  const all = [];
+  (function walk(dir) {
+    for (const n of readdirSync(dir)) {
+      const p = join(dir, n);
+      if (statSync(p).isDirectory()) walk(p);
+      else all.push(p.slice(DIST.length + 1).replaceAll("\\", "/"));
+    }
+  })(DIST);
+  const expected = all.filter((f) => f !== "integrity.json").sort();
+  assert.deepEqual(Object.keys(doc.files), expected, "integrity.json must list every file except itself, sorted");
+  for (const [path, hash] of Object.entries(doc.files)) assert.match(hash, /^[0-9a-f]{64}$/, path);
+  for (const path of ["index.html", "verify/index.html", expected.find((f) => f.endsWith(".js"))]) {
+    const again = createHash("sha256").update(readFileSync(join(DIST, path))).digest("hex");
+    assert.equal(doc.files[path], again, `${path} hash must match the file`);
+  }
+});
+
+test("the verify page and its footer link exist", () => {
+  assert.match(html("verify/index.html"), /<h1[^>]*>Check that this site/);
+  assert.match(html("index.html"), /href="\/verify\/"/);
+  assert.match(html("sitemap.xml") , /\/verify\//);
+});

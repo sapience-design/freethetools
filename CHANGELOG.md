@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- Verifiable builds: every build writes `integrity.json`, the SHA-256 of each deployed file, and the new Verify this site page (`/verify/`) checks the live files against it in your browser. Anyone can rebuild a commit and compare the hashes ([ADR 0012](docs/adr/0012-verifiable-builds.md)).
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
