@@ -8,6 +8,15 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- When traffic passes what the free database plan can take, the site counts 1 in 5, 10 or 20 visits and views and adds that many each time, so totals stay accurate. The rate comes from the last 7 days of visits. Below 15,000 visits a day, every visit is counted. See ADR 0009.
+
+### Changed
+
+- Usage counts are harder to inflate: a tool's likes for one day stay within plus or minus 500, and each daily count of views, uses, results and errors stops at 100,000. Requests with more than 5 fields are refused.
+- A tool added by a new release counts right away. The stats service looks for new tools again (at most once a minute) instead of rejecting them until it restarts.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
