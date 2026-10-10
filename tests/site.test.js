@@ -116,8 +116,10 @@ test("integrity.json lists every file in dist with a SHA-256", async () => {
       else all.push(p.slice(DIST.length + 1).replaceAll("\\", "/"));
     }
   })(DIST);
-  const expected = all.filter((f) => f !== "integrity.json").sort();
-  assert.deepEqual(Object.keys(doc.files), expected, "integrity.json must list every file except itself, sorted");
+  // The host's own files (_headers) are not served, so they are not listed.
+  const expected = all.filter((f) => f !== "integrity.json" && !["_headers", "_redirects", "_routes.json"].includes(f)).sort();
+  assert.deepEqual(Object.keys(doc.files), expected, "integrity.json must list every served file except itself, sorted");
+  assert.ok(!("_headers" in doc.files), "_headers is not served, so it is not listed");
   for (const [path, hash] of Object.entries(doc.files)) assert.match(hash, /^[0-9a-f]{64}$/, path);
   for (const path of ["index.html", "verify/index.html", expected.find((f) => f.endsWith(".js"))]) {
     const again = createHash("sha256").update(readFileSync(join(DIST, path))).digest("hex");
