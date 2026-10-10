@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { bump, cut, notes } from "../scripts/changelog.mjs";
+import { anchor, bump, cut, notes, sections } from "../scripts/changelog.mjs";
 
 const REPO = "https://github.com/example/repo";
 const LOG = `# Changelog
@@ -59,4 +59,16 @@ test("notes: one version's section, with its compare link", () => {
 test("the real CHANGELOG.md has notes for the current version", () => {
   const { version } = JSON.parse(readFileSync("package.json", "utf8"));
   assert.ok(notes(readFileSync("CHANGELOG.md", "utf8"), version).length > 20);
+});
+
+test("sections: lists each version with date and body, and stops before the link list", () => {
+  const all = sections(LOG);
+  assert.deepEqual(all.map((s) => [s.version, s.date]), [["Unreleased", null], ["1.0.0", "2026-09-27"]]);
+  assert.equal(all[0].body, "### Added\n\n- A new tool.");
+  assert.equal(all[1].body, "### Added\n\n- The site.");
+});
+
+test("anchor: versions become v1-1-0, Unreleased stays plain", () => {
+  assert.equal(anchor("1.1.0"), "v1-1-0");
+  assert.equal(anchor("Unreleased"), "unreleased");
 });

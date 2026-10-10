@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- A "What's new" page at `/changelog/` and an RSS feed at `/changelog.xml`, both built from this file. The footer version links to the page.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.
