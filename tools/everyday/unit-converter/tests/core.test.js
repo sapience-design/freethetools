@@ -32,3 +32,7 @@ test("pretty-prints without float noise", () => {
   assert.equal(pretty(0.1 + 0.2), "0.3");
   assert.equal(pretty(1e-9), "1.000000e-9");
 });
+
+test("an unknown category lists the valid ones", () => {
+  assert.throws(() => convert(1, "colour", "a", "b"), /Unknown category "colour"\. Use one of: .*length.*temperature/);
+});

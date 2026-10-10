@@ -11,7 +11,7 @@ const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padSta
  */
 export async function hash(bytes, algorithm) {
   if (algorithm === "MD5") return md5(bytes);
-  if (!ALGORITHMS.includes(algorithm)) throw new Error(`Unknown algorithm "${algorithm}".`);
+  if (!ALGORITHMS.includes(algorithm)) throw new Error(`Unknown algorithm "${algorithm}". Use one of: ${ALGORITHMS.join(", ")}.`);
   return toHex(await crypto.subtle.digest(algorithm, bytes));
 }
 

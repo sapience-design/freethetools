@@ -90,6 +90,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
             <button type="button" data-theme-set={v} aria-pressed={i === 0 ? "true" : "false"}><Icon name={ic} />{label}</button>
           ))}
         </div>
+        <label class="slash-opt"><input type="checkbox" id="slash-key" checked> Press <kbd>/</kbd> to jump to search</label>
       </div>
       <div class="col">
         <p class="col-h">Groups</p>
@@ -167,10 +168,22 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       t.labels?.[0]?.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
 
-    // "/" jumps to search from anywhere.
+    // "/" jumps to search from anywhere, unless the person turned it off in the footer (WCAG 2.1.4).
+    // It is also ignored while typing in a field. The choice is remembered in this browser only.
+    const SLASH = "ftt:slash";
+    const slashBox = document.getElementById("slash-key") as HTMLInputElement | null;
+    let slashOn = true;
+    try { slashOn = localStorage.getItem(SLASH) !== "off"; } catch {}
+    if (slashBox) {
+      slashBox.checked = slashOn;
+      slashBox.addEventListener("change", () => {
+        slashOn = slashBox.checked;
+        try { slashOn ? localStorage.removeItem(SLASH) : localStorage.setItem(SLASH, "off"); } catch {}
+      });
+    }
     document.addEventListener("keydown", (e) => {
       const t = e.target as HTMLElement;
-      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
+      if (!slashOn || e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
       const find = document.getElementById("find") as HTMLInputElement | null;
       e.preventDefault();
       if (find) find.focus(); else location.href = "/#find";
@@ -285,6 +298,9 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .initiative img { height: 15px; width: auto; filter: var(--logo-filter); opacity: .85; }
   .theme { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
   .theme button { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .slash-opt { display: flex; align-items: center; gap: 10px; margin-top: 14px; min-height: 40px; font-size: 14px; cursor: pointer; }
+  .slash-opt input { width: 20px; height: 20px; accent-color: var(--ink); }
+  .slash-opt kbd { font: inherit; font-weight: 700; padding: 0 6px; border: 1px solid var(--hair); border-radius: 5px; background: var(--well); }
   .theme button:hover { color: var(--ink); }
   .theme button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
   .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }

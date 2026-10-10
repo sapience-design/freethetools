@@ -116,6 +116,37 @@ test.describe("keyboard only", () => {
     await expect(page.locator("#find")).toBeFocused();
   });
 
+  test("the \"/\" shortcut can be turned off, and the choice is kept (WCAG 2.1.4)", async ({ page }) => {
+    await ready(page, "/pdf/merge/");
+    const box = page.getByLabel(/to jump to search/);
+    await expect(box).toBeChecked();
+    await box.uncheck();
+    expect(await page.evaluate(() => localStorage.getItem("ftt:slash"))).toBe("off");
+    await page.locator("body").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press("/");
+    await expect(page).toHaveURL(new RegExp("/pdf/merge/$"));
+    // Still off after a reload.
+    await ready(page, "/pdf/merge/");
+    await expect(page.getByLabel(/to jump to search/)).not.toBeChecked();
+    await page.keyboard.press("/");
+    await expect(page).toHaveURL(new RegExp("/pdf/merge/$"));
+    // Turning it on again brings the shortcut back.
+    await page.getByLabel(/to jump to search/).check();
+    expect(await page.evaluate(() => localStorage.getItem("ftt:slash"))).toBeNull();
+    await page.locator("body").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.press("/");
+    await expect(page).toHaveURL(new RegExp("/#find$"));
+  });
+
+  test("typing \"/\" in a text field never jumps to search", async ({ page }) => {
+    await ready(page, "/text/case-converter/");
+    const field = page.locator("textarea").first();
+    await field.focus();
+    await page.keyboard.type("a/b");
+    await expect(page).toHaveURL(new RegExp("/text/case-converter/$"));
+    await expect(field).toBeFocused();
+  });
+
   test("sorting with arrow keys reorders the shelf", async ({ page }) => {
     await ready(page, "/");
     await tabTo(page, 'input[name="sort"]');
