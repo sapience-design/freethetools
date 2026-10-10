@@ -135,8 +135,10 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <script>
     import { trackVisit } from "../lib/stats";
     import { registerServiceWorker } from "../lib/offline";
+    import { watchExternalLinks } from "../lib/external-links.js";
     trackVisit();
     registerServiceWorker();
+    watchExternalLinks();
 
     // ---- Theme: System (follows the device), Light or Dark; remembered in this browser only ----
     const THEME = "ftt:theme";
