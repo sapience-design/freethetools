@@ -4,7 +4,7 @@ Date: 2026-10-10 · Status: accepted (decided by Sapience Design) · Extends [AD
 
 ## Context
 
-[ADR 0007](0007-visits-and-outcomes.md) noted that the free Workers and D1 limits cover roughly 25,000 visits a day, because a visit can cost four writes. Past that, writes fail and the totals stop. Separately, the Worker accepts a write from any request with a same-origin `Origin` header, which a script can fake. "Most used" and "Most liked" are home-page sorts, so a script could push a tool to the top.
+[ADR 0007](0007-visits-and-outcomes.md) noted that the free Workers and D1 limits cover roughly 25,000 visits a day, because a visit can cost four writes. Past that, writes fail and the totals stop. Separately, "Most used" and "Most liked" are home-page sorts, so the counts behind them should be hard to distort.
 
 ## Decision
 
@@ -34,6 +34,6 @@ Date: 2026-10-10 · Status: accepted (decided by Sapience Design) · Extends [AD
 
 - Counts above the threshold are estimates. Each is the real count plus or minus sampling noise, which shrinks as traffic grows.
 - A visitor whose session starts just before a rate change sends weight 1 or a stale weight. The Worker counts it as 1. This undercounts slightly, for at most a minute per change.
-- The ceilings are not authentication. A script can still raise counts up to them. They limit the harm; they do not remove it.
+- The ceilings bound what one day can add. They are one layer of protection, not the only one.
 - No schema change and no new data. The privacy pledge in [ADR 0006](0006-anonymous-usage-totals.md) is unchanged.
 - The free limits then cover far more than 25,000 visits a day. Raise the table if the free plan changes.
