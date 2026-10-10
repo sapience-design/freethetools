@@ -1,7 +1,7 @@
 {
   "name": "Free the Tools",
   "short_name": "Free Tools",
-  "description": "Free, open-source tools that run in your browser. Nothing is uploaded. A Sapience initiative.",
+  "description": "Free, open-source tools that run in your browser. Nothing is uploaded. A Sapience Design initiative.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

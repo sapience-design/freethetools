@@ -68,11 +68,10 @@ const safe = files
         <h1 class="h1">{d.task}</h1>
         <p class="lede">{d.tagline}</p>
         <div class="tp-actions">
-          <button class="pillbtn" type="button" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
-            <Icon name="bookmark-simple" /><span class="off">Save</span><span class="on">Saved</span>
-          </button>
-          <button class="pillbtn like" type="button" id="tool-like" aria-pressed="false">
-            <Icon name="heart" /><span id="tool-like-label">Like</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
+          {/* One heart: it keeps the tool in Favourites (see Base.astro) and counts one public like. */}
+          <button class="pillbtn like" type="button" id="tool-like" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
+            <span class="off"><Icon name="heart" /></span><span class="on"><Icon name="heart" weight="fill" /></span>
+            <span class="off">Add to favourites</span><span class="on">In favourites</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
           </button>
           <span class="usage" id="tool-usage" hidden></span>
         </div>
@@ -115,12 +114,11 @@ const safe = files
 </Base>
 
 <script>
-  import { trackView, watchUse, watchOutcomes, isLiked, setLiked, summary, fmtCount } from "../../../lib/stats";
+  import { trackView, watchUse, watchOutcomes, summary, fmtCount } from "../../../lib/stats";
   const work = document.getElementById("tool-work")!;
   const tool = work.dataset.tool!;
   const like = document.getElementById("tool-like") as HTMLButtonElement;
   const count = document.getElementById("tool-like-count")!;
-  const label = document.getElementById("tool-like-label")!;
   const usage = document.getElementById("tool-usage")!;
 
   import { startAgentPage } from "../../../agent/page.js";
@@ -153,22 +151,17 @@ const safe = files
   const log = document.getElementById("agent-log");
   if (log) watchShare(log, { say });
 
-  function paint(on: boolean) {
-    like.setAttribute("aria-pressed", String(on));
-    label.textContent = on ? "Liked" : "Like";
-  }
-  paint(isLiked(tool));
   summary().then((s) => {
     const t = s?.[tool];
     if (!t) return;
     count.textContent = t.likes ? fmtCount(t.likes) : "";
     if (t.uses) { usage.textContent = `Used ${fmtCount(t.uses)} ${t.uses === 1 ? "time" : "times"}`; usage.hidden = false; }
   });
-  like.addEventListener("click", async () => {
-    const on = like.getAttribute("aria-pressed") !== "true";
-    paint(on);
-    const total = await setLiked(tool, on);
-    if (total !== null) count.textContent = total ? fmtCount(total) : "";
+  // Base.astro handles the press (favourite and like together, once) and the pressed state. Here
+  // we only show the new public count when it arrives.
+  document.addEventListener("likes-change", (e) => {
+    const { tool: id, likes } = (e as CustomEvent).detail;
+    if (id === tool && likes !== null) count.textContent = likes ? fmtCount(likes) : "";
   });
 </script>
 
@@ -182,9 +175,8 @@ const safe = files
   .pillbtn:hover { border-color: var(--edge); }
   .pillbtn :global(.ic) { font-size: 18px; }
   .pillbtn .on { display: none; }
-  .pillbtn[aria-pressed="true"] .on { display: inline; }
+  .pillbtn[aria-pressed="true"] .on { display: inline-flex; }
   .pillbtn[aria-pressed="true"] .off { display: none; }
-  [data-save][aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .like .count { color: var(--muted); font-family: var(--mono); font-size: 13px; font-weight: 400; }
   .like .count:empty { display: none; }
   .like[aria-pressed="true"] { border-color: var(--edge); background: var(--bad-t); }

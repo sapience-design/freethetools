@@ -26,13 +26,13 @@ test("lists what the site keeps, in plain words, and never creates the library b
   await page.goto("/how-it-works/");
   const stores = page.locator("#stores");
   await expect(stores.locator("li", { hasText: "Theme" })).toContainText("Dark");
-  await expect(stores.locator("li", { hasText: "Saved tools" })).toContainText("1 tool");
+  await expect(stores.locator("li", { hasText: "Favourites" })).toContainText("1 tool");
   await expect(stores.locator("li", { hasText: "Cookies" })).toContainText("None");
   await expect(stores.locator("li", { hasText: "Library" })).toHaveCount(0);
   expect(await page.evaluate(async () => (await indexedDB.databases()).map((d) => d.name))).not.toContain("ftt-library");
 
   // The raw value is one click away.
-  const saved = stores.locator("li", { hasText: "Saved tools" });
+  const saved = stores.locator("li", { hasText: "Favourites" });
   await saved.getByText("Show exactly what's stored").click();
   await expect(saved.locator("pre")).toContainText('ftt:saved = {"pdf/merge"');
 

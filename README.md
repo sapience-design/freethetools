@@ -10,7 +10,7 @@ So here they are: one place, every tool, free for everyone. Help us build the ne
 
 [freethetools.com](https://freethetools.com) is a growing shelf of everyday tools, such as compressing a PDF, that run entirely in your browser. There are no accounts, no limits and no ads, and nothing tracks you: the site keeps only anonymous daily totals, such as how often each tool is used and liked ([what's counted](https://freethetools.com/stats/)). Every page carries a Content Security Policy that stops it from sending your data to any other server, and the automated tests fail if a tool tries.
 
-Free the Tools is a [Sapience](https://sapience.design) initiative, built in the open with anyone who wants to help.
+Free the Tools is a [Sapience Design](https://sapience.design) initiative, built in the open with anyone who wants to help.
 
 [![CI](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml/badge.svg)](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sapience-design/freethetools/badge)](https://scorecard.dev/viewer/?uri=github.com/sapience-design/freethetools)
