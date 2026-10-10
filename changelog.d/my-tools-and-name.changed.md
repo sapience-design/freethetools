@@ -1,2 +1,0 @@
-- The top-bar button for the tools you keep is called "My tools" (it was "Saved"), so it is not confused with the Library of your files, and it is smaller on wide screens.
-- The site says "Sapience Design" instead of "Sapience" when it names the studio behind it.

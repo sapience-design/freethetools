@@ -1,0 +1,4 @@
+- "Saved" and "Like" are now one heart, called Favourites: adding a tool to your favourites also counts one like, and removing it takes the like back.
+- The home page shows "Your favourites" at the top once you have kept a tool, with a link to manage them.
+- The top-bar Favourites button is smaller on wide screens.
+- The site says "Sapience Design" instead of "Sapience" when it names the studio behind it.

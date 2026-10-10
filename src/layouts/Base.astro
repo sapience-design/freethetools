@@ -70,7 +70,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
       <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
       {page === "home"
-        ? <a class="bar-btn" href="/saved/"><Icon name="bookmark-simple" /><span class="bar-label">My tools</span><span class="count-pill" data-saved-count hidden>0</span></a>
+        ? <a class="bar-btn" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
         : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
     </nav>
     </div>
@@ -100,7 +100,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
         <ul>
           <li><a href="/about/">About</a></li>
           <li><a href="/changelog/">What's new</a></li>
-          <li><a href="/saved/">My tools</a></li>
+          <li><a href="/saved/">Favourites</a></li>
           <li><a href="/library/">Library</a></li>
           <li><a href={REQUEST_URL}>Suggest a tool</a></li>
           <li><a href="/support/">Support the project</a></li>
@@ -133,7 +133,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   </footer>
 
   <script>
-    import { trackVisit } from "../lib/stats";
+    import { trackVisit, isLiked, setLiked } from "../lib/stats";
     import { registerServiceWorker } from "../lib/offline";
     import { watchExternalLinks } from "../lib/external-links.js";
     trackVisit();
@@ -176,7 +176,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       if (find) find.focus(); else location.href = "/#find";
     });
 
-    // Saved tools live in this browser only (localStorage). The page works without it.
+    // Favourites live in this browser only (localStorage). The page works without it.
     const KEY = "ftt:saved";
     const read = (): Record<string, { name: string; href: string }> => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
     const write = (v: object) => { try { localStorage.setItem(KEY, JSON.stringify(v)); } catch {} };
@@ -192,9 +192,14 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       if (!b) return;
       const saved = read();
       const id = b.dataset.save!;
-      if (saved[id]) delete saved[id]; else saved[id] = { name: b.dataset.name!, href: b.dataset.href! };
+      const on = !saved[id];
+      if (on) saved[id] = { name: b.dataset.name!, href: b.dataset.href! }; else delete saved[id];
       write(saved);
       paint();
+      // A favourite is also a like, so the public count is how many people keep the tool. Send
+      // only when the like differs from what this browser already sent, so it is never counted twice.
+      if (isLiked(id) === on) return;
+      setLiked(id, on).then((likes) => document.dispatchEvent(new CustomEvent("likes-change", { detail: { tool: id, likes } })));
     });
     paint();
 

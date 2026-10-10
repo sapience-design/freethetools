@@ -2,16 +2,16 @@
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 ---
-<Base page="saved" title="My tools | Free the Tools" description="The tools you saved on this device. Kept in this browser only." noindex>
+<Base page="saved" title="Favourites | Free the Tools" description="The tools you use most, kept in this browser only." noindex>
   <div class="page narrow saved">
     <a class="back" href="/"><Icon name="caret-left" />All tools</a>
     <div class="intro">
-      <h1 class="h1">My tools</h1>
-      <p class="lede">Kept in this browser only. Nothing is stored anywhere else.</p>
+      <h1 class="h1">Your favourites</h1>
+      <p class="lede">The tools you use most, kept in this browser. Nothing is stored anywhere else.</p>
     </div>
     <ul class="rows card" id="saved-list" hidden></ul>
     <div class="empty card" id="saved-empty">
-      <p><b>Nothing saved yet.</b> Press <b>Save</b> on any tool to keep it here.</p>
+      <p><b>No favourites yet.</b> Press <b>Add to favourites</b> on any tool to keep it here.</p>
       <p>To keep the whole site handy, bookmark it with <kbd>Ctrl</kbd> + <kbd>D</kbd> (<kbd>⌘</kbd> + <kbd>D</kbd> on a Mac), or install it as an app from your browser's address bar.</p>
       <p><a class="btn" href="/">Browse all tools</a></p>
     </div>

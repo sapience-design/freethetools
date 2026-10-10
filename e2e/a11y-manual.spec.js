@@ -225,7 +225,7 @@ test.describe("roles, names and live regions", () => {
     await ready(page, "/");
     await expect(page.getByRole("search")).toBeVisible();
     await expect(page.getByRole("searchbox", { name: "What do you need to do?" })).toBeVisible();
-    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^My tools/ })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Favourites/ })).toBeVisible();
   });
 
   test("on a wide screen the top bar links to the source code, by name", async ({ page, isMobile }) => {
@@ -249,7 +249,7 @@ test.describe("roles, names and live regions", () => {
         expect(Math.min(z.w, z.h), `${path}: ${z.name} is at least 44 px`).toBeGreaterThanOrEqual(44);
       }
       // The icon-only button still has its words for screen readers.
-      const button = page.getByRole("banner").getByRole("link", { name: path === "/" ? /^Saved/ : "All tools" });
+      const button = page.getByRole("banner").getByRole("link", { name: path === "/" ? /^Favourites/ : "All tools" });
       await expect(button).toBeVisible();
     }
   });
@@ -278,14 +278,16 @@ test.describe("roles, names and live regions", () => {
     await expect(page.locator("#sort-status")).toHaveText(/A–Z/);
   });
 
-  test("a tool's Save button has a name and a state", async ({ page }) => {
+  test("a tool's heart button names the tool and has a state", async ({ page }) => {
     await ready(page, "/pdf/compress/");
-    const save = page.locator(".tp-actions [data-save]");
-    await expect(save).toHaveAccessibleName("Save");
-    await expect(save).toHaveAttribute("aria-pressed", "false");
-    await save.click();
-    await expect(save).toHaveAttribute("aria-pressed", "true");
-    await expect(save).toHaveAccessibleName("Saved");
+    const heart = page.locator(".tp-actions [data-save]");
+    await expect(heart).toHaveAccessibleName(/^Add to favourites Compress PDF/);
+    await expect(heart).toHaveAttribute("aria-pressed", "false");
+    await heart.click();
+    await expect(heart).toHaveAttribute("aria-pressed", "true");
+    await expect(heart).toHaveAccessibleName(/^In favourites Compress PDF/);
+    await heart.click(); // leave the shared test database as we found it
+    await expect(heart).toHaveAttribute("aria-pressed", "false");
   });
 
   for (const path of GROUP_TOOLS) {

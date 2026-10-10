@@ -7,7 +7,7 @@ Free the Tools is plain files. You can serve your own copy on any static host, o
 | Part | Needed? | What happens without it |
 |---|---|---|
 | The built site (`dist/`) | Yes | Nothing to serve |
-| The stats Worker (`worker/`) and its D1 database | No | "Most used" and "Most liked" fall back to A–Z, Like buttons do nothing, and `/stats/` says totals are unavailable. Every tool still works. |
+| The stats Worker (`worker/`) and its D1 database | No | "Most used" and "Most liked" fall back to A–Z, the heart still keeps favourites but sends no like, and `/stats/` says totals are unavailable. Every tool still works. |
 | The response headers in `public/_headers` | Recommended | Pages still carry their Content Security Policy in a `<meta>` tag. The extra headers (`X-Frame-Options`, `Referrer-Policy`, cache lifetimes) are missing. |
 
 ## Build it

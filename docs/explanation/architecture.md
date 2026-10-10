@@ -91,7 +91,7 @@ Design round 4 ("v4"), from the Claude Design project *Free the Tools v4*. The d
 Layout:
 
 - One 1280 px container (`--content`) shared by the top bar, the page and the footer, with fluid gutters; running text stops at 65 characters (`--measure`). Tool pages put a 340 px side column beside the tool, stacking below 960 px.
-- A sticky top bar: the mark and name, About, Library, and Saved (on the home page) or All tools (elsewhere). On phones the button shows its icon only.
+- A sticky top bar: the mark and name, About, Library, and Favourites (on the home page) or All tools (elsewhere). On phones the button shows its icon only.
 - Home: one headline, a search box ("What do you need to do?"), group filter chips, a sort control, "Most people come for", then one card per group with its top three tools.
 - Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
 - Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.

@@ -676,7 +676,7 @@ test.describe("theme, search, sorting, likes and stats", () => {
     expect(Math.abs(centre(await page.locator("#results-clear").boundingBox()) - centre(box))).toBeLessThan(4);
   });
 
-  test("liking a tool is remembered and counted", async ({ page }) => {
+  test("a favourite is remembered and counted as a like", async ({ page }) => {
     await page.goto("/text/case-converter/");
     await page.click("#tool-like");
     await expect(page.locator("#tool-like")).toHaveAttribute("aria-pressed", "true");

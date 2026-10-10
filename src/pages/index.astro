@@ -65,6 +65,15 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
     </section>
 
     <div id="default" class="default">
+      {/* Filled in the browser from the favourites kept in this browser (ftt:saved); hidden when there are none. */}
+      <section class="fav" id="fav" aria-labelledby="fav-h" hidden>
+        <div class="fav-head">
+          <h2 class="h2" id="fav-h">Your favourites</h2>
+          <a class="fav-manage" href="/saved/">Manage</a>
+        </div>
+        <ul class="rows card" id="fav-list"></ul>
+      </section>
+
       <section class="popular" aria-labelledby="popular-h">
         <div class="pop-head">
           <h2 class="h2" id="popular-h">Most people come for</h2>
@@ -197,7 +206,10 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   .results :global(.rows a.sel) { background: var(--row-hover); box-shadow: inset 4px 0 0 var(--edge); }
 
   .default { display: grid; gap: clamp(56px, 7vw, 96px); }
-  .pop-head, .all-head { margin-bottom: 20px; }
+  .pop-head, .all-head, .fav-head { margin-bottom: 20px; }
+  .fav[hidden] { display: none; }
+  .fav-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .fav-manage { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; text-underline-offset: 3px; }
   .pop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .pop-nav { display: flex; gap: 8px; }
   /* Four cards at a time (two on tablets, one and a peek on phones); the rest scroll sideways.
@@ -459,6 +471,27 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
   pops.addEventListener("focusin", (e) => (e.target as HTMLElement).closest("li")?.scrollIntoView({ block: "nearest", inline: "nearest" }));
   // Also after a search hides and shows the section again, which changes its size.
   new ResizeObserver(popState).observe(pops);
+
+  // ---- Your favourites: the tools kept in this browser, looked up in the rows already on the page ----
+  const fav = $("fav"), favList = $("fav-list");
+  type Kept = Record<string, { name: string; href: string }>;
+  function showFavourites(kept: Kept) {
+    const rows = Object.values(kept).map((k) => {
+      const li = rowFor(k.href)?.cloneNode(true) as HTMLElement | undefined;
+      if (li) { li.querySelector("[data-stat]")?.replaceChildren(); return li; }
+      // A tool that is no longer listed keeps the name it was saved with.
+      const row = document.createElement("li");
+      row.innerHTML = '<a class="row"><span class="row-ic"></span><span class="row-title"><b></b></span></a>';
+      row.querySelector("a")!.href = k.href;
+      row.querySelector("b")!.textContent = k.name;
+      return row;
+    });
+    fav.hidden = rows.length === 0;
+    favList.replaceChildren(...rows);
+  }
+  const keptNow = (): Kept => { try { return JSON.parse(localStorage.getItem("ftt:saved") || "{}") || {}; } catch { return {}; } };
+  document.addEventListener("saved-change", (e) => showFavourites((e as CustomEvent).detail));
+  showFavourites(keptNow());
 
   const q = new URLSearchParams(location.search).get("q");
   if (q) { input.value = q; key.hidden = true; }

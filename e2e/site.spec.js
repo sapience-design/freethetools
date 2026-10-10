@@ -65,11 +65,51 @@ test("search finds tools and offers requests for misses", async ({ page }) => {
   await expect(page.locator("#results-empty")).toContainText("ask us to build it");
 });
 
-test("saving a tool shows it on the Saved page", async ({ page }) => {
+test("the heart adds a favourite, shows it at home and on /saved/, and counts one like", async ({ page }) => {
+  const likes = [];
+  page.on("request", (r) => { if (r.url().endsWith("/api/stats/like") && r.method() === "POST") likes.push(r.postDataJSON()); });
   await page.goto("/pdf/compress/");
-  await page.locator(".tp-actions [data-save]").click();
+  const heart = page.locator(".tp-actions [data-save]");
+  await expect(heart).toHaveAttribute("aria-pressed", "false");
+  await heart.click();
+  await expect(heart).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => likes.length).toBe(1);
+  expect(likes[0]).toEqual({ tool: "pdf/compress", on: true });
+
+  // A reload sends nothing and shows the heart on.
+  await page.reload();
+  await expect(heart).toHaveAttribute("aria-pressed", "true");
+
+  await page.goto("/");
+  const fav = page.locator("#fav");
+  await expect(fav).toBeVisible();
+  await expect(fav.getByRole("heading", { name: "Your favourites" })).toBeVisible();
+  await expect(fav.getByRole("link", { name: /Compress PDF/ })).toBeVisible();
+  await expect(fav.getByRole("link", { name: "Manage" })).toHaveAttribute("href", "/saved/");
+  // It hides while search results show.
+  await page.fill("#find", "merge");
+  await expect(fav).toBeHidden();
+  await page.fill("#find", "");
+  await expect(fav).toBeVisible();
+
   await page.goto("/saved/");
-  await expect(page.locator("#saved-list").getByRole("link", { name: "Compress PDF" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your favourites" })).toBeVisible();
+  await expect(page.locator("#saved-list").getByRole("link", { name: /Compress PDF/ })).toBeVisible();
+
+  await page.goto("/pdf/compress/");
+  await heart.click();
+  await expect(heart).toHaveAttribute("aria-pressed", "false");
+  await expect.poll(() => likes.length).toBe(2);
+  expect(likes[1]).toEqual({ tool: "pdf/compress", on: false });
+  await page.goto("/");
+  await expect(page.locator("#fav")).toBeHidden();
+  expect(likes).toHaveLength(2);
+});
+
+test("the Favourites page says so when it is empty", async ({ page }) => {
+  await page.goto("/saved/");
+  await expect(page).toHaveTitle("Favourites | Free the Tools");
+  await expect(page.locator("#saved-empty")).toContainText("No favourites yet. Press Add to favourites on any tool to keep it here.");
 });
 
 for (const firstPage of [false, true]) {

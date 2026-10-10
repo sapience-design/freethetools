@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 
-export type Weight = "bold" | "duotone";
+export type Weight = "bold" | "duotone" | "fill";
 const require = createRequire(import.meta.url);
 const cache = new Map<string, string>();
 
