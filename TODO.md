@@ -16,35 +16,11 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | B15 | A way to turn off the "/" search shortcut (WCAG 2.1.4) | Found in the accessibility pass. The styled "Skip to content" link shipped with the v4 design | Ready |
 | B16 | Rewrite the tutorial around a tool that doesn't exist yet | `docs/tutorial/first-tool.md` builds Word Counter, which now exists, so its scaffold step fails | Ready |
 
-## Owner (Sapience Design)
-
-| # | Task | Where | Status |
-|---|---|---|---|
-| O2 | Add freethetools.com to Google Search Console and Bing Webmaster Tools; submit `https://freethetools.com/sitemap.xml` | search.google.com/search-console, bing.com/webmasters | Open |
-| O3 | Rate-limiting rule on `/api/stats/*` (e.g. 30 requests / 10 s per visitor) | Cloudflare → Security → WAF → Rate limiting rules | Open |
-| O5 | Test Email Routing: one mail each to security@ and hello@freethetools.com | Any mail client | Open |
-| O6 | Launch posts when happy: Show HN, r/opensource, Product Hunt | — | Open |
-| O7 | Optional: sign up for the OpenSSF Best Practices badge | bestpractices.dev | Open |
-| O8 | Decide whether Dependabot PRs skip the sign-off check. If yes, add `if: github.event.pull_request.user.login != 'dependabot[bot]'` to the `signoff` job in `.github/workflows/dco.yml`. Until then, a maintainer re-applies each bump in a signed-off PR, as #34 did. | GitHub (CI changes need the owner) | Open |
-| O11 | Two-factor login on GitHub and Cloudflare with an authenticator app or security key (not SMS), and check that no old API tokens remain | github.com/settings/security; Cloudflare → My Profile → Authentication and API Tokens | Open |
-| O12 | Register freethetools.com for the WebMCP origin trial in Chrome, and paste the token into `src/data/origin-trials.json` | developer.chrome.com/origintrials | After merge |
-| O13 | The same for Edge | Microsoft Edge origin trials portal | After merge |
-| O14 | Publish the package: `npm login`, then `npm publish` in `packages/freethetools` (prepack builds it) | npmjs.com, with two-factor login | After merge |
-| O15 | List the MCP server in the official MCP Registry, from `packages/freethetools/server.json` | registry.modelcontextprotocol.io | After O14 |
-| O16 | Decide whether agent jobs count in the anonymous usage totals (ADR 0007, ADR 0008) | — | Open |
-| O17 | Screen-reader pass with NVDA (Windows) and VoiceOver (iOS), using the checklist in the accessibility audit | `docs/research/2026-09-28-accessibility-speed-audit.md` | Open |
-| O18 | Check that "Contact us" on /about/ reaches hello@freethetools.com (the v4 design added that link; see O5) | Any mail client | Open |
-
-## Parked
-
-| Task | Why |
-|---|---|
-| HEIC to JPG (#11) | heic2any and libheif's embind build use `new Function`, which the CSP blocks. Needs a libheif WebAssembly build without embind; see the issue. |
-
 ## Done recently
 
 | What | PR | Date |
 |---|---|---|
+| HEIC to JPG, with libheif as WebAssembly that the security policy allows | #85 | 2026-10-10 |
 | Cloudflare Web Analytics injection and client-side script monitoring switched off; live check green from a US runner (no errors, no warnings) | — | 2026-09-29 |
 | Accessibility and speed audit: Lighthouse 99–100 on mobile; axe (WCAG 2.2 AA) on every page, both themes, desktop and phone, now in CI; contrast, label-in-name and landmark fixes | #40 | 2026-09-28 |
 | Share images: a 1200×630 PNG for the site, each group and each tool, drawn at build time from the product shots; `og:image` and `summary_large_image` on every page | #39 | 2026-09-28 |
@@ -53,7 +29,6 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | Docs brought up to date: architecture, OpenAPI stats summary, llms.txt, commands, deploy (database migrations) | #35 | 2026-09-28 |
 | Python dev dependencies bumped (pymupdf 1.28.2, pytest 9.1.1); Dependabot #1 and #2 closed as superseded | #34 | 2026-09-28 |
 | Extended anonymous stats: visits with referring site, country and device; per-tool results and errors; /stats breakdowns (ADR 0007). Production D1 migrated. | #32 | 2026-09-28 |
-| Bot Management API token deleted; freethehardware.com registered | — | 2026-09-28 |
 | Themes, search, sorting, anonymous usage totals and likes; 24 new tools; shop redesign — all merged and live | #30 (with #27–#29) | 2026-09-28 |
 | Cloudflare JavaScript Detections switched off (`enable_js` was left on after Bot Fight Mode was disabled; the dashboard has no switch for it) | — | 2026-09-28 |
 | Deploys via Cloudflare Workers Builds; no Cloudflare secrets in GitHub | #26 | 2026-09-27 |
