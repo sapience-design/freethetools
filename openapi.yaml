@@ -137,7 +137,6 @@ components:
         offline: { type: boolean, description: True if the tool works without a network connection once loaded. }
         added: { type: string, format: date }
         source: { type: string, format: uri }
-        cli: { type: [string, "null"], format: uri, description: Folder with a command-line version, if any. }
         authors:
           type: array
           items:

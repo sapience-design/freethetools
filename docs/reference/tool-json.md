@@ -19,7 +19,6 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `status` | no | `live` or `beta`, default `live` | Beta tools are labelled |
 | `added` | yes | `YYYY-MM-DD` | Spec table, sitemap `lastmod` |
 | `offline` | no | Boolean, default `true` | "Nothing is uploaded" wording |
-| `cli` | no | File name in the tool's `cli/` folder | Links to the command-line version |
 | `specs` | no | `{ "Label": "Value" }` | Extra rows in the spec table |
 | `faq` | no | `[{ "q", "a" }]` | Questions beside the tool and FAQ structured data for search engines. Start with whether anything is uploaded. |
 | `vendor` | no | `[{ "from", "to" }]` | Runtime files copied from `node_modules`; optional `"extract"` names a build-time extractor in `scripts/sync-tool-assets.mjs`; see [vendoring](../how-to/vendor-a-library.md) |
@@ -33,6 +32,5 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `tests/*.test.js` | recommended | Run by `npm test` with Node's test runner |
 | `README.md` | recommended | Notes for maintainers and reviewers |
 | `agent.js` | recommended | The tool for AI agents: name, description, inputs and a `run` function built on `core.js`. See [ADR 0008](../adr/0008-tools-for-ai-agents.md) and `src/agent/contract.js`. Checked by `npm test`. |
-| `cli/` | no | A command-line version |
 
 Tools can also have a custom product-shot drawing: add it to `PIECES` in `src/data/art.ts`, keyed by the tool id (`"<group>/<slug>"`).

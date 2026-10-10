@@ -106,7 +106,6 @@ const safe = files
             {specs.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
             <tr><th scope="row">Built by</th><td>{d.authors.map((a, i) => <>{i > 0 && ", "}{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}</>)}</td></tr>
             <tr><th scope="row">Source</th><td><a href={`${REPO}/tree/main/tools/${tool.id}`}>tools/{tool.id}</a></td></tr>
-            {d.cli && <tr><th scope="row">Command line</th><td><a href={`${REPO}/tree/main/tools/${tool.id}/cli`} class="mono">{d.cli}</a></td></tr>}
           </tbody>
         </table>
         <p class="report"><a href={`${REPO}/issues/new?template=bug_report.yml&tool=${encodeURIComponent(tool.id)}`}>Report a problem</a></p>

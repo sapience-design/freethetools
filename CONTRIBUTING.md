@@ -18,7 +18,7 @@ By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Build it
 
-You need Node.js 22.12 or newer. Python 3.11+ is only needed for tools with a Python command-line version.
+You need Node.js 22.12 or newer.
 
 ```sh
 git clone https://github.com/<you>/freethetools.git   # your fork

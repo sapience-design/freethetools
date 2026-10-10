@@ -10,7 +10,6 @@ major version.
 
 ### Added
 
-
 - "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; five checks anyone can do (the Network tab, going offline, where files go, the security policy, the code); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
 - `/llms-full.txt`: every tool with its details and questions in one plain-text file for language models, linked from `/llms.txt`.
 - A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
@@ -34,6 +33,10 @@ major version.
 - Usage counts are harder to inflate: a tool's likes for one day stay within plus or minus 500, and each daily count of views, uses, results and errors stops at 100,000. Requests with more than 5 fields are refused.
 - A tool added by a new release counts right away. The stats service looks for new tools again (at most once a minute) instead of rejecting them until it restarts.
 - The Compress PDF FAQ now says the tool works offline after you have opened it once.
+
+### Removed
+
+- The Python command-line version of Compress PDF (`shrink_pdf.py`) and the `cli` field of `tool.json`. The `freethetools` npm package runs every tool on your computer instead, with one engine for the site, the package and agents.
 
 ## [1.1.0] - 2026-10-09
 
