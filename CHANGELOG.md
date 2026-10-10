@@ -10,8 +10,10 @@ major version.
 
 ### Added
 
+
 - "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; five checks anyone can do (the Network tab, going offline, where files go, the security policy, the code); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
 - `/llms-full.txt`: every tool with its details and questions in one plain-text file for language models, linked from `/llms.txt`.
+- A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
 
 ### Changed
 
