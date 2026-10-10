@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Removed
+
+- The Python command-line version of Compress PDF (`shrink_pdf.py`) and the `cli` field of `tool.json`. The `freethetools` npm package runs every tool on your computer instead, with one engine for the site, the package and agents.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.

@@ -31,7 +31,6 @@ We'll keep you updated along the way. If we can't meet a target, we'll tell you 
 - Any tool that sends data off the device, loads code from another origin, or bypasses the Content Security Policy
 - Cross-site scripting, injection through file contents, or a crafted file that runs code in a tool
 - The build and release pipeline: GitHub Actions workflows and dependencies
-- Command-line versions in `tools/*/*/cli/`
 
 ## Out of scope
 

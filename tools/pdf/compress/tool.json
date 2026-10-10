@@ -12,7 +12,6 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "cli": "shrink_pdf.py",
   "specs": {
     "Engine": "Ghostscript 9.56, compiled to WebAssembly",
     "First load": "16 MB, then cached by your browser",
@@ -23,7 +22,7 @@
     { "q": "Which quality should I pick?", "a": "Balanced suits email and sharing. Smallest suits reading on screen. Print keeps images sharp enough for paper. Prepress keeps colour profiles for professional printing." },
     { "q": "Why did my file get bigger?", "a": "PDFs made mostly of text and vector drawings are often already compact. Ghostscript rewrites the whole file, so the result can come out slightly larger. Keep the original in that case." },
     { "q": "Can it open password-protected PDFs?", "a": "Not yet. Remove the password in your PDF reader first." },
-    { "q": "Is there a command-line version?", "a": "Yes. shrink_pdf.py in the source folder does the same job with PyMuPDF, for example: python shrink_pdf.py file.pdf --first-page" }
+    { "q": "Can I run it from a script or an AI assistant?", "a": "Yes. The freethetools npm package runs the same compressor on your computer, for scripts and AI assistants: npx -y freethetools run compress_pdf '{\"file\":\"report.pdf\"}'. Nothing is uploaded." }
   ],
   "vendor": [
     { "from": "@jspawn/ghostscript-wasm/gs.js", "to": "gs.js" },

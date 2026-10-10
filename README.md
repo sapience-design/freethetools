@@ -14,7 +14,7 @@ Free the Tools is a [Sapience](https://sapience.design) initiative, built in the
 
 Open [freethetools.com](https://freethetools.com). That's it.
 
-Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt). Some tools also ship a command-line version in their `cli/` folder.
+Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt).
 
 ## For AI agents
 
