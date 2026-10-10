@@ -3,7 +3,7 @@
   "task": "Kode eller dekode Base64",
   "tagline": "Gjør tekst eller filer om til Base64, og tilbake igjen.",
   "seoTitle": "Base64 koding og dekoding på nett",
-  "description": "Kod eller dekod Base64 for tekst og filer, standard eller URL-trygt, med full UTF-8-støtte. Gratis, og ingenting forlater nettleseren.",
+  "description": "Kod eller dekod Base64 for tekst og filer, standard eller URL-sikkert, med full UTF-8-støtte. Gratis, og ingenting forlater nettleseren.",
   "keywords": [
     "base64",
     "kode",
@@ -21,11 +21,11 @@
   "faq": [
     {
       "q": "Sendes dataene mine noe sted?",
-      "a": "Nei. Koding skjer i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut. Trygt for tokener og nøkler."
+      "a": "Nei. Koding skjer i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut. Trygt for tokener og nøkler."
     },
     {
-      "q": "Hva er URL-trygg Base64?",
-      "a": "Den samme kodingen med - og _ i stedet for + og /, og uten =-fyll, slik at den kan stå i en nettadresse eller en JWT."
+      "q": "Hva er URL-sikker Base64?",
+      "a": "Samme koding, men med - og _ i stedet for + og / og uten =-utfylling, slik at resultatet kan brukes i en URL eller JWT."
     }
   ]
 }

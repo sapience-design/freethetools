@@ -15,14 +15,14 @@
   ],
   "specs": {
     "Motor": "Vanlig JavaScript med Intl.Segmenter",
-    "Språk": "Teller ord riktig også på kinesisk, japansk og thai",
-    "Lesefart": "238 ord i minuttet; tale 150",
+    "Språk": "Teller også ord korrekt på kinesisk, japansk og thai",
+    "Lesehastighet": "238 ord i minuttet; tale 150",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lagres eller sendes teksten min noe sted?",
-      "a": "Nei. Tellingen skjer i denne fanen mens du skriver, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Tellingen skjer i denne fanen mens du skriver, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvordan regnes lesetiden ut?",

@@ -14,7 +14,7 @@
     "javascript"
   ],
   "specs": {
-    "Motor": "Nettleserens egen regex-motor for JavaScript",
+    "Motor": "Nettleserens innebygde regex-motor i JavaScript",
     "Flagg": "g, i, m, s, u og y",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },

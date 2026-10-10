@@ -1,5 +1,5 @@
 {
-  "name": "QR-kodelager",
+  "name": "QR-kodegenerator",
   "task": "Lag en QR-kode",
   "tagline": "Gjør en lenke, en tekst eller en Wi-Fi-pålogging om til en QR-kode du kan skrive ut.",
   "seoTitle": "Gratis QR-kodegenerator (uten registrering, uten utløp)",
@@ -14,7 +14,7 @@
     "uten utløp"
   ],
   "specs": {
-    "Motor": "qrcode-generator 2 (MIT), i nettleseren din",
+    "Motor": "qrcode-generator 2 (MIT), i nettleseren",
     "Sporing": "Ingen: koden inneholder teksten din direkte, ikke en omdirigering",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },

@@ -21,11 +21,11 @@
   "faq": [
     {
       "q": "Lastes filen min opp for å bli hashet?",
-      "a": "Nei. Filen leses og hashes i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Filen leses og hashes i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Bør jeg bruke MD5?",
-      "a": "Bare for å sammenligne med en sjekksum som er oppgitt i MD5. Den er ødelagt for sikkerhetsbruk. Bruk SHA-256 til alt nytt."
+      "a": "Bruk MD5 bare når du skal sammenligne med en publisert MD5-sjekksum. MD5 er ikke lenger sikker for kryptografisk bruk. Bruk SHA-256 for nye bruksområder."
     }
   ]
 }

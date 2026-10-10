@@ -21,7 +21,7 @@
   "faq": [
     {
       "q": "Lastes bildene mine opp?",
-      "a": "Nei. De kodes på nytt i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. De kodes på nytt i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvorfor ble ikke ett av bildene mindre?",
@@ -29,7 +29,7 @@
     },
     {
       "q": "Fjerner den posisjonsdata også?",
-      "a": "Ja, bilder som kodes på nytt tar ikke med de opprinnelige EXIF-dataene. For tapsfri fjerning uten ny koding, bruk Fjern posisjon fra bilder."
+      "a": "Ja. Bilder som kodes på nytt, beholder ikke de opprinnelige EXIF-metadataene. For tapsfri fjerning uten ny koding, bruk Fjern posisjon fra bilder."
     }
   ]
 }

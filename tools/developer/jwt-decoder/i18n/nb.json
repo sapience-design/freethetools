@@ -21,11 +21,11 @@
   "faq": [
     {
       "q": "Er det trygt å lime inn et ekte token?",
-      "a": "Tryggere enn de fleste steder: det dekodes i denne fanen, og sidens sikkerhetspolicy blokkerer alle tilkoblinger utenfra. Behandle likevel aktive tokener som passord, og tilbakekall de du har delt."
+      "a": "Tryggere enn mange andre løsninger: det dekodes i denne fanen, og sidens sikkerhetspolicy blokkerer alle tilkoblinger utenfra. Behandle likevel aktive tokener som passord, og tilbakekall de du har delt."
     },
     {
       "q": "Kan den sjekke RS256-tokener?",
-      "a": "Ikke ennå. De trenger utstederens offentlige nøkkel. HMAC-tokener (HS256 og slektninger) kan sjekkes med hemmeligheten din nå."
+      "a": "Ikke ennå. De trenger utstederens offentlige nøkkel. HMAC-tokener (HS256 og beslektede algoritmer) kan sjekkes med hemmeligheten din nå."
     }
   ]
 }

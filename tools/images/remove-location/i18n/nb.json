@@ -3,7 +3,7 @@
   "task": "Fjern posisjon fra bilder",
   "tagline": "Ta bort hvor og når et bilde ble tatt, før du deler det.",
   "seoTitle": "Fjern GPS-posisjon og EXIF-data fra bilder",
-  "description": "Fjern GPS-posisjon, kamera- og datodata fra JPG-, PNG- og WebP-bilder uten kvalitetstap. Gratis, og bilder forlater aldri enheten din.",
+  "description": "Fjern GPS-posisjon samt kamera- og datoopplysninger fra JPG-, PNG- og WebP-bilder uten kvalitetstap. Gratis, og bilder forlater aldri enheten din.",
   "keywords": [
     "fjern exif",
     "gps",
@@ -14,7 +14,7 @@
     "geotagg"
   ],
   "specs": {
-    "Motor": "Vanlig JavaScript, uten ny koding",
+    "Motor": "Ren JavaScript, uten ny koding",
     "Fjerner": "EXIF (GPS, kamera, datoer), XMP, IPTC og kommentarer",
     "Kvalitet": "Tapsfritt: bildedataene kopieres byte for byte",
     "Fungerer frakoblet": "Ja, når siden er lastet"
@@ -22,11 +22,11 @@
   "faq": [
     {
       "q": "Hvorfor fjerne posisjon fra bilder?",
-      "a": "Telefoner lagrer hvor hvert bilde ble tatt. Alle du sender originalfilen til kan se det, og det kan avsløre hjemmet ditt, skolen eller rutinene dine."
+      "a": "Telefoner lagrer hvor hvert bilde ble tatt. Alle du sender originalfilen til, kan se disse opplysningene, og det kan avsløre hjemmet ditt, skolen eller rutinene dine."
     },
     {
       "q": "Lastes bildene mine opp for å gjøre dette?",
-      "a": "Nei. Det skjer inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut. Det er poenget med et personvernverktøy."
+      "a": "Nei. Det skjer i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut. Det er poenget med et personvernverktøy."
     },
     {
       "q": "Mister bildet kvalitet?",

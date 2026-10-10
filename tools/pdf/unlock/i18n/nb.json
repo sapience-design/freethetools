@@ -28,7 +28,7 @@
     },
     {
       "q": "Sendes passordet mitt noe sted?",
-      "a": "Nei. Passordet blir i denne nettleserfanen. Det går til opplåsingsmotoren på denne siden og ingen andre steder. Sidens sikkerhetspolicy hindrer at noe sendes ut, og siden lagrer eller logger aldri passordet. Feltet tømmes så snart du har brukt det."
+      "a": "Nei. Passordet blir i denne nettleserfanen. Det går til opplåsingsmotoren på denne siden og ingen andre steder. Sidens sikkerhetspolicy hindrer at data sendes ut, og siden lagrer eller logger aldri passordet. Feltet tømmes så snart du har brukt det."
     },
     {
       "q": "Endrer opplåsing PDF-en min?",

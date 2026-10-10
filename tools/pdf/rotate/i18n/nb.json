@@ -15,14 +15,14 @@
     "retning"
   ],
   "specs": {
-    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
     "Kvalitet": "Tapsfritt: sidene snus, de tegnes ikke på nytt",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. PDF-en endres inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. PDF-en endres inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Gir rotering lavere kvalitet?",

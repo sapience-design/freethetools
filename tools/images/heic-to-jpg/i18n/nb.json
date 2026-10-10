@@ -3,7 +3,7 @@
   "task": "Åpne iPhone-bilder overalt",
   "tagline": "Gjør HEIC-bilder fra iPhone om til JPG eller PNG som åpnes overalt.",
   "seoTitle": "Konverter HEIC til JPG uten å laste opp",
-  "description": "Gjør HEIC- og HEIF-bilder fra en iPhone om til JPG eller PNG, gratis i nettleseren, ett eller mange om gangen. Bildene forlater aldri enheten din.",
+  "description": "Gjør HEIC- og HEIF-bilder fra en iPhone om til JPG eller PNG, gratis i nettleseren, ett eller mange om gangen. Bildene forblir på enheten din.",
   "keywords": [
     "heic til jpg",
     "heic til png",
@@ -22,7 +22,7 @@
   "faq": [
     {
       "q": "Lastes bildene mine opp?",
-      "a": "Nei. De dekodes og kodes på nytt inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut. Når siden er lastet, kan du gå frakoblet, og det virker fortsatt."
+      "a": "Nei. De dekodes og kodes på nytt i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut. Når siden er lastet, kan du gå frakoblet, og det virker fortsatt."
     },
     {
       "q": "Hvorfor vil ikke noen HEIC-filer åpne seg?",
@@ -30,7 +30,7 @@
     },
     {
       "q": "Hva skjer med Live Photos?",
-      "a": "Et Live Photo er et stillbilde i HEIC pluss en kort video. Du får stillbildet som JPG eller PNG. Videodelen er en egen .mov-fil som dette verktøyet lar være."
+      "a": "Et Live Photo er et stillbilde i HEIC pluss en kort video. Du får stillbildet som JPG eller PNG. Videodelen er en egen .mov-fil som dette verktøyet ikke endrer."
     }
   ]
 }

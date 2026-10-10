@@ -20,7 +20,7 @@
   "faq": [
     {
       "q": "Lastes bildene mine opp?",
-      "a": "Nei. Størrelsen endres inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Størrelsen endres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvorfor blir resultatet litt uskarpt når jeg gjør det større?",

@@ -21,7 +21,7 @@
   "faq": [
     {
       "q": "Lastes filene mine opp noe sted?",
-      "a": "Nei. Komprimeringen er Ghostscript kompilert til WebAssembly. Den lastes fra dette nettstedet og kjører i nettleserfanen din. Sidens sikkerhetspolicy hindrer at noe sendes ut. Etter at du har åpnet verktøyet én gang på denne enheten, fungerer det også uten nett."
+      "a": "Nei. Komprimeringen er Ghostscript kompilert til WebAssembly. Den lastes fra dette nettstedet og kjører i nettleserfanen din. Sidens sikkerhetspolicy hindrer at data sendes ut. Etter at du har åpnet verktøyet én gang på denne enheten, fungerer det også uten nett."
     },
     {
       "q": "Hvilken kvalitet bør jeg velge?",

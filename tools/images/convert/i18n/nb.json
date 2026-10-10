@@ -3,7 +3,7 @@
   "task": "Bytt filtype på et bilde",
   "tagline": "JPG, PNG, WebP og AVIF, det du trenger.",
   "seoTitle": "Konverter PNG-, JPG- og WebP-bilder uten å laste opp",
-  "description": "Gjør bilder om mellom PNG, JPG, WebP og AVIF, gratis i nettleseren, ett eller mange om gangen. Bildene forlater aldri enheten din.",
+  "description": "Gjør bilder om mellom PNG, JPG, WebP og AVIF, gratis i nettleseren, ett eller mange om gangen. Bildene forblir på enheten din.",
   "keywords": [
     "png til jpg",
     "webp til png",
@@ -21,7 +21,7 @@
   "faq": [
     {
       "q": "Lastes bildene mine opp?",
-      "a": "Nei. De konverteres inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. De konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvilket format bør jeg velge?",

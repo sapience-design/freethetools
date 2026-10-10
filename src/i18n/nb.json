@@ -8,16 +8,16 @@
       "favourites": "Favoritter",
       "allTools": "Alle verktøy",
       "github": "Kildekode på GitHub",
-      "donate": "Gi et bidrag"
+      "donate": "Doner"
     },
     "foot": {
-      "tagline": "Nyttige verktøy som blir på enheten din.",
+      "tagline": "Nyttige verktøy som forblir på enheten din.",
       "initiative": "Et initiativ fra Sapience Design",
       "theme": "Tema",
       "system": "System",
       "light": "Lys",
       "dark": "Mørk",
-      "slash": "Trykk {key} for å hoppe til søk",
+      "slash": "Trykk på {key} for å gå til søkefeltet",
       "groups": "Grupper",
       "project": "Prosjekt",
       "trust": "Tillit",
@@ -27,10 +27,10 @@
       "favourites": "Favoritter",
       "library": "Bibliotek",
       "suggest": "Foreslå et verktøy",
-      "donate": "Gi et bidrag",
-      "sponsor": "Finansier et verktøy",
+      "donate": "Doner",
+      "sponsor": "Spons et verktøy",
       "howItWorks": "Slik fungerer det",
-      "verify": "Kontroller dette nettstedet",
+      "verify": "Bekreft at dette nettstedet er ekte",
       "stats": "Bruksstatistikk",
       "privacy": "Personvern",
       "ai": "KI-assistenter",
@@ -54,8 +54,8 @@
     "row": { "new": "Ny", "notBuilt": "Ikke bygget ennå" },
     "home": {
       "title": "Free the Tools – hverdagsverktøy som aldri forlater enheten din",
-      "description": "Åpen kildekode-verktøy som kjører i nettleseren din. Komprimer PDF-er og mer uten å laste opp noe. Ingen kontoer, ingen reklame. Et initiativ fra Sapience Design.",
-      "schemaDescription": "Åpen kildekode-verktøy som kjører i nettleseren din. Ingenting lastes opp.",
+      "description": "Verktøy med åpen kildekode som kjører i nettleseren. Komprimer PDF-er og mer uten å laste opp noe. Ingen kontoer, ingen reklame. Et initiativ fra Sapience Design.",
+      "schemaDescription": "Verktøy med åpen kildekode som kjører i nettleseren. Ingenting lastes opp.",
       "h1a": "Hverdagsverktøy",
       "h1b": "bør være gratis.",
       "trustNoAds": "Ingen reklame",
@@ -66,13 +66,13 @@
       "findPlaceholder": "Hva trenger du å gjøre?",
       "chipsLabel": "Vis verktøy for",
       "chipAll": "Alle",
-      "empty": "Prøv enklere ord, som “mindre”, “slå sammen” eller “bilde”. Eller {ask}, eller {sponsor} slik at det bygges raskere.",
-      "emptyAsk": "be oss bygge det",
-      "emptySponsor": "finansier det",
+      "empty": "Prøv enklere søkeord som «mindre», «slå sammen» eller «bilde». Du kan også {ask} eller {sponsor} for å få verktøyet laget raskere.",
+      "emptyAsk": "be oss om å bygge det",
+      "emptySponsor": "spons det",
       "clear": "Vis alt",
       "favourites": "Favorittene dine",
       "manage": "Administrer",
-      "popular": "Dette kommer folk for",
+      "popular": "Populære verktøy",
       "prevTools": "Forrige verktøy",
       "nextTools": "Flere verktøy",
       "allTools": "Alle verktøy",
@@ -81,42 +81,42 @@
       "sortNew": "Nyeste",
       "sortLiked": "Flest favoritter",
       "sortAz": "A–Å",
-      "seeAll": { "one": "Se {n} verktøy", "other": "Se alle {n} verktøy" },
+      "seeAll": { "one": "Se alle {n} verktøy", "other": "Se alle {n} verktøy" },
       "countShort": { "one": "{n} verktøy", "other": "{n} verktøy" },
       "aiTitle": "Bruker du en KI-assistent?",
-      "aiText": "Claude, Cursor og andre assistenter kan kjøre disse verktøyene på din egen datamaskin, gratis og uten pålogging, så filene dine aldri lastes opp. Pakken finnes på npm og i det offisielle MCP-registeret.",
+      "aiText": "Claude, Cursor og andre assistenter kan kjøre disse verktøyene på din egen datamaskin, gratis og uten pålogging, slik at filene dine aldri lastes opp. Pakken finnes på npm og i det offisielle MCP-registeret.",
       "aiLink": "Slik setter du det opp",
       "whyTitle": "Hvorfor dette finnes",
       "why1": "Hverdagsverktøy bør ikke koste penger.",
       "why2": "De bør ikke komme med reklame.",
       "why3": "De bør ikke sette filene dine i fare.",
       "why4": "De bør ikke være vanskelige å finne.",
-      "whyEnd": "Så her er de: ett sted, alle verktøy, {mark}",
+      "whyEnd": "Derfor finner du alt her: alle verktøyene på ett sted, {mark}",
       "whyEndMark": "gratis for alle.",
       "aboutLink": "Om prosjektet"
     },
     "group": {
       "back": "Alle verktøy",
-      "title": "{title} som kjører i nettleseren din | Free the Tools",
-      "description": "{blurb} Åpen kildekode, ingen kontoer, og ingenting lastes opp.",
-      "more": "Savner du noe? {suggest}, eller {sponsor} slik at det bygges raskere.",
+      "title": "{title} som kjører i nettleseren | Free the Tools",
+      "description": "{blurb} Åpen kildekode, ingen kontoer og ingen opplasting.",
+      "more": "Savner du et verktøy? {suggest} eller {sponsor} for å få det laget raskere.",
       "moreSuggest": "Foreslå et verktøy",
-      "moreSponsor": "finansier ett"
+      "moreSponsor": "spons et"
     },
     "tool": {
       "favAdd": "Legg til i favoritter",
       "favOn": "I favoritter",
       "agentTitle": "Aktivitet fra KI-agent",
-      "agentText": "En KI-agent brukte dette verktøyet på denne siden. Filene blir på denne enheten og lagres i {library} ditt.",
+      "agentText": "En KI-agent brukte dette verktøyet på denne siden. Filene forblir på denne enheten og lagres i {library}.",
       "agentLibrary": "biblioteket",
       "sideLabel": "Hjelp og detaljer",
-      "safeFilesA": "Filene dine blir på denne enheten.",
+      "safeFilesA": "Filene dine forblir på denne enheten.",
       "safeFilesB": "De lastes aldri opp, ikke engang til oss.",
       "safeOtherA": "Alt dette skjer på enheten din.",
       "safeOtherB": "Ingenting du skriver eller legger til sendes noe sted.",
       "check": "Sjekk selv",
       "offlineBold": "Fungerer frakoblet:",
-      "offlineText": "du kan slå av Wi-Fi, og verktøyet kjører likevel.",
+      "offlineText": "du kan slå av Wi-Fi, og verktøyet vil fortsatt fungere.",
       "questions": "Spørsmål",
       "about": "Om dette verktøyet",
       "specRuns": "Kjører",
@@ -133,7 +133,7 @@
       "title": "{name}, ikke bygget ennå | Free the Tools",
       "description": "{name} er ikke bygget ennå. Si at du vil ha det, fortell oss hva du trenger, eller hjelp til å bygge det.",
       "tag": "Ikke bygget ennå",
-      "lede": "{name} står på lista vår. Ingen har bygget det ennå, så det er ikke noe å bruke på denne siden.",
+      "lede": "{name} står på listen vår. Ingen har bygget det ennå, så det er ikke noe å bruke på denne siden.",
       "conceptTitle": "Hva det skal gjøre",
       "in": "Hva som går inn",
       "out": "Hva som kommer ut",
@@ -142,24 +142,24 @@
       "needTitle": "Trenger du dette?",
       "want": "Jeg vil ha dette",
       "tell": "Fortell oss hva du trenger",
-      "sponsor": "Finansier dette verktøyet",
-      "privacy": "Når du trykker på knappen, teller det én stemme for i dag. Den sender hverken navn, e-post eller ID.",
+      "sponsor": "Spons dette verktøyet",
+      "privacy": "Når du trykker på knappen, registreres én stemme for dagen. Ingen navn, e-postadresse eller ID sendes.",
       "dev": "For utviklere: bygg det"
     },
     "notFound": {
       "title": "Ikke på hylla | Free the Tools",
-      "description": "Denne siden er ikke på hylla. Bla gjennom alle gratis verktøy, eller søk etter det du trenger.",
+      "description": "Denne siden finnes ikke i verktøykatalogen. Bla gjennom alle gratis verktøy, eller søk etter det du trenger.",
       "h1": "Denne siden finnes ikke.",
-      "lede": "Verktøyet kan ha flyttet, eller det er ikke bygget ennå. Søk etter det, eller be oss bygge det.",
+      "lede": "Verktøyet kan ha blitt flyttet, eller det er kanskje ikke laget ennå. Søk etter det, eller be oss om å bygge det.",
       "search": "Søk i alle verktøy",
       "suggest": "Foreslå et verktøy"
     },
     "js": {
       "common": {
-        "donateLabel": "Gi et bidrag",
-        "donateTitle": "Sparte du litt tid?",
-        "donateBody": "Dette verktøyet er gratis og kjørte i nettleseren din. Et lite bidrag hjelper oss å holde det slik.",
-        "donateButton": "Gi et bidrag",
+        "donateLabel": "Doner",
+        "donateTitle": "Sparte verktøyet deg for litt tid?",
+        "donateBody": "Dette verktøyet er gratis og kjører i nettleseren. En liten donasjon bidrar til at vi kan fortsette å tilby det gratis.",
+        "donateButton": "Doner",
         "donateLater": "Neste gang",
         "toc": "På denne siden",
         "used": { "one": "Brukt {n} gang", "other": "Brukt {n} ganger" },
@@ -173,13 +173,13 @@
         "uses": { "one": "{n} bruk", "other": "{n} bruk" },
         "likes": { "one": "{n} favoritt", "other": "{n} favoritter" },
         "added": "Lagt til {date}",
-        "subUsed": "Mest brukt først i hver gruppe",
-        "subNew": "Nyeste først i hver gruppe",
-        "subLiked": "Flest favoritter først i hver gruppe",
+        "subUsed": "Sortert etter mest brukt i hver gruppe",
+        "subNew": "Sortert etter nyeste i hver gruppe",
+        "subLiked": "Sortert etter flest favoritter i hver gruppe",
         "subAz": "A til Å i hver gruppe",
         "openGroup": "Åpne siden for {group}",
         "showing": "Viser {group}: {count}.",
-        "noMatch": "Ingen verktøy passer ennå. Trykk Enter for å be om det.",
+        "noMatch": "Ingen verktøy samsvarer ennå. Trykk Enter for å be om det.",
         "count": "{count}.",
         "countHint": "{count}. Bruk pil opp og pil ned, og trykk så Enter.",
         "selected": "{name}, {group}, {i} av {n}",
@@ -188,19 +188,55 @@
       },
       "wanted": {
         "people": { "one": "{n} person vil ha dette.", "other": "{n} personer vil ha dette." },
-        "none": "Ingen har bedt om dette ennå. Vær den første.",
+        "none": "Ingen har bedt om dette ennå. Bli den første.",
         "failed": "Vi kunne ikke telle det akkurat nå. Prøv igjen senere.",
         "done": "Du vil ha dette"
       }
     }
   },
   "groups": {
-    "pdf": { "name": "PDF", "label": "PDF-verktøy", "title": "Gratis PDF-verktøy", "blurb": "Komprimer, slå sammen, del, fyll ut og konverter PDF-er.", "sub": "Velg hva du vil gjøre. Filene dine blir på denne enheten." },
-    "images": { "name": "Bilder", "label": "Bildeverktøy", "title": "Gratis bildeverktøy", "blurb": "Endre størrelse på, komprimer og konverter bilder.", "sub": "Velg hva du vil gjøre. Bildene dine blir på denne enheten." },
-    "text": { "name": "Tekst", "label": "Tekstverktøy", "title": "Gratis tekstverktøy", "blurb": "Tell, sammenlign og endre tekst.", "sub": "Velg hva du vil gjøre. Teksten din blir på denne enheten." },
-    "data": { "name": "Data", "label": "Dataverktøy", "title": "Gratis dataverktøy", "blurb": "Konverter og rydd opp i CSV og JSON.", "sub": "Velg hva du vil gjøre. Dataene dine blir på denne enheten." },
-    "developer": { "name": "Utvikler", "label": "Utviklerverktøy", "title": "Gratis utviklerverktøy", "blurb": "Kodere, hasher, generatorer, dekodere og testere.", "sub": "Velg hva du vil gjøre. Ingenting du limer inn forlater denne enheten." },
-    "everyday": { "name": "Hverdag", "label": "Hverdagsverktøy", "title": "Gratis hverdagsverktøy", "blurb": "Omregnere for enheter og tidssoner.", "sub": "Velg hva du vil gjøre. Alt kjører på denne enheten." }
+    "pdf": {
+      "name": "PDF",
+      "label": "PDF-verktøy",
+      "title": "Gratis PDF-verktøy",
+      "blurb": "Komprimer, slå sammen og del PDF-filer, fyll ut PDF-skjemaer og konverter PDF-filer.",
+      "sub": "Velg hva du vil gjøre. Filene dine forblir på denne enheten."
+    },
+    "images": {
+      "name": "Bilder",
+      "label": "Bildeverktøy",
+      "title": "Gratis bildeverktøy",
+      "blurb": "Endre størrelse på, komprimer og konverter bilder.",
+      "sub": "Velg hva du vil gjøre. Bildene dine blir på denne enheten."
+    },
+    "text": {
+      "name": "Tekst",
+      "label": "Tekstverktøy",
+      "title": "Gratis tekstverktøy",
+      "blurb": "Tell, sammenlign og endre tekst.",
+      "sub": "Velg hva du vil gjøre. Teksten din blir på denne enheten."
+    },
+    "data": {
+      "name": "Data",
+      "label": "Dataverktøy",
+      "title": "Gratis dataverktøy",
+      "blurb": "Konverter og rydd opp i CSV og JSON.",
+      "sub": "Velg hva du vil gjøre. Dataene dine blir på denne enheten."
+    },
+    "developer": {
+      "name": "Utvikler",
+      "label": "Utviklerverktøy",
+      "title": "Gratis utviklerverktøy",
+      "blurb": "Kodere, hashverktøy, generatorer, dekodere og testverktøy.",
+      "sub": "Velg hva du vil gjøre. Ingenting du limer inn forlater denne enheten."
+    },
+    "everyday": {
+      "name": "Hverdag",
+      "label": "Hverdagsverktøy",
+      "title": "Gratis hverdagsverktøy",
+      "blurb": "Omregnere for enheter og tidssoner.",
+      "sub": "Velg hva du vil gjøre. Alt kjører på denne enheten."
+    }
   },
   "sections": {
     "Optimize": "Optimaliser",
@@ -259,11 +295,11 @@
     "images/crop": {
       "name": "Beskjær bilde",
       "task": "Beskjær et bilde",
-      "blurb": "Skjær et bilde til den delen du vil ha, eller til et fast forhold.",
+      "blurb": "Beskjær bildet slik du ønsker, eller bruk et fast sideforhold.",
       "concept": {
         "in": "Ett bilde og en beskjæringsramme.",
-        "out": "Det beskårede bildet som PNG, JPG eller WebP.",
-        "options": ["Fri form, kvadrat, 4:3 eller 16:9", "Flytt og endre rammen med tastaturet", "PNG-, JPG- eller WebP-utdata"]
+        "out": "Det beskårne bildet som PNG, JPG eller WebP.",
+        "options": ["Fri beskjæring, kvadrat, 4:3 eller 16:9", "Flytt og endre rammen med tastaturet", "PNG-, JPG- eller WebP-utdata"]
       }
     },
     "data/json-to-yaml": {
@@ -273,16 +309,16 @@
       "concept": {
         "in": "JSON- eller YAML-tekst.",
         "out": "De samme dataene i det andre formatet.",
-        "options": ["JSON til YAML", "YAML til JSON", "Trygg lesing: egendefinerte tagger nektes"]
+        "options": ["JSON til YAML", "YAML til JSON", "Sikker parsing: egendefinerte tagger avvises"]
       }
     },
     "developer/url-encode": {
       "name": "URL-koding og -dekoding",
       "task": "Kod eller dekod en nettadresse",
-      "blurb": "Gjør tekst trygg for en lenke, eller les en kodet adresse.",
+      "blurb": "Gjør tekst klar til bruk i en URL, eller dekod en kodet URL.",
       "concept": {
         "in": "Tekst eller en nettadresse.",
-        "out": "Den prosentkodede formen, eller den dekodede teksten.",
+        "out": "Den prosentkodede versjonen eller den dekodede teksten.",
         "options": ["Kod en hel adresse eller bare én del", "Dekod", "En tydelig melding for en ødelagt %-sekvens"]
       }
     },
@@ -292,8 +328,8 @@
       "blurb": "Gjør et tidsstempel om til dato og klokkeslett, og tilbake.",
       "concept": {
         "in": "Et Unix-tidsstempel i sekunder eller millisekunder, eller en dato.",
-        "out": "Datoen i UTC og i en tidssone du velger, eller tidsstempelet.",
-        "options": ["Gjetter sekunder eller millisekunder, og sier hvilket", "Velg en tidssone", "Dato til tidsstempel"]
+        "out": "Datoen i UTC og i den valgte tidssonen, eller tidsstempelet.",
+        "options": ["Gjenkjenner om tidsstempelet er i sekunder eller millisekunder og oppgir hvilken enhet som brukes", "Velg en tidssone", "Dato til tidsstempel"]
       }
     },
     "developer/cron-explainer": {
@@ -307,8 +343,8 @@
       }
     },
     "everyday/colour-converter": {
-      "name": "Fargeomregner",
-      "task": "Regn om en farge mellom formater",
+      "name": "Fargekonverterer",
+      "task": "Konverter en farge mellom formater",
       "blurb": "HEX, RGB, HSL og navn, fram og tilbake.",
       "concept": {
         "in": "En farge som HEX, RGB, HSL eller et navn.",
@@ -318,12 +354,12 @@
     },
     "developer/iban-phone-check": {
       "name": "IBAN- og telefonnummersjekk",
-      "task": "Sjekk et IBAN eller telefonnummer",
+      "task": "Kontroller et IBAN-nummer eller telefonnummer",
       "blurb": "Sjekk et kontonummer eller et telefonnummer, og formater det.",
       "concept": {
-        "in": "Et IBAN eller et telefonnummer.",
-        "out": "Gyldig eller ikke, landet, og nummeret i et standardformat.",
-        "options": ["IBAN-sjekk etter landets regler", "Sjekk og formatering av telefonnummer", "Landet vises"]
+        "in": "Et IBAN-nummer eller et telefonnummer.",
+        "out": "Om nummeret er gyldig, hvilket land det tilhører, og nummeret i standardformat.",
+        "options": ["IBAN-sjekk etter landets regler", "Kontroll og formatering av telefonnummer", "Landet vises"]
       }
     }
   },

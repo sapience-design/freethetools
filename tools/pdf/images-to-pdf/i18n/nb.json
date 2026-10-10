@@ -14,14 +14,14 @@
     "webp til pdf"
   ],
   "specs": {
-    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
     "Formater": "JPG og PNG som de er; WebP, GIF og andre gjøres først om til PNG",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes bildene mine opp?",
-      "a": "Nei. Bildene legges inn i PDF-en inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Bildene legges inn i PDF-en inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Mister bildene kvalitet?",

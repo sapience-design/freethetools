@@ -13,14 +13,14 @@
     "sammenligning"
   ],
   "specs": {
-    "Motor": "jsdiff 9 (BSD-3-Clause), i nettleseren din",
+    "Motor": "jsdiff 9 (BSD-3-Clause), i nettleseren",
     "Moduser": "Etter linje eller etter ord",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Sendes tekstene mine noe sted?",
-      "a": "Nei. Sammenligningen kjører i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Sammenligningen kjører i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Linjer eller ord?",

@@ -13,14 +13,14 @@
     "én fil"
   ],
   "specs": {
-    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
     "Grenser": "Så mange filer som minnet på enheten din tillater",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. PDF-ene leses og settes sammen inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. PDF-ene leses og settes sammen inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Beholder den lenker og bokmerker?",

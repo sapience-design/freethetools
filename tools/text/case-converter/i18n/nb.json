@@ -21,7 +21,7 @@
   "faq": [
     {
       "q": "Sendes teksten min noe sted?",
-      "a": "Nei. Den konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Den konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvilke ord forblir med små bokstaver i tittelstil?",

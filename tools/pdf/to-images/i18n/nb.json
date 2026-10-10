@@ -13,14 +13,14 @@
     "skjermbilde av pdf"
   ],
   "specs": {
-    "Motor": "pdf.js 6.3 (Apache-2.0), i nettleseren din",
+    "Motor": "pdf.js 6.3 (Apache-2.0), i nettleseren",
     "Oppløsning": "72, 150 eller 300 dpi, begrenset til 8000 piksler per side",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. Sidene tegnes inni denne nettleserfanen av pdf.js, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Sidene tegnes inni denne nettleserfanen av pdf.js, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "PNG eller JPG?",

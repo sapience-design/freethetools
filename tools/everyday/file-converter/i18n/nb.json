@@ -27,7 +27,7 @@
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. Hver fil konverteres inni denne fanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. Hver fil konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvordan vet den hva en fil er?",
@@ -35,7 +35,7 @@
     },
     {
       "q": "Hvorfor kan den ikke konvertere filen min?",
-      "a": "Så langt takler den bilder, lyd, CSV, JSON, Markdown og HTML. PDF-er, Word- og Excel-filer, video og HEIC-bilder støttes ikke ennå. Be om konverteringen du trenger, så havner den på lista."
+      "a": "Foreløpig støtter den bilder, lyd, CSV, JSON, Markdown og HTML. PDF-, Word- og Excel-filer, video og HEIC-bilder støttes ikke ennå. Be om konverteringen du trenger, så havner den på lista."
     },
     {
       "q": "Hvorfor fikk den gjennomsiktige PNG-en min hvit bakgrunn?",
@@ -47,7 +47,7 @@
     },
     {
       "q": "Hvorfor er WAV-filen så stor?",
-      "a": "WAV er ukomprimert 16-bits lyd. Den åpnes overalt og passer til redigering, men er omtrent ti ganger så stor som en MP3."
+      "a": "WAV er ukomprimert 16-bits lyd. Den kan åpnes i de fleste programmer og passer til redigering, men er omtrent ti ganger så stor som en MP3."
     }
   ]
 }

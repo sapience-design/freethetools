@@ -14,14 +14,14 @@
     "klipp"
   ],
   "specs": {
-    "Motor": "pdf-lib 1.17 (MIT), i nettleseren din",
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
     "Områder": "Enkeltsider, områder og åpne områder, for eksempel 1-3, 5, 8-",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. PDF-en leses og deles inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at noe sendes ut."
+      "a": "Nei. PDF-en leses og deles inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
       "q": "Hvordan skriver jeg sideområder?",
