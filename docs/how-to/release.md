@@ -18,7 +18,7 @@ Maintainers only.
 
 1. Switch to `main` and update it: `git switch main`, then `git pull --ff-only`.
 2. Run `npm run release -- minor`. Use `major`, `patch` or an exact version such as `1.3.0` instead when that fits.
-3. Read the new section in `CHANGELOG.md`. To change the wording, edit it and run `git commit --amend -s`.
+3. Read the new section in `CHANGELOG.md`: the script has moved every entry from `changelog.d/` into it and deleted those files. To change the wording, edit it and run `git commit --amend -s`.
 4. Push the branch the script made: `git push -u origin release/v1.3.0`.
 5. Open the pull request: `gh pr create --fill`.
 6. Merge it.
@@ -34,7 +34,7 @@ The script stops without changing anything if `main` is out of date, the working
 ## Find a version
 
 - **Every release:** the repository's Releases page. Each release shows its notes, its tag and its commit.
-- **What is live:** the footer of any page. Changes merged after the last release are live too; they are listed under "Unreleased" in `CHANGELOG.md`.
+- **What is live:** the footer of any page. Changes merged after the last release are live too; they are listed under "Not yet released" on the What's new page, from `changelog.d/` and "Unreleased" in `CHANGELOG.md`.
 - **What changed between two versions:** the "All changes" link at the end of each release, or `git log v1.2.0..v1.3.0`.
 
 ## Go back to a version

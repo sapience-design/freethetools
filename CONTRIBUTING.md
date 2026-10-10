@@ -63,6 +63,7 @@ npm run test:e2e     # browser tests; run `npx playwright install chromium` once
 
 - **Sign off every commit** with `git commit -s`. This adds a `Signed-off-by` line certifying the [Developer Certificate of Origin](https://developercertificate.org/): that you wrote the change or have the right to submit it under the project's licence. A check blocks pull requests with unsigned commits. Forgot? `git rebase --signoff main`, then force-push your branch.
 - **Write commit messages as [Conventional Commits](https://www.conventionalcommits.org/)**: `feat(text): add word counter`, `fix(pdf/compress): keep bookmarks`, `docs: clarify vendoring`. The type drives the changelog and version numbers.
+- **Add a changelog entry as its own file** in [`changelog.d/`](changelog.d/README.md), for example `changelog.d/word-counter.added.md`, rather than editing `CHANGELOG.md`. Pull requests then never collide there.
 - **One tool or one fix per pull request.** Fill in the template, including a screenshot for anything visible.
 
 ## Review
