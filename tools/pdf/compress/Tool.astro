@@ -150,7 +150,7 @@ import Icon from "../../../src/components/Icon.astro";
     results.replaceChildren();
     stepTo(root, 3);
     compactDrop("pdfc", true);
-    showBusy(status, files.length > 1 ? `Compressing ${files.length} PDFs. Please keep this page open.` : undefined);
+    await showBusy(status, files.length > 1 ? `Compressing ${files.length} PDFs. Please keep this page open.` : undefined);
     for (const file of files) {
       const row = fileRow({ name: file.name, meta: "", thumb: pdfThumb() });
       setMeta(row, `<span class="spin"></span>compressing ${fmtBytes(file.size)}…`);

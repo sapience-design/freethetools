@@ -26,9 +26,10 @@ export const everyPage = (total) => Array.from({ length: total }, (_, i) => [i +
 /**
  * @param {ArrayBuffer | Uint8Array} bytes
  * @param {[number, number][]} ranges
+ * @param {(done: number, total: number) => unknown} [onPart] called after each new file, so a page can show progress
  * @returns {Promise<{ range: [number, number], bytes: Uint8Array }[]>}
  */
-export async function splitPdf(bytes, ranges) {
+export async function splitPdf(bytes, ranges, onPart) {
   let src;
   try {
     src = await PDFDocument.load(bytes);
@@ -43,6 +44,7 @@ export async function splitPdf(bytes, ranges) {
     for (const p of await doc.copyPages(src, indices)) doc.addPage(p);
     doc.setProducer("Free the Tools (freethetools.com)");
     out.push({ range: [start, end], bytes: await doc.save() });
+    await onPart?.(out.length, ranges.length);
   }
   return out;
 }

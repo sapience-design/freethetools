@@ -98,7 +98,7 @@ import { RESOLUTIONS } from "./core.js";
     go.disabled = true;
     files.replaceChildren();
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result);
     let made = 0;
     const outs: { name: string; blob: Blob }[] = [];
     try {

@@ -83,17 +83,33 @@ export const baseName = (name: string) => name.replace(/\.[^.]+$/, "");
  * Wire a DropZone (see src/components/DropZone.astro) to a handler. Clicking or pressing
  * Enter/Space opens the file picker; dropping files works too.
  */
-export function wireDrop(prefix: string, onFiles: (files: File[]) => void) {
+export function wireDrop(prefix: string, onFiles: (files: File[]) => void | Promise<void>) {
   const drop = document.getElementById(`${prefix}-drop`)!;
   const input = document.getElementById(`${prefix}-file`) as HTMLInputElement;
-  drop.addEventListener("click", () => input.click());
+  // Reading a large file takes a moment. Say so on the drop area straight away, let the page draw
+  // it, then hand the files to the tool; the note goes once the tool has read them.
+  const take = async (files: File[]) => {
+    if (!files.length) return;
+    const note = document.createElement("div");
+    note.className = "drop-reading";
+    note.setAttribute("role", "status");
+    const spin = document.createElement("span");
+    spin.className = "spinner";
+    spin.setAttribute("aria-hidden", "true");
+    note.append(spin, files.length === 1 ? `Reading ${files[0].name}…` : `Reading ${files.length} files…`);
+    drop.append(note);
+    drop.setAttribute("aria-busy", "true");
+    await paint();
+    try { await onFiles(files); } finally { note.remove(); drop.removeAttribute("aria-busy"); }
+  };
+  drop.addEventListener("click", (e) => { if (!drop.hasAttribute("aria-busy")) input.click(); else e.preventDefault(); });
   drop.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
   });
-  input.addEventListener("change", () => { onFiles([...(input.files ?? [])]); input.value = ""; });
+  input.addEventListener("change", () => { const picked = [...(input.files ?? [])]; input.value = ""; take(picked); });
   for (const t of ["dragenter", "dragover"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); });
   for (const t of ["dragleave", "drop"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); });
-  drop.addEventListener("drop", (e) => onFiles([...((e as DragEvent).dataTransfer?.files ?? [])]));
+  drop.addEventListener("drop", (e) => take([...((e as DragEvent).dataTransfer?.files ?? [])]));
 }
 
 /** Make a drop zone small once files are in, so the next step is in view. */
@@ -143,7 +159,42 @@ export function showWait(el: HTMLElement, text: string) {
 }
 
 /** "Working on it…", with a moving bar. */
-export function showBusy(el: HTMLElement, sub = "This takes a few seconds. Please keep this page open.", title = "Working on it…") {
+/**
+ * Wait until the browser has drawn the page. Call it after showing a spinner or a message and
+ * before heavy work, or the work starts first and the page looks frozen.
+ */
+export const paint = () => new Promise<void>((done) => requestAnimationFrame(() => setTimeout(done, 0)));
+
+/** A small spinner and a message in a details line, while a file is read. */
+export function working(el: HTMLElement, text: string) {
+  const s = document.createElement("span");
+  s.className = "spin";
+  s.setAttribute("aria-hidden", "true");
+  el.replaceChildren(s, text);
+}
+
+/**
+ * Progress shown under "Working on it…", such as "Making part 3 of 12". It is visual only: the
+ * box already says it is working, and a screen reader should not read every step aloud.
+ */
+export function progress(el: HTMLElement) {
+  const p = document.createElement("span");
+  p.className = "res-progress";
+  p.setAttribute("aria-hidden", "true");
+  el.querySelector(".res-busy")?.append(p);
+  let last = 0;
+  // Update at most every 150 ms, and let the page draw each update.
+  return async (text: string, force = false) => {
+    const now = performance.now();
+    if (!force && now - last < 150) return;
+    last = now;
+    p.textContent = text;
+    await paint();
+  };
+}
+
+/** Show "Working on it…". Await it before heavy work: it resolves once the page has drawn the box. */
+export function showBusy(el: HTMLElement, sub = "This takes a few seconds. Please keep this page open.", title = "Working on it…"): Promise<void> {
   const div = box("res-busy", '<span class="spinner" aria-hidden="true"></span>', title, "status");
   const meter = document.createElement("div");
   meter.className = "meter";
@@ -152,6 +203,7 @@ export function showBusy(el: HTMLElement, sub = "This takes a few seconds. Pleas
   s.textContent = sub;
   div.append(meter, s);
   place(el, div);
+  return paint();
 }
 
 /** A green "Done." box. Extra nodes or text go under the title. Returns the box. */

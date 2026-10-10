@@ -83,7 +83,7 @@ import Icon from "../../../src/components/Icon.astro";
     list.replaceChildren();
     stepTo(root, 3);
     compactDrop("rsz", true);
-    showBusy(status, files.length > 1 ? `Resizing ${files.length} photos. Please keep this page open.` : undefined);
+    await showBusy(status, files.length > 1 ? `Resizing ${files.length} photos. Please keep this page open.` : undefined);
     let done = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {

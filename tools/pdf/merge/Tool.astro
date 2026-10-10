@@ -81,7 +81,7 @@ import Icon from "../../../src/components/Icon.astro";
   go.onclick = async () => {
     go.disabled = true;
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result);
     try {
       const out = await mergePdfs(items.map((it) => it.bytes.slice(0)));
       const pages = items.reduce((n, it) => n + it.pages, 0);

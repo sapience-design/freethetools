@@ -81,7 +81,7 @@ const blurb: Record<string, string> = {
     list.replaceChildren();
     stepTo(root, 3);
     compactDrop("cvi", true);
-    showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
+    await showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
     let done = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {

@@ -97,7 +97,7 @@ import Icon from "../../../src/components/Icon.astro";
     const margin = (document.querySelector('input[name="i2p-margin"]:checked') as HTMLInputElement).value as "none" | "small" | "large";
     go.disabled = true;
     stepTo(root, 3);
-    showBusy(result);
+    await showBusy(result);
     try {
       const out = await imagesToPdf(items.map((it) => ({ bytes: it.bytes.slice(0), type: it.type })), { page, margin });
       const n = items.length;
