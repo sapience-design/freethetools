@@ -68,6 +68,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     <nav class="bar-nav" aria-label="Site">
       <a class="navlink" href="/about/" aria-current={page === "about" ? "page" : undefined}>About</a>
       <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
+      <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
       {page === "home"
         ? <a class="bar-btn" href="/saved/"><Icon name="bookmark-simple" /><span class="bar-label">Saved</span><span class="count-pill" data-saved-count hidden>0</span></a>
         : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
@@ -209,6 +210,9 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .bar-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
   .navlink { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: var(--r); font-weight: 650; text-decoration: none; white-space: nowrap; }
   .navlink:hover, .navlink[aria-current="page"] { background: var(--hover); }
+  .navlink.gh { width: 48px; padding: 0; justify-content: center; font-size: 22px; }
+  /* On phones the top bar has no room for it; the footer's "Source code" link stays. */
+  @media (max-width: 560px) { .navlink.gh { display: none; } }
   .bar-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); font-weight: 650; text-decoration: none; white-space: nowrap; }
   .bar-btn:hover { border-color: var(--edge); }
   .bar-btn :global(.ic) { font-size: 20px; }
