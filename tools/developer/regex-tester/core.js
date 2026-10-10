@@ -11,7 +11,11 @@ export function runRegex(pattern, flags, text, limit = 500) {
   if (!pattern) return { matches: [], error: null, truncated: false };
   let re;
   try { re = new RegExp(pattern, flags.includes("g") ? flags : flags + "g"); }
-  catch (e) { return { matches: [], error: String(e.message).replace(/^Invalid regular expression: /, ""), truncated: false }; }
+  catch (e) {
+    const engine = String(e.message).replace(/^Invalid regular expression: /, "");
+    const hint = plainHint(pattern, engine);
+    return { matches: [], error: hint ? `${engine} (${hint})` : engine, truncated: false };
+  }
   const matches = [];
   let truncated = false;
   for (const m of text.matchAll(re)) {
@@ -20,6 +24,15 @@ export function runRegex(pattern, flags, text, limit = 500) {
     if (!flags.includes("g")) break;
   }
   return { matches, error: null, truncated };
+}
+
+/** Short plain-language hint for common invalid-pattern cases. */
+function plainHint(pattern, engine) {
+  if (/\([^)]*$/.test(pattern) || /Unterminated group/i.test(engine)) return "an unclosed round bracket";
+  if (/\[[^\]]*$/.test(pattern) || /Unterminated character class/i.test(engine)) return "an unclosed square bracket";
+  if (/\\$/.test(pattern)) return "a pattern that ends in a backslash";
+  if (/^\s*[*+]/.test(pattern) || /Nothing to repeat/i.test(engine)) return "a star or plus with nothing before it";
+  return "";
 }
 
 /** Split text into plain and matched pieces for highlighting. */
