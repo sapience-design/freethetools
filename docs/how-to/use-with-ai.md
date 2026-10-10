@@ -4,6 +4,8 @@ Connect your assistant to the `freethetools` package. It then compresses, merges
 
 You need [Node.js](https://nodejs.org) 22 or later.
 
+The package is published on [npm](https://www.npmjs.com/package/freethetools) and listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`. An assistant that can search the registry finds it under that name; the steps below set it up by hand.
+
 ## Claude Code
 
 1. Open a terminal.

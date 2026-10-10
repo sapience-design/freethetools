@@ -4,6 +4,8 @@
 
 This package runs a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server and a small command line. They give an AI assistant 25 tools for everyday file jobs, such as compressing, merging, splitting, rotating and unlocking PDFs, stripping location data from photos, converting CSV and JSON, and hashing. The tools are the same ones as on [freethetools.com](https://freethetools.com).
 
+It is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`.
+
 An assistant that has this server no longer needs to install Ghostscript, ImageMagick or a Python package for those jobs. The server tells it to use these tools instead.
 
 ## The privacy promise
