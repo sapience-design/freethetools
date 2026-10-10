@@ -1,0 +1,53 @@
+{
+  "name": "Conversor de archivos",
+  "task": "Convertir cualquier archivo",
+  "tagline": "Suelta cualquier archivo. La herramienta detecta qué es cada uno y en qué puede convertirse.",
+  "seoTitle": "Conversor de archivos gratis: imágenes, audio, CSV, Markdown",
+  "description": "Convierte imágenes, audio, CSV, JSON, Markdown y HTML en tu navegador, de uno en uno o en lote. Detecta el tipo de cada archivo. No se sube nada.",
+  "keywords": [
+    "conversor de archivos",
+    "convertir archivos",
+    "png a bmp",
+    "png a ico",
+    "svg a png",
+    "webp a jpg",
+    "csv a json",
+    "audio a wav",
+    "mp3 a wav",
+    "markdown a html"
+  ],
+  "specs": {
+    "Imágenes": "PNG, JPEG, WebP, GIF (primer fotograma), BMP, ICO, SVG y AVIF (si tu navegador puede abrirlo) a PNG, JPEG, WebP, BMP o ICO",
+    "Audio": "Cualquier cosa que tu navegador pueda reproducir, a WAV de 16 bits a 44,1 kHz",
+    "Datos": "CSV, TSV y JSON (una lista de objetos) entre sí",
+    "Documentos": "Markdown a HTML, HTML a Markdown, y ambos a texto sin formato",
+    "Detección": "Por los primeros bytes del archivo y, después, por su nombre",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. Cada archivo se convierte dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Cómo sabe qué es un archivo?",
+      "a": "Lee los primeros bytes del archivo, donde la mayoría de los formatos se identifican, y solo después mira el nombre. Un PNG renombrado como .txt sigue tratándose como PNG."
+    },
+    {
+      "q": "¿Por qué no puede convertir mi archivo?",
+      "a": "De momento admite imágenes, audio, CSV, JSON, Markdown y HTML. Aún no se admiten PDF, archivos de Word y Excel, vídeo ni fotos HEIC. Pide la conversión que necesitas y pasará a la lista."
+    },
+    {
+      "q": "¿Por qué mi PNG transparente tiene fondo blanco?",
+      "a": "JPEG y BMP no pueden guardar transparencia, así que esas zonas se rellenan de blanco. Elige PNG, WebP o ICO para conservarla."
+    },
+    {
+      "q": "¿Qué contiene el archivo ICO?",
+      "a": "Tu imagen en los tamaños de icono estándar que caben, de 16 a 256 píxeles, ajustada a cuadrados sin deformarla. Windows y los navegadores eligen el tamaño que necesitan."
+    },
+    {
+      "q": "¿Por qué el archivo WAV es tan grande?",
+      "a": "WAV es audio de 16 bits sin comprimir. Se abre en todas partes y sirve para editar, pero ocupa unas diez veces más que un MP3."
+    }
+  ]
+}

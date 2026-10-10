@@ -1,0 +1,33 @@
+{
+  "name": "Generador de hash",
+  "task": "Crear una huella digital (hash)",
+  "tagline": "SHA-256, SHA-512, SHA-1 y MD5 para cualquier texto o archivo.",
+  "seoTitle": "Generador de hash SHA-256 y MD5 para texto y archivos",
+  "description": "Obtén hashes SHA-256, SHA-512, SHA-1 o MD5 de texto o archivos y compáralos con una suma de verificación publicada. Gratis, y los archivos no salen de tu dispositivo.",
+  "keywords": [
+    "generador de hash",
+    "hash",
+    "sha256",
+    "md5",
+    "sha1",
+    "sha512",
+    "suma de verificación",
+    "checksum",
+    "verificar descarga"
+  ],
+  "specs": {
+    "Motor": "API Web Crypto; MD5 en JavaScript puro",
+    "Archivos": "Se calcula el hash en tu dispositivo y nunca se suben",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se sube mi archivo para calcular el hash?",
+      "a": "No. El archivo se lee y se calcula su hash en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Debo usar MD5?",
+      "a": "Solo para comprobar una suma de verificación que alguien publicó en MD5. Está roto para usos de seguridad; usa SHA-256 para todo lo nuevo."
+    }
+  ]
+}

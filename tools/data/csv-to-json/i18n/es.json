@@ -1,0 +1,33 @@
+{
+  "name": "CSV a JSON",
+  "task": "Convertir una hoja de cálculo en JSON",
+  "tagline": "Pega filas de una hoja de cálculo y obtén un JSON limpio. También funciona al revés.",
+  "seoTitle": "Conversor de CSV a JSON (y de JSON a CSV)",
+  "description": "Convierte CSV a JSON o JSON a CSV gratis en tu navegador. Detecta comas y punto y coma y gestiona las comillas. Tus datos no salen de la página.",
+  "keywords": [
+    "csv a json",
+    "json a csv",
+    "convertir csv",
+    "csv",
+    "json",
+    "hoja de cálculo",
+    "excel",
+    "exportar",
+    "tsv"
+  ],
+  "specs": {
+    "Motor": "Papa Parse 5.7 (MIT), en tu navegador",
+    "Delimitadores": "Coma, punto y coma, tabulación y barra vertical, detectados automáticamente",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis datos?",
+      "a": "No. Se convierten en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Puedo usar un archivo de Excel?",
+      "a": "Guárdalo antes como CSV (Archivo, Guardar como, CSV). Leer .xlsx directamente está en la lista."
+    }
+  ]
+}

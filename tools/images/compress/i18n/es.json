@@ -1,0 +1,38 @@
+{
+  "name": "Comprimir imágenes",
+  "task": "Reducir el tamaño de las fotos",
+  "tagline": "Archivos más pequeños que se ven igual, una foto o muchas.",
+  "seoTitle": "Comprimir imágenes sin subirlas (JPG, PNG, WebP)",
+  "description": "Reduce el peso de imágenes JPG, PNG y WebP gratis en tu navegador, una o varias a la vez. Elige la calidad. Las fotos no salen de tu dispositivo.",
+  "keywords": [
+    "comprimir imagen",
+    "comprimir fotos",
+    "reducir tamaño de imagen",
+    "reducir peso de foto",
+    "optimizar",
+    "jpg",
+    "png",
+    "webp",
+    "foto más pequeña",
+    "tinypng"
+  ],
+  "specs": {
+    "Motor": "Los codificadores de imagen de tu propio navegador",
+    "PNG": "Se convierte a WebP (conserva la transparencia) salvo que elijas otra cosa",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis imágenes?",
+      "a": "No. Se vuelven a codificar dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Por qué una imagen no se ha hecho más pequeña?",
+      "a": "Algunas imágenes ya están bien comprimidas. Si el archivo nuevo no es más pequeño, la herramienta te lo dice y puedes quedarte con el original."
+    },
+    {
+      "q": "¿También elimina los datos de ubicación?",
+      "a": "Sí, las imágenes que se vuelven a codificar no conservan los metadatos EXIF originales. Para eliminarlos sin pérdida y sin volver a codificar, usa Quitar la ubicación de las fotos."
+    }
+  ]
+}

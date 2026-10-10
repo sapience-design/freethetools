@@ -1,0 +1,32 @@
+{
+  "name": "Creador de códigos QR",
+  "task": "Crear un código QR",
+  "tagline": "Convierte un enlace, un texto o los datos de un wifi en un código QR que puedes imprimir.",
+  "seoTitle": "Generador de códigos QR gratis (sin registro ni caducidad)",
+  "description": "Crea códigos QR de enlaces, texto o wifi, gratis y sin registro. Los códigos no caducan ni se rastrean. Descarga en SVG o PNG.",
+  "keywords": [
+    "código qr",
+    "generador de qr",
+    "crear código qr",
+    "qr wifi",
+    "enlace",
+    "svg",
+    "png",
+    "sin caducidad"
+  ],
+  "specs": {
+    "Motor": "qrcode-generator 2 (MIT), en tu navegador",
+    "Seguimiento": "Ninguno: el código contiene tu texto directamente, no un enlace de redirección",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Caducan estos códigos QR?",
+      "a": "Nunca. Muchas webs gratuitas de QR codifican un enlace a su propio servidor para poder rastrear los escaneos o desactivar el código más adelante. Este pone tu enlace o texto directamente en el código."
+    },
+    {
+      "q": "¿Qué corrección de errores debo elegir?",
+      "a": "Media sirve para la mayoría de los usos. Elige Alta si el código se imprimirá pequeño, sobre tela o con un logotipo encima."
+    }
+  ]
+}

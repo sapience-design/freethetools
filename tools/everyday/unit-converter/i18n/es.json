@@ -1,0 +1,32 @@
+{
+  "name": "Conversor de unidades",
+  "task": "Convertir unidades",
+  "tagline": "Longitud, peso, temperatura y más, mientras escribes.",
+  "seoTitle": "Conversor de unidades: longitud, peso, temperatura",
+  "description": "Convierte longitud, peso, temperatura, volúmenes de cocina, área, velocidad y tamaños de datos mientras escribes. Factores exactos, sin anuncios y sin conexión.",
+  "keywords": [
+    "conversor de unidades",
+    "cm a pulgadas",
+    "kg a libras",
+    "celsius a fahrenheit",
+    "tazas a ml",
+    "mph",
+    "gb",
+    "convertir unidades"
+  ],
+  "specs": {
+    "Grupos": "Longitud, peso, temperatura, volumen, área, velocidad, datos",
+    "Precisión": "Definiciones exactas donde existen (yarda y libra de 1959)",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Las tazas y los galones son de EE. UU. o del Reino Unido?",
+      "a": "Las tazas, las pintas y las onzas líquidas son medidas de EE. UU. Los galones existen en ambos sistemas y se indican."
+    },
+    {
+      "q": "¿Qué diferencia hay entre GB y GiB?",
+      "a": "Un gigabyte (GB) son 1 000 000 000 de bytes, como lo usan los fabricantes de discos. Un gibibyte (GiB) son 1 073 741 824 bytes, que es lo que muestran muchos sistemas operativos."
+    }
+  ]
+}
