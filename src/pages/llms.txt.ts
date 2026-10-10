@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ site }) => {
     "",
     "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no tracking of people; only anonymous daily totals, published at /stats/. A Sapience initiative (https://sapience.design), licensed AGPL-3.0.",
     "",
-    `Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Anonymous usage totals: ${abs("/api/stats/summary")}. Source code: ${REPO}.`,
+    `Full version with every tool's details and questions: ${abs("/llms-full.txt")}. Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Anonymous usage totals: ${abs("/api/stats/summary")}. Source code: ${REPO}.`,
     "",
   ];
   lines.push(
