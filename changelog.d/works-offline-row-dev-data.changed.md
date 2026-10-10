@@ -1,0 +1,1 @@
+- CSV to JSON, JSON Formatter, Base64, Hash Generator, JWT Decoder, Password Generator, QR Code Maker, Regex Tester and UUID Generator: the spec table now says each one works offline once the page has loaded.
