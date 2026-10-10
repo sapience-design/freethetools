@@ -27,6 +27,16 @@ qpdf 11.0.0
 @jspawn/qpdf-wasm 0.0.2 (qpdf compiled to WebAssembly)
   License: Apache-2.0 · https://www.npmjs.com/package/@jspawn/qpdf-wasm
 
+libheif 1.22
+  Copyright (c) Dirk Farin and contributors
+  License: LGPL-3.0 · https://github.com/strukturag/libheif
+
+heic-to 1.6.5 (libheif compiled to WebAssembly, in HEIC to JPG)
+  Copyright (c) Hopper Gee
+  License: LGPL-3.0 · https://github.com/hoppergee/heic-to
+  The decoder worker is served as a separate, unmodified file extracted from the package at
+  build time (scripts/sync-tool-assets.mjs), so another build of libheif can replace it.
+
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
 Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL Open Font License 1.1
 Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/

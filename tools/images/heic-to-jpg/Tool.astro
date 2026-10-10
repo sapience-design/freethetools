@@ -1,0 +1,158 @@
+---
+// HEIC to JPG: choose photos, pick a type and quality, press the button; each photo is decoded in the browser.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+import { FORMATS, DEFAULT_QUALITY } from "./core.js";
+const qualities = [
+  { value: DEFAULT_QUALITY, label: "Best", note: "Sharp, for keeping" },
+  { value: 75, label: "Smaller", note: "Good for email and chat" },
+];
+---
+<section class="tool" id="heic-tool" aria-label="HEIC to JPG">
+  <Step n={1} title="Choose your photos">
+    <DropZone prefix="heic" toolId="images/heic-to-jpg" category="images" name="HEIC to JPG" accept=".heic,.heif,.hif,image/heic,image/heif" multiple title="Drop your iPhone photos here" hint="HEIC or HEIF · one or many" button="Choose photos" />
+    <ul class="file-list" id="heic-picked" hidden></ul>
+  </Step>
+
+  <Step n={2} title="Save them as" state="later">
+    <fieldset class="choices cols">
+      <legend class="sr-only">New format</legend>
+      {FORMATS.map((f, i) => (
+        <div class="choice"><input type="radio" name="heic-to" id={`heic-${f.ext}`} value={f.type} checked={i === 0} /><label for={`heic-${f.ext}`}><b>{f.label}</b><small>{f.note}</small>{i === 0 && <span class="badge rec">Recommended</span>}</label></div>
+      ))}
+    </fieldset>
+    <fieldset class="choices cols" id="heic-quality">
+      <legend class="sr-only">JPG quality</legend>
+      {qualities.map((q, i) => (
+        <div class="choice"><input type="radio" name="heic-q" id={`heic-q${q.value}`} value={q.value} checked={i === 0} /><label for={`heic-q${q.value}`}><b>{q.label}</b><small>{q.note}</small></label></div>
+      ))}
+    </fieldset>
+    <button class="btn run" id="heic-go" type="button" disabled><Icon name="swap" /><span id="heic-go-label">Convert</span></button>
+  </Step>
+
+  <Step n={3} title="Save them" state="later">
+    <div class="result" id="heic-status" aria-live="polite"><p class="res-wait">Your converted photos will appear here.</p></div>
+    <ul class="file-list" id="heic-list"></ul>
+    <button class="btn quiet" id="heic-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
+</section>
+
+<script>
+  import { FORMATS, outputName, canvasQuality } from "./core.js";
+  import { encode, type Format } from "../../../src/lib/images";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $("heic-tool"), picked = $("heic-picked"), list = $("heic-list"), status = $("heic-status");
+  const go = $("heic-go") as HTMLButtonElement, again = $("heic-again"), qualityBox = $("heic-quality");
+  let pending: File[] = [];
+  let running = false;
+
+  // The decoder runs in a worker served from this site. It is created on first use, so a browser
+  // that opens HEIC itself (Safari) never downloads it.
+  let worker: Worker | undefined;
+  let next = 0;
+  const waiting = new Map<number, { ok: (d: ImageData) => void; fail: (e: Error) => void }>();
+  function decoder() {
+    if (worker) return worker;
+    worker = new Worker("/images/heic-to-jpg/vendor/heic-worker.js");
+    worker.onmessage = ({ data }) => {
+      const w = waiting.get(data.id);
+      waiting.delete(data.id);
+      if (!w) return;
+      if (data.error || !data.imageData) w.fail(new Error("This photo couldn't be read. It may be damaged, or not a still HEIC photo."));
+      else w.ok(data.imageData);
+    };
+    worker.onerror = () => {
+      for (const w of waiting.values()) w.fail(new Error("The HEIC decoder couldn't start in this browser."));
+      waiting.clear();
+      worker = undefined;
+    };
+    return worker;
+  }
+  function wasmDecode(buffer: ArrayBuffer) {
+    return new Promise<ImageData>((ok, fail) => {
+      const id = next++;
+      waiting.set(id, { ok, fail });
+      decoder().postMessage({ id, buffer }, [buffer]);
+    });
+  }
+
+  /** The browser's own decoder if it has one (Safari), else the WebAssembly one. */
+  async function toBitmap(file: File): Promise<ImageBitmap> {
+    try { return await createImageBitmap(file, { imageOrientation: "from-image" }); } catch { /* no native HEIC */ }
+    return createImageBitmap(await wasmDecode(await file.arrayBuffer()));
+  }
+
+  const chosenType = () => (document.querySelector('input[name="heic-to"]:checked') as HTMLInputElement).value as Format;
+  const chosenQuality = () => Number((document.querySelector('input[name="heic-q"]:checked') as HTMLInputElement).value);
+  document.querySelectorAll('input[name="heic-to"]').forEach((r) => r.addEventListener("change", () => { qualityBox.hidden = chosenType() === "image/png"; }));
+
+  const isHeicFile = (f: File) => /\.(heic|heif|hif)$/i.test(f.name) || /^image\/(heic|heif)/.test(f.type);
+
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => {
+      return photoRow(f, [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })]);
+    }));
+    compactDrop("heic", pending.length > 0 || list.children.length > 0);
+    go.disabled = !pending.length || running;
+    if (pending.length) stepTo(root, 2);
+    else if (!list.children.length) stepTo(root, 1);
+  }
+
+  wireDrop("heic", (files) => {
+    pending.push(...files.filter(isHeicFile));
+    renderPicked();
+  });
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running) return;
+    running = true;
+    const files = pending;
+    pending = [];
+    renderPicked();
+    const type = chosenType();
+    const fmt = FORMATS.find((f) => f.type === type)!;
+    const quality = canvasQuality(type, chosenQuality());
+    again.hidden = true;
+    list.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("heic", true);
+    showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
+    let done = 0;
+    for (const f of files) {
+      const li = fileRow({ name: f.name, meta: "Converting…" });
+      const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
+      list.append(li);
+      try {
+        const bmp = await toBitmap(f);
+        const blob = await encode(bmp, bmp.width, bmp.height, type, quality);
+        bmp.close();
+        m.textContent = `HEIC → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
+        li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
+        act.append(downloadLink(blob, outputName(f.name, fmt.ext), type));
+        done++;
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
+    }
+    running = false;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!done) {
+      showProblem(status, files.length > 1 ? "None of these photos could be changed. Each row says why." : "This photo could not be changed. The row below says why.", "That didn't work");
+      return;
+    }
+    stepTo(root, 4);
+    showDone(status, done > 1 ? `Done. ${done} photos are now ${fmt.label}.` : `Done. Your photo is now ${fmt.label}.`);
+  });
+
+  again.addEventListener("click", () => {
+    list.replaceChildren();
+    again.hidden = true;
+    showWait(status, "Your converted photos will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("heic-drop")?.focus();
+  });
+</script>

@@ -22,7 +22,7 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `cli` | no | File name in the tool's `cli/` folder | Links to the command-line version |
 | `specs` | no | `{ "Label": "Value" }` | Extra rows in the spec table |
 | `faq` | no | `[{ "q", "a" }]` | Questions beside the tool and FAQ structured data for search engines. Start with whether anything is uploaded. |
-| `vendor` | no | `[{ "from", "to" }]` | Runtime files copied from `node_modules`; see [vendoring](../how-to/vendor-a-library.md) |
+| `vendor` | no | `[{ "from", "to" }]` | Runtime files copied from `node_modules`; optional `"extract"` names a build-time extractor in `scripts/sync-tool-assets.mjs`; see [vendoring](../how-to/vendor-a-library.md) |
 
 ## Other files in the folder
 
