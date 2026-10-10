@@ -97,11 +97,11 @@ test("the form sends the right JSON and then says thanks", async ({ page }) => {
   await expect(page.getByText("No account needed.").first()).toBeVisible();
   await page.getByLabel("What should it do?").fill("Join two pictures side by side.");
   await page.getByLabel("What do you use today?").fill("Paint");
-  await page.getByLabel("Which tool?").fill("images/join");
+  await page.getByLabel("Which tool?").selectOption({ label: "Image Crop (not built yet)" });
   await page.getByLabel("Your email, if you want a reply").fill("ada@example.org");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.locator("#fb-status")).toHaveText("Thanks. We read every message.");
-  expect(sent).toEqual([{ kind: "suggestion", message: "Join two pictures side by side.", use: "Paint", tool: "images/join", email: "ada@example.org", website: "" }]);
+  expect(sent).toEqual([{ kind: "suggestion", message: "Join two pictures side by side.", use: "Paint", tool: "images/crop", email: "ada@example.org", website: "" }]);
 });
 
 test("the hidden field cannot be reached by keyboard or screen reader", async ({ page }) => {

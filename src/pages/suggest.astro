@@ -1,6 +1,10 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
+import { loadCatalogue } from "../data/catalogue";
+
+// Tool names for the "Which tool?" list: people pick a name, the email carries the id.
+const { aisles } = await loadCatalogue();
 ---
 <Base
   title="Suggest a tool or report a problem | Free the Tools"
@@ -37,8 +41,16 @@ import Icon from "../components/Icon.astro";
 
       <div class="field">
         <label for="fb-tool"><span>Which tool?</span></label>
-        <input type="text" id="fb-tool" name="tool" maxlength="100" autocomplete="off" aria-describedby="fb-tool-hint">
-        <span class="hint" id="fb-tool-hint">Optional. For example pdf/merge.</span>
+        <select id="fb-tool" name="tool" aria-describedby="fb-tool-hint">
+          <option value="">Not about one tool</option>
+          {aisles.map((a) => (
+            <optgroup label={a.label}>
+              {a.live.map((x) => <option value={x.id}>{x.data.name}</option>)}
+              {a.wanted.map((w) => <option value={`${a.slug}/${w.slug}`}>{w.name} (not built yet)</option>)}
+            </optgroup>
+          ))}
+        </select>
+        <span class="hint" id="fb-tool-hint">Optional. Pick the tool this is about.</span>
       </div>
 
       <div class="field">
@@ -78,7 +90,7 @@ import Icon from "../components/Icon.astro";
   const form = $<HTMLFormElement>("fb-form");
   const message = $<HTMLTextAreaElement>("fb-message");
   const use = $<HTMLInputElement>("fb-use");
-  const tool = $<HTMLInputElement>("fb-tool");
+  const tool = $<HTMLSelectElement>("fb-tool");
   const email = $<HTMLInputElement>("fb-email");
   const website = $<HTMLInputElement>("fb-website");
   const send = $<HTMLButtonElement>("fb-send");
@@ -96,7 +108,9 @@ import Icon from "../components/Icon.astro";
 
   // A link from a tool page or a wanted page fills in the tool, and can open the problem report.
   const params = new URLSearchParams(location.search);
-  tool.value = (params.get("tool") ?? "").replace(/[^\w\-/.]/g, "").slice(0, 100);
+  // Arriving from a tool page fills in that tool; an unknown id is ignored.
+  const asked = (params.get("tool") ?? "").replace(/[^\w\-/.]/g, "").slice(0, 100);
+  if ([...tool.options].some((o) => o.value === asked)) tool.value = asked;
   if (params.get("kind") === "problem") $<HTMLInputElement>("kind-problem").checked = true;
   applyKind();
 
