@@ -13,6 +13,8 @@ const search = makeSearch([
   tool("QR Code Maker", "Developer", "qr code link wifi"),
   tool("HEIC to JPG", "Images", "convert iphone photos", true),
   tool("Convert Image Format", "Images", "png jpg webp convert"),
+  tool("Unlock PDF", "PDF", "take the lock off a pdf unlock remove password decrypt unprotect restrictions copy protection print protection encrypted qpdf remove a pdf's password, or its print and copy limits, on a file you own"),
+  tool("Unit Converter", "Everyday", "unit converter cm to inches kg to lbs celsius to fahrenheit"),
 ]);
 const top = (q) => search(q)[0]?.n;
 
@@ -55,4 +57,15 @@ test("a half-typed word beats a near miss in a task name", () => {
   ]);
   assert.equal(s("compres")[0].n, "Compress PDF");
   assert.equal(s("make a pdf smaller")[0].n, "Compress PDF");
+});
+
+test("finds Unlock PDF by the words people use for a locked file", () => {
+  assert.equal(top("open protected pdf"), "Unlock PDF");
+  assert.equal(top("decrypt pdf"), "Unlock PDF");
+});
+
+test("finds Unit Converter by quantity and long unit names", () => {
+  assert.equal(top("weight"), "Unit Converter");
+  assert.equal(top("miles"), "Unit Converter");
+  assert.equal(top("kilometres"), "Unit Converter");
 });

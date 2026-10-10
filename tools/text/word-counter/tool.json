@@ -15,7 +15,8 @@
   "specs": {
     "Engine": "Plain JavaScript with Intl.Segmenter",
     "Languages": "Counts words correctly in Chinese, Japanese and Thai too",
-    "Reading speed": "238 words a minute; speaking 150"
+    "Reading speed": "238 words a minute; speaking 150",
+    "Works offline": "Yes, once the page has loaded"
   },
   "faq": [
     { "q": "Is my text saved or sent anywhere?", "a": "No. Counting happens in this tab as you type, and the page's security policy blocks it from sending data anywhere." },

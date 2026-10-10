@@ -15,7 +15,8 @@
   "specs": {
     "Engine": "Plain JavaScript, no re-encoding",
     "Removes": "EXIF (GPS, camera, dates), XMP, IPTC and comments",
-    "Quality": "Lossless: the picture data is copied byte for byte"
+    "Quality": "Lossless: the picture data is copied byte for byte",
+    "Works offline": "Yes, once the page has loaded"
   },
   "faq": [
     { "q": "Why remove location from photos?", "a": "Phones record where each photo was taken. Anyone you send the original file to can see that, which can reveal your home, school or routine." },

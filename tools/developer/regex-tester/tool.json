@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-28",
   "offline": true,
-  "specs": { "Engine": "Your browser's JavaScript regex engine", "Flags": "g, i, m, s, u and y" },
+  "specs": { "Engine": "Your browser's JavaScript regex engine", "Flags": "g, i, m, s, u and y", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Which regex flavour is this?", "a": "JavaScript (ECMAScript), as used in browsers and Node.js. Most patterns work the same in other languages; lookbehind and named groups are supported." },
     { "q": "Is my text sent anywhere?", "a": "No. Matching runs in this tab, and the page's security policy blocks any outside connection." }

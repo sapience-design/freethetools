@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Your browser's built-in encoder", "Text": "UTF-8, so emoji and all languages work" },
+  "specs": { "Engine": "Your browser's built-in encoder", "Text": "UTF-8, so emoji and all languages work", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is my data sent anywhere?", "a": "No. Encoding happens in this tab, and the page's security policy blocks it from sending data anywhere. Safe for tokens and keys." },
     { "q": "What is URL-safe Base64?", "a": "The same encoding with - and _ instead of + and /, and no = padding, so it can sit in a web address or a JWT." }

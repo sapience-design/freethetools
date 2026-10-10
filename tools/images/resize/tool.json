@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Your browser's canvas, high-quality smoothing", "Batch": "Resize many images at once" },
+  "specs": { "Engine": "Your browser's canvas, high-quality smoothing", "Batch": "Resize many images at once", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Are my photos uploaded?", "a": "No. They're resized inside this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Why is the result a little blurry when I make it bigger?", "a": "Enlarging has to invent pixels that weren't there. Shrinking looks sharp; enlarging much past the original size always softens." }

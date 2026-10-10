@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-28",
   "offline": true,
-  "specs": { "Engine": "crypto.getRandomValues, without modulo bias", "Look-alikes": "l, I, O, 0 and 1 left out unless you ask" },
+  "specs": { "Engine": "crypto.getRandomValues, without modulo bias", "Look-alikes": "l, I, O, 0 and 1 left out unless you ask", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is the password sent or saved anywhere?", "a": "No. It's made in this tab from your device's secure random number generator and is never stored or sent. The page's security policy blocks any outside connection." },
     { "q": "Password or passphrase?", "a": "A passphrase of five or six random words is easier to remember and type, and just as hard to guess as a long jumble. Use a password manager for the rest." }

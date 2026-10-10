@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-28",
   "offline": true,
-  "specs": { "Engine": "Web Crypto API", "Verifies": "HS256, HS384, HS512 with a shared secret" },
+  "specs": { "Engine": "Web Crypto API", "Verifies": "HS256, HS384, HS512 with a shared secret", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is it safe to paste a real token?", "a": "Safer than most: it's decoded in this tab and the page's security policy blocks any outside connection. Still, treat live tokens like passwords and revoke any you've shared." },
     { "q": "Can it verify RS256 tokens?", "a": "Not yet. Those need the issuer's public key; HMAC tokens (HS256 and friends) can be checked with your secret now." }

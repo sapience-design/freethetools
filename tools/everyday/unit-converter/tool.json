@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Groups": "Length, weight, temperature, volume, area, speed, data", "Accuracy": "Exact definitions where they exist (1959 yard and pound)" },
+  "specs": { "Groups": "Length, weight, temperature, volume, area, speed, data", "Accuracy": "Exact definitions where they exist (1959 yard and pound)", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Are cups and gallons US or UK?", "a": "Cups, pints and fluid ounces are US measures. Gallons come in both, labelled." },
     { "q": "What's the difference between GB and GiB?", "a": "A gigabyte (GB) is 1,000,000,000 bytes, as used by drive makers. A gibibyte (GiB) is 1,073,741,824 bytes, which is what many operating systems show." }
