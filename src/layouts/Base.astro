@@ -69,6 +69,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       <a class="navlink" href="/about/" aria-current={page === "about" ? "page" : undefined}>About</a>
       <a class="navlink" href="/library/" aria-current={page === "library" ? "page" : undefined}>Library</a>
       <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
+      <a class="navlink donate" href="https://ko-fi.com/freethetools"><Icon name="hand-heart" /><span class="donate-label">Donate</span></a>
       {page === "home"
         ? <a class="bar-btn" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
         : <a class="bar-btn" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
@@ -104,7 +105,8 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
           <li><a href="/saved/">Favourites</a></li>
           <li><a href="/library/">Library</a></li>
           <li><a href={REQUEST_URL}>Suggest a tool</a></li>
-          <li><a href="/support/">Support the project</a></li>
+          <li><a href="https://ko-fi.com/freethetools">Donate</a></li>
+          <li><a href="/support/#company-h">Sponsor a tool</a></li>
         </ul>
       </div>
       <div class="col">
@@ -279,6 +281,9 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .bar-nav { display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 6px; margin-left: auto; }
   .navlink { display: inline-flex; align-items: center; min-height: 48px; padding: 0 12px; border-radius: var(--r); font-weight: 650; text-decoration: none; white-space: nowrap; }
   .navlink:hover, .navlink[aria-current="page"] { background: var(--hover); }
+  .navlink.donate { gap: 6px; }
+  .navlink.donate :global(.ic) { font-size: 20px; }
+  @media (max-width: 560px) { .navlink.donate { width: 48px; padding: 0; justify-content: center; } .donate-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } }
   .navlink.gh { width: 48px; padding: 0; justify-content: center; font-size: 22px; }
   /* On phones the top bar has no room for it; the footer's "Source code" link stays. */
   @media (max-width: 560px) { .navlink.gh { display: none; } }

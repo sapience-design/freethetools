@@ -1,0 +1,3 @@
+- A "Donate" link in the top bar and the footer goes straight to Ko-fi, with "Sponsor a tool" for companies beside it in the footer.
+- After a tool finishes, one quiet line under the Download button asks for a small donation, at most once per visit and never after an error. "No thanks" hides it for good in that browser.
+- About explains why the tools are free and what donations pay for. The support page is now "Donate or sponsor a tool".

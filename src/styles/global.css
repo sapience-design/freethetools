@@ -393,3 +393,9 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
   .file-list > li.has-thumb, ol.file-list > li.has-thumb { grid-template-columns: 56px minmax(0, 1fr); }
   .file-list > li.has-thumb > .fact { grid-row: 2; grid-column: 2; }
 }
+
+/* The quiet donation note under a result (src/lib/files.ts). */
+.donate-line { margin: 10px 0 0; font-size: 14px; color: var(--soft); }
+.donate-line a { color: var(--ink); }
+.donate-no { margin-left: 6px; padding: 2px 8px; border: 1px solid var(--hair); border-radius: 999px; background: none; color: var(--soft); font: inherit; font-size: 13px; cursor: pointer; }
+.donate-no:hover { color: var(--ink); border-color: var(--edge); }

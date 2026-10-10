@@ -153,3 +153,42 @@ test("a link drawn later, in the Markdown preview, opens in a new tab too", asyn
   await expect(link).toHaveAttribute("target", "_blank");
   await expect(link).toHaveAttribute("rel", /noopener/);
 });
+
+// Donations: one plain link in the top bar, and one quiet note after a result (src/lib/files.ts).
+test("Donate is in the top bar and the footer, as a plain link to Ko-fi", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Donate/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  await expect(page.locator("footer").getByRole("link", { name: /^Donate/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  await expect(page.locator("footer").getByRole("link", { name: "Sponsor a tool" })).toHaveAttribute("href", "/support/#company-h");
+});
+
+test("the donation note shows once per visit, under the Download button, and No thanks keeps it away", async ({ page }) => {
+  const merge = async () => {
+    await page.goto("/pdf/merge/");
+    await page.setInputFiles("input[type=file]", [FIXTURE, FIXTURE]);
+    await page.locator("#pdfm-go:enabled").click();
+    await expect(page.getByRole("link", { name: "Download PDF" }).first()).toBeVisible();
+  };
+  await merge();
+  const note = page.locator(".donate-line");
+  await expect(note).toHaveCount(1);
+  await expect(note.getByRole("link", { name: /small donation/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  // It sits after the Download button, never between the person and their file.
+  const after = await page.evaluate(() => {
+    const dl = [...document.querySelectorAll("a[download]")].pop();
+    const n = document.querySelector(".donate-line");
+    return !!(dl && n && (dl.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING));
+  });
+  expect(after, "the note comes after the download").toBe(true);
+  // Once per visit: a second result in the same tab shows no note.
+  await merge();
+  await expect(page.locator(".donate-line")).toHaveCount(0);
+  // No thanks is remembered across visits.
+  await page.evaluate(() => sessionStorage.clear());
+  await merge();
+  await page.getByRole("button", { name: "No thanks" }).click();
+  await expect(page.locator(".donate-line")).toHaveCount(0);
+  await page.evaluate(() => sessionStorage.clear());
+  await merge();
+  await expect(page.locator(".donate-line")).toHaveCount(0);
+});

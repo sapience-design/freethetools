@@ -213,7 +213,32 @@ export function showDone(el: HTMLElement, title: string, ...extra: (Node | strin
     if (typeof x === "string") { const s = document.createElement("span"); s.textContent = x; div.append(s); } else div.append(x);
   }
   place(el, div);
+  const note = donateLine();
+  // Below the whole result, after its Download button, so it never sits between the person and their file.
+  if (note) (el.closest(".step") ?? el).append(note);
   return div;
+}
+
+// One quiet donation note after a result: at most once per visit, never after an error.
+// "No thanks" is remembered in this browser. Both keys are listed on How it works.
+const DONATE_SEEN = "ftt:donate-seen", DONATE_OFF = "ftt:donate-off";
+function donateLine(): HTMLElement | null {
+  try {
+    if (localStorage.getItem(DONATE_OFF) || sessionStorage.getItem(DONATE_SEEN)) return null;
+    sessionStorage.setItem(DONATE_SEEN, "1");
+  } catch { return null; }
+  const p = document.createElement("p");
+  p.className = "donate-line";
+  const a = document.createElement("a");
+  a.href = "https://ko-fi.com/freethetools";
+  a.textContent = "small donation";
+  const no = document.createElement("button");
+  no.type = "button";
+  no.className = "donate-no";
+  no.textContent = "No thanks";
+  no.addEventListener("click", () => { try { localStorage.setItem(DONATE_OFF, "1"); } catch {} p.remove(); });
+  p.append("This tool was free and ran in your browser. If it saved you time, please consider a ", a, ". ", no);
+  return p;
 }
 
 /** Show a plain-language problem, what went wrong and what to do next, and count it as a failure. */
