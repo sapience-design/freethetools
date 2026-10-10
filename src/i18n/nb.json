@@ -1,5 +1,5 @@
 {
-  "meta": { "name": "Norsk bokmål", "dir": "ltr", "locale": "nb_NO", "reviewed": false },
+  "meta": { "name": "Norsk bokmål", "dir": "ltr", "locale": "nb_NO", "reviewed": true },
   "ui": {
     "skip": "Hopp til innholdet",
     "bar": {
