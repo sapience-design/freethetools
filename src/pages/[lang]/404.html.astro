@@ -1,0 +1,12 @@
+---
+// /<lang>/404.html: the "not found" page in that language. The Worker serves it for a missing
+// address under /<lang>/.
+import NotFound from "../../components/NotFound.astro";
+import { OTHER_LANGS } from "../../i18n/index";
+
+export function getStaticPaths() {
+  return OTHER_LANGS.map((l) => ({ params: { lang: l.code } }));
+}
+const { lang } = Astro.params;
+---
+<NotFound lang={lang} />
