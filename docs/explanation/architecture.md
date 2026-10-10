@@ -18,6 +18,7 @@ The one piece of server code is a small Worker (`worker/`) for anonymous usage t
 2. **Workers too.** Workers take their policy from their own HTTP response, so `public/_headers` gives files under `/_astro/` the same policy plus `wasm-unsafe-eval` for WebAssembly.
 3. **Vendored runtime files.** Libraries that fetch files at runtime are copied into the site at build time ([how-to](../how-to/vendor-a-library.md)), so nothing needs another origin.
 4. **Tests.** `tests/site.test.js` fails if a page references another origin, lacks the policy, or repeats an element id. The browser tests in `e2e/` record every request and every CSP violation while using the tools, and fail on either.
+5. **Verifiable builds.** The build writes `dist/integrity.json`, the SHA-256 of every deployed file. The [/verify/](https://freethetools.com/verify/) page re-downloads each file and compares it, and anyone can rebuild the same commit and compare the hashes. This shows that the served files equal a build of the repository. It does not show that Cloudflare's network is honest. See [ADR 0012](../adr/0012-verifiable-builds.md).
 
 See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 

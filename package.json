@@ -14,7 +14,7 @@
   "scripts": {
     "sync": "node scripts/sync-tool-assets.mjs",
     "dev": "npm run sync && astro dev",
-    "build": "npm run sync && astro build",
+    "build": "npm run sync && astro build && node scripts/build-integrity.mjs",
     "build:package": "npm run build --prefix packages/freethetools",
     "preview": "wrangler dev --port 8788",
     "preview:cloud": "npm run build && wrangler preview",

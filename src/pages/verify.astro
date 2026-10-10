@@ -1,0 +1,150 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+---
+<Base page="verify" title="Verify this site | Free the Tools" description="Check that the files your browser gets from freethetools.com are exactly the files built from the public source code. Run the check here, or reproduce it yourself.">
+  <div class="page narrow verify-page">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <span class="tag">Verify this site</span>
+      <h1 class="h1">Check that this site is the code you can read.</h1>
+      <p class="lede">We publish a fingerprint (a SHA-256 hash) of every file on this site. You can check that the files you receive match, and that a build of the public source code gives the same fingerprints.</p>
+    </div>
+
+    <section aria-labelledby="promise-h">
+      <h2 class="h2" id="promise-h">What the site promises</h2>
+      <p>Every file served here comes from a build of the <a href={REPO}>public repository</a> at one commit. No file is added or changed after the build. The list of fingerprints is at <a class="mono" href="/integrity.json">/integrity.json</a>.</p>
+      <p>This shows the files match the source. It does not prove that your connection, your browser or Cloudflare's network is honest. It does make a quiet change to the files easy to find.</p>
+    </section>
+
+    <section aria-labelledby="check-h" class="card check" id="vf-check">
+      <h2 class="h2" id="check-h">Check it here</h2>
+      <p>Your browser downloads each file again, hashes it on your device and compares it with the list. Nothing leaves your device.</p>
+      <p><button class="btn" type="button" id="vf-run"><Icon name="check" />Check this site now</button></p>
+      <p class="status" id="vf-status" role="status" aria-live="polite"></p>
+      <progress class="bar" id="vf-bar" max="1" value="0" hidden></progress>
+      <div class="result" id="vf-result" hidden>
+        <p class="commit" id="vf-commit"></p>
+        <p class="skipped" id="vf-skipped" hidden></p>
+        <h3 class="h3 bad-h" id="vf-bad-h" hidden>Files that do not match</h3>
+        <ul class="mismatch" id="vf-bad"></ul>
+      </div>
+    </section>
+
+    <section aria-labelledby="repro-h">
+      <h2 class="h2" id="repro-h">Reproduce it yourself</h2>
+      <p>This needs Git and Node.js 22 or newer. Replace <span class="mono">COMMIT</span> with the commit shown above.</p>
+      <ol class="steps-list">
+        <li><span class="mono">git clone {REPO}.git &amp;&amp; cd freethetools</span></li>
+        <li><span class="mono">git checkout COMMIT</span></li>
+        <li><span class="mono">npm ci</span></li>
+        <li><span class="mono">npm run build</span></li>
+        <li><span class="mono">node scripts/build-integrity.mjs --print</span></li>
+        <li>Compare the hashes it prints with <a class="mono" href="/integrity.json">/integrity.json</a>. Ignore the <span class="mono">built</span> time. It is not part of any hash.</li>
+      </ol>
+      <p>The two should be identical, byte for byte. Astro names its script and style files after their content, and the font and library files are copied unchanged. If a hash differs, <a href={`${REPO}/issues/new`}>tell us</a>.</p>
+      <p id="vf-repo-line">The source for each commit is on <a href={REPO}>GitHub</a>.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .verify-page { display: grid; gap: 24px; }
+  .intro { display: grid; gap: 12px; justify-items: start; }
+  .check { padding: 20px; display: grid; gap: 12px; }
+  .check p { margin: 0; }
+  .status { font-weight: 650; }
+  .bar { width: 100%; height: 10px; }
+  .result { display: grid; gap: 10px; }
+  .result[hidden], .bar[hidden], .skipped[hidden], .bad-h[hidden] { display: none; }
+  .commit, .skipped { color: var(--soft); font-size: 15px; overflow-wrap: anywhere; }
+  .mismatch { margin: 0; padding-left: 18px; font-family: var(--mono, monospace); font-size: 14px; overflow-wrap: anywhere; }
+  .mismatch:empty { display: none; }
+  .check.fail .status { text-decoration: underline wavy; }
+</style>
+
+<script>
+  type Integrity = { commit: string; built: string; files: Record<string, string> };
+  const MAX_BYTES = 20 * 1024 * 1024;
+  const CONCURRENCY = 6;
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const hex = (buf: ArrayBuffer) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
+  const nf = new Intl.NumberFormat();
+  const repo = $("vf-repo-line").querySelector("a")!.getAttribute("href")!;
+
+  async function run() {
+    const btn = $<HTMLButtonElement>("vf-run");
+    const status = $("vf-status");
+    const bar = $<HTMLProgressElement>("vf-bar");
+    const card = $("vf-check");
+    btn.disabled = true;
+    card.classList.remove("ok", "fail");
+    $("vf-result").hidden = true;
+    $("vf-skipped").hidden = true;
+    $("vf-bad").replaceChildren();
+    status.textContent = "Reading the list of files";
+    try {
+      const res = await fetch("/integrity.json", { cache: "no-store" });
+      if (!res.ok) throw new Error(`integrity.json answered ${res.status}`);
+      const doc: Integrity = await res.json();
+      const entries = Object.entries(doc.files);
+      const total = entries.length;
+      const bad: string[] = [];
+      const skipped: string[] = [];
+      let done = 0, ok = 0, next = 0;
+      bar.max = total; bar.value = 0; bar.hidden = false;
+
+      async function worker() {
+        while (next < entries.length) {
+          const [path, want] = entries[next++];
+          try {
+            const r = await fetch("/" + path.split("/").map(encodeURIComponent).join("/"), { cache: "no-store" });
+            const len = Number(r.headers.get("content-length") || 0);
+            if (len > MAX_BYTES) { skipped.push(path); r.body?.cancel(); }
+            else {
+              const buf = await r.arrayBuffer();
+              if (buf.byteLength > MAX_BYTES) skipped.push(path);
+              else if (r.ok && hex(await crypto.subtle.digest("SHA-256", buf)) === want) ok++;
+              else bad.push(path);
+            }
+          } catch {
+            bad.push(path);
+          }
+          bar.value = ++done;
+          status.textContent = `Checked ${nf.format(done)} of ${nf.format(total)} files`;
+        }
+      }
+      await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+      bar.hidden = true;
+      const checked = total - skipped.length;
+      status.textContent = `${nf.format(ok)} of ${nf.format(checked)} files match.`;
+      card.classList.add(bad.length ? "fail" : "ok");
+      const commit = $("vf-commit");
+      commit.textContent = `Built from commit ${doc.commit} at ${doc.built}. `;
+      if (/^[0-9a-f]{7,40}$/.test(doc.commit)) {
+        const a = document.createElement("a");
+        a.href = `${repo}/commit/${doc.commit}`;
+        a.textContent = "See it on GitHub";
+        commit.append(a);
+      }
+      if (skipped.length) {
+        const s = $("vf-skipped");
+        const many = skipped.length !== 1;
+        s.textContent = `${nf.format(skipped.length)} ${many ? "files were" : "file was"} skipped because ${many ? "they are" : "it is"} over 20 MB. Check ${many ? "them" : "it"} with the steps below.`;
+        s.hidden = false;
+      }
+      $("vf-bad-h").hidden = !bad.length;
+      $("vf-bad").replaceChildren(...bad.sort().map((p) => { const li = document.createElement("li"); li.textContent = p; return li; }));
+      $("vf-result").hidden = false;
+    } catch (e) {
+      bar.hidden = true;
+      status.textContent = `The check could not run: ${(e as Error).message}`;
+      card.classList.add("fail");
+    } finally {
+      btn.disabled = false;
+    }
+  }
+  $("vf-run").addEventListener("click", run);
+</script>

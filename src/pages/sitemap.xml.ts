@@ -11,6 +11,7 @@ export const GET: APIRoute = async ({ site }) => {
     { loc: "/changelog/" },
     { loc: "/licenses/" },
     { loc: "/privacy/" },
+    { loc: "/verify/" },
     ...aisles.map((a) => ({ loc: `/${a.slug}/` })),
     ...tools.map((t) => ({ loc: t.url, lastmod: t.data.added })),
   ];
