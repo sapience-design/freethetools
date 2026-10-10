@@ -1,0 +1,29 @@
+{
+  "name": "HEIC to JPG",
+  "task": "Open iPhone photos anywhere",
+  "icon": "image",
+  "short": "HEIC to JPG",
+  "tagline": "Turn iPhone HEIC photos into JPG or PNG that open anywhere.",
+  "seoTitle": "Convert HEIC to JPG without uploading",
+  "description": "Convert HEIC and HEIF photos from an iPhone to JPG or PNG for free, in your browser, one or many at once. Your photos never leave your device.",
+  "section": "Convert",
+  "keywords": ["heic to jpg", "heic to png", "heif", "iphone photo", "convert heic", "open heic", "heic converter"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-10",
+  "offline": true,
+  "specs": {
+    "Engine": "libheif 1.22 (LGPL-3.0) compiled to WebAssembly, packaged by heic-to",
+    "Safari": "Uses the browser's own HEIC decoder, with no download",
+    "First load": "About 3 MB in other browsers, then cached",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my photos uploaded?", "a": "No. They're decoded and re-encoded inside this tab, and the page's security policy blocks it from sending data anywhere. Once the page has loaded you can go offline and it still works." },
+    { "q": "Why won't some HEIC files open?", "a": "The decoder handles the still photos an iPhone takes. It can't open HEIC files that hold a video, an image sequence or an unusual codec, and it can't open a file that was cut short in transfer. The row for that file says it couldn't be read; the others still convert." },
+    { "q": "What happens to Live Photos?", "a": "A Live Photo is a still HEIC plus a short video. You get the still photo as a JPG or PNG. The video part is a separate .mov file, which this tool leaves alone." }
+  ],
+  "vendor": [
+    { "from": "heic-to/csp", "to": "heic-worker.js", "extract": "heic-to-worker" }
+  ]
+}

@@ -100,12 +100,12 @@ test("merge_pdfs uses files the person added; the result is on the page and in t
   const recs = page.locator("#lib-list li.rec");
   await expect(recs).toHaveCount(4);
   const first = recs.filter({ hasText: "both.pdf" });
-  await expect(first).toContainText("by AI agent");
-  await expect(first.getByRole("link", { name: "Merge PDFs" })).toHaveAttribute("href", "/pdf/merge/");
+  await expect(first).toContainText("by an AI agent");
+  await expect(first.getByRole("link", { name: "Combine PDFs into one" })).toHaveAttribute("href", "/pdf/merge/");
   await expect(first).toContainText("sample.pdf");
   const out = await download(page, () => first.getByRole("button", { name: "Download both.pdf" }).click());
   expect(await pageCount(out)).toBe(6);
-  await expect(page.locator("#lib-space")).toContainText("Space used");
+  await expect(page.locator("#lib-space")).toContainText("used in this browser");
 });
 
 test("compress_pdf runs Ghostscript through the page's worker", async ({ page }) => {
@@ -135,7 +135,7 @@ test("the person's own job is recorded without any change to the tool, and Clear
   const rec = page.locator("#lib-list li.rec").first();
   await expect(rec).toBeVisible();
   await expect(rec).toContainText("by you");
-  await expect(rec.getByRole("link", { name: "Merge PDFs" })).toHaveAttribute("href", "/pdf/merge/");
+  await expect(rec.getByRole("link", { name: "Combine PDFs into one" })).toHaveAttribute("href", "/pdf/merge/");
   await expect(rec).toContainText("Inputs");
   await expect(rec).toContainText("sample.pdf");
   await expect(page.locator("#lib-list li.rec")).toHaveCount(1);
@@ -160,15 +160,17 @@ test("Split PDF's several files become one record, and a record can be deleted",
   await page.goto("/pdf/split/");
   await page.setInputFiles("#pdfs-file", PDF);
   await page.click("#pdfs-go");
-  await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
   // Nothing is recorded until the person takes a result; then the whole job is recorded once.
-  await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
-  await download(page, () => page.getByRole("link", { name: "Download" }).nth(1).click());
+  await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
+  await download(page, () => page.getByRole("link", { name: "Download", exact: true }).nth(1).click());
   await page.waitForTimeout(700);
   await page.goto("/library/");
   await expect(page.locator("#lib-list li.rec")).toHaveCount(1);
   await expect(page.locator("#lib-list li.rec .btn")).toHaveCount(3);
-  await expect(page.locator("#lib-list li.rec")).toContainText("Split into: Every page");
+  const split = page.locator("#lib-list li.rec");
+  await expect(split.locator("dt", { hasText: "Split into" })).toHaveCount(1);
+  await expect(split.locator("dt:has-text(\"Split into\") + dd")).toHaveText("Every page on its own");
   await page.getByRole("button", { name: /^Delete the record/ }).click();
   await expect(page.locator("#lib-list li.rec")).toHaveCount(0);
 });
@@ -246,7 +248,7 @@ test("secrets never reach the library, from the person or from an agent", async 
   const all = await page.locator("#lib-list").textContent();
   expect(all).not.toContain("WIFIPASS");
   expect(all).not.toContain("HomeNet");
-  await expect(page.locator("#lib-list")).toContainText("level: H");
+  await expect(page.locator("#lib-list dt:text-is(\"level\") + dd")).toHaveText("H");
 });
 
 test("an agent's null options get their defaults", async ({ page }) => {

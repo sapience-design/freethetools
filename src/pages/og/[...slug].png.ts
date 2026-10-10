@@ -11,7 +11,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const { tools, aisles } = await loadCatalogue();
   const site: Card = {
     eyebrow: "A Sapience initiative",
-    title: "Simple tools for your files.",
+    title: "Everyday tools should be free.",
     text: `${tools.length} free, open-source tools that work inside your browser.`,
     art: artFor("pdf/compress", "pdf", "ogsite"),
     group: "",

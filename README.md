@@ -1,6 +1,12 @@
 # Free the Tools
 
-**Every tool free. Nothing uploaded. Build the next one.**
+**Everyday tools should be free.**
+
+Everyday tools shouldn't cost money.<br>
+They shouldn't come with ads.<br>
+They shouldn't put your files at risk.<br>
+They shouldn't be hard to find.<br>
+So here they are: one place, every tool, free for everyone. Help us build the next one.
 
 [freethetools.com](https://freethetools.com) is a growing shelf of everyday tools, such as compressing a PDF, that run entirely in your browser. There are no accounts, no limits and no ads, and nothing tracks you: the site keeps only anonymous daily totals, such as how often each tool is used and liked ([what's counted](https://freethetools.com/stats/)). Every page carries a Content Security Policy that stops it from sending your data to any other server, and the automated tests fail if a tool tries.
 
@@ -14,7 +20,7 @@ Free the Tools is a [Sapience](https://sapience.design) initiative, built in the
 
 Open [freethetools.com](https://freethetools.com). That's it.
 
-Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt). Some tools also ship a command-line version in their `cli/` folder.
+Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt).
 
 ## For AI agents
 

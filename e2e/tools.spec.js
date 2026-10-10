@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
+import { unzipSync } from "fflate";
 import { OPEN_PASSWORD, withPassword, withRestrictions } from "../tools/pdf/unlock/tests/helpers.js";
 
 const PDF = "tools/pdf/compress/tests/fixtures/sample.pdf";
@@ -56,9 +57,26 @@ test.describe("PDF tools", () => {
     await page.setInputFiles("#pdfs-file", PDF);
     await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages · .+ · \d+ KB$/);
     await page.click("#pdfs-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
-    const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
+    const out = await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
     expect(await pageCount(out)).toBe(1);
+  });
+
+  test("Split PDF downloads every page as one ZIP", async ({ page }) => {
+    await page.goto("/pdf/split/");
+    await page.setInputFiles("#pdfs-file", PDF);
+    await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages/);
+    await page.click("#pdfs-go");
+    const all = page.getByRole("link", { name: "Download all (3 files, ZIP)" });
+    await expect(all).toBeVisible();
+    const out = await download(page, () => all.click());
+    const files = unzipSync(new Uint8Array(out));
+    const names = Object.keys(files);
+    expect(names).toHaveLength(3);
+    for (const n of names) {
+      expect(n).toMatch(/\.pdf$/);
+      expect(await pageCount(Buffer.from(files[n]))).toBe(1);
+    }
   });
 
   test("Merge PDFs keeps keyboard focus on the arrows while reordering", async ({ page }) => {
@@ -73,9 +91,9 @@ test.describe("PDF tools", () => {
     await page.goto("/pdf/split/");
     await page.setInputFiles("#pdfs-file", PDF);
     await page.click("#pdfs-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
     await page.click('label[for="pdfs-ranges"]');
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(0);
     await expect(page.locator("#pdfs-result")).toContainText("will appear here");
   });
 
@@ -422,6 +440,17 @@ test.describe("image tools", () => {
     expect(out[1]).toBe(0xd8);
   });
 
+  test("Convert Image Format offers a ZIP for several photos", async ({ page }) => {
+    await page.goto("/images/convert/");
+    await page.setInputFiles("#cvi-file", [png(), { ...png(), name: "second.png" }]);
+    await page.click("#cvi-go");
+    const all = page.getByRole("link", { name: "Download all (2 files, ZIP)" });
+    await expect(all).toBeVisible();
+    const files = unzipSync(new Uint8Array(await download(page, () => all.click())));
+    expect(Object.keys(files).sort()).toEqual(["gradient.jpg", "second.jpg"]);
+    expect(files["gradient.jpg"][0]).toBe(0xff);
+  });
+
   test("Compress Images reports a result", async ({ page }) => {
     await page.goto("/images/compress/");
     await page.setInputFiles("#cmi-file", png());
@@ -457,6 +486,21 @@ test("Remove Photo Location says when there is nothing to remove", async ({ page
   await expect(page.locator("#rml-picked .ffacts .good")).toContainText("already safe to share");
 });
 
+test.describe("HEIC to JPG", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("converts a HEIC photo to a JPEG", async ({ page }) => {
+    await page.goto("/images/heic-to-jpg/");
+    await page.setInputFiles("#heic-file", "tools/images/heic-to-jpg/tests/fixtures/sample.heic");
+    await page.click("#heic-go");
+    const link = page.getByRole("link", { name: "Download" });
+    await expect(link).toBeVisible({ timeout: 30000 });
+    await expect(page.locator("#heic-list .fmeta")).toContainText("HEIC → JPG");
+    const out = await download(page, () => link.click());
+    expect([...out.subarray(0, 3)]).toEqual([0xff, 0xd8, 0xff]);
+  });
+});
+
 test.describe("PDF to images", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
   test("renders every page as a PNG", async ({ page }) => {
@@ -465,8 +509,8 @@ test.describe("PDF to images", () => {
     await expect(page.locator("#p2i-thumb canvas")).toBeVisible();
     await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
     await page.click("#p2i-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3, { timeout: 30_000 });
-    const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3, { timeout: 30_000 });
+    const out = await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
     expect(out.subarray(1, 4).toString()).toBe("PNG");
   });
 });
@@ -512,7 +556,7 @@ test.describe("fill form and developer tools", () => {
 
 test.describe("phone layout", () => {
   test.skip(({ isMobile }) => !isMobile, "phone only");
-  for (const path of ["/", "/pdf/", "/about/", ...TOOLS]) {
+  for (const path of ["/", "/pdf/", "/about/", "/how-it-works/", ...TOOLS]) {
     test(`${path} doesn't scroll sideways`, async ({ page }) => {
       await page.goto(path);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -569,19 +613,40 @@ test.describe("theme, search, sorting, likes and stats", () => {
     const labels = ["Most used", "Newest", "Most liked", "A–Z"];
     await page.goto("/");
     for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
-    await expect(page.locator("#sort-note")).toBeHidden();
+    await expect(page.locator("#all-sub")).toHaveText("Most used first in each group");
 
-    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z.
-    // (An empty answer takes the same path as the preview's 503, without a console error.)
+    // A branch preview has no stats database: the options stay, usage sorts fall back to A to Z,
+    // and the label beside "All tools" says so. (An empty answer takes the same path as the
+    // preview's 503, without a console error.)
     await page.route("**/api/stats/summary", (r) => r.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
     await page.reload();
     for (const l of labels) await expect(page.locator(".segmented label", { hasText: l })).toBeVisible();
     await page.click('label[for="sort-liked"]');
-    await expect(page.locator("#sort-note")).toBeVisible();
+    await expect(page.locator("#all-sub")).toHaveText("A to Z in each group");
     const names = await page.locator('.gcard[data-g="pdf"] [data-sortable] > li:not(.want)').evaluateAll((els) => els.map((e) => e.dataset.name));
     expect(names).toEqual([...names].sort((x, y) => x.localeCompare(y)));
     await page.click('label[for="sort-new"]');
-    await expect(page.locator("#sort-note")).toBeHidden();
+    await expect(page.locator("#all-sub")).toHaveText("Newest first in each group");
+  });
+
+  test("Most people come for shows four at a time, and More tools shows the rest", async ({ page }) => {
+    await page.goto("/");
+    const pops = page.locator("#pops");
+    const whole = () => pops.evaluate((ul) => {
+      const box = ul.getBoundingClientRect();
+      return [...ul.children].filter((li) => { const r = li.getBoundingClientRect(); return r.left >= box.left - 1 && r.right <= box.right + 1; }).length;
+    });
+    expect(await whole()).toBe(4);
+    const prev = page.getByRole("button", { name: "Previous tools" }), more = page.getByRole("button", { name: "More tools" });
+    await expect(prev).toBeDisabled();
+    await more.click();
+    await expect(more).toBeDisabled();
+    await expect(pops.locator("li").last()).toBeInViewport({ ratio: 0.9 });
+    // The button that ran out hands keyboard focus to the other one.
+    await expect(prev).toBeFocused();
+    await prev.click();
+    await expect(prev).toBeDisabled();
+    await expect(more).toBeFocused();
   });
 
   test("Sort by sits on the All tools line, moves to a group's results, and hides for a text search", async ({ page }) => {

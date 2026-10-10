@@ -67,6 +67,23 @@ export function notes(text, version) {
   return link.includes("/compare/") ? `${body}\n\n**All changes:** ${link}\n` : `${body}\n`;
 }
 
+/** Every section as { version, date, body }, newest first. "Unreleased" has no date. */
+export function sections(text) {
+  const out = [];
+  const re = /^## \[([^\]]+)\](?: - (\d{4}-\d{2}-\d{2}))?[^\n]*$/gm;
+  let m;
+  while ((m = re.exec(text))) {
+    const rest = text.slice(m.index + m[0].length);
+    out.push({ version: m[1], date: m[2] ?? null, body: rest.slice(0, sectionEnd(rest)).trim() });
+  }
+  return out;
+}
+
+/** The anchor id for a version heading: "1.1.0" becomes "v1-1-0". */
+export function anchor(version) {
+  return version === "Unreleased" ? "unreleased" : `v${version.replaceAll(".", "-")}`;
+}
+
 // Where the first line starting with `prefix` begins, or -1. Plain text, so a version never
 // becomes part of a regular expression.
 function lineStarting(text, prefix) {

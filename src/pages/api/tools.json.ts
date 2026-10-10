@@ -27,7 +27,6 @@ export const GET: APIRoute = async ({ site }) => {
         offline: t.data.offline,
         added: t.data.added,
         source: `${REPO}/tree/main/tools/${t.id}`,
-        cli: t.data.cli ? `${REPO}/tree/main/tools/${t.id}/cli` : null,
         authors: t.data.authors,
       })),
       wanted: a.wanted.map((w) => ({ name: w.name, section: w.section, request: w.url })),

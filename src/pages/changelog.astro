@@ -1,0 +1,47 @@
+---
+import { readFileSync } from "node:fs";
+import { marked } from "marked";
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { anchor, sections } from "../../scripts/changelog.mjs";
+
+// Rendered at build time from our own CHANGELOG.md, so the HTML needs no sanitising.
+const releases = sections(readFileSync("CHANGELOG.md", "utf8"))
+  .filter((s) => s.version !== "Unreleased" || s.body)
+  .map((s) => ({
+    ...s,
+    id: anchor(s.version),
+    title: s.version === "Unreleased" ? "Not yet released" : `Version ${s.version}`,
+    html: marked.parse(s.body, { async: false }) as string,
+  }));
+---
+<Base
+  page="changelog"
+  title="What's new | Free the Tools"
+  description="Every release of Free the Tools: new tools, changes and fixes, newest first."
+  jsonLd={{ "@type": "WebPage", name: "What's new in Free the Tools", url: "https://freethetools.com/changelog/" }}
+>
+  <div class="page narrow changelog">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">What's new</h1>
+      <p class="lede">New tools, changes and fixes, newest first. Follow along with the <a href="/changelog.xml">RSS feed</a>.</p>
+    </div>
+    {releases.map((r) => (
+      <section class="release" aria-labelledby={r.id}>
+        <h2 class="h2" id={r.id}>{r.title}{r.date && <span class="date"> <time datetime={r.date}>{r.date}</time></span>}</h2>
+        <div class="notes" set:html={r.html} />
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .release { margin-top: 40px; scroll-margin-top: 16px; }
+  .date { font-family: var(--sans); font-size: 14px; font-weight: 500; color: var(--muted, inherit); margin-left: 8px; }
+  .notes { margin-top: 12px; }
+  .notes :global(h3) { font-family: var(--display); font-size: 16px; font-weight: 700; margin: 24px 0 8px; }
+  .notes :global(ul) { padding-left: 22px; margin: 0 0 12px; }
+  .notes :global(li) { margin: 6px 0; max-width: 65ch; }
+  .notes :global(p) { max-width: 65ch; margin: 0 0 12px; }
+</style>

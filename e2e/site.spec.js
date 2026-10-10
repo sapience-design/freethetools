@@ -28,7 +28,9 @@ test("home lists the live tools, and groups list wanted ones", async ({ page }) 
   await expect(page).toHaveTitle(/Free the Tools/);
   await expect(page.getByRole("link", { name: /Make a PDF smaller/ }).first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText("$0");
-  await page.goto("/images/");
+  // A group that still has tools on its wanted list (building one takes it off).
+  const wanted = await page.locator("li.want").first().getAttribute("data-g");
+  await page.goto(`/${wanted}/`);
   await expect(page.locator("li.want a").first()).toBeVisible();
   await expect(page.locator("li.want a").first()).toContainText("Not built yet");
   await page.goto("/");
@@ -49,7 +51,8 @@ test("group chips filter the home page", async ({ page }) => {
   await page.goto("/");
   await page.locator('.chip[data-cat="images"]').click();
   await expect(page.locator("#results-title")).toHaveText("Image tools");
-  await expect(page.locator("#search-results li")).toHaveCount(4);
+  const count = Number(await page.locator('.chip[data-cat="images"] .chip-n').textContent());
+  await expect(page.locator("#search-results li")).toHaveCount(count);
   await page.click("#results-clear");
   await expect(page.locator("#results")).toBeHidden();
 });

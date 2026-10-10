@@ -9,6 +9,8 @@ const parts = [
   { name: "@jspawn/ghostscript-wasm 0.0.2", by: "jspawn", licence: "AGPL-3.0", use: "Shipped: Ghostscript compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/ghostscript-wasm" },
   { name: "qpdf 11.0.0", by: "Jay Berkenbilt and contributors", licence: "Apache-2.0", use: "Shipped: PDF engine in Unlock PDF", url: "https://qpdf.org/" },
   { name: "@jspawn/qpdf-wasm 0.0.2", by: "jspawn", licence: "Apache-2.0", use: "Shipped: qpdf compiled to WebAssembly", url: "https://www.npmjs.com/package/@jspawn/qpdf-wasm" },
+  { name: "libheif 1.22", by: "Dirk Farin and contributors", licence: "LGPL-3.0", use: "Shipped: HEIC decoder in HEIC to JPG", url: "https://github.com/strukturag/libheif" },
+  { name: "heic-to 1.6.5", by: "Hopper Gee", licence: "LGPL-3.0", use: "Shipped: libheif compiled to WebAssembly", url: "https://github.com/hoppergee/heic-to" },
   { name: "Schibsted Grotesk", by: "Schibsted Media Group", licence: "OFL-1.1", use: "Shipped: typeface", url: "https://github.com/schibsted/schibsted-grotesk" },
   { name: "Bricolage Grotesque", by: "The Bricolage Grotesque Project Authors", licence: "OFL-1.1", use: "Shipped: headings typeface", url: "https://github.com/ateliertriay/bricolage" },
   { name: "Phosphor Icons", by: "Phosphor Icons", licence: "MIT", use: "Shipped: icons, inlined at build time", url: "https://phosphoricons.com/" },
@@ -16,6 +18,7 @@ const parts = [
   { name: "pdf.js 6.3", by: "Mozilla", licence: "Apache-2.0", use: "Shipped: PDF to Images", url: "https://mozilla.github.io/pdf.js/" },
   { name: "MiniSearch 7", by: "Luca Ongaro", licence: "MIT", use: "Shipped: site search", url: "https://lucaong.github.io/minisearch/" },
   { name: "Papa Parse 5.7", by: "Matt Holt and contributors", licence: "MIT", use: "Shipped: CSV to JSON", url: "https://www.papaparse.com/" },
+  { name: "fflate 0.8", by: "Arjun Barrett", licence: "MIT", use: "Shipped: Download all as a ZIP", url: "https://github.com/101arrowz/fflate" },
   { name: "qrcode-generator 2", by: "Kazuhiko Arase", licence: "MIT", use: "Shipped: QR Code Maker", url: "https://github.com/kazuhikoarase/qrcode-generator" },
   { name: "jsdiff 9", by: "Kevin Decker and contributors", licence: "BSD-3-Clause", use: "Shipped: Text Diff", url: "https://github.com/kpdecker/jsdiff" },
   { name: "marked 18", by: "Christopher Jeffrey and contributors", licence: "MIT", use: "Shipped: Markdown to HTML, File Converter", url: "https://marked.js.org/" },
@@ -52,7 +55,7 @@ const parts = [
 
 <style>
   .licences { display: grid; gap: 24px; }
-  .intro { display: grid; gap: 12px; max-width: 760px; }
+  .intro { display: grid; gap: 12px; max-width: var(--read); }
   .intro a { color: var(--ink); }
   .parts-wrap { padding: 4px 18px; }
   .parts thead th { width: auto; font-weight: 650; color: var(--soft); }

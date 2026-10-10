@@ -38,7 +38,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { targetSize, checkSize } from "./core.js";
   import { decode, encode, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("rsz-tool"), picked = $("rsz-picked"), list = $("rsz-list"), status = $("rsz-status");
@@ -85,6 +85,7 @@ import Icon from "../../../src/components/Icon.astro";
     compactDrop("rsz", true);
     showBusy(status, files.length > 1 ? `Resizing ${files.length} photos. Please keep this page open.` : undefined);
     let done = 0;
+    const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
       const li = fileRow({ name: f.name, meta: "Resizing…", thumb: imageThumb(f) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
@@ -98,7 +99,9 @@ import Icon from "../../../src/components/Icon.astro";
         const blob = await encode(bmp, size.width, size.height, type, 0.9);
         m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
         li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
-        act.append(downloadLink(blob, `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`, type));
+        const out = `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`;
+        act.append(downloadLink(blob, out, type));
+        outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
@@ -110,7 +113,8 @@ import Icon from "../../../src/components/Icon.astro";
       return;
     }
     stepTo(root, 4);
-    showDone(status, done > 1 ? `Done. ${done} photos resized.` : "Done. Your photo is resized.");
+    const all = downloadAllButton(() => outs, `resized-photos-${dateStamp()}.zip`);
+    showDone(status, done > 1 ? `Done. ${done} photos resized.` : "Done. Your photo is resized.", ...(all ? [all] : []));
   });
 
   again.addEventListener("click", () => {

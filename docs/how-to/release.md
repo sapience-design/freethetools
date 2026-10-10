@@ -29,7 +29,7 @@ The script stops without changing anything if `main` is out of date, the working
 
 - Cloudflare deploys `main`, as for any merge.
 - The Release workflow (`.github/workflows/release.yml`) tags the merge commit `v1.3.0` and publishes a GitHub Release with that version's notes from `CHANGELOG.md`.
-- Every page's footer shows "Version 1.3.0", linked to those notes.
+- Every page's footer shows "Version 1.3.0", linked to that version on the What's new page (`/changelog/`).
 
 ## Find a version
 

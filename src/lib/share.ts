@@ -121,6 +121,7 @@ export function watchShare(root: Element, hooks: { say?: (m: string) => void; on
   };
 
   const sync = (a: HTMLAnchorElement) => {
+    if (a.hasAttribute("data-own-share")) return; // "Download all" brings its own Share button
     const href = a.getAttribute("href") || "";
     const name = a.getAttribute("download") || "download";
     const had = buttons.get(a);

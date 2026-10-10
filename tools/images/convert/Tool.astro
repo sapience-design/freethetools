@@ -37,7 +37,7 @@ const blurb: Record<string, string> = {
 <script>
   import { FORMATS, renameTo, qualityFor } from "./core.js";
   import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("cvi-tool"), picked = $("cvi-picked"), list = $("cvi-list"), status = $("cvi-status");
@@ -83,6 +83,7 @@ const blurb: Record<string, string> = {
     compactDrop("cvi", true);
     showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
     let done = 0;
+    const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
       const li = fileRow({ name: f.name, meta: "Converting…", thumb: imageThumb(f) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
@@ -92,7 +93,9 @@ const blurb: Record<string, string> = {
         const blob = await encode(bmp, bmp.width, bmp.height, type, qualityFor(type));
         m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
         li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
-        act.append(downloadLink(blob, renameTo(f.name, fmt.ext), type));
+        const out = renameTo(f.name, fmt.ext);
+        act.append(downloadLink(blob, out, type));
+        outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }
@@ -104,7 +107,8 @@ const blurb: Record<string, string> = {
       return;
     }
     stepTo(root, 4);
-    showDone(status, done > 1 ? `Done. ${done} photos are now ${fmt.label}.` : `Done. Your photo is now ${fmt.label}.`);
+    const all = downloadAllButton(() => outs, `converted-photos-${dateStamp()}.zip`);
+    showDone(status, done > 1 ? `Done. ${done} photos are now ${fmt.label}.` : `Done. Your photo is now ${fmt.label}.`, ...(all ? [all] : []));
   });
 
   again.addEventListener("click", () => {

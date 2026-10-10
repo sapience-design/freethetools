@@ -12,7 +12,7 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "licenses" | "saved" | "library" | "stats";
+  page?: "home" | "about" | "how" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -32,6 +32,8 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Apply a saved Light/Dark choice before the first paint, so the page never flashes the wrong theme. -->
   <script is:inline>try{var t=localStorage.getItem("ftt:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+  <!-- Page-change animation. Chrome rejects it when a page the service worker does not control links to one it does (a console error, no harm), so a page opts in only once the worker controls it. Without a service worker it always opts in. -->
+  <script is:inline>try{if(!("serviceWorker" in navigator)||navigator.serviceWorker.controller){var vt=new CSSStyleSheet();vt.replaceSync("@view-transition{navigation:auto}");document.adoptedStyleSheets=[vt]}}catch(e){}</script>
   <title>{title}</title>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
@@ -54,6 +56,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <link rel="apple-touch-icon" href="/icon-192.png">
   {originTrials.map((token) => <meta http-equiv="origin-trial" content={token}>)}
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="alternate" type="application/rss+xml" title="Free the Tools: what's new" href="/changelog.xml">
   <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
 </head>
@@ -95,17 +98,27 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
         <p class="col-h">Project</p>
         <ul>
           <li><a href="/about/">About</a></li>
+          <li><a href="/changelog/">What's new</a></li>
           <li><a href="/saved/">Saved tools</a></li>
           <li><a href="/library/">Library</a></li>
-          <li><a href="/stats/">Usage stats</a></li>
           <li><a href={REQUEST_URL}>Suggest a tool</a></li>
-          <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
-          <li><a href={REPO}>Source code</a></li>
+          <li><a href="/support/">Support the project</a></li>
+        </ul>
+      </div>
+      <div class="col">
+        <p class="col-h">Trust</p>
+        <ul>
+          <li><a href="/how-it-works/">How it works</a></li>
+          <li><a href="/verify/">Verify this site</a></li>
+          <li><a href="/stats/">Usage stats</a></li>
+          <li><a href="/privacy/">Privacy</a></li>
         </ul>
       </div>
       <div class="col">
         <p class="col-h">Developers</p>
         <ul>
+          <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
+          <li><a href={REPO}>Source code</a></li>
           <li><a href="/api/tools.json">API</a></li>
           <li><a href="/llms.txt">llms.txt</a></li>
           <li><a href={`${REPO}/blob/main/openapi.yaml`}>OpenAPI</a></li>
@@ -113,14 +126,16 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       </div>
       <div class="legal">
         <span>© {new Date().getFullYear()} Sapience Design and contributors</span>
-        <span><a href="/licenses/">Licences</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a><a href={`${REPO}/releases/tag/v${version}`} id="site-version">Version {version}</a></span>
+        <span><a href="/licenses/">Licences</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a><a href={`/changelog/#v${version.replaceAll(".", "-")}`} id="site-version">Version {version}</a></span>
       </div>
     </div>
   </footer>
 
   <script>
     import { trackVisit } from "../lib/stats";
+    import { registerServiceWorker } from "../lib/offline";
     trackVisit();
+    registerServiceWorker();
 
     // ---- Theme: System (follows the device), Light or Dark; remembered in this browser only ----
     const THEME = "ftt:theme";
@@ -202,7 +217,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .foot { border-top: 1px solid var(--hair); background: var(--bg); }
   .foot-in {
     max-width: calc(var(--content) + 2 * var(--gutter)); margin: 0 auto; padding: 48px var(--gutter) 32px; display: grid;
-    grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr)); gap: 40px 32px; color: var(--soft);
+    grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, 1fr)); gap: 40px 32px; color: var(--soft);
   }
   .foot a { color: inherit; text-decoration: none; }
   .foot a:hover { color: var(--ink); text-decoration: underline; }
@@ -220,7 +235,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }
   .legal span:last-child { display: flex; flex-wrap: wrap; gap: 4px 20px; }
   @media (max-width: 860px) {
-    .foot-in { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .foot-in { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .colophon { grid-column: 1 / -1; }
   }
   /* Phones: the two buttons show their icon only (the words stay for screen readers), so About,

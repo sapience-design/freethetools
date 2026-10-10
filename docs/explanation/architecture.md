@@ -18,8 +18,13 @@ The one piece of server code is a small Worker (`worker/`) for anonymous usage t
 2. **Workers too.** Workers take their policy from their own HTTP response, so `public/_headers` gives files under `/_astro/` the same policy plus `wasm-unsafe-eval` for WebAssembly.
 3. **Vendored runtime files.** Libraries that fetch files at runtime are copied into the site at build time ([how-to](../how-to/vendor-a-library.md)), so nothing needs another origin.
 4. **Tests.** `tests/site.test.js` fails if a page references another origin, lacks the policy, or repeats an element id. The browser tests in `e2e/` record every request and every CSP violation while using the tools, and fail on either.
+5. **Verifiable builds.** The build writes `dist/integrity.json`, the SHA-256 of every deployed file. The [/verify/](https://freethetools.com/verify/) page re-downloads each file and compares it, and anyone can rebuild the same commit and compare the hashes. This shows that the served files equal a build of the repository. It does not show that Cloudflare's network is honest. See [ADR 0012](../adr/0012-verifiable-builds.md).
 
 See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
+
+## Works offline
+
+A service worker (`/sw.js`, built by `scripts/build-sw.mjs`) keeps the home page and the app shell on first visit. It keeps each tool the first time you open it, with its scripts and WebAssembly files. After that the tool runs with the network off. Pages come from the network first, so online visitors always get the newest version. The worker ignores `/api/stats/*` and other origins. See [ADR 0010](../adr/0010-service-worker-offline.md).
 
 ## One folder per tool
 
@@ -33,9 +38,10 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 | `/<group>/` | `src/pages/[category]/index.astro`: every tool and wanted tool in the group |
 | `/<group>/<tool>/` | `src/pages/[category]/[tool]/index.astro` wrapping the tool's `Tool.astro`, with Like, usage count and FAQ |
 | `/saved/` | Tools the visitor saved, from their own `localStorage` |
-| `/library/` | `src/pages/library.astro`: every job done in this browser, by the visitor or an AI agent, with the results to download again. It can also open the package's library folder (Chrome and Edge). |
+| `/library/` | `src/pages/library.astro`: the files made in this browser, by the visitor or an AI agent, as recent files: jobs grouped by day and named by task, each file with a picture (images) or its kind, Download and Share, settings in plain words under Details, a search and a "who made it" filter. It can also open the package's library folder (Chrome and Edge). |
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
+| `/how-it-works/` | What comes in, what stays on the device and what goes out (a diagram in HTML, so it reflows and reads aloud), exactly what is sent, six checks anyone can do, and a live list of what the site stores in this browser, with Clear buttons |
 | `/api/tools.json`, `/llms.txt`, `/sitemap.xml`, `/robots.txt` | Endpoints in `src/pages/` |
 
 ## Tools for AI agents
@@ -63,9 +69,11 @@ Every job is recorded on the device that did it, so a person can see what they o
 
 Next to every result to download, on tool pages, in the agent activity panel and in the library, a Share button opens the device's own share menu through the Web Share API (`src/lib/share.ts`). The file goes only where the person sends it. The button appears only where the browser can share that kind of file. A completed share counts as a success in the anonymous totals and records the job in the library, like a download.
 
+When a tool makes two or more files, `downloadAllButton` in `src/lib/files.ts` adds "Download all (N files, ZIP)". The ZIP is built in the browser (fflate, `src/lib/zip.js`) only when the person asks, and its link is a normal `a[download]`. The library records it as its own job, after any per-file download, because the link appears later than 300 ms after the file links.
+
 ## Search and sorting
 
-Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). The home page sorts tools by Most used, Newest, Most liked or A–Z. The two usage sorts use the totals below; when the totals can't load (branch previews have no database), they fall back to A–Z and a note says so.
+Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). The home page sorts tools by Most used, Newest, Most liked or A–Z. The two usage sorts use the totals below; when the totals can't load (previews have no database), they fall back to A–Z and the label beside "All tools" says so. "Most people come for" shows four tools at a time; the rest scroll sideways, with arrow buttons for mouse and keyboard.
 
 ## Anonymous usage totals
 

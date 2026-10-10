@@ -6,7 +6,12 @@ export const GET: APIRoute = async ({ site }) => {
   const urls = [
     { loc: "/", lastmod: undefined as string | undefined },
     { loc: "/about/" },
+    { loc: "/how-it-works/" },
+    { loc: "/support/" },
+    { loc: "/changelog/" },
     { loc: "/licenses/" },
+    { loc: "/privacy/" },
+    { loc: "/verify/" },
     ...aisles.map((a) => ({ loc: `/${a.slug}/` })),
     ...tools.map((t) => ({ loc: t.url, lastmod: t.data.added })),
   ];

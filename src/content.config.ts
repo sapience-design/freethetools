@@ -25,7 +25,6 @@ const tools = defineCollection({
     status: z.enum(["live", "beta"]).default("live"),
     added: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     offline: z.boolean().default(true),
-    cli: z.string().optional(),
     specs: z.record(z.string(), z.string()).default({}),
     faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     vendor: z.array(z.object({ from: z.string(), to: z.string() })).default([]),

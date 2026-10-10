@@ -8,9 +8,36 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; six checks anyone can do (the Network tab, going offline, where files go, the security policy, the code, and Verify this site); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
+- `/llms-full.txt`: every tool with its details and questions in one plain-text file for language models, linked from `/llms.txt`.
+- A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
+- `/support/`: how to give back (building or requesting a tool, telling someone, company sponsorship of a tool as a credit only; a tip on Ko-fi (any amount, once or monthly), and GitHub Sponsors once it is approved), linked from the footer. GOVERNANCE.md gains the money rules: donations and sponsorship never buy features, placement, ranking, data or tracking.
+- When traffic passes what the free database plan can take, the site counts 1 in 5, 10 or 20 visits and views and adds that many each time, so totals stay accurate. The rate comes from the last 7 days of visits. Below 15,000 visits a day, every visit is counted. See ADR 0009.
+- A "What's new" page at `/changelog/` and an RSS feed at `/changelog.xml`, both built from this file. The footer version links to the page.
+- Verifiable builds: every build writes `integrity.json`, the SHA-256 of each deployed file, and the new Verify this site page (`/verify/`) checks the live files against it in your browser. Anyone can rebuild a commit and compare the hashes ([ADR 0012](docs/adr/0012-verifiable-builds.md)).
+- HEIC to JPG (Images, Convert): turn iPhone HEIC photos into JPG or PNG in the browser, one or many at once. Safari uses its own decoder; other browsers use libheif compiled to WebAssembly, run in a worker.
+- "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
+- Tools work offline after a visit. A small service worker keeps the home page and each tool you open, so the tool still runs with the network off. Tool pages say "Works offline" once this is active. An offline page lists the tools kept on your device.
+- Docs: how to self-host a copy of the site, and the search policy that says which pages are built for search (ADR 0011).
+
 ### Changed
 
+- The Library reads as recent files: jobs grouped by day (Today, Yesterday, then dates) and named by the job ("Combine PDFs into one"), each file a card with its picture (images) or kind, size, Download and Share. Settings sit under Details in plain words (Yes and No, not true and false). A search covers tools and file names, and a filter shows jobs by you or by AI agents. The package's folder moves to a small "For AI assistants" section at the bottom, and an empty library shows only a way on.
+- Recorded settings no longer run an option's description into its name: "Every page on its own", not "Every page on its own One file per page".
+- The home page headline is "Everyday tools should be free." A "Why this exists" section near the bottom says what the site stands for: everyday tools shouldn't cost money, come with ads, put your files at risk or be hard to find. The About page and the README open with the same lines.
+- The home page has more room: "Most people come for" shows four tools at a time (two on tablets, one on phones) and the rest scroll sideways, with arrow buttons for mouse and keyboard; sections and cards have wider gaps.
+- The note "Usage numbers can't load right now" is gone. When usage numbers are missing, the label beside "All tools" already says the tools are shown A to Z.
 - The `freethetools` package also refuses to save `.mjs`, `.cjs`, `.scpt`, `.workflow`, `.ps1xml`, `.inf` and `.cpl` files, which can run programs.
+- Group pages list ten more requested tools, each linked to its open request (#63 to #72).
+- Usage counts are harder to inflate: a tool's likes for one day stay within plus or minus 500, and each daily count of views, uses, results and errors stops at 100,000. Requests with more than 5 fields are refused.
+- A tool added by a new release counts right away. The stats service looks for new tools again (at most once a minute) instead of rejecting them until it restarts.
+- The Compress PDF FAQ now says the tool works offline after you have opened it once.
+
+### Removed
+
+- The Python command-line version of Compress PDF (`shrink_pdf.py`) and the `cli` field of `tool.json`. The `freethetools` npm package runs every tool on your computer instead, with one engine for the site, the package and agents.
 
 ## [1.1.0] - 2026-10-09
 

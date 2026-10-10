@@ -38,6 +38,7 @@
   --gutter: clamp(16px, 4vw, 40px);
   --content: 1280px;       /* header, page and footer share these edges */
   --measure: 65ch;         /* longest line of running text */
+  --read: 760px;           /* the text column of reading pages, left-aligned like everything else */
 
   --display: "Bricolage Grotesque Variable", "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --sans: "Schibsted Grotesk Variable", "Schibsted Grotesk", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
@@ -104,7 +105,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 h1, h2, h3 { text-wrap: balance; margin: 0; font-weight: 700; color: var(--ink); }
 p { margin: 0; text-wrap: pretty; }
 .ic { width: 1em; height: 1em; flex: none; display: inline-block; vertical-align: -0.125em; }
-.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .muted { color: var(--muted); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .eyebrow { font-size: 14px; line-height: 1.4; color: var(--soft); font-weight: 650; }
@@ -114,7 +115,10 @@ kbd { font-family: var(--mono); font-size: 12px; line-height: 16px; padding: 1px
 .skip { position: absolute; left: 12px; top: -60px; z-index: 50; padding: 10px 16px; border-radius: var(--r); background: var(--accent); color: var(--on-accent); font-weight: 650; text-decoration: none; }
 .skip:focus { top: 12px; }
 .page { width: 100%; max-width: calc(var(--content) + 2 * var(--gutter)); margin: 0 auto; padding: clamp(20px, 3vw, 32px) var(--gutter) 72px; }
-.page.narrow { max-width: calc(760px + 2 * var(--gutter)); }
+/* Reading pages share the container and left edge of every page; their text stops at --read.
+   A part marked .wide (a diagram, a table) may use more of the width. */
+.page.narrow > * { max-width: var(--read); }
+.page.narrow > .wide { max-width: none; }
 main { display: block; min-height: 60vh; }
 
 /* Display type */
@@ -190,7 +194,7 @@ details.qa summary .ic { color: var(--muted); font-size: 18px; transition: trans
 details.qa[open] summary .ic { transform: rotate(45deg); }
 details.qa p { padding-bottom: 14px; color: var(--soft); }
 
-@view-transition { navigation: auto; }
+/* The page-change animation (@view-transition) is switched on by a script in Base.astro. */
 @keyframes ft-spin { to { transform: rotate(360deg); } }
 @keyframes ft-fill { from { width: 4%; } to { width: 88%; } }
 @media (prefers-reduced-motion: reduce) {

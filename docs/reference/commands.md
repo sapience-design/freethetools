@@ -15,6 +15,5 @@
 | `npm run test:e2e` | Browser tests on desktop and phone, against the local Worker with a local database (started automatically). Run `npx playwright install chromium` once first. |
 | `npx wrangler d1 migrations apply DB --remote` | Owner only: apply new files in `migrations/` to the production stats database, before merging the code that needs them |
 | `npm run check:live [url]` | Read-only check of the live site (default https://freethetools.com): every page in the sitemap on desktop and phone. Also runs daily in CI and after each production deploy. |
-| `npm run test:py` | Python tests for command-line versions (needs `pip install -r requirements-dev.txt`) |
 | `npm run check` | Build, then unit, site and browser tests |
 | `npm run new-tool -- <group> <slug> "<Name>" [section]` | Scaffold a tool from `tools/_template` |

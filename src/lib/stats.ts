@@ -1,16 +1,42 @@
 // Anonymous usage totals and likes, from the browser side. Nothing here identifies you: the
-// server only adds 1 to a total for the day. Visits, views, uses and outcomes are not sent at
+// server only adds to a total for the day (1, or the sample weight when traffic is high). Visits, views, uses and outcomes are not sent at
 // all if your browser asks sites not to track (Global Privacy Control or Do Not Track).
 
 export type ToolStats = { views: number; uses: number; likes: number; uses30: number; successes: number; errors: number };
 export type SiteStats = { visits30: number; countries: [string, number][]; referrers: [string, number][]; devices: [string, number][] };
-export type Summary = { tools: Record<string, ToolStats>; site: SiteStats };
+export type Summary = { tools: Record<string, ToolStats>; site: SiteStats; sample?: { visits: number; events: number } };
 
 const optedOut = () =>
   (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true || navigator.doNotTrack === "1";
 
 function send(path: string, body: object) {
   return fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), keepalive: true });
+}
+
+type Rates = { visits: number; events: number };
+const rate = (n: unknown) => (Number.isInteger(n) && (n as number) >= 1 && (n as number) <= 20 ? (n as number) : 1);
+
+let ratesPromise: Promise<Rates> | null = null;
+/** Sampling rates: read once per session from the cached summary. A missing summary means 1 (count everything). */
+function rates(): Promise<Rates> {
+  ratesPromise ??= (async () => {
+    try { const c = sessionStorage.getItem("ftt:rate"); if (c) return JSON.parse(c) as Rates; } catch {}
+    const s = await fullSummary();
+    const r = { visits: rate(s?.sample?.visits), events: rate(s?.sample?.events) };
+    try { if (s) sessionStorage.setItem("ftt:rate", JSON.stringify(r)); } catch {}
+    return r;
+  })();
+  return ratesPromise;
+}
+
+/** Send one in N, each with weight N, so the server's totals stay right. Likes never go through here. */
+async function sendSampled(path: string, body: object, which: keyof Rates) {
+  const n = (await rates())[which];
+  if (n > 1) {
+    if (Math.random() * n >= 1) return;
+    body = { ...body, weight: n };
+  }
+  await send(path, body);
 }
 
 /** Phone, tablet or desktop, from the screen and pointer only. */
@@ -36,7 +62,7 @@ export function trackVisit() {
     }
   } catch {}
   try { if (sessionStorage.getItem("ftt:visit")) return; sessionStorage.setItem("ftt:visit", "1"); } catch { return; }
-  send("/api/stats/visit", { ref, device: deviceType() }).catch(() => {});
+  sendSampled("/api/stats/visit", { ref, device: deviceType() }, "visits").catch(() => {});
 }
 
 /** Count a view of this tool, once per browser session. */
@@ -44,7 +70,7 @@ export function trackView(tool: string) {
   if (optedOut()) return;
   const key = `ftt:v:${tool}`;
   try { if (sessionStorage.getItem(key)) return; sessionStorage.setItem(key, "1"); } catch {}
-  send("/api/stats/event", { tool, kind: "view" }).catch(() => {});
+  sendSampled("/api/stats/event", { tool, kind: "view" }, "events").catch(() => {});
 }
 
 /** Count a use the first time someone actually works with the tool on this visit. */
@@ -54,7 +80,7 @@ export function watchUse(tool: string, root: Element) {
   const fire = () => {
     if (done) return;
     done = true;
-    send("/api/stats/event", { tool, kind: "use" }).catch(() => {});
+    sendSampled("/api/stats/event", { tool, kind: "use" }, "events").catch(() => {});
     for (const t of ["input", "change", "drop", "click"]) root.removeEventListener(t, handler, true);
   };
   const handler = (e: Event) => {
@@ -72,7 +98,7 @@ export function watchUse(tool: string, root: Element) {
 export function watchOutcomes(tool: string, root: Element) {
   if (optedOut()) return;
   let left = 20; // enough for a batch of files, not a flood
-  const report = (kind: "success" | "error") => { if (left-- > 0) send("/api/stats/event", { tool, kind }).catch(() => {}); };
+  const report = (kind: "success" | "error") => { if (left-- > 0) sendSampled("/api/stats/event", { tool, kind }, "events").catch(() => {}); };
   root.addEventListener("click", (e) => {
     const el = (e.target as Element).closest("a[download], button");
     if (!el) return;

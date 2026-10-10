@@ -27,6 +27,16 @@ qpdf 11.0.0
 @jspawn/qpdf-wasm 0.0.2 (qpdf compiled to WebAssembly)
   License: Apache-2.0 · https://www.npmjs.com/package/@jspawn/qpdf-wasm
 
+libheif 1.22
+  Copyright (c) Dirk Farin and contributors
+  License: LGPL-3.0 · https://github.com/strukturag/libheif
+
+heic-to 1.6.5 (libheif compiled to WebAssembly, in HEIC to JPG)
+  Copyright (c) Hopper Gee
+  License: LGPL-3.0 · https://github.com/hoppergee/heic-to
+  The decoder worker is served as a separate, unmodified file extracted from the package at
+  build time (scripts/sync-tool-assets.mjs), so another build of libheif can replace it.
+
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
 Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL Open Font License 1.1
 Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/
@@ -35,6 +45,7 @@ pdf-lib 1.17 · Copyright (c) 2019 Andrew Dillon · MIT · https://pdf-lib.js.or
 pdf.js 6.3 · Copyright Mozilla Foundation · Apache-2.0 · https://mozilla.github.io/pdf.js/
 MiniSearch 7 · Copyright (c) 2019 Luca Ongaro · MIT
 Papa Parse 5.7 · Copyright (c) 2015 Matthew Holt · MIT · https://www.papaparse.com/
+fflate 0.8 · Copyright (c) 2023 Arjun Barrett · MIT · https://github.com/101arrowz/fflate
 qrcode-generator 2 · Copyright (c) 2009 Kazuhiko Arase · MIT
 jsdiff 9 · Copyright (c) 2009-2015 Kevin Decker · BSD-3-Clause
 marked 18 · Copyright (c) 2018+ MarkedJS, (c) 2011-2018 Christopher Jeffrey · MIT · https://marked.js.org/

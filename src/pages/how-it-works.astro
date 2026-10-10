@@ -1,0 +1,364 @@
+---
+// How it works: what comes in, what stays on the device and what goes out, and how anyone can
+// check each claim. The diagram is real text in HTML (diagram-design's rules: few boxes, one
+// accent, hairlines, square connectors), so it reflows on phones and screen readers read it.
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+---
+<Base
+  page="how"
+  title="How it works | Free the Tools"
+  description="What comes in, what stays on your device and what goes out when you use Free the Tools, and how to check each one yourself."
+  jsonLd={{ "@type": "WebPage", name: "How Free the Tools works", url: "https://freethetools.com/how-it-works/" }}
+>
+  <div class="page narrow how">
+    <a class="back" href="/about/"><Icon name="caret-left" />About</a>
+    <div class="intro">
+      <h1 class="h1">How it works</h1>
+      <p class="lede">Every tool runs inside your browser. Here is what comes in, what stays on your device and what goes out, and how to check each one yourself.</p>
+    </div>
+
+    <figure class="flow wide" aria-labelledby="flow-cap">
+      <div class="flow-grid">
+        <div class="box server">
+          <span class="tag-k">Server</span>
+          <strong>freethetools.com</strong>
+          <span class="box-sub">Sends the page and the tool's code</span>
+        </div>
+
+        <div class="wire in"><span>Page and tool code, once. Then it works offline.</span></div>
+        <div class="wire out"><span>Anonymous counts only: which tool, whether it worked</span></div>
+
+        <div class="device">
+          <span class="tag-k focal">Your device</span>
+          <ol class="chain">
+            <li class="box"><strong>Your file</strong><span class="box-sub">Or the text you type</span></li>
+            <li class="box"><strong>The tool</strong><span class="box-sub">Runs in your browser</span></li>
+            <li class="box"><strong>The result</strong><span class="box-sub">Made right here</span></li>
+          </ol>
+          <p class="tag-k kept-h">Where the result goes</p>
+          <ul class="kept">
+            <li class="box"><strong>Downloads folder</strong><span class="box-sub">When you press Download</span></li>
+            <li class="box"><strong>Library</strong><span class="box-sub">A copy, in this browser only</span></li>
+          </ul>
+        </div>
+
+        <div class="box blocked">
+          <span class="tag-k">Any other server</span>
+          <strong>Blocked</strong>
+          <span class="box-sub">By the page's security policy</span>
+        </div>
+        <div class="wire cut"><span>No connection allowed</span></div>
+      </div>
+      <figcaption id="flow-cap">Your file goes to the tool and becomes the result without leaving your device. The only things sent are anonymous counts, and only to freethetools.com.</figcaption>
+    </figure>
+
+    <section aria-labelledby="sent-h">
+      <h2 class="h2" id="sent-h">What we send, exactly</h2>
+      <dl class="card sent">
+        <div><dt>Once per visit</dt><dd>The site that sent you, by name only (like google.com), and whether you're on a phone, tablet or desktop. Cloudflare adds the country.</dd></div>
+        <div><dt>When you use a tool</dt><dd>The tool's name, and that it was opened, used, worked (you downloaded, shared or copied a result) or couldn't finish. Nothing about your file.</dd></div>
+        <div><dt>When you press Like</dt><dd>The tool's name.</dd></div>
+        <div><dt>Never</dt><dd>Your files, anything you type, your IP address, cookies or an ID.</dd></div>
+      </dl>
+      <p>If your browser sends Global Privacy Control or Do Not Track, we send only the likes you press. The totals are public on <a href="/stats/">Usage stats</a>, and the <a href="/privacy/">privacy notice</a> has the details.</p>
+    </section>
+
+    <section aria-labelledby="check-h">
+      <h2 class="h2" id="check-h">Check it yourself</h2>
+      <p>You don't have to take our word for it. Each check takes a minute.</p>
+      <ol class="checks">
+        <li>
+          <h3 class="h3">Watch the network</h3>
+          <p>Open your browser's developer tools (F12, or Cmd+Option+I on a Mac) and choose <b>Network</b>. Then use any tool with a file of your own.</p>
+          <p class="see">You'll see requests only to freethetools.com: the page, the tool's code, and small requests to <code>/api/stats/</code> such as <code>{`{"tool":"pdf/compress","kind":"use"}`}</code>. None of them carries your file.</p>
+        </li>
+        <li>
+          <h3 class="h3">Go offline</h3>
+          <p>Open a tool, then turn off Wi-Fi or switch on flight mode. Use the tool, or even reload the page.</p>
+          <p class="see">It still works, because it runs on your device. A tool you have opened once is kept for offline use.</p>
+        </li>
+        <li>
+          <h3 class="h3">Find where your files go</h3>
+          <p>A result goes to your Downloads folder when you press Download, like any download. The <a href="/library/">Library</a> keeps a copy in this browser's own storage.</p>
+          <p class="see">In developer tools, open <b>Application</b>, then <b>IndexedDB</b>, then <code>ftt-library</code>. <a href="#stores-h">What this browser stores</a> below shows the same, and clears it.</p>
+        </li>
+        <li>
+          <h3 class="h3">Read the security policy</h3>
+          <p>View the page source (Ctrl+U, or Cmd+Option+U on a Mac) and search for <code>Content-Security-Policy</code>.</p>
+          <p class="see">It says <code>connect-src 'self'</code>: the browser lets the page talk to freethetools.com and nowhere else, even if a tool had a bug. Our automated tests fail if a page tries.</p>
+        </li>
+        <li>
+          <h3 class="h3">Read the code</h3>
+          <p>Every tool's code is public, in its own folder on <a href={`${REPO}/tree/main/tools`}>GitHub</a>. Anyone can check it, run it or improve it.</p>
+        </li>
+        <li>
+          <h3 class="h3">Check that the site is that code</h3>
+          <p><a href="/verify/">Verify this site</a> compares every file served here with the fingerprints published for the build.</p>
+          <p class="see">It shows a match, file by file, or names the files that differ.</p>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="stores-h">
+      <h2 class="h2" id="stores-h" tabindex="-1">What this browser stores</h2>
+      <p>Everything Free the Tools keeps on this device, read live from this browser. None of it is sent to us.</p>
+      <ul class="stores" id="stores"></ul>
+      <noscript><p class="card stores-note">Turn on JavaScript to see this list. Without it, the site stores nothing.</p></noscript>
+      <div class="stores-actions">
+        <button class="btn line small" type="button" id="stores-clear" hidden><Icon name="trash" />Clear everything</button>
+      </div>
+      <div class="confirm card" id="stores-confirm" role="group" aria-labelledby="stores-confirm-text" hidden>
+        <p id="stores-confirm-text">Clear everything this site keeps in this browser, including your saved tools and the library? This cannot be undone.</p>
+        <div class="stores-actions">
+          <button class="btn small" type="button" id="stores-yes">Yes, clear everything</button>
+          <button class="btn quiet small" type="button" id="stores-no">Keep it</button>
+        </div>
+      </div>
+      <p class="sr-only" id="stores-status" role="status"></p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .how { display: grid; gap: 32px; }
+  .intro { display: grid; gap: 12px; }
+  section { display: grid; gap: 12px; }
+  section > p { color: var(--soft); }
+  section a:not(.btn), .flow a { color: var(--ink); }
+
+  /* ---- The diagram: hairlines, no shadows, one accent (the device) ---- */
+  /* The diagram is the one part wider than the text column. */
+  .flow { margin: 0; display: grid; gap: 14px; }
+  .how > .flow { max-width: 1040px; }
+  .flow-grid {
+    display: grid; grid-template-columns: minmax(150px, 1fr) minmax(120px, 1fr) minmax(0, 2.2fr);
+    grid-template-areas: "server in device" "server out device" "blocked cut device";
+    gap: 8px 0; align-items: center;
+  }
+  .box { display: grid; gap: 2px; padding: 10px 12px; border: 1px solid var(--hair); border-radius: 8px; background: var(--card); min-width: 0; }
+  .box strong { font-size: 15px; line-height: 1.3; }
+  .box-sub { font-size: 13px; line-height: 1.35; color: var(--soft); }
+  .tag-k { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .server { grid-area: server; align-self: center; }
+  .blocked { grid-area: blocked; border-style: dashed; color: var(--soft); }
+  .blocked strong { color: var(--bad); }
+  .device { grid-area: device; display: grid; gap: 12px; padding: 14px; border: 1.5px solid var(--edge); border-radius: 10px; }
+  .tag-k.focal { justify-self: start; padding: 2px 8px; border-radius: 6px; background: var(--hl); color: var(--hl-ink, #1d1b16); font-weight: 600; }
+  .chain, .kept { list-style: none; margin: 0; padding: 0; display: grid; gap: 22px; }
+  .chain { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kept { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kept-h { margin: 4px 0 -4px; padding-top: 12px; border-top: 1px dashed var(--hair); }
+  /* Arrows between the steps on the device: square, with a small head. */
+  .chain li { position: relative; }
+  .chain li + li::before { content: ""; position: absolute; left: -20px; top: 50%; width: 18px; border-top: 1px solid var(--edge); }
+  .chain li + li::after { content: ""; position: absolute; left: -6px; top: calc(50% - 4px); border: 4px solid transparent; border-left-color: var(--edge); }
+
+  .wire { position: relative; min-height: 44px; display: grid; align-items: end; padding: 0 12px 8px; }
+  .wire span { font-size: 12.5px; line-height: 1.3; color: var(--soft); position: relative; background: var(--bg); }
+  .wire::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid var(--edge); }
+  .wire::after { content: ""; position: absolute; bottom: -4px; border: 4px solid transparent; }
+  .wire.in { grid-area: in; }
+  .wire.in::after { right: -1px; border-left-color: var(--edge); }
+  .wire.out { grid-area: out; }
+  .wire.out::before { border-top-style: dashed; }
+  .wire.out::after { left: -1px; border-right-color: var(--edge); }
+  .wire.cut { grid-area: cut; }
+  .wire.cut::before { border-top: 1px dashed var(--bad); }
+  .wire.cut::after { left: calc(50% - 7px); bottom: -7px; width: 14px; height: 14px; border: 0; background: linear-gradient(45deg, transparent 43%, var(--bad) 43% 57%, transparent 57%), linear-gradient(-45deg, transparent 43%, var(--bad) 43% 57%, transparent 57%); }
+  .wire.cut span { color: var(--bad); }
+  figcaption { font-size: 14px; color: var(--soft); }
+
+  /* ---- What we send ---- */
+  .sent { margin: 0; }
+  .sent div { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 4px 16px; padding: 14px 18px; }
+  .sent div + div { border-top: 1px solid var(--hair); }
+  .sent dt { font-weight: 700; }
+  .sent dd { margin: 0; color: var(--soft); }
+
+  /* ---- Check it yourself ---- */
+  .checks { margin: 0; padding: 0; list-style: none; counter-reset: c; display: grid; gap: 14px; }
+  .checks li { counter-increment: c; display: grid; gap: 6px; padding: 16px 18px 16px 60px; border: 1px solid var(--hair); border-radius: var(--r-lg); background: var(--card); position: relative; }
+  .checks li::before { content: counter(c); position: absolute; left: 18px; top: 14px; display: grid; place-items: center; width: 28px; height: 28px; border: 1.5px solid var(--edge); border-radius: 50%; font-weight: 700; font-size: 14px; }
+  .checks p { margin: 0; color: var(--soft); }
+  .checks .see { color: var(--ink); }
+  code { font-family: var(--mono); font-size: .88em; padding: 1px 5px; border-radius: 5px; background: var(--well); overflow-wrap: anywhere; }
+
+  /* ---- What this browser stores ---- */
+  .stores { list-style: none; margin: 0; padding: 0; display: grid; border: 1px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
+  .stores:empty { display: none; }
+  .stores :global(li) { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: center; padding: 12px 16px; }
+  .stores :global(li + li) { border-top: 1px solid var(--hair); }
+  .stores :global(.s-name) { font-weight: 650; }
+  .stores :global(.s-where) { font-size: 13px; color: var(--muted); font-weight: 400; margin-left: 8px; }
+  .stores :global(.s-now) { grid-column: 1; color: var(--soft); font-size: 15px; overflow-wrap: anywhere; }
+  .stores :global(.s-raw) { grid-column: 1 / -1; font-size: 14px; }
+  .stores :global(.s-raw summary) { cursor: pointer; color: var(--soft); width: max-content; }
+  .stores :global(.s-raw pre) { margin: 6px 0 0; padding: 10px 12px; border-radius: var(--r); background: var(--well); font-family: var(--mono); font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  .stores :global(.s-clear) { grid-column: 2; grid-row: 1 / span 2; }
+  .stores-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .confirm { display: grid; gap: 12px; padding: 16px 18px; }
+  .confirm[hidden], .stores-actions:has(> [hidden]:only-child) { display: none; }
+  .stores-note { padding: 14px 18px; }
+
+  @media (max-width: 720px) {
+    .flow-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "server" "in" "out" "device" "cut" "blocked"; gap: 0; }
+    .wire { min-height: 0; padding: 12px 0 12px 22px; align-items: center; }
+    .wire::before { left: 8px; right: auto; top: 0; bottom: 0; border-top: 0; border-left: 1px solid var(--edge); }
+    .wire.in::after { right: auto; left: 4px; bottom: -4px; border-left-color: transparent; border-top-color: var(--edge); }
+    .wire.out::before { border-top: 0; border-left-style: dashed; }
+    .wire.out::after { left: 4px; top: -4px; bottom: auto; border-right-color: transparent; border-bottom-color: var(--edge); }
+    .wire.cut::before { border-top: 0; border-left: 1px dashed var(--bad); }
+    .wire.cut::after { left: 2px; bottom: calc(50% - 7px); }
+    .chain { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .chain li + li::before { left: 50%; top: -17px; width: 0; height: 15px; border-top: 0; border-left: 1px solid var(--edge); }
+    .chain li + li::after { left: calc(50% - 4px); top: -6px; border-left-color: transparent; border-top-color: var(--edge); }
+    .kept { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .sent div { grid-template-columns: minmax(0, 1fr); }
+    .checks li { padding-left: 54px; }
+  }
+</style>
+
+<script>
+  import { listEntries, clearAll } from "../agent/db.js";
+
+  type Row = { name: string; where: string; now: string; raw?: string; empty?: boolean; clear: () => Promise<void> | void };
+  const list = document.getElementById("stores")!;
+  const clearBtn = document.getElementById("stores-clear") as HTMLButtonElement;
+  const confirmBox = document.getElementById("stores-confirm")!;
+  const status = document.getElementById("stores-status")!;
+
+  const fmtBytes = (n: number) => (n < 1024 ? `${n} bytes` : n < 1024 * 1024 ? `${Math.round(n / 1024)} KB` : `${(n / 1024 / 1024).toFixed(1)} MB`);
+  const parse = (v: string) => { try { return JSON.parse(v); } catch { return v; } };
+  const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const SORTS: Record<string, string> = { used: "Most used", new: "Newest", liked: "Most liked", az: "A–Z" };
+
+  // Plain-language names for what the site keeps. Anything not listed is still shown, by its key.
+  const LOCAL: Record<string, [string, (v: string) => string]> = {
+    "ftt:theme": ["Theme", (v) => (v === "dark" ? "Dark" : v === "light" ? "Light" : v)],
+    "ftt:saved": ["Saved tools", (v) => plural(Object.keys(parse(v) || {}).length, "tool")],
+    "ftt:liked": ["Tools you liked", (v) => plural((parse(v) || []).length, "tool")],
+    "ftt:sort": ["Home page sorting", (v) => SORTS[v] ?? v],
+    "ftt:tz": ["Time zones you added", (v) => { const z = parse(v); return Array.isArray(z) ? z.join(", ") || "None" : String(v); }],
+    "ftt:md-view": ["Markdown view", (v) => (v === "code" ? "Code" : "Preview")],
+    "ftt:library-note": ["A note for the library page", (v) => v],
+    "ftt:rate": ["How often visits are counted", (v) => (v === "1" ? "Every visit" : `1 in ${v}, when traffic is high`)],
+  };
+
+  function storageRows(store: Storage, where: string): Row[] {
+    const rows: Row[] = [];
+    const keys = Object.keys(store).sort();
+    const views = keys.filter((k) => k.startsWith("ftt:v:"));
+    for (const key of keys) {
+      if (key.startsWith("ftt:v:")) continue;
+      const v = store.getItem(key) ?? "";
+      if (key === "ftt:visit") { rows.push({ name: "This visit was counted", where, now: "So it is counted once. Gone when you close this tab.", raw: `${key} = ${v}`, clear: () => store.removeItem(key) }); continue; }
+      const known = LOCAL[key];
+      rows.push({ name: known?.[0] ?? key, where, now: known ? known[1](v) : fmtBytes(v.length), raw: `${key} = ${v}`, clear: () => store.removeItem(key) });
+    }
+    if (views.length) {
+      rows.push({
+        name: "Tools counted as viewed", where, now: `${plural(views.length, "tool")}, so each is counted once. Gone when you close this tab.`,
+        raw: views.join("\n"), clear: () => views.forEach((k) => store.removeItem(k)),
+      });
+    }
+    return rows;
+  }
+
+  // The library is read only if it exists, so looking at this page never creates it.
+  async function libraryRow(): Promise<Row | null> {
+    const dbs = "databases" in indexedDB ? await indexedDB.databases().catch(() => null) : null;
+    if (dbs && !dbs.some((d) => d.name === "ftt-library")) return null;
+    try {
+      const entries = await listEntries();
+      if (!entries.length) return { name: "Library", where: "browser database", now: "Empty", empty: true, clear: () => {} };
+      return {
+        name: "Library", where: "browser database",
+        now: `${plural(entries.length, "job")}, with the files they made. See them on the Library page.`,
+        raw: entries.slice(0, 20).map((e) => `${e.time}  ${e.tool}`).join("\n") + (entries.length > 20 ? `\n… and ${entries.length - 20} more` : ""),
+        clear: () => clearAll(),
+      };
+    } catch { return null; }
+  }
+
+  async function workerRow(): Promise<Row | null> {
+    if (!("serviceWorker" in navigator)) return null;
+    const regs = await navigator.serviceWorker.getRegistrations().catch(() => []);
+    if (!regs.length) return null;
+    return { name: "Offline helper", where: "service worker", now: "Keeps the tools you open, so they work without a connection.", raw: regs.map((r) => r.scope).join("\n"), clear: async () => { await Promise.all(regs.map((r) => r.unregister())); } };
+  }
+
+  async function cacheRow(): Promise<Row | null> {
+    if (!("caches" in window)) return null;
+    const names = await caches.keys().catch(() => []);
+    if (!names.length) return null;
+    return { name: "Offline copies of the site", where: "cache storage", now: plural(names.length, "copy", "copies"), raw: names.join("\n"), clear: async () => { await Promise.all(names.map((n) => caches.delete(n))); } };
+  }
+
+  function item(r: Row) {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.className = "s-name";
+    name.append(r.name);
+    const where = document.createElement("span");
+    where.className = "s-where";
+    where.textContent = r.where;
+    name.append(where);
+    const now = document.createElement("span");
+    now.className = "s-now";
+    now.textContent = r.now;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn quiet small s-clear";
+    btn.textContent = "Clear";
+    btn.setAttribute("aria-label", `Clear ${r.name.toLowerCase()}`);
+    btn.addEventListener("click", async () => {
+      await r.clear();
+      if (r.name === "Theme") delete document.documentElement.dataset.theme;
+      status.textContent = `${r.name} cleared.`;
+      await draw();
+      (list.querySelector<HTMLButtonElement>(".s-clear") ?? document.getElementById("stores-h"))?.focus();
+    });
+    li.append(name, ...(r.empty ? [] : [btn]), now);
+    if (r.raw) {
+      const d = document.createElement("details");
+      d.className = "s-raw";
+      const s = document.createElement("summary");
+      s.textContent = "Show exactly what's stored";
+      const pre = document.createElement("pre");
+      pre.textContent = r.raw;
+      d.append(s, pre);
+      li.append(d);
+    }
+    return li;
+  }
+
+  let rows: Row[] = [];
+  async function draw() {
+    rows = [
+      ...storageRows(localStorage, "local storage"),
+      ...storageRows(sessionStorage, "this tab only"),
+      ...[await libraryRow(), await cacheRow(), await workerRow()].filter((r): r is Row => !!r),
+    ];
+    const items = rows.map(item);
+    const cookies = document.cookie ? document.cookie.split(";").length : 0;
+    items.push(item({ name: "Cookies", where: "cookies", now: cookies ? plural(cookies, "cookie") : "None. The site sets no cookies.", empty: true, clear: () => {} }));
+    list.replaceChildren(...items);
+    clearBtn.hidden = !rows.some((r) => !r.empty);
+  }
+
+  clearBtn.addEventListener("click", () => { confirmBox.hidden = false; document.getElementById("stores-no")!.focus(); });
+  document.getElementById("stores-no")!.addEventListener("click", () => { confirmBox.hidden = true; clearBtn.focus(); });
+  document.getElementById("stores-yes")!.addEventListener("click", async () => {
+    for (const r of rows) await r.clear();
+    delete document.documentElement.dataset.theme;
+    confirmBox.hidden = true;
+    status.textContent = "Everything this site kept in this browser is cleared.";
+    await draw();
+    document.getElementById("stores-h")!.setAttribute("tabindex", "-1");
+    document.getElementById("stores-h")!.focus();
+  });
+
+  draw();
+</script>
