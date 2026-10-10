@@ -15,6 +15,7 @@ Free the Tools is a [Sapience](https://sapience.design) initiative, built in the
 [![CI](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml/badge.svg)](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sapience-design/freethetools/badge)](https://scorecard.dev/viewer/?uri=github.com/sapience-design/freethetools)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![npm](https://img.shields.io/npm/v/freethetools?label=npm%20package)](https://www.npmjs.com/package/freethetools)
 
 ## Use it
 
@@ -31,7 +32,7 @@ Claude, Cursor and other AI assistants can use the tools instead of installing s
 | The `freethetools` npm package, an MCP server on your computer | Claude Code, Claude Desktop, Cursor and other MCP clients | `claude mcp add freethetools -- npx -y freethetools mcp` |
 | WebMCP on each tool page | AI agents inside a browser | None. Chrome and Edge support it in origin trials; other browsers ignore it. |
 
-The package reads files by path, saves results in a `freethetools` folder in your home folder, and records every job in `library.jsonl`. It also has a command line for agents without MCP: `npx -y freethetools run <tool> '<json>'`. Setup for each client is in [docs/how-to/use-with-ai.md](docs/how-to/use-with-ai.md). The package source is in [packages/freethetools](packages/freethetools). There is no hosted MCP server, because the files would have to be uploaded.
+The package is published on [npm](https://www.npmjs.com/package/freethetools) and listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`. It reads files by path, saves results in a `freethetools` folder in your home folder, and records every job in `library.jsonl`. It also has a command line for agents without MCP: `npx -y freethetools run <tool> '<json>'`. Setup for each client is in [docs/how-to/use-with-ai.md](docs/how-to/use-with-ai.md). The package source is in [packages/freethetools](packages/freethetools). There is no hosted MCP server, because the files would have to be uploaded.
 
 ## Why in the browser, and how far it goes
 

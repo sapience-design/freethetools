@@ -15,7 +15,7 @@ export const GET: APIRoute = async ({ site }) => {
     "",
     "## How to use the tools from an AI assistant",
     "",
-    "- On the person's computer: the npm package `freethetools` runs an MCP server and a command line with the same tools. Claude Code: `claude mcp add freethetools -- npx -y freethetools mcp`. Without MCP: `npx -y freethetools run <tool> '<json>'`. Files are paths; results are saved in a \"freethetools\" folder in the home folder. Nothing is uploaded.",
+    "- On the person's computer: the npm package `freethetools` runs an MCP server and a command line with the same tools. Claude Code: `claude mcp add freethetools -- npx -y freethetools mcp`. Without MCP: `npx -y freethetools run <tool> '<json>'`. Files are paths; results are saved in a \"freethetools\" folder in the home folder. Nothing is uploaded. Published on npm (https://www.npmjs.com/package/freethetools) and listed in the official MCP Registry (https://registry.modelcontextprotocol.io/) as io.github.sapience-design/freethetools.",
     "- In a browser with WebMCP (Chrome and Edge origin trials): each tool page registers its tools for agents in the browser.",
     "- There is no hosted MCP server, because the files would have to be uploaded.",
     "",
