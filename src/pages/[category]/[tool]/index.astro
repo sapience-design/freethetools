@@ -91,7 +91,7 @@ const safe = files
     </div>
 
     <aside class="tp-side" aria-label="Help and details">
-      <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]}</span></p>
+      <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]} <a href="/how-it-works/">Check it yourself</a></span></p>
       {d.faq.length > 0 && (
         <section class="help" aria-labelledby="faq">
           <h2 class="sr-only" id="faq">Questions</h2>
@@ -180,6 +180,7 @@ const safe = files
   .tp-side { min-width: 0; display: grid; gap: 18px; position: sticky; top: 90px; }
   .safe { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--ok-t); }
   .safe :global(.ic) { color: var(--ok); font-size: 22px; margin-top: 1px; }
+  .safe a { color: var(--ink); font-weight: 650; white-space: nowrap; }
   .help { border-bottom: 1px solid var(--hair); }
   .facts { display: grid; gap: 8px; padding: 16px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
   .facts .specs { font-size: 14px; }

@@ -512,7 +512,7 @@ test.describe("fill form and developer tools", () => {
 
 test.describe("phone layout", () => {
   test.skip(({ isMobile }) => !isMobile, "phone only");
-  for (const path of ["/", "/pdf/", "/about/", ...TOOLS]) {
+  for (const path of ["/", "/pdf/", "/about/", "/how-it-works/", ...TOOLS]) {
     test(`${path} doesn't scroll sideways`, async ({ page }) => {
       await page.goto(path);
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

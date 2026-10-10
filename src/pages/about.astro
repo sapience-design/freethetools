@@ -30,6 +30,11 @@ import { REPO, REQUEST_URL } from "../data/catalogue";
       <div><dt>Open source</dt><dd>The code is public under AGPL-3.0, so anyone can check what each tool does, run it themselves or improve it.</dd></div>
     </dl>
 
+    <a class="card how-link" href="/how-it-works/">
+      <span><b>How it works, and how to check it yourself</b>What stays on your device, exactly what we send, and what this browser stores.</span>
+      <Icon name="arrow-right" />
+    </a>
+
     <div class="actions">
       <a class="btn" href={REQUEST_URL}><Icon name="plus" />Suggest a tool</a>
       <a class="btn line" href="mailto:hello@freethetools.com">Contact us</a>
@@ -76,6 +81,11 @@ import { REPO, REQUEST_URL } from "../data/catalogue";
   .belief p { margin: 0; font-family: var(--display); font-size: clamp(20px, 1rem + 0.8vw, 24px); line-height: 1.3; color: var(--soft); }
   .belief .belief-end { margin-top: 10px; font-weight: 700; color: var(--ink); }
   .pledge { margin: 0; }
+  .how-link { display: flex; align-items: center; gap: 16px; padding: 16px 18px; color: var(--ink); text-decoration: none; }
+  .how-link span { display: grid; gap: 2px; flex: 1; color: var(--soft); }
+  .how-link b { color: var(--ink); }
+  .how-link :global(.ic) { font-size: 20px; flex: none; }
+  .how-link:hover { border-color: var(--edge); }
   .pledge div { display: grid; gap: 4px; padding: 16px 18px; }
   .pledge div + div { border-top: 1px solid var(--hair); }
   .pledge dt { font-weight: 700; }

@@ -12,7 +12,7 @@ const paths = [...readFileSync("dist/sitemap.xml", "utf8").matchAll(/<loc>([^<]+
 const toolPaths = paths.filter((p) => p.split("/").filter(Boolean).length === 2 && !p.startsWith("/api/"));
 // One tool per group, as the audit asks. PDF and Images use a drop zone; the rest use fields.
 const GROUP_TOOLS = ["/pdf/merge/", "/images/compress/", "/text/case-converter/", "/data/json-formatter/", "/developer/uuid-generator/", "/everyday/unit-converter/"];
-const FOCUS_PAGES = ["/", "/pdf/", "/saved/", "/about/", "/pdf/merge/", "/text/case-converter/", "/data/json-formatter/", "/developer/regex-tester/", "/everyday/unit-converter/"];
+const FOCUS_PAGES = ["/", "/pdf/", "/saved/", "/about/", "/how-it-works/", "/pdf/merge/", "/text/case-converter/", "/data/json-formatter/", "/developer/regex-tester/", "/everyday/unit-converter/"];
 
 // ---- helpers ----
 
@@ -360,7 +360,7 @@ test.describe("text spacing (WCAG 1.4.12)", () => {
   // The four values the criterion names, applied with !important as a user stylesheet would.
   // A constructed stylesheet is used because the Content Security Policy blocks <style> injection.
   const SPACING = "* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; } p { margin-bottom: 2em !important; }";
-  const REPRESENTATIVE = ["/", "/pdf/", "/pdf/merge/", "/text/case-converter/", "/data/json-formatter/", "/developer/regex-tester/", "/everyday/unit-converter/", "/saved/", "/about/", "/stats/", "/licenses/"];
+  const REPRESENTATIVE = ["/", "/pdf/", "/pdf/merge/", "/text/case-converter/", "/data/json-formatter/", "/developer/regex-tester/", "/everyday/unit-converter/", "/saved/", "/about/", "/how-it-works/", "/stats/", "/licenses/"];
 
   for (const path of REPRESENTATIVE) {
     for (const width of [1280, 360]) {

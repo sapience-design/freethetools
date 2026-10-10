@@ -12,7 +12,7 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "licenses" | "saved" | "library" | "stats";
+  page?: "home" | "about" | "how" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -95,6 +95,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
         <p class="col-h">Project</p>
         <ul>
           <li><a href="/about/">About</a></li>
+          <li><a href="/how-it-works/">How it works</a></li>
           <li><a href="/saved/">Saved tools</a></li>
           <li><a href="/library/">Library</a></li>
           <li><a href="/stats/">Usage stats</a></li>

@@ -30,6 +30,6 @@ export const GET: APIRoute = async ({ site }) => {
     if (a.wanted.length) lines.push(`- Not built yet (open requests): ${a.wanted.map((w) => w.name).join(", ")}`);
     lines.push("");
   }
-  lines.push("## Optional", "", `- [About](${abs("/about/")}): the pledge, who maintains the site, how tools are added`, `- [Usage stats](${abs("/stats/")}): anonymous totals, and exactly what is and isn't counted`, `- [Contributing](${REPO}/blob/main/CONTRIBUTING.md): build a tool in about 30 minutes`, "");
+  lines.push("## Optional", "", `- [About](${abs("/about/")}): the pledge, who maintains the site, how tools are added`, `- [How it works](${abs("/how-it-works/")}): what stays on the device, exactly what is sent, and how to check it yourself`, `- [Usage stats](${abs("/stats/")}): anonymous totals, and exactly what is and isn't counted`, `- [Contributing](${REPO}/blob/main/CONTRIBUTING.md): build a tool in about 30 minutes`, "");
   return new Response(lines.join("\n"), { headers: { "Content-Type": "text/plain; charset=utf-8" } });
 };

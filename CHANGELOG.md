@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; five checks anyone can do (the Network tab, going offline, where files go, the security policy, the code); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
+
 ### Changed
 
 - The home page headline is "Everyday tools should be free." A "Why this exists" section near the bottom says what the site stands for: everyday tools shouldn't cost money, come with ads, put your files at risk or be hard to find. The About page and the README open with the same lines.
