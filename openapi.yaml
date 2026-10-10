@@ -7,8 +7,8 @@ info:
     A static JSON file describing every tool on freethetools.com, for developers and AI agents,
     and a summary of anonymous usage totals (see https://freethetools.com/stats/).
     The tools themselves run in the browser; this API lists them, it does not run them.
-    The site's own pages also write counts to /api/stats/event, /api/stats/like and
-    /api/stats/visit. Those accept only same-origin requests from freethetools.com and are
+    The site's own pages also write counts to /api/stats/event, /api/stats/like,
+    /api/stats/want and /api/stats/visit, and the suggestion form posts to /api/feedback. Those accept only same-origin requests from freethetools.com and are
     not part of the public API.
   license:
     name: AGPL-3.0-only
@@ -69,6 +69,10 @@ components:
               likes: { type: integer, minimum: 0 }
               successes: { type: integer, description: Results downloaded or copied }
               errors: { type: integer, description: Times the tool could not process something }
+        wants:
+          type: object
+          description: "I want this" votes for tools not built yet, keyed by the address they will have (for example "pdf/page-delete"). All time.
+          additionalProperties: { type: integer, minimum: 0 }
         site:
           type: object
           description: Last 30 days. Each list is a separate counter, sorted by count, as [key, count] pairs.
@@ -116,13 +120,22 @@ components:
           items: { $ref: "#/components/schemas/Tool" }
         wanted:
           type: array
-          description: Tools that have been requested but not built yet.
+          description: Tools that have been requested but not built yet. Each has a page at its future address, which says it is not built yet.
           items:
             type: object
             properties:
-              name: { type: string, example: Merge PDFs }
+              id: { type: string, example: pdf/page-delete, description: The address the tool will have, without slashes at the ends. }
+              name: { type: string, example: PDF Page Delete and Reorder }
+              task: { type: string, example: Delete or reorder PDF pages }
               section: { type: string, example: Organize }
-              request: { type: string, format: uri }
+              url: { type: string, format: uri, example: "https://freethetools.com/pdf/page-delete/" }
+              request: { type: string, format: uri, description: The GitHub issue for developers who want to build it. }
+              concept:
+                type: object
+                properties:
+                  in: { type: string }
+                  out: { type: string }
+                  options: { type: array, items: { type: string } }
     Tool:
       type: object
       required: [id, name, url, description, status, offline]

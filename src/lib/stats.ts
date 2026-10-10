@@ -4,7 +4,7 @@
 
 export type ToolStats = { views: number; uses: number; likes: number; uses30: number; successes: number; errors: number };
 export type SiteStats = { visits30: number; countries: [string, number][]; referrers: [string, number][]; devices: [string, number][] };
-export type Summary = { tools: Record<string, ToolStats>; site: SiteStats; sample?: { visits: number; events: number } };
+export type Summary = { tools: Record<string, ToolStats>; wants?: Record<string, number>; site: SiteStats; sample?: { visits: number; events: number } };
 
 const optedOut = () =>
   (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true || navigator.doNotTrack === "1";
@@ -124,6 +124,47 @@ export async function setLiked(tool: string, on: boolean): Promise<number | null
     const res = await send("/api/stats/like", { tool, on });
     return res.ok ? (await res.json()).likes : null;
   } catch { return null; }
+}
+
+const WANTED = "ftt:wanted";
+const wantedSet = (): Set<string> => { try { return new Set(JSON.parse(localStorage.getItem(WANTED) || "[]")); } catch { return new Set(); } };
+
+/** Has this browser already said it wants this planned tool ("group/slug")? */
+export const hasWanted = (tool: string) => wantedSet().has(tool);
+
+/**
+ * "I want this" for a planned tool: remembered in this browser so each browser votes once, and
+ * sent even if the browser asks sites not to track, like a like, because the person pressed it.
+ * Returns the new total, or null when it was not counted. A browser that cannot remember the
+ * vote does not send it, so a reload cannot vote again.
+ */
+export async function wantThis(tool: string): Promise<number | null> {
+  const set = wantedSet();
+  if (set.has(tool)) return null;
+  set.add(tool);
+  try { localStorage.setItem(WANTED, JSON.stringify([...set])); } catch { return null; }
+  try {
+    const res = await send("/api/stats/want", { tool });
+    if (res.ok) return (await res.json()).wants;
+  } catch {}
+  // Not counted (offline, or a preview with no database): let the person try again later.
+  set.delete(tool);
+  try { localStorage.setItem(WANTED, JSON.stringify([...set])); } catch {}
+  return null;
+}
+
+export const wantText = (n: number) => `${fmtCount(n)} ${n === 1 ? "wants" : "want"} this`;
+
+/** Fill "12 want this" on every planned-tool row on the page, once the totals arrive. */
+export function showWants(root: ParentNode = document) {
+  fullSummary().then((s) => {
+    if (!s?.wants) return;
+    for (const li of root.querySelectorAll<HTMLElement>("li[data-want-id]")) {
+      const n = s.wants[li.dataset.wantId ?? ""];
+      const el = li.querySelector("[data-want]");
+      if (el) el.textContent = n ? ` · ${wantText(n)}` : "";
+    }
+  });
 }
 
 let summaryPromise: Promise<Summary | null> | null = null;

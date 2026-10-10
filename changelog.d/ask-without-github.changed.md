@@ -1,0 +1,1 @@
+- "Suggest a tool", "Report a problem" and "ask us to build it" now open the new form instead of GitHub. GitHub links stay for people who want to build a tool.

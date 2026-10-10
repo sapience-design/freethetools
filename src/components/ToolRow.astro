@@ -1,7 +1,8 @@
 ---
 // One tool in a list: tinted icon tile, the job in plain words, a sub line, a caret.
-// Planned tools ("Not built yet") link to their open request on GitHub. Sorting and search
-// read the data- attributes; [data-stat] is filled with usage figures in the browser.
+// Planned tools ("Not built yet") link to their own page, where people can say they want it.
+// Sorting and search read the data- attributes; [data-stat] is filled with usage figures in the
+// browser, and [data-want] with "12 want this" on planned tools.
 import Icon from "./Icon.astro";
 
 interface Props {
@@ -14,14 +15,16 @@ interface Props {
   added?: string;
   isNew?: boolean;
   want?: boolean;
+  /** "group/slug" of a planned tool, the id its "I want this" votes are counted under. */
+  wantId?: string;
 }
-const { href, task, sub, group, icon, tool, added, isNew = false, want = false } = Astro.props;
+const { href, task, sub, group, icon, tool, added, isNew = false, want = false, wantId } = Astro.props;
 ---
-<li class:list={[{ want }]} data-g={group} data-tool={tool} data-added={added} data-name={task} data-u={href}>
+<li class:list={[{ want }]} data-g={group} data-tool={tool} data-added={added} data-name={task} data-u={href} data-want-id={wantId}>
   <a class:list={["row", { want }]} href={href}>
     <span class="row-ic"><Icon name={icon} weight={want ? "bold" : "duotone"} /></span>
     <span class="row-title"><b>{task}</b>{isNew && <span class="badge new">New</span>}{want && <span class="badge want">Not built yet</span>}</span>
-    <span class="row-sub">{sub}<span data-stat></span></span>
+    <span class="row-sub">{sub}<span data-want></span><span data-stat></span></span>
     <span class="row-go"><Icon name="caret-right" /></span>
   </a>
 </li>

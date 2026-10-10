@@ -29,7 +29,7 @@ export const GET: APIRoute = async ({ site }) => {
         source: `${REPO}/tree/main/tools/${t.id}`,
         authors: t.data.authors,
       })),
-      wanted: a.wanted.map((w) => ({ name: w.name, section: w.section, request: w.url })),
+      wanted: a.wanted.map((w) => ({ id: w.id, name: w.name, task: w.task, section: w.section, url: abs(w.url), request: w.request, concept: w.concept })),
     })),
   };
   return new Response(JSON.stringify(body, null, 2), { headers: { "Content-Type": "application/json; charset=utf-8" } });

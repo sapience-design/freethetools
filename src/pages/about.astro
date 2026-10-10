@@ -1,7 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
-import { REPO, REQUEST_URL } from "../data/catalogue";
+import { REPO, SUGGEST_URL } from "../data/catalogue";
 ---
 <Base
   page="about"
@@ -36,15 +36,15 @@ import { REPO, REQUEST_URL } from "../data/catalogue";
     </a>
 
     <div class="actions">
-      <a class="btn" href={REQUEST_URL}><Icon name="plus" />Suggest a tool</a>
+      <a class="btn" href={SUGGEST_URL}><Icon name="plus" />Suggest a tool</a>
       <a class="btn line" href="mailto:hello@freethetools.com">Contact us</a>
     </div>
 
     <section aria-labelledby="how-h">
       <h2 class="h2" id="how-h">How a tool gets here</h2>
       <ol class="steps-list">
-        <li>Someone <a href={REQUEST_URL}>suggests a tool</a> on GitHub. Others vote with a 👍.</li>
-        <li>A maintainer accepts it and marks it wanted.</li>
+        <li>Someone <a href={SUGGEST_URL}>suggests a tool</a>. No account is needed.</li>
+        <li>A maintainer accepts it and gives it a page marked “Not built yet”. Others press “I want this”.</li>
         <li>A contributor builds it from the template and opens a pull request.</li>
         <li>Automated checks run and a maintainer reviews it.</li>
         <li>Once merged, it goes live here with the builder's name on it.</li>

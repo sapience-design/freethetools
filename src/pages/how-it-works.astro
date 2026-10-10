@@ -60,9 +60,11 @@ import { REPO } from "../data/catalogue";
         <div><dt>Once per visit</dt><dd>The site that sent you, by name only (like google.com), and whether you're on a phone, tablet or desktop. Cloudflare adds the country.</dd></div>
         <div><dt>When you use a tool</dt><dd>The tool's name, and that it was opened, used, worked (you downloaded, shared or copied a result) or couldn't finish. Nothing about your file.</dd></div>
         <div><dt>When you add or remove a favourite</dt><dd>The tool's name, as a like.</dd></div>
-        <div><dt>Never</dt><dd>Your files, anything you type, your IP address, cookies or an ID.</dd></div>
+        <div><dt>When you press “I want this”</dt><dd>The name of the planned tool, as one vote.</dd></div>
+        <div><dt>When you send the suggestion form</dt><dd>Your message, as an email to the maintainers. Only when you press Send. See the <a href="/privacy/#form-h">privacy notice</a>.</dd></div>
+        <div><dt>Never</dt><dd>Your files, anything you type into a tool, your IP address, cookies or an ID.</dd></div>
       </dl>
-      <p>If your browser sends Global Privacy Control or Do Not Track, we send only the likes you press by adding a favourite. The totals are public on <a href="/stats/">Usage stats</a>, and the <a href="/privacy/">privacy notice</a> has the details.</p>
+      <p>If your browser sends Global Privacy Control or Do Not Track, we send only the likes you press by adding a favourite and the votes you press with “I want this”. The totals are public on <a href="/stats/">Usage stats</a>, and the <a href="/privacy/">privacy notice</a> has the details.</p>
     </section>
 
     <section aria-labelledby="check-h">
@@ -239,6 +241,7 @@ import { REPO } from "../data/catalogue";
     "ftt:theme": ["Theme", (v) => (v === "dark" ? "Dark" : v === "light" ? "Light" : v)],
     "ftt:saved": ["Favourites", (v) => plural(Object.keys(parse(v) || {}).length, "tool")],
     "ftt:liked": ["Tools you liked", (v) => plural((parse(v) || []).length, "tool")],
+    "ftt:wanted": ["Tools you said you want", (v) => plural((parse(v) || []).length, "tool")],
     "ftt:donate-seen": ["The donation card this visit", () => "Already shown once. Gone when you close this tab."],
     "ftt:slash": ["The / search shortcut", (v) => (v === "off" ? "Off" : "On")],
     "ftt:sort": ["Home page sorting", (v) => SORTS[v] ?? v],
