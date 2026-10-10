@@ -154,6 +154,44 @@ test("a link drawn later, in the Markdown preview, opens in a new tab too", asyn
   await expect(link).toHaveAttribute("rel", /noopener/);
 });
 
+// Donations: one plain link in the top bar, and one quiet note after a result (src/lib/files.ts).
+test("Donate is in the top bar and the footer, as a plain link to Ko-fi", async ({ page, isMobile }) => {
+  await page.goto("/");
+  await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Donate/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  await expect(page.locator("footer").getByRole("link", { name: /^Donate/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  await expect(page.locator("footer").getByRole("link", { name: "Sponsor a tool" })).toHaveAttribute("href", "/support/#company-h");
+});
+
+test("the donation card shows once per visit, under the Download button, and Next time hides it", async ({ page }) => {
+  const merge = async () => {
+    await page.goto("/pdf/merge/");
+    await page.setInputFiles("input[type=file]", [FIXTURE, FIXTURE]);
+    await page.locator("#pdfm-go:enabled").click();
+    await expect(page.getByRole("link", { name: "Download PDF" }).first()).toBeVisible();
+  };
+  await merge();
+  const card = page.getByRole("complementary", { name: "Donate" });
+  await expect(card).toBeVisible();
+  await expect(card.getByRole("link", { name: /^Donate/ })).toHaveAttribute("href", "https://ko-fi.com/freethetools");
+  // It sits after the Download button, never between the person and their file.
+  const after = await page.evaluate(() => {
+    const dl = [...document.querySelectorAll("a[download]")].pop();
+    const n = document.querySelector(".donate-card");
+    return !!(dl && n && (dl.compareDocumentPosition(n) & Node.DOCUMENT_POSITION_FOLLOWING));
+  });
+  expect(after, "the card comes after the download").toBe(true);
+  // Next time hides it now.
+  await card.getByRole("button", { name: "Next time" }).click();
+  await expect(page.locator(".donate-card")).toHaveCount(0);
+  // Once per visit: a second result in the same tab shows no card.
+  await merge();
+  await expect(page.locator(".donate-card")).toHaveCount(0);
+  // A new visit asks again.
+  await page.evaluate(() => sessionStorage.clear());
+  await merge();
+  await expect(page.locator(".donate-card")).toHaveCount(1);
+});
+
 test("the Copy button on the AI assistants page copies the prompt", async ({ browser, baseURL }) => {
   const context = await browser.newContext({ baseURL, permissions: ["clipboard-read", "clipboard-write"] });
   const page = await context.newPage();

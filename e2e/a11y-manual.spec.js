@@ -242,12 +242,15 @@ test.describe("keyboard only", () => {
 
 test.describe("roles, names and live regions", () => {
   test("the top bar exposes landmarks, the current page and the theme switch", async ({ page }) => {
-    await ready(page, "/about/");
+    await ready(page, "/library/");
     const banner = page.getByRole("banner");
     await expect(banner.getByRole("link", { name: "Free the Tools" })).toBeVisible();
     const nav = page.getByRole("navigation", { name: "Site" });
-    await expect(nav.getByRole("link", { name: "About" })).toHaveAttribute("aria-current", "page");
-    await expect(nav.getByRole("link", { name: "Library" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Library" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: /^Donate/ })).toBeVisible();
+    // About lives in the footer, not the top bar.
+    await expect(nav.getByRole("link", { name: "About" })).toHaveCount(0);
+    await expect(page.getByRole("contentinfo").getByRole("link", { name: "About" })).toBeVisible();
     await expect(nav.getByRole("link", { name: "All tools" })).toBeVisible();
     await expect(page.getByRole("main")).toBeVisible();
     await expect(page.getByRole("contentinfo")).toBeAttached();

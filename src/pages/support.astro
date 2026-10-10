@@ -8,28 +8,28 @@ import { REPO, REQUEST_URL } from "../data/catalogue";
 // Sponsor button offers it too. The section hides while no link is live.
 const GIVE = [
   { live: false, href: "https://github.com/sponsors/sapience-design", label: "Sponsor on GitHub", icon: "heart" },
-  { live: true, href: "https://ko-fi.com/freethetools", label: "Tip on Ko-fi", icon: "coffee" },
+  { live: true, href: "https://ko-fi.com/freethetools", label: "Donate on Ko-fi", icon: "hand-heart" },
 ].filter((g) => g.live);
 const DONATIONS = GIVE.length > 0;
 const description = DONATIONS
-  ? "Free the Tools stays free, with no ads and no paid version. If it saved you time, you can buy the maintainers a coffee, build a tool, or tell someone about it."
+  ? "Free the Tools stays free, with no ads and no paid version. If it saved you time, you can donate, sponsor a tool, build one, or tell someone about it."
   : "Free the Tools stays free, with no ads and no paid version. If it saved you time, you can build a tool, ask for one, or tell someone about it.";
 ---
 <Base
   page="support"
-  title="Support Free the Tools"
+  title="Donate or sponsor a tool | Free the Tools"
   description={description}
   jsonLd={{ "@type": "WebPage", name: "Support Free the Tools", url: "https://freethetools.com/support/" }}
 >
   <div class="page narrow support">
     <a class="back" href="/"><Icon name="caret-left" />All tools</a>
     <div class="intro">
-      <h1 class="h1">Support Free the Tools</h1>
+      <h1 class="h1">Donate or sponsor a tool</h1>
       <p class="lede">Every tool is free, with no limits, no ads and no paid version. That will not change. If the tools saved you time, here is how to give something back.</p>
     </div>
 
     {DONATIONS && (<section aria-labelledby="coffee-h">
-      <h2 class="h2" id="coffee-h">Buy the maintainers a coffee</h2>
+      <h2 class="h2" id="coffee-h">Donate</h2>
       <p>Donations pay for the domain and the time it takes to review tools and keep the site safe. Nothing is unlocked by paying, and nothing is taken away by not paying.</p>
       <div class="actions">
         {GIVE.map((g, i) => <a class={i === 0 ? "btn" : "btn line"} href={g.href} rel="noopener">{g.icon && <Icon name={g.icon} />}{g.label}</a>)}
@@ -48,7 +48,7 @@ const description = DONATIONS
     </section>
 
     <section aria-labelledby="company-h">
-      <h2 class="h2" id="company-h">For companies: sponsor a tool</h2>
+      <h2 class="h2" id="company-h">Sponsor a tool</h2>
       <p>A company can fund the build of a tool people have asked for. The tool page then credits the company by name. That is all a sponsor gets: no placement, no ranking, no data, no say over the pledge. Sapience AS invoices sponsorship with Norwegian VAT. Write to <a href="mailto:hello@freethetools.com">hello@freethetools.com</a>.</p>
     </section>
 
