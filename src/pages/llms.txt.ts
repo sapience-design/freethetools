@@ -12,7 +12,7 @@ export const GET: APIRoute = async ({ site }) => {
     "",
     "What runs on the device: Ghostscript and qpdf compiled to WebAssembly, pdf-lib, pdf.js and the browser's image codecs, and the tools keep working offline once opened. Because the visitor's device does the work and the pages are static files, the site can stay free with no limits at any scale. AI assistants can run the same tools locally through the freethetools package (an MCP server), free and with no login. Jobs a browser cannot do yet are not offered through a server.",
     "",
-    `Full version with every tool's details and questions: ${abs("/llms-full.txt")}. Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Anonymous usage totals: ${abs("/api/stats/summary")}. Source code: ${REPO}.`,
+    `Full version with every tool's details and questions: ${abs("/llms-full.txt")}. AI assistant setup as Markdown: ${abs("/ai.md")}. Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Anonymous usage totals: ${abs("/api/stats/summary")}. Source code: ${REPO}.`,
     "",
   ];
   lines.push(

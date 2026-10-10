@@ -1,0 +1,157 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+import { agentRows, CLAUDE_CODE_CMD, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY } from "../data/ai";
+
+const rows = await agentRows();
+---
+<Base
+  page="ai"
+  title="Use Free the Tools with your AI assistant | Free the Tools"
+  description="Claude, ChatGPT, Cursor and other assistants can run these tools on your own computer, free and with no login. Copy a prompt or follow the setup for your assistant."
+  jsonLd={{ "@type": "WebPage", name: "Use Free the Tools with your AI assistant", url: "https://freethetools.com/ai/" }}
+>
+  <div class="page narrow ai">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Use these tools from your AI assistant</h1>
+      <p class="lede">Claude, ChatGPT, Cursor and other assistants can run these tools on your own computer, free and with no login, so your files are never uploaded.</p>
+    </div>
+
+    <section aria-labelledby="prompt-h">
+      <h2 class="h2" id="prompt-h">Copy a prompt for your assistant</h2>
+      <p>Paste this into your assistant. It sets itself up and uses the tools for your file jobs.</p>
+      <pre class="box" id="ai-prompt" tabindex="0">{PROMPT}</pre>
+      <div class="row">
+        <button class="btn" type="button" data-copy="ai-prompt"><Icon name="copy" /><span>Copy the prompt</span></button>
+        <span class="status" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section aria-labelledby="setup-h">
+      <h2 class="h2" id="setup-h">Set it up</h2>
+      <p>You need <a href="https://nodejs.org">Node.js</a> 22 or later. Pick your assistant.</p>
+
+      <h3 class="h3">Claude Code</h3>
+      <p>Open a terminal and run:</p>
+      <pre class="box" id="ai-cc">{CLAUDE_CODE_CMD}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-cc"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+      <p>To use it in every project, run <code class="mono">{CLAUDE_CODE_USER_CMD}</code> instead.</p>
+
+      <h3 class="h3">Claude Desktop</h3>
+      <p>Claude Desktop does not run in your project folder. Always give it the full path to a file.</p>
+      <ol class="steps-list">
+        <li>Open the Claude menu, then Settings, then Developer.</li>
+        <li>Select Edit Config. This opens <code class="mono">claude_desktop_config.json</code>.</li>
+        <li>Add the block below. If the file already has <code class="mono">mcpServers</code>, add only the <code class="mono">freethetools</code> entry.</li>
+        <li>Save the file and restart Claude Desktop.</li>
+      </ol>
+      <pre class="box" id="ai-json">{MCP_JSON}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-json"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+      <p>On Windows, if the app cannot start <code class="mono">npx</code>, use <code class="mono">"command": "cmd"</code> and <code class="mono">"args": ["/c", "npx", "-y", "freethetools", "mcp"]</code>.</p>
+
+      <h3 class="h3">Cursor</h3>
+      <p>Add the same block to <code class="mono">~/.cursor/mcp.json</code> for all projects, or to <code class="mono">.cursor/mcp.json</code> in one project. Create the file if it does not exist. Then restart Cursor.</p>
+
+      <h3 class="h3">Another MCP client</h3>
+      <p>Find where the client lists local (stdio) servers. Set the command to <code class="mono">npx</code> and the arguments to <code class="mono">-y freethetools mcp</code>. Then restart the client.</p>
+
+      <h3 class="h3">Without MCP</h3>
+      <p>Let the assistant run commands in a terminal. It can list the tools, then run one:</p>
+      <pre class="box" id="ai-cli">{CLI_LIST + "\n" + CLI_RUN}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-cli"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+      <p>Results are saved in a folder named <code class="mono">freethetools</code> in your home folder.</p>
+    </section>
+
+    <section aria-labelledby="can-h">
+      <h2 class="h2" id="can-h">What your assistant can do</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Tool page</th><th scope="col">Agent tool name</th><th scope="col">Title</th></tr></thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr><td><a href={r.url}>{r.page}</a></td><td><code class="mono">{r.name}</code></td><td>{r.title}</td></tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p>Most image tools run on the website for now.</p>
+    </section>
+
+    <section aria-labelledby="browser-h">
+      <h2 class="h2" id="browser-h">In the browser</h2>
+      <p>In a browser that supports WebMCP, each tool page offers its tool to your assistant. Chrome and Edge support it in origin trials. The files stay in the browser.</p>
+      <p>Every job an assistant does is recorded in your <a href="/library/">Library</a>, on your device. You can see what it did and get the results again.</p>
+    </section>
+
+    <section aria-labelledby="safety-h">
+      <h2 class="h2" id="safety-h">Safety</h2>
+      <ul class="plain-list">
+        {SAFETY.map((s) => <li>{s}</li>)}
+      </ul>
+      <p>There is no hosted server for assistants, because your files would have to be uploaded. The tools run on your computer instead.</p>
+    </section>
+
+    <section aria-labelledby="machines-h">
+      <h2 class="h2" id="machines-h">For machines</h2>
+      <ul class="plain-list">
+        <li><a class="mono" href="/ai.md">/ai.md</a>: this page as Markdown</li>
+        <li><a class="mono" href="/llms.txt">/llms.txt</a>: a short summary of the site</li>
+        <li><a class="mono" href="/llms-full.txt">/llms-full.txt</a>: every tool in full</li>
+        <li><a class="mono" href="/api/tools.json">/api/tools.json</a>: the catalogue as JSON</li>
+        <li><a href={NPM_URL}>The package on npm</a></li>
+        <li><a href={REGISTRY_URL}>MCP Registry</a>: <code class="mono">{REGISTRY_NAME}</code></li>
+        <li><a href={REPO}>Source code on GitHub</a></li>
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<script>
+  // Copy buttons: put the text of the element named in data-copy on the clipboard. If the browser
+  // refuses, select the text so the person can copy it.
+  document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
+    const label = btn.querySelector("span")!;
+    const original = label.textContent ?? "Copy";
+    const status = btn.parentElement!.querySelector<HTMLElement>(".status")!;
+    btn.addEventListener("click", async () => {
+      const src = document.getElementById(btn.dataset.copy!)!;
+      let ok = false;
+      try { await navigator.clipboard.writeText(src.textContent ?? ""); ok = true; } catch { /* fall through */ }
+      if (ok) {
+        label.textContent = "Copied";
+        status.textContent = "Copied to the clipboard.";
+      } else {
+        const range = document.createRange();
+        range.selectNodeContents(src);
+        const sel = getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        status.textContent = "Select the text and copy it";
+      }
+      setTimeout(() => { label.textContent = original; if (ok) status.textContent = ""; }, 1800);
+    });
+  });
+</script>
+
+<style>
+  .ai { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 20px; }
+  section { display: grid; gap: 10px; padding-top: 8px; }
+  section p, .plain-list { color: var(--soft); }
+  section a:not(.btn) { color: var(--ink); }
+  .h3 { font-family: var(--display); font-weight: 700; font-size: 17px; margin: 14px 0 0; }
+  .box { margin: 0; padding: 14px; border-radius: var(--r); background: var(--bg); border: 1px solid var(--hair); font-family: var(--mono); font-size: 14px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; overflow: auto; color: var(--ink); }
+  .row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .status { color: var(--soft); font-size: 14px; }
+  .steps-list { margin: 0; padding-left: 22px; display: grid; gap: 6px; color: var(--soft); }
+  .plain-list { margin: 0; padding-left: 22px; display: grid; gap: 6px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--hair); border-radius: var(--r); }
+  table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 12px; vertical-align: top; border-bottom: 1px solid var(--hair); }
+  tbody tr:last-child td { border-bottom: 0; }
+  th { font-weight: 700; color: var(--ink); background: var(--well); }
+  td { color: var(--soft); }
+  td:first-child { white-space: nowrap; }
+</style>
