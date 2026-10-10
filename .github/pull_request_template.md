@@ -17,7 +17,7 @@ Closes #
 - [ ] New tool: every TODO in `tool.json` is filled in, ids are prefixed with the slug, and the page shows a working example on load
 - [ ] Keyboard usable, labelled controls, visible focus, readable in light and dark themes
 - [ ] New dependency: exact version, AGPL-compatible licence, added to `NOTICE` and the licences page
-- [ ] `CHANGELOG.md` updated under "Unreleased"
+- [ ] A changelog entry in `changelog.d/` (one file, see its README)
 
 ## For the reviewer
 

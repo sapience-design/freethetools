@@ -5,7 +5,7 @@
 // See docs/how-to/release.md.
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
-import { bump, cut } from "./changelog.mjs";
+import { bump, cut, fragmentsIn, gather } from "./changelog.mjs";
 
 const git = (...args) => execFileSync("git", args, { encoding: "utf8" }).trim();
 const fail = (msg) => { console.error(msg); process.exit(1); };
@@ -18,10 +18,12 @@ git("fetch", "--quiet", "origin", "main");
 if (git("rev-parse", "HEAD") !== git("rev-parse", "origin/main")) fail("Bring main up to date first: git pull --ff-only");
 
 const pkg = JSON.parse(readFileSync("package.json", "utf8"));
-let version, log;
+let version, log, fragments = [];
 try {
   version = bump(pkg.version, arg);
-  log = cut(readFileSync("CHANGELOG.md", "utf8"), version, new Date().toLocaleDateString("sv-SE"));
+  // Entries waiting in changelog.d/ join "Unreleased" first, then become the release.
+  fragments = fragmentsIn("changelog.d");
+  log = cut(gather(readFileSync("CHANGELOG.md", "utf8"), fragments), version, new Date().toLocaleDateString("sv-SE"));
 } catch (e) {
   fail(e.message);
 }
@@ -35,6 +37,7 @@ for (const file of ["package.json", "package-lock.json"]) {
   if (json.packages?.[""]) json.packages[""].version = version;
   writeFileSync(file, `${JSON.stringify(json, null, 2)}\n`);
 }
+for (const f of fragments) git("rm", "--quiet", `changelog.d/${f.file}`);
 git("add", "CHANGELOG.md", "package.json", "package-lock.json");
 git("commit", "--quiet", "--signoff", "-m", `chore(release): v${version}`);
 

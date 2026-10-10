@@ -3,10 +3,11 @@ import { readFileSync } from "node:fs";
 import { marked } from "marked";
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
-import { anchor, sections } from "../../scripts/changelog.mjs";
+import { anchor, fragmentsIn, gather, sections } from "../../scripts/changelog.mjs";
 
 // Rendered at build time from our own CHANGELOG.md, so the HTML needs no sanitising.
-const releases = sections(readFileSync("CHANGELOG.md", "utf8"))
+// Entries still in changelog.d/ show under "Not yet released" too.
+const releases = sections(gather(readFileSync("CHANGELOG.md", "utf8"), fragmentsIn("changelog.d")))
   .filter((s) => s.version !== "Unreleased" || s.body)
   .map((s) => ({
     ...s,

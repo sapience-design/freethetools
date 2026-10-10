@@ -3,7 +3,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { anchor, bump, cut, notes, sections } from "../scripts/changelog.mjs";
+import { anchor, bump, cut, fragment, fragmentsIn, gather, notes, sections } from "../scripts/changelog.mjs";
 
 const REPO = "https://github.com/example/repo";
 const LOG = `# Changelog
@@ -71,4 +71,29 @@ test("sections: lists each version with date and body, and stops before the link
 test("anchor: versions become v1-1-0, Unreleased stays plain", () => {
   assert.equal(anchor("1.1.0"), "v1-1-0");
   assert.equal(anchor("Unreleased"), "unreleased");
+});
+
+test("fragment: the type comes from the file name, entries from the bullet lines", () => {
+  assert.deepEqual(fragment("video-to-gif.added.md", "- One.\n- Two, which wraps\n  onto a second line.\n"), {
+    file: "video-to-gif.added.md", type: "Added", items: ["- One.", "- Two, which wraps\n  onto a second line."],
+  });
+  assert.throws(() => fragment("video-to-gif.md", "- One."), /name it <slug>\.<type>\.md/);
+  assert.throws(() => fragment("video-to-gif.improved.md", "- One."), /type of added, changed/);
+  assert.throws(() => fragment("x.fixed.md", "Plain text."), /starts with "- "/);
+  assert.throws(() => fragment("x.fixed.md", "\n"), /at least one entry/);
+});
+
+test("gather: entries join their heading under Unreleased, or a new one, and nothing else moves", () => {
+  const log = `# Changelog\n\n## [Unreleased]\n\n### Added\n\n- A.\n\n## [1.0.0] - 2026-09-27\n\n### Added\n\n- Old.\n\n[Unreleased]: ${REPO}/compare/v1.0.0...HEAD\n`;
+  const out = gather(log, [fragment("b.changed.md", "- C."), fragment("a.added.md", "- A2.")]);
+  assert.match(out, /## \[Unreleased\]\n\n### Added\n\n- A\.\n- A2\.\n\n### Changed\n\n- C\.\n\n## \[1\.0\.0\]/);
+  assert.match(out, /## \[1\.0\.0\] - 2026-09-27\n\n### Added\n\n- Old\.\n/);
+  assert.equal(gather(log, []), log);
+  // A release made from gathered entries carries them.
+  assert.match(notes(cut(out, "1.1.0", "2026-10-10"), "1.1.0"), /- A2\.[\s\S]*- C\./);
+});
+
+test("every file in changelog.d is a valid entry", () => {
+  const all = fragmentsIn("changelog.d");
+  for (const f of all) assert.ok(f.items.length > 0, f.file);
 });

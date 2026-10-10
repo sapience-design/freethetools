@@ -1,7 +1,8 @@
 // CHANGELOG.md helpers for releases (Keep a Changelog format). Used by scripts/release.mjs, which
 // cuts a release, and by .github/workflows/release.yml, which publishes its notes:
 //   node scripts/changelog.mjs notes 2.0.0
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SEMVER = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -77,6 +78,61 @@ export function sections(text) {
     out.push({ version: m[1], date: m[2] ?? null, body: rest.slice(0, sectionEnd(rest)).trim() });
   }
   return out;
+}
+
+// ---- Changelog fragments ------------------------------------------------------------------------
+// Each pull request adds its entry as a file in changelog.d/ instead of editing CHANGELOG.md, so
+// pull requests never collide there. A file is named <slug>.<type>.md and holds bullet lines.
+// `npm run release` gathers them under "Unreleased" and deletes them. See changelog.d/README.md.
+
+export const TYPES = ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"];
+
+/** Parse one fragment file: its type comes from the name, its entries from the bullet lines. */
+export function fragment(file, text) {
+  const m = /^[a-z0-9][a-z0-9-]*\.([a-z]+)\.md$/.exec(file);
+  const type = m && TYPES.find((t) => t.toLowerCase() === m[1]);
+  if (!type) throw new Error(`${file}: name it <slug>.<type>.md, with a type of ${TYPES.map((t) => t.toLowerCase()).join(", ")}.`);
+  const items = [];
+  for (const line of text.split("\n")) {
+    if (/^- /.test(line)) items.push(line.trimEnd());
+    else if (line.trim() && items.length) items[items.length - 1] += `\n${line.trimEnd()}`; // a wrapped bullet
+    else if (line.trim()) throw new Error(`${file}: every entry starts with "- ".`);
+  }
+  if (!items.length) throw new Error(`${file}: add at least one entry starting with "- ".`);
+  return { file, type, items };
+}
+
+/** All fragments in a folder, in file-name order. The folder's README.md is not one. */
+export function fragmentsIn(dir) {
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter((f) => f.endsWith(".md") && f !== "README.md").sort().map((f) => fragment(f, readFileSync(join(dir, f), "utf8")));
+}
+
+/** CHANGELOG.md text with the fragments' entries under "Unreleased": appended to a heading of their type, or under a new one. */
+export function gather(text, fragments) {
+  if (!fragments.length) return text;
+  const start = text.indexOf("## [Unreleased]");
+  if (start < 0) throw new Error("CHANGELOG.md has no ## [Unreleased] heading.");
+  const after = start + "## [Unreleased]".length;
+  const rest = text.slice(after);
+  const end = sectionEnd(rest);
+  let body = rest.slice(0, end).replace(/\s+$/, "");
+  for (const type of TYPES) {
+    const items = fragments.filter((f) => f.type === type).flatMap((f) => f.items);
+    if (!items.length) continue;
+    const at = lineStarting(`${body}
+`, `### ${type}
+`);
+    if (at >= 0) {
+      const from = at + `### ${type}`.length;
+      const next = body.slice(from).search(/^### /m);
+      const cut = next < 0 ? body.length : from + next;
+      body = `${body.slice(0, cut).replace(/\s+$/, "")}\n${items.join("\n")}\n\n${body.slice(cut)}`.replace(/\s+$/, "");
+    } else {
+      body = `${body}\n\n### ${type}\n\n${items.join("\n")}`;
+    }
+  }
+  return `${text.slice(0, after)}\n\n${body.replace(/^\s+/, "")}\n\n${rest.slice(end).replace(/^\s+/, "")}`;
 }
 
 /** The anchor id for a version heading: "1.1.0" becomes "v1-1-0". */
