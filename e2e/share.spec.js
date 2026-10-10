@@ -195,6 +195,9 @@ test("a tool page with Share buttons meets WCAG 2.2 AA", async ({ page }) => {
   await stubShare(page);
   await merge(page);
   await expect(page.locator(".share-btn")).toHaveCount(1);
+  // Check the page as laid out, from the top: scrolled, the sticky top bar sits over other
+  // targets and axe counts that as a small target.
+  await page.evaluate(() => window.scrollTo(0, 0));
   const { violations } = await new AxeBuilder({ page })
     .options({ runOnly: { type: "tag", values: WCAG }, rules: { "label-content-name-mismatch": { enabled: true } } })
     .analyze();

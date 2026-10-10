@@ -228,11 +228,19 @@ test.describe("roles, names and live regions", () => {
     await expect(page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: /^Saved/ })).toBeVisible();
   });
 
+  test("on a wide screen the top bar links to the source code, by name", async ({ page, isMobile }) => {
+    test.skip(isMobile, "Hidden on phones; the footer links to it");
+    await ready(page, "/");
+    const gh = page.getByRole("navigation", { name: "Site" }).getByRole("link", { name: "Source code on GitHub" });
+    await expect(gh).toBeVisible();
+    await expect(gh).toHaveAttribute("href", "https://github.com/sapience-design/freethetools");
+  });
+
   test("on a phone the top bar keeps every link, named, and at least 44 px", async ({ page, isMobile }) => {
     test.skip(!isMobile, "Phone only");
     for (const path of ["/", "/pdf/merge/"]) {
       await ready(page, path);
-      const sizes = await page.evaluate(() => [...document.querySelectorAll(".bar a")].map((a) => {
+      const sizes = await page.evaluate(() => [...document.querySelectorAll(".bar a:not(.gh)")].map((a) => {
         const r = a.getBoundingClientRect();
         return { name: (a.getAttribute("aria-label") || a.textContent || "").trim(), w: Math.round(r.width), h: Math.round(r.height), shown: r.width > 0 };
       }));
