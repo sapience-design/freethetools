@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.

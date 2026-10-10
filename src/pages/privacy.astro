@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+---
+<Base
+  page="privacy"
+  title="Privacy on Free the Tools"
+  description="What Free the Tools keeps, what it counts and what never leaves your device. No accounts, no cookies and no tracking of people."
+  jsonLd={{ "@type": "WebPage", name: "Privacy", url: "https://freethetools.com/privacy/" }}
+>
+  <div class="page narrow privacy">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Privacy</h1>
+      <p class="lede">Your files stay on your device. We have no accounts, no cookies and no way to tell who you are.</p>
+    </div>
+
+    <section aria-labelledby="who-h">
+      <h2 class="h2" id="who-h">Who is responsible</h2>
+      <p>Sapience AS in Oslo, Norway, maintains Free the Tools. Write to <a href="mailto:hello@freethetools.com">hello@freethetools.com</a> with any question.</p>
+    </section>
+
+    <section aria-labelledby="never-h">
+      <h2 class="h2" id="never-h">What never leaves your device</h2>
+      <p>The files and text you put into a tool stay in your browser. Nothing is uploaded. Every page carries a security policy that blocks sending data to other servers.</p>
+      <p>Read <a href="/about/">how this works</a> or the <a href={`${REPO}/blob/main/docs/explanation/architecture.md`}>architecture explanation</a> on GitHub.</p>
+    </section>
+
+    <section aria-labelledby="store-h">
+      <h2 class="h2" id="store-h">What the site stores in your browser</h2>
+      <ul>
+        <li>Your theme choice: light, dark or system.</li>
+        <li>The tools you saved.</li>
+        <li>The tools you liked.</li>
+        <li>Your sort choice on the home page.</li>
+        <li>A short note about your latest library job.</li>
+        <li>The library of your jobs, with the results, in your browser's database.</li>
+        <li>A mark that says this visit was already counted. It lasts until you close the tab.</li>
+      </ul>
+      <p>This data never leaves your browser. Only you can read it. To remove it, clear this site's data in your browser settings. You can also delete jobs on the <a href="/library/">Library</a> page.</p>
+    </section>
+
+    <section aria-labelledby="count-h">
+      <h2 class="h2" id="count-h">What is counted anonymously</h2>
+      <p>We count visits and how often each tool is used. We also count likes, plus the country, device type and referring site of a visit. We never count what you put into a tool.</p>
+      <p>The counts are daily totals. They link to no person. The site honours Global Privacy Control and Do Not Track: if your browser sends either, nothing is counted. <a href="/stats/">See the full list on the stats page.</a></p>
+    </section>
+
+    <section aria-labelledby="host-h">
+      <h2 class="h2" id="host-h">Hosting</h2>
+      <p>Cloudflare serves the pages and runs the small counting program. Like every host, Cloudflare sees the IP address of each request to deliver the page. Read <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare's privacy policy</a>.</p>
+      <p>Cloudflare tells the counter only the two-letter country. The site stores no IP address, cookie or user agent.</p>
+    </section>
+
+    <section aria-labelledby="rights-h">
+      <h2 class="h2" id="rights-h">Your rights</h2>
+      <p>Nothing identifies you, so there is nothing to look up or delete on our side. Write to <a href="mailto:hello@freethetools.com">hello@freethetools.com</a> with questions.</p>
+      <p>You can complain to <a href="https://www.datatilsynet.no/en/">Datatilsynet</a>, the Norwegian Data Protection Authority.</p>
+    </section>
+
+    <section aria-labelledby="npm-h">
+      <h2 class="h2" id="npm-h">The npm package</h2>
+      <p>The <a href={`${REPO}/blob/main/packages/freethetools/README.md`}>freethetools package</a> runs on your computer. It makes no network connections. It keeps a local record of its jobs in a folder in your home folder.</p>
+    </section>
+
+    <p class="updated">Last updated: 2026-10-10</p>
+  </div>
+</Base>
+
+<style>
+  .privacy { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 12px; }
+  section { display: grid; gap: 10px; padding-top: 8px; }
+  section p, section ul { color: var(--soft); margin: 0; }
+  section ul { padding-left: 22px; display: grid; gap: 4px; }
+  section a { color: var(--ink); }
+  .updated { color: var(--soft); margin: 0; }
+</style>
