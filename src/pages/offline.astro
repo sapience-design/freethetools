@@ -1,0 +1,50 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { loadCatalogue } from "../data/catalogue";
+
+const { tools } = await loadCatalogue();
+const offlineTools = tools.filter((t) => t.data.offline);
+---
+<Base title="You're offline | Free the Tools" description="You are offline. Tools you have opened before on this device still work." noindex>
+  <div class="page narrow lost">
+    <span class="tag">Offline</span>
+    <h1 class="h1">You're offline.</h1>
+    <p class="lede">Tools you have opened before still work.</p>
+    <ul class="rows card" id="offline-list" hidden>
+      {offlineTools.map((t) => (
+        <li data-path={t.url} hidden>
+          <a class="row" href={t.url}><span class="row-main"><b>{t.data.name}</b> <span class="row-sub">{t.data.task}</span></span></a>
+        </li>
+      ))}
+    </ul>
+    <p id="offline-none">No tool is kept on this device yet. Go online and open a tool once, and it will be here next time.</p>
+    <div class="actions">
+      <a class="btn" href="/"><Icon name="house" />Try the home page</a>
+    </div>
+  </div>
+</Base>
+
+<script>
+  // List the tools this browser has kept: the ones whose page is in the cache.
+  const list = document.getElementById("offline-list")!;
+  const none = document.getElementById("offline-none")!;
+  (async () => {
+    if (!("caches" in window)) return;
+    let found = 0;
+    for (const li of list.querySelectorAll<HTMLElement>("li[data-path]")) {
+      try {
+        if (await caches.match(li.dataset.path!)) { li.hidden = false; found++; }
+      } catch {}
+    }
+    list.hidden = found === 0;
+    none.hidden = found > 0;
+  })();
+</script>
+
+<style>
+  .lost { display: grid; gap: 16px; justify-items: start; padding-top: 48px; }
+  #offline-list { width: 100%; list-style: none; margin: 0; padding: 0; }
+  #offline-list :global(.row) { display: grid; gap: 2px; padding: 12px 14px; text-decoration: none; }
+  #offline-list :global(.row-sub) { color: var(--soft); }
+</style>

@@ -190,7 +190,7 @@ details.qa summary .ic { color: var(--muted); font-size: 18px; transition: trans
 details.qa[open] summary .ic { transform: rotate(45deg); }
 details.qa p { padding-bottom: 14px; color: var(--soft); }
 
-@view-transition { navigation: auto; }
+/* The page-change animation (@view-transition) is switched on by a script in Base.astro. */
 @keyframes ft-spin { to { transform: rotate(360deg); } }
 @keyframes ft-fill { from { width: 4%; } to { width: 88%; } }
 @media (prefers-reduced-motion: reduce) {

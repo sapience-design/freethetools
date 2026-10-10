@@ -1,11 +1,20 @@
 // @ts-check
 import { defineConfig } from "astro/config";
+import { fileURLToPath } from "node:url";
+import { buildServiceWorker } from "./scripts/build-sw.mjs";
+
+// Writes dist/sw.js once the pages are built, because it lists their hashed CSS and JS files.
+const serviceWorker = {
+  name: "service-worker",
+  hooks: { "astro:build:done": ({ dir }) => { buildServiceWorker(fileURLToPath(dir)); } },
+};
 
 export default defineConfig({
   site: "https://freethetools.com",
   trailingSlash: "always",
   devToolbar: { enabled: false },
   build: { format: "directory" },
+  integrations: [serviceWorker],
   vite: {
     // npm run dev only: bundle every library the browser uses when the server starts. Otherwise
     // Vite finds them page by page and rebuilds its bundles each time, and a page that loaded the

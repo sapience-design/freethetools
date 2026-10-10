@@ -32,6 +32,8 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Apply a saved Light/Dark choice before the first paint, so the page never flashes the wrong theme. -->
   <script is:inline>try{var t=localStorage.getItem("ftt:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+  <!-- Page-change animation. Chrome rejects it when a page the service worker does not control links to one it does (a console error, no harm), so a page opts in only once the worker controls it. Without a service worker it always opts in. -->
+  <script is:inline>try{if(!("serviceWorker" in navigator)||navigator.serviceWorker.controller){var vt=new CSSStyleSheet();vt.replaceSync("@view-transition{navigation:auto}");document.adoptedStyleSheets=[vt]}}catch(e){}</script>
   <title>{title}</title>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
@@ -125,7 +127,9 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
 
   <script>
     import { trackVisit } from "../lib/stats";
+    import { registerServiceWorker } from "../lib/offline";
     trackVisit();
+    registerServiceWorker();
 
     // ---- Theme: System (follows the device), Light or Dark; remembered in this browser only ----
     const THEME = "ftt:theme";

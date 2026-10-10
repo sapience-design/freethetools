@@ -20,6 +20,7 @@ major version.
 - Verifiable builds: every build writes `integrity.json`, the SHA-256 of each deployed file, and the new Verify this site page (`/verify/`) checks the live files against it in your browser. Anyone can rebuild a commit and compare the hashes ([ADR 0012](docs/adr/0012-verifiable-builds.md)).
 - HEIC to JPG (Images, Convert): turn iPhone HEIC photos into JPG or PNG in the browser, one or many at once. Safari uses its own decoder; other browsers use libheif compiled to WebAssembly, run in a worker.
 - "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
+- Tools work offline after a visit. A small service worker keeps the home page and each tool you open, so the tool still runs with the network off. Tool pages say "Works offline" once this is active. An offline page lists the tools kept on your device.
 
 ### Changed
 
@@ -32,6 +33,7 @@ major version.
 - Group pages list ten more requested tools, each linked to its open request (#63 to #72).
 - Usage counts are harder to inflate: a tool's likes for one day stay within plus or minus 500, and each daily count of views, uses, results and errors stops at 100,000. Requests with more than 5 fields are refused.
 - A tool added by a new release counts right away. The stats service looks for new tools again (at most once a minute) instead of rejecting them until it restarts.
+- The Compress PDF FAQ now says the tool works offline after you have opened it once.
 
 ## [1.1.0] - 2026-10-09
 

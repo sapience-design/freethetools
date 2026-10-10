@@ -130,3 +130,32 @@ test("the verify page and its footer link exist", () => {
   assert.match(html("index.html"), /href="\/verify\/"/);
   assert.match(html("sitemap.xml") , /\/verify\//);
 });
+
+test("the service worker is built, same-origin only, and registered from the pages", () => {
+  assert.ok(existsSync(join(DIST, "sw.js")), "dist/sw.js is missing");
+  const sw = html("sw.js");
+  assert.doesNotMatch(sw, /__VERSION__|__SHELL__/, "the template was not filled in");
+  assert.doesNotMatch(sw, /https?:\/\/(?!freethetools\.com)/, "the worker must not name another origin");
+  const shell = JSON.parse(sw.match(/const SHELL = (\[[\s\S]*?\]);/)[1]);
+  assert.ok(shell.includes("/") && shell.includes("/offline/"));
+  for (const path of shell) {
+    assert.ok(path.startsWith("/") && !path.startsWith("//"), `${path} is not a same-origin path`);
+    const file = path.endsWith("/") ? `${path}index.html` : path;
+    assert.ok(existsSync(join(DIST, file)), `${path} is in the shell but not in dist`);
+  }
+  assert.match(sw, /\/api\/stats\//, "the worker must leave usage totals alone");
+  // The registration lives in a bundled script; follow the script imports from a page to find it.
+  const seen = new Set();
+  const queue = [...html("pdf/merge/index.html").matchAll(/\/_astro\/[\w.\-]+\.js/g)].map((m) => m[0]);
+  let registers = false;
+  while (queue.length) {
+    const f = queue.pop();
+    if (seen.has(f)) continue;
+    seen.add(f);
+    const js = html(f.slice(1));
+    if (js.includes("/sw.js")) registers = true;
+    for (const m of js.matchAll(/[\w.\-]+\.js/g)) if (existsSync(join(DIST, "_astro", m[0]))) queue.push(`/_astro/${m[0]}`);
+  }
+  assert.ok(registers, "no script on the tool page registers /sw.js");
+  assert.match(html("offline/index.html"), /You're offline|You&#39;re offline/);
+});
