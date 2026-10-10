@@ -198,7 +198,7 @@ for (const page of pages.filter((p) => p !== "index.html" && !notFound(p) && !la
     assert.ok(crumbs, "no BreadcrumbList");
     const items = crumbs.itemListElement;
     assert.ok(items.length >= 2, "needs at least two steps");
-    assert.match(items[0].item, new RegExp(`^https://freethetools\\.com/(${LANGS.join("|")}/)?$`));
+    assert.match(items[0].item, new RegExp(`^https://freethetools\\.com/((?:${LANGS.join("|")})/)?$`));
     assert.deepEqual(items.map((i) => i.position), items.map((_, n) => n + 1));
     const canonical = h.match(/<link rel="canonical" href="([^"]+)"/)[1];
     assert.equal(items.at(-1).item, canonical, "the last step is this page");
