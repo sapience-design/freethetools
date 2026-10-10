@@ -12,7 +12,7 @@ interface Props {
   noindex?: boolean;
   category?: string;
   tool?: string;
-  page?: "home" | "about" | "how" | "licenses" | "saved" | "library" | "stats";
+  page?: "home" | "about" | "how" | "ai" | "licenses" | "saved" | "library" | "stats";
 }
 const { title, description, jsonLd, noindex = false, category, tool, page } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
@@ -130,6 +130,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       <div class="col">
         <p class="col-h">Developers</p>
         <ul>
+          <li><a href="/ai/">AI assistants</a></li>
           <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
           <li><a href={REPO}>Source code</a></li>
           <li><a href="/api/tools.json">API</a></li>

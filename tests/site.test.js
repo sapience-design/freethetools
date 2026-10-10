@@ -3,7 +3,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const DIST = "dist";
 const html = (p) => readFileSync(join(DIST, p), "utf8");
@@ -160,6 +161,26 @@ test("the service worker is built, same-origin only, and registered from the pag
   }
   assert.ok(registers, "no script on the tool page registers /sw.js");
   assert.match(html("offline/index.html"), /You're offline|You&#39;re offline/);
+});
+
+test("the AI assistants page is in the sitemap, and /ai.md has the prompt and every agent tool name", async () => {
+  assert.match(html("sitemap.xml"), /<loc>https:\/\/freethetools\.com\/ai\/<\/loc>/);
+  assert.ok(existsSync(join(DIST, "ai.md")), "dist/ai.md is missing");
+  const md = html("ai.md");
+  assert.ok(md.includes("I'd like you to use Free the Tools for file jobs on my computer"), "ai.md must contain the prompt");
+  assert.ok(md.includes("`npx -y freethetools list` shows the tools"), "ai.md must contain the whole prompt");
+  const names = [];
+  for (const g of readdirSync("tools")) {
+    if (g.startsWith("_") || !statSync(join("tools", g)).isDirectory()) continue;
+    for (const s of readdirSync(join("tools", g))) {
+      const f = join("tools", g, s, "agent.js");
+      if (existsSync(f)) for (const d of [(await import(pathToFileURL(resolve(f)).href)).default].flat()) names.push(d.name);
+    }
+  }
+  assert.ok(names.length > 0);
+  for (const n of names) assert.ok(md.includes("`" + n + "`"), `ai.md lacks ${n}`);
+  assert.match(html("ai/index.html"), /<h1[^>]*>Use these tools from your AI assistant/);
+  assert.match(html("llms.txt"), /\/ai\.md/);
 });
 
 // Structured data search engines read: breadcrumbs on every page but home, and the studio as an
