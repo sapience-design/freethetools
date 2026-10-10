@@ -57,10 +57,11 @@ for (const page of pages) {
 }
 
 for (const t of tools) {
-  test(`${t.id}: has a page, is in the sitemap and in llms.txt`, () => {
+  test(`${t.id}: has a page, is in the sitemap, llms.txt and llms-full.txt`, () => {
     assert.ok(existsSync(join(DIST, t.id, "index.html")));
     assert.ok(html("sitemap.xml").includes(t.url));
     assert.ok(html("llms.txt").includes(t.url));
+    assert.ok(html("llms-full.txt").includes(t.url));
   });
 }
 
