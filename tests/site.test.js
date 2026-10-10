@@ -78,7 +78,26 @@ test("the footer names the released version and links to its notes", () => {
   for (const page of ["index.html", "pdf/compress/index.html", "404.html"]) {
     const link = /<a href="([^"]+)" id="site-version"[^>]*>([^<]+)<\/a>/.exec(html(page));
     assert.ok(link, `${page} has the version link`);
-    assert.ok(link[1].endsWith(`/releases/tag/v${version}`), page);
+    assert.equal(link[1], `/changelog/#v${version.replaceAll(".", "-")}`, page);
     assert.equal(link[2], `Version ${version}`, page);
   }
+});
+
+test("the changelog page shows the latest version and the sitemap lists it", () => {
+  const { version } = JSON.parse(readFileSync("package.json", "utf8"));
+  const page = html("changelog/index.html");
+  assert.ok(page.includes('id="v' + version.replaceAll(".", "-") + '"'));
+  assert.ok(page.includes("Version " + version));
+  assert.ok(html("sitemap.xml").includes("https://freethetools.com/changelog/"));
+  assert.ok(html("index.html").includes('href="/changelog.xml"'));
+});
+
+test("changelog.xml is RSS with one item per released version", () => {
+  const xml = html("changelog.xml");
+  const released = (readFileSync("CHANGELOG.md", "utf8").match(/^## \[\d+\.\d+\.\d+\]/gm) ?? []).length;
+  assert.ok(xml.startsWith("<?xml"));
+  assert.match(xml, /<rss version="2\.0"/);
+  assert.match(xml, /<atom:link [^>]*rel="self"/);
+  assert.equal((xml.match(/<item>/g) ?? []).length, released);
+  assert.equal((xml.match(/<\/item>/g) ?? []).length, released);
 });

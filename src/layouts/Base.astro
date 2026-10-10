@@ -54,6 +54,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <link rel="apple-touch-icon" href="/icon-192.png">
   {originTrials.map((token) => <meta http-equiv="origin-trial" content={token}>)}
   <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="alternate" type="application/rss+xml" title="Free the Tools: what's new" href="/changelog.xml">
   <link rel="alternate" type="application/json" href="/api/tools.json" title="Tool catalogue (JSON)">
   <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", publisher, ...(jsonLd ?? { "@type": "WebPage", name: title, description, url: canonical }) })} />
 </head>
@@ -96,6 +97,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
         <ul>
           <li><a href="/about/">About</a></li>
           <li><a href="/how-it-works/">How it works</a></li>
+          <li><a href="/changelog/">What's new</a></li>
           <li><a href="/saved/">Saved tools</a></li>
           <li><a href="/library/">Library</a></li>
           <li><a href="/stats/">Usage stats</a></li>
@@ -115,7 +117,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       </div>
       <div class="legal">
         <span>© {new Date().getFullYear()} Sapience Design and contributors</span>
-        <span><a href="/licenses/">Licences</a><a href="/privacy/">Privacy</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a><a href={`${REPO}/releases/tag/v${version}`} id="site-version">Version {version}</a></span>
+        <span><a href="/licenses/">Licences</a><a href="/privacy/">Privacy</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a><a href={`/changelog/#v${version.replaceAll(".", "-")}`} id="site-version">Version {version}</a></span>
       </div>
     </div>
   </footer>

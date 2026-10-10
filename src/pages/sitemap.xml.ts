@@ -8,6 +8,7 @@ export const GET: APIRoute = async ({ site }) => {
     { loc: "/about/" },
     { loc: "/how-it-works/" },
     { loc: "/support/" },
+    { loc: "/changelog/" },
     { loc: "/licenses/" },
     { loc: "/privacy/" },
     ...aisles.map((a) => ({ loc: `/${a.slug}/` })),

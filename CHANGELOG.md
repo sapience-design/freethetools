@@ -16,6 +16,7 @@ major version.
 - A privacy notice at `/privacy/`, linked from the footer, and a line on the About page that the tools come without warranty.
 - `/support/`: how to give back (GitHub Sponsors and Ko-fi by plain link, building a tool, telling someone, company sponsorship of a tool as a credit only), linked from the footer. GOVERNANCE.md gains the money rules: donations and sponsorship never buy features, placement, ranking, data or tracking.
 - When traffic passes what the free database plan can take, the site counts 1 in 5, 10 or 20 visits and views and adds that many each time, so totals stay accurate. The rate comes from the last 7 days of visits. Below 15,000 visits a day, every visit is counted. See ADR 0009.
+- A "What's new" page at `/changelog/` and an RSS feed at `/changelog.xml`, both built from this file. The footer version links to the page.
 
 ### Changed
 
