@@ -13,7 +13,14 @@ export const INTEGRITY_FILE = "integrity.json";
 
 export const sha256 = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
-/** Every file under `dir` (except integrity.json at the top) mapped to its SHA-256, sorted by path. */
+/**
+ * Files at the top of dist/ that are instructions to the host, not files it serves: Cloudflare reads
+ * them at deploy time, and asking for one gives the 404 page. Listing them would make every check
+ * report a mismatch. Their effect is visible in the response headers instead.
+ */
+export const HOST_FILES = new Set(["_headers", "_redirects", "_routes.json"]);
+
+/** Every served file under `dir` (not integrity.json or the host's own files) mapped to its SHA-256, sorted by path. */
 export function hashTree(dir) {
   const out = [];
   (function walk(d) {
@@ -22,7 +29,7 @@ export function hashTree(dir) {
       if (statSync(p).isDirectory()) walk(p);
       else {
         const rel = relative(dir, p).split(sep).join("/");
-        if (rel !== INTEGRITY_FILE) out.push([rel, sha256(readFileSync(p))]);
+        if (rel !== INTEGRITY_FILE && !HOST_FILES.has(rel)) out.push([rel, sha256(readFileSync(p))]);
       }
     }
   })(dir);
