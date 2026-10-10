@@ -3,10 +3,14 @@ import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import { REPO, REQUEST_URL } from "../data/catalogue";
 
-// The donation links stay hidden until both accounts exist: GitHub Sponsors for sapience-design
-// and Ko-fi as freethetools. Then set this to true, and add .github/FUNDING.yml with
-// "github: sapience-design" and "ko_fi: freethetools" so the repository shows its Sponsor button.
-const DONATIONS = false;
+// Each donation link shows only once its account exists. Turn one on with live: true, and list it
+// in .github/FUNDING.yml ("github: sapience-design", "ko_fi: freethetools") so the repository's
+// Sponsor button offers it too. The section hides while no link is live.
+const GIVE = [
+  { live: false, href: "https://github.com/sponsors/sapience-design", label: "Sponsor on GitHub", icon: "heart" },
+  { live: false, href: "https://ko-fi.com/freethetools", label: "One-off on Ko-fi" },
+].filter((g) => g.live);
+const DONATIONS = GIVE.length > 0;
 const description = DONATIONS
   ? "Free the Tools stays free, with no ads and no paid version. If it saved you time, you can buy the maintainers a coffee, build a tool, or tell someone about it."
   : "Free the Tools stays free, with no ads and no paid version. If it saved you time, you can build a tool, ask for one, or tell someone about it.";
@@ -28,10 +32,9 @@ const description = DONATIONS
       <h2 class="h2" id="coffee-h">Buy the maintainers a coffee</h2>
       <p>Donations pay for the domain and the time it takes to review tools and keep the site safe. Nothing is unlocked by paying, and nothing is taken away by not paying.</p>
       <div class="actions">
-        <a class="btn" href="https://github.com/sponsors/sapience-design" rel="noopener"><Icon name="heart" />Sponsor on GitHub</a>
-        <a class="btn line" href="https://ko-fi.com/freethetools" rel="noopener">One-off on Ko-fi</a>
+        {GIVE.map((g, i) => <a class={i === 0 ? "btn" : "btn line"} href={g.href} rel="noopener">{g.icon && <Icon name={g.icon} />}{g.label}</a>)}
       </div>
-      <p class="muted">Both are plain links to those sites. This page loads nothing from them and sends them nothing about you.</p>
+      <p class="muted">{GIVE.length > 1 ? "Both are plain links" : "It is a plain link"} to {GIVE.length > 1 ? "those sites" : "that site"}. This page loads nothing from {GIVE.length > 1 ? "them" : "it"} and sends {GIVE.length > 1 ? "them" : "it"} nothing about you.</p>
     </section>)}
 
     <section aria-labelledby="build-h">
