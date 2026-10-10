@@ -89,3 +89,27 @@ for (const firstPage of [false, true]) {
     if (process.env.SHOTS && !firstPage) await page.screenshot({ path: `${process.env.SHOTS}/tool-${test.info().project.name}.png`, fullPage: true });
   });
 }
+
+// Links to other sites open in a new tab, so this page and any half-done job stay put.
+test("links to other sites open in a new tab and say so", async ({ page }) => {
+  for (const path of ["/", "/about/", "/pdf/merge/"]) {
+    await page.goto(path);
+    const links = await page.evaluate(() => [...document.querySelectorAll("a[href^='http']")]
+      .filter((a) => new URL(a.href).origin !== location.origin)
+      .map((a) => ({ href: a.href, target: a.target, rel: a.rel, label: a.getAttribute("aria-label") || a.textContent })));
+    expect(links.length, `${path} has outside links`).toBeGreaterThan(0);
+    for (const l of links) {
+      expect(l.target, `${path}: ${l.href}`).toBe("_blank");
+      expect(l.rel.split(" "), `${path}: ${l.href}`).toContain("noopener");
+      expect(l.label.trim(), `${path}: ${l.href}`).toMatch(/\(opens in a new tab\)$/);
+    }
+  }
+});
+
+test("a link drawn later, in the Markdown preview, opens in a new tab too", async ({ page }) => {
+  await page.goto("/text/markdown-to-html/");
+  await page.fill("#md-in", "[a site](https://example.org/)");
+  const link = page.locator("a[href='https://example.org/']").first();
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", /noopener/);
+});

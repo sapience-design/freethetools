@@ -1,0 +1,1 @@
+- Links to other sites, such as GitHub, Ko-fi and the licence pages, open in a new tab. The page you were on stays put, so a job half done in a tool is not lost, and screen readers say "opens in a new tab".
