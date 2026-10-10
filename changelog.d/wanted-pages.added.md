@@ -1,2 +1,0 @@
-- Every tool that is not built yet now has its own page at the address it will have. It says what the tool will do, shows how many people want it, and has an "I want this" button. You can also sponsor it or tell us what you need.
-- One form, "Suggest a tool or report a problem", for suggestions and problems. No account is needed. Your message goes by email to the maintainers and is not stored on the site.

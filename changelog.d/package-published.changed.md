@@ -1,1 +1,0 @@
-- About, the home page, the README, the setup guide and `/llms.txt` say the `freethetools` package is on npm and in the official MCP Registry, with links.

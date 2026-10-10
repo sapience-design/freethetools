@@ -1,1 +1,0 @@
-- Video to GIF (Images, Convert): turn a short clip or screen recording into a GIF, in the browser.

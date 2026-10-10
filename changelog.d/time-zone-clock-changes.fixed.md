@@ -1,1 +1,0 @@
-- Time Zone Converter: a time that the clocks skip now moves forward by the gap, and a time that happens twice uses the first one. The page says so when this happens.

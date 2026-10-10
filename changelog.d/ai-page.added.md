@@ -1,1 +1,0 @@
-- A new page for AI assistants, with a prompt to copy, setup for each assistant and the list of tools they can use. It is also available as Markdown at /ai.md.
