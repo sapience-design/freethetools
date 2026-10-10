@@ -88,7 +88,7 @@ test("the changelog page shows the latest version and the sitemap lists it", () 
   const page = html("changelog/index.html");
   assert.ok(page.includes('id="v' + version.replaceAll(".", "-") + '"'));
   assert.ok(page.includes("Version " + version));
-  assert.ok(html("sitemap.xml").includes("https://freethetools.com/changelog/"));
+  assert.match(html("sitemap.xml"), /<loc>https:\/\/freethetools\.com\/changelog\/<\/loc>/);
   assert.ok(html("index.html").includes('href="/changelog.xml"'));
 });
 

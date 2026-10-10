@@ -41,7 +41,7 @@ A service worker (`/sw.js`, built by `scripts/build-sw.mjs`) keeps the home page
 | `/library/` | `src/pages/library.astro`: the files made in this browser, by the visitor or an AI agent, as recent files: jobs grouped by day and named by task, each file with a picture (images) or its kind, Download and Share, settings in plain words under Details, a search and a "who made it" filter. It can also open the package's library folder (Chrome and Edge). |
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
-| `/how-it-works/` | What comes in, what stays on the device and what goes out (a diagram in HTML, so it reflows and reads aloud), exactly what is sent, five checks anyone can do, and a live list of what the site stores in this browser, with Clear buttons |
+| `/how-it-works/` | What comes in, what stays on the device and what goes out (a diagram in HTML, so it reflows and reads aloud), exactly what is sent, six checks anyone can do, and a live list of what the site stores in this browser, with Clear buttons |
 | `/api/tools.json`, `/llms.txt`, `/sitemap.xml`, `/robots.txt` | Endpoints in `src/pages/` |
 
 ## Tools for AI agents

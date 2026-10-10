@@ -62,7 +62,7 @@ import { REPO } from "../data/catalogue";
         <div><dt>When you press Like</dt><dd>The tool's name.</dd></div>
         <div><dt>Never</dt><dd>Your files, anything you type, your IP address, cookies or an ID.</dd></div>
       </dl>
-      <p>If your browser sends Global Privacy Control or Do Not Track, we send only the likes you press. The totals are public on <a href="/stats/">Usage stats</a>.</p>
+      <p>If your browser sends Global Privacy Control or Do Not Track, we send only the likes you press. The totals are public on <a href="/stats/">Usage stats</a>, and the <a href="/privacy/">privacy notice</a> has the details.</p>
     </section>
 
     <section aria-labelledby="check-h">
@@ -76,8 +76,8 @@ import { REPO } from "../data/catalogue";
         </li>
         <li>
           <h3 class="h3">Go offline</h3>
-          <p>Open a tool, then turn off Wi-Fi or switch on flight mode. Use the tool.</p>
-          <p class="see">It still works, because it runs on your device.</p>
+          <p>Open a tool, then turn off Wi-Fi or switch on flight mode. Use the tool, or even reload the page.</p>
+          <p class="see">It still works, because it runs on your device. A tool you have opened once is kept for offline use.</p>
         </li>
         <li>
           <h3 class="h3">Find where your files go</h3>
@@ -92,6 +92,11 @@ import { REPO } from "../data/catalogue";
         <li>
           <h3 class="h3">Read the code</h3>
           <p>Every tool's code is public, in its own folder on <a href={`${REPO}/tree/main/tools`}>GitHub</a>. Anyone can check it, run it or improve it.</p>
+        </li>
+        <li>
+          <h3 class="h3">Check that the site is that code</h3>
+          <p><a href="/verify/">Verify this site</a> compares every file served here with the fingerprints published for the build.</p>
+          <p class="see">It shows a match, file by file, or names the files that differ.</p>
         </li>
       </ol>
     </section>
@@ -239,6 +244,7 @@ import { REPO } from "../data/catalogue";
     "ftt:tz": ["Time zones you added", (v) => { const z = parse(v); return Array.isArray(z) ? z.join(", ") || "None" : String(v); }],
     "ftt:md-view": ["Markdown view", (v) => (v === "code" ? "Code" : "Preview")],
     "ftt:library-note": ["A note for the library page", (v) => v],
+    "ftt:rate": ["How often visits are counted", (v) => (v === "1" ? "Every visit" : `1 in ${v}, when traffic is high`)],
   };
 
   function storageRows(store: Storage, where: string): Row[] {
@@ -275,6 +281,13 @@ import { REPO } from "../data/catalogue";
         clear: () => clearAll(),
       };
     } catch { return null; }
+  }
+
+  async function workerRow(): Promise<Row | null> {
+    if (!("serviceWorker" in navigator)) return null;
+    const regs = await navigator.serviceWorker.getRegistrations().catch(() => []);
+    if (!regs.length) return null;
+    return { name: "Offline helper", where: "service worker", now: "Keeps the tools you open, so they work without a connection.", raw: regs.map((r) => r.scope).join("\n"), clear: async () => { await Promise.all(regs.map((r) => r.unregister())); } };
   }
 
   async function cacheRow(): Promise<Row | null> {
@@ -327,7 +340,7 @@ import { REPO } from "../data/catalogue";
     rows = [
       ...storageRows(localStorage, "local storage"),
       ...storageRows(sessionStorage, "this tab only"),
-      ...[await libraryRow(), await cacheRow()].filter((r): r is Row => !!r),
+      ...[await libraryRow(), await cacheRow(), await workerRow()].filter((r): r is Row => !!r),
     ];
     const items = rows.map(item);
     const cookies = document.cookie ? document.cookie.split(";").length : 0;
