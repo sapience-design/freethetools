@@ -10,7 +10,6 @@ major version.
 
 ### Added
 
-
 - "How it works" (`/how-it-works/`): a diagram of what comes in, what stays on your device and what goes out; exactly what is sent; five checks anyone can do (the Network tab, going offline, where files go, the security policy, the code); and a live list of everything the site keeps in this browser, with a Clear button for each. Linked from About, the footer and every tool's "Your files stay on this device" note.
 - `/llms-full.txt`: every tool with its details and questions in one plain-text file for language models, linked from `/llms.txt`.
 
@@ -22,6 +21,7 @@ major version.
 - The home page has more room: "Most people come for" shows four tools at a time (two on tablets, one on phones) and the rest scroll sideways, with arrow buttons for mouse and keyboard; sections and cards have wider gaps.
 - The note "Usage numbers can't load right now" is gone. When usage numbers are missing, the label beside "All tools" already says the tools are shown A to Z.
 - The `freethetools` package also refuses to save `.mjs`, `.cjs`, `.scpt`, `.workflow`, `.ps1xml`, `.inf` and `.cpl` files, which can run programs.
+- Group pages list ten more requested tools, each linked to its open request (#63 to #72).
 
 ## [1.1.0] - 2026-10-09
 
