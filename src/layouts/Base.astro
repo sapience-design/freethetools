@@ -195,6 +195,55 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       paint();
     });
     paint();
+
+    // "On this page": reading pages with three or more sections list them beside the text on wide
+    // screens, and mark the one being read. Long lines are hard to read, so the text keeps its
+    // width and the panel uses the space beside it. It starts below any wide part (a diagram).
+    const reading = document.querySelector<HTMLElement>(".page.narrow");
+    const heads = reading ? [...reading.querySelectorAll<HTMLElement>("h2[id]")] : [];
+    if (reading && heads.length >= 3) {
+      const nav = document.createElement("nav");
+      nav.className = "toc-rail";
+      nav.setAttribute("aria-label", "On this page");
+      const inner = document.createElement("div");
+      inner.className = "toc";
+      const title = document.createElement("p");
+      title.className = "toc-h";
+      title.textContent = "On this page";
+      const list = document.createElement("ul");
+      const links = heads.map((h) => {
+        const a = document.createElement("a");
+        a.href = `#${h.id}`;
+        a.textContent = (h.textContent ?? "").replace(/\s+/g, " ").trim();
+        const li = document.createElement("li");
+        li.append(a);
+        list.append(li);
+        return a;
+      });
+      inner.append(title, list);
+      nav.append(inner);
+      reading.append(nav);
+      const place = () => {
+        const wide = [...reading.querySelectorAll<HTMLElement>(".wide")].pop();
+        nav.style.top = wide ? `${wide.offsetTop + wide.offsetHeight + 24}px` : "";
+      };
+      new ResizeObserver(place).observe(reading);
+      // The section being read: the last heading above the top fifth of the window, or the last
+      // section at the bottom of the page (it may never reach the top). A clicked one counts at once.
+      let queued = false, picked = -1;
+      const show = (at: number) => links.forEach((a, i) => (i === at ? a.setAttribute("aria-current", "location") : a.removeAttribute("aria-current")));
+      const mark = () => {
+        queued = false;
+        let at = 0;
+        heads.forEach((h, i) => { if (h.getBoundingClientRect().top < innerHeight / 5) at = i; });
+        if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) at = Math.max(at, picked >= 0 ? picked : heads.length - 1);
+        show(at);
+      };
+      links.forEach((a, i) => a.addEventListener("click", () => { picked = i; show(i); }));
+      addEventListener("scroll", () => { if (!queued) { queued = true; requestAnimationFrame(mark); } }, { passive: true });
+      addEventListener("wheel", () => { picked = -1; }, { passive: true });
+      mark();
+    }
   </script>
 </body>
 </html>

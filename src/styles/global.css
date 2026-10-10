@@ -119,6 +119,18 @@ kbd { font-family: var(--mono); font-size: 12px; line-height: 16px; padding: 1px
    A part marked .wide (a diagram, a table) may use more of the width. */
 .page.narrow > * { max-width: var(--read); }
 .page.narrow > .wide { max-width: none; }
+/* "On this page" (built in Base.astro): beside the text when the screen has room for both. */
+.page.narrow { position: relative; }
+.page.narrow > .toc-rail { display: none; }
+@media (min-width: 1180px) {
+  .page.narrow > .toc-rail { display: block; position: absolute; top: clamp(20px, 3vw, 32px); bottom: 72px; right: var(--gutter); width: 260px; max-width: none; }
+}
+.toc { position: sticky; top: 96px; display: grid; gap: 8px; max-height: calc(100vh - 120px); overflow: auto; padding-left: 16px; border-left: 1px solid var(--hair); }
+.toc-h { margin: 0; font-size: 13px; font-weight: 700; color: var(--muted); }
+.toc ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: block; padding: 6px 0; color: var(--soft); text-decoration: none; font-size: 15px; line-height: 1.35; }
+.toc a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.toc a[aria-current] { color: var(--ink); font-weight: 650; }
 main { display: block; min-height: 60vh; }
 
 /* Display type */
