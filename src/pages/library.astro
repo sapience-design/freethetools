@@ -3,93 +3,171 @@ import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import { loadCatalogue } from "../data/catalogue";
 
-// Tool id -> name and address, and each agent tool's name -> its tool id, so a record from the
-// browser or from the freethetools package links to the right page.
+// Tool id -> task, name, address, group and icon, and each agent tool's name -> its tool id, so a
+// record from the browser or from the freethetools package shows and links to the right tool.
 const { tools } = await loadCatalogue();
-const byId = Object.fromEntries(tools.map((t) => [t.id, { name: t.data.name, url: t.url }]));
+const byId = Object.fromEntries(tools.map((t) => [t.id, { name: t.data.name, task: t.data.task, url: t.url, g: t.category.slug, ic: t.icon }]));
 const agents = import.meta.glob("../../tools/*/*/agent.js", { eager: true }) as Record<string, { default: { name: string } | { name: string }[] }>;
 const byAgentName: Record<string, string> = {};
 for (const [path, mod] of Object.entries(agents)) {
   const id = path.split("/").slice(-3, -1).join("/");
   for (const def of [mod.default].flat()) byAgentName[def.name] = id;
 }
+// Icons drawn at build time and cloned by the script: one per tool icon, one per kind of file.
+const icons = [...new Set([...tools.map((t) => t.icon), "file", "file-pdf", "file-image", "file-text", "file-zip", "trash", "download-simple"])];
 ---
-<Base page="library" title="Library | Free the Tools" description="What the tools on this device did, and the files they made." noindex>
-  <div class="page narrow library">
-  <a class="back" href="/"><Icon name="caret-left" />All tools</a>
-  <div class="intro">
-    <h1 class="h1">Library</h1>
-    <p class="lede">Every job from this browser, whether you or an AI agent ran it. The library stays in this browser. Nothing is sent anywhere.</p>
-  </div>
-
-  <p class="space" id="lib-space"></p>
-  <p class="tool-error" id="lib-note" hidden></p>
-
-  <div class="lib-actions">
-    <button class="btn line small" type="button" id="lib-folder"><Icon name="folder-open" />Open the package's folder</button>
-    <button class="btn quiet small" type="button" id="lib-clear" disabled><Icon name="trash" />Clear library</button>
-  </div>
-  <p class="hint" id="lib-folder-help">The freethetools package for AI assistants keeps its own library in a folder on your computer. Open that folder to see its jobs here. This works in Chrome and Edge.</p>
-
-  <div class="confirm card" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
-    <p id="lib-confirm-text">Delete every record and file in this browser's library? This cannot be undone.</p>
-    <div class="lib-actions">
-      <button class="btn small" type="button" id="lib-confirm-yes">Yes, clear library</button>
-      <button class="btn quiet small" type="button" id="lib-confirm-no">Keep it</button>
+<Base page="library" title="Library | Free the Tools" description="The files you made with Free the Tools in this browser, by you or an AI agent." noindex>
+  <div class="page library">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Library</h1>
+      <p class="lede">The files you made here, by you or an AI agent. They stay in this browser. Nothing is sent anywhere.</p>
     </div>
-  </div>
 
-  <p class="sr-only" id="lib-status" role="status"></p>
+    <div class="lib-bar" id="lib-bar" hidden>
+      <label class="lib-search">
+        <Icon name="magnifying-glass" />
+        <span class="sr-only">Search the library</span>
+        <input id="lib-search" type="search" placeholder="Search files and tools" autocomplete="off">
+      </label>
+      <fieldset class="lib-who">
+        <legend class="sr-only">Show jobs</legend>
+        <div class="segmented">
+          <input type="radio" name="lib-who" id="lib-who-all" value="all" checked><label for="lib-who-all">All</label>
+          <input type="radio" name="lib-who" id="lib-who-you" value="you"><label for="lib-who-you">By you</label>
+          <input type="radio" name="lib-who" id="lib-who-agent" value="agent"><label for="lib-who-agent">By AI agents</label>
+        </div>
+      </fieldset>
+      <span class="space" id="lib-space"></span>
+      <button class="btn quiet small" type="button" id="lib-clear" disabled><Icon name="trash" />Clear library</button>
+    </div>
 
-  <ul class="records" id="lib-list"></ul>
-  <div class="empty card" id="lib-empty" hidden>
-    <p>Nothing here yet. Download a result from a tool, or let an AI agent use one, and the job appears here.</p>
-    <p><a class="btn" href="/">Browse all tools</a></p>
-  </div>
+    <p class="tool-error" id="lib-note" hidden></p>
+
+    <div class="confirm card" id="lib-confirm" role="group" aria-labelledby="lib-confirm-text" hidden>
+      <p id="lib-confirm-text">Delete every record and file in this browser's library? This cannot be undone.</p>
+      <div class="lib-actions">
+        <button class="btn small" type="button" id="lib-confirm-yes">Yes, clear library</button>
+        <button class="btn quiet small" type="button" id="lib-confirm-no">Keep it</button>
+      </div>
+    </div>
+
+    <p class="sr-only" id="lib-status" role="status"></p>
+
+    <div class="days" id="lib-list"></div>
+    <p class="lib-none" id="lib-none" hidden>Nothing matches. Try another word, or show all jobs.</p>
+
+    <div class="empty" id="lib-empty" hidden>
+      <span class="empty-ic"><Icon name="tray" /></span>
+      <h2 class="h3">Nothing here yet</h2>
+      <p>When you download a result from a tool, or an AI agent uses one, the job and its files appear here.</p>
+      <a class="btn" href="/">Browse all tools</a>
+    </div>
+
+    <section class="pkg" aria-labelledby="pkg-h">
+      <h2 class="pkg-h" id="pkg-h">For AI assistants</h2>
+      <p class="hint" id="lib-folder-help">The freethetools package for AI assistants keeps its own library in a folder on your computer. Open that folder to see its jobs here. This works in Chrome and Edge.</p>
+      <button class="btn quiet small" type="button" id="lib-folder"><Icon name="folder-open" />Open the package's folder</button>
+    </section>
   </div>
 
   <script type="application/json" id="lib-tools" set:html={JSON.stringify({ byId, byAgentName })} />
+  {icons.map((name) => <template id={`lib-ic-${name}`}><Icon name={name} /></template>)}
 </Base>
 
 <style>
-  .library { display: grid; gap: 16px; }
-  .intro { display: grid; gap: 12px; margin-bottom: 8px; }
-  .space { font-size: 14px; color: var(--muted); }
+  .library { max-width: calc(1040px + 2 * var(--gutter)); display: grid; gap: 20px; }
+  .intro { display: grid; gap: 12px; }
+
+  /* ---- Toolbar: search, who made it, space used, clear ---- */
+  .lib-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+  .lib-search { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 14px; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); cursor: text; }
+  .lib-search:focus-within { box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  .lib-search > :global(.ic) { font-size: 20px; color: var(--soft); }
+  .lib-search input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; min-height: 44px; }
+  .lib-search input:focus { outline: none; }
+  .lib-search input::placeholder { color: var(--muted); opacity: 1; }
+  .lib-who { border: 0; margin: 0; padding: 0; min-width: 0; }
+  .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .segmented label:hover { color: var(--ink); }
+  .segmented input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .segmented input:focus-visible + label { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+  .space { margin-left: auto; font-size: 14px; color: var(--muted); }
   .space:empty { display: none; }
+
   .lib-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .library > .hint { max-width: var(--measure); font-size: 14px; color: var(--soft); }
   .confirm { display: grid; gap: 12px; padding: 16px 18px; }
-  .confirm[hidden], .empty[hidden], #lib-note[hidden] { display: none; }
-  .records { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
-  .records:empty { display: none; }
-  .records :global(.rec) { display: grid; gap: 10px; padding: 14px 16px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); font-size: 15px; }
-  .records :global(.rec p), .records :global(.rec ul) { margin: 0; }
-  .records :global(.rec-head) { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-  .records :global(.rec-head a), .records :global(.rec-head strong) { font-family: var(--display); font-size: 17px; font-weight: 700; }
-  .records :global(.rec-head a) { color: var(--ink); }
-  .records :global(.rec-head .who) { color: var(--muted); font-size: 14px; }
-  .records :global(.rec-head .del) { margin-left: auto; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); color: var(--soft); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .records :global(.rec-head .del:hover) { border-color: var(--edge); color: var(--ink); }
-  .records :global(.bad) { color: var(--bad); }
-  .records :global(.rec dl) { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 0; }
-  .records :global(.rec dt) { color: var(--muted); }
-  .records :global(.rec dd) { margin: 0; overflow-wrap: anywhere; }
-  .records :global(.rec dd ul) { list-style: none; padding: 0; display: grid; gap: 8px; }
-  .records :global(.rec dd li) { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-  .records :global(.rec .btn) { min-height: 44px; padding: 0 16px; font-size: 15px; border-radius: var(--r); }
-  .empty { display: grid; gap: 14px; padding: 18px; color: var(--soft); }
-  .empty p { margin: 0; }
+  .confirm[hidden], .empty[hidden], #lib-note[hidden], .lib-none[hidden] { display: none; }
+
+  /* ---- Jobs, grouped by day ---- */
+  .days { display: grid; gap: 28px; }
+  .days:empty { display: none; }
+  .days :global(.day) { display: grid; gap: 12px; }
+  .days :global(.day-h) { font-size: 15px; font-weight: 700; color: var(--soft); }
+  .days :global(.recs) { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .days :global(.rec) { display: grid; gap: 14px; padding: 14px 16px 16px; border: 1px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
+  .days :global(.rec-head) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+  .days :global(.rec-ic) { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--tint); color: #1d1b16; font-size: 20px; }
+  .days :global(.rec-title) { display: grid; gap: 2px; min-width: 0; }
+  .days :global(.rec-title a), .days :global(.rec-title strong) { font-family: var(--display); font-size: 17px; font-weight: 700; color: var(--ink); text-decoration: none; overflow-wrap: anywhere; }
+  .days :global(.rec-title a:hover) { text-decoration: underline; text-underline-offset: 3px; }
+  .days :global(.rec-meta) { font-size: 14px; color: var(--muted); }
+  .days :global(.del) { color: var(--soft); }
+  .days :global(.del:hover) { color: var(--ink); }
+  .days :global(.bad) { margin: 0; color: var(--bad); }
+
+  /* Files: a thumbnail card each, with Download and Share. */
+  .days :global(.files) { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); gap: 10px; }
+  .days :global(.file) { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: auto auto auto; column-gap: 12px; row-gap: 2px; align-items: center; padding: 10px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--bg); }
+  .days :global(.file .fthumb) { grid-row: 1 / span 3; }
+  .days :global(.f-name) { font-weight: 650; font-size: 15px; overflow-wrap: anywhere; line-height: 1.3; }
+  .days :global(.f-meta) { font-size: 13px; color: var(--muted); }
+  .days :global(.f-act) { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .days :global(.f-act .btn) { min-height: 40px; padding: 0 12px; font-size: 14px; border-radius: var(--r); box-shadow: none; }
+  .days :global(.f-act .share-btn) { margin: 0; }
+  .days :global(.f-gone) { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Details: what happened, the settings and the files that went in. */
+  .days :global(.rec-more) { font-size: 14px; }
+  .days :global(.rec-more summary) { cursor: pointer; width: max-content; color: var(--soft); font-weight: 600; padding: 4px 0; }
+  .days :global(.rec-more dl) { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 16px; margin: 8px 0 0; }
+  .days :global(.rec-more dt) { color: var(--muted); }
+  .days :global(.rec-more dd) { margin: 0; overflow-wrap: anywhere; }
+
+  .lib-none { color: var(--soft); text-align: center; padding: 24px 0; }
+
+  /* ---- Empty ---- */
+  .empty { display: grid; justify-items: center; gap: 12px; text-align: center; padding: 48px 16px; border: 1px dashed var(--hair); border-radius: var(--r-lg); }
+  .empty p { margin: 0; color: var(--soft); max-width: 46ch; }
+  .empty-ic { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px; background: var(--well); font-size: 28px; color: var(--soft); }
+
+  /* ---- The package's folder, out of the way ---- */
+  .pkg { display: grid; justify-items: start; gap: 8px; margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--hair); }
+  .pkg-h { font-size: 15px; font-weight: 700; }
+  .pkg .hint { margin: 0; font-size: 14px; color: var(--soft); max-width: var(--measure); }
+
+  @media (max-width: 640px) {
+    .space { margin-left: 0; width: 100%; }
+    .days :global(.rec-more dl) { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .days :global(.rec-more dd + dt) { margin-top: 6px; }
+  }
 </style>
 
 <script>
   import { LOG_FILE, parseLog, type LibraryEntry } from "../agent/library.js";
   import { shareButton } from "../lib/share";
+  import { imageThumb } from "../lib/files";
   import { clearAll, deleteEntry, getBlob, getNote, keptKeys, listEntries, usage } from "../agent/db.js";
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
-  const list = $("lib-list"), empty = $("lib-empty"), status = $("lib-status"), note = $("lib-note");
+  const list = $("lib-list"), empty = $("lib-empty"), none = $("lib-none"), status = $("lib-status"), note = $("lib-note");
   const clearBtn = $<HTMLButtonElement>("lib-clear"), confirmBox = $("lib-confirm"), folderBtn = $<HTMLButtonElement>("lib-folder");
-  const maps = JSON.parse($("lib-tools").textContent || "{}") as { byId: Record<string, { name: string; url: string }>; byAgentName: Record<string, string> };
+  const search = $<HTMLInputElement>("lib-search");
+  const whoRadios = [...document.querySelectorAll<HTMLInputElement>('input[name="lib-who"]')];
+  type Tool = { name: string; task: string; url: string; g: string; ic: string };
+  const maps = JSON.parse($("lib-tools").textContent || "{}") as { byId: Record<string, Tool>; byAgentName: Record<string, string> };
 
   type Row = { entry: LibraryEntry; kept: Set<string> | null; folder: any | null };
   let local: Row[] = [];
@@ -97,6 +175,9 @@ for (const [path, mod] of Object.entries(agents)) {
 
   const fmt = (n: number) => (n >= 1073741824 ? `${(n / 1073741824).toFixed(1)} GB` : n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : n >= 1024 ? `${Math.round(n / 1024)} KB` : `${n} B`);
   const say = (s: string) => { status.textContent = s; };
+  // Where focus goes when the last record is gone: the empty state's way on.
+  const emptyLink = () => (empty.querySelector("a") as HTMLElement | null) ?? folderBtn;
+  const icon = (name: string) => ($<HTMLTemplateElement>(`lib-ic-${name}`) ?? $<HTMLTemplateElement>("lib-ic-file"))?.content.cloneNode(true) ?? document.createTextNode("");
 
   async function refresh() {
     try {
@@ -110,25 +191,71 @@ for (const [path, mod] of Object.entries(agents)) {
     if (n) showNote(n.text);
     render();
     const u = await usage();
-    $("lib-space").textContent = u ? `Space used by this site in this browser: ${fmt(u.used)} of about ${fmt(u.quota)}.` : "";
+    $("lib-space").textContent = u && u.used ? `${fmt(u.used)} used in this browser` : "";
   }
 
   function showNote(text: string) { note.textContent = text; note.hidden = false; }
 
-  function render() {
-    const rows = [...local, ...fromFolder].sort((a, b) => (a.entry.time < b.entry.time ? 1 : -1));
-    empty.hidden = rows.length > 0;
-    clearBtn.disabled = local.length === 0;
-    // One record that can't be shown must not hide the others.
-    list.replaceChildren(...rows.flatMap((r) => { try { return [row(r)]; } catch { return []; } }));
-  }
-
   // Records from the package's folder are untrusted text: look names up as own keys only.
-  const toolOf = (e: LibraryEntry) => {
+  const toolOf = (e: LibraryEntry): Tool | null => {
     const id = Object.hasOwn(maps.byId, e.tool) ? e.tool : Object.hasOwn(maps.byAgentName, e.tool) ? maps.byAgentName[e.tool] : null;
     const t = id && Object.hasOwn(maps.byId, id) ? maps.byId[id] : null;
     return t && typeof t.url === "string" && t.url.startsWith("/") ? t : null;
   };
+
+  // ---- Search and the "who" filter ----------------------------------------------------------
+  const who = () => whoRadios.find((r) => r.checked)?.value ?? "all";
+  function matches({ entry: e }: Row, q: string, w: string) {
+    if (w === "you" && e.by === "agent") return false;
+    if (w === "agent" && e.by !== "agent") return false;
+    if (!q) return true;
+    const t = toolOf(e);
+    const words = [t?.task, t?.name, e.title, e.summary, ...e.inputs.map((f) => f.name), ...e.outputs.map((f) => f.name)].join(" ").toLowerCase();
+    return q.toLowerCase().split(/\s+/).every((part) => words.includes(part));
+  }
+
+  // ---- Days ---------------------------------------------------------------------------------
+  const dayKey = (d: Date) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+  function dayLabel(d: Date) {
+    const now = new Date();
+    const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+    if (dayKey(d) === dayKey(now)) return "Today";
+    if (dayKey(d) === dayKey(yesterday)) return "Yesterday";
+    const days = (now.getTime() - d.getTime()) / 86_400_000;
+    return d.toLocaleDateString("en-GB", days < 7 ? { weekday: "long", day: "numeric", month: "long" } : { day: "numeric", month: "long", year: "numeric" });
+  }
+  const timeOf = (d: Date) => d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+
+  function render() {
+    const all = [...local, ...fromFolder].sort((a, b) => (a.entry.time < b.entry.time ? 1 : -1));
+    const q = search.value.trim(), w = who();
+    const rows = all.filter((r) => matches(r, q, w));
+    empty.hidden = all.length > 0;
+    // Nothing to search or filter in an empty library.
+    $("lib-bar").hidden = all.length === 0;
+    none.hidden = !(all.length > 0 && rows.length === 0);
+    clearBtn.disabled = local.length === 0;
+    const groups = new Map<string, { label: string; items: HTMLElement[] }>();
+    for (const r of rows) {
+      const d = new Date(r.entry.time);
+      const k = dayKey(d);
+      if (!groups.has(k)) groups.set(k, { label: dayLabel(d), items: [] });
+      // One record that can't be shown must not hide the others.
+      try { groups.get(k)!.items.push(row(r)); } catch {}
+    }
+    list.replaceChildren(...[...groups.values()].map(({ label, items }) => {
+      const sec = el("section", "", "day");
+      const h = el("h2", label, "day-h");
+      const ul = el("ul", "", "recs");
+      ul.append(...items);
+      sec.append(h, ul);
+      return sec;
+    }));
+    watchThumbs();
+    if (q || w !== "all") say(rows.length === 1 ? "1 job shown." : `${rows.length} jobs shown.`);
+  }
+  search.addEventListener("input", render);
+  whoRadios.forEach((r) => r.addEventListener("change", render));
 
   function el<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", cls = "") {
     const n = document.createElement(tag);
@@ -137,20 +264,45 @@ for (const [path, mod] of Object.entries(agents)) {
     return n;
   }
 
+  // Settings read as plain words: Yes and No instead of true and false.
+  const settingText = (v: unknown) => (v === true ? "Yes" : v === false ? "No" : typeof v === "object" ? JSON.stringify(v) : String(v));
+  const fileIcon = (type: string, name: string) =>
+    type === "application/pdf" || name.endsWith(".pdf") ? "file-pdf"
+      : type.startsWith("image/") ? "file-image"
+      : type.includes("zip") ? "file-zip"
+      : type.startsWith("text/") || /json|xml|csv|markdown/.test(type) ? "file-text" : "file";
+  const kindOf = (type: string, name: string) => {
+    const ext = name.includes(".") ? name.split(".").pop()!.toUpperCase() : "";
+    return ext && ext.length <= 5 ? ext : type.split("/").pop()?.toUpperCase() ?? "File";
+  };
+
   function row({ entry: e, kept, folder }: Row) {
-    const li = el("li", "", "rec");
-    const head = el("p", "", "rec-head");
     const tool = toolOf(e);
-    const title = tool?.name ?? e.title;
-    if (tool) { const a = el("a", title); a.href = tool.url; head.append(a); } else head.append(el("strong", title));
-    const when = el("time", new Date(e.time).toLocaleString());
+    const title = tool?.task ?? e.title;
+    const d = new Date(e.time);
+    const li = el("li", "", "rec");
+    if (tool) li.dataset.g = tool.g;
+
+    // Head: the tool, when, who, and Delete.
+    const head = el("div", "", "rec-head");
+    const ic = el("span", "", "rec-ic");
+    ic.setAttribute("aria-hidden", "true");
+    ic.append(icon(tool?.ic ?? "file"));
+    const t = el("div", "", "rec-title");
+    if (tool) { const a = el("a", title); a.href = tool.url; t.append(a); } else t.append(el("strong", title));
+    const meta = el("span", "", "rec-meta");
+    const when = el("time", timeOf(d));
     when.dateTime = e.time;
-    const who = e.by === "agent" ? "by AI agent" : "by you";
-    head.append(when, el("span", folder ? `${who}, via the freethetools package` : who, "who"));
+    const by = e.by === "agent" ? "by an AI agent" : "by you";
+    meta.append(when, ` · ${folder ? `${by}, via the freethetools package` : by}${tool && tool.name !== title ? ` · ${tool.name}` : ""}`);
+    t.append(meta);
+    head.append(ic, t);
     if (!folder) {
-      const del = el("button", "Delete", "del");
+      const del = el("button", "", "icon-btn del");
       del.type = "button";
-      del.setAttribute("aria-label", `Delete the record: ${title}, ${when.textContent}`);
+      del.append(icon("trash"));
+      del.setAttribute("aria-label", `Delete the record: ${title}, ${d.toLocaleString("en-GB")}`);
+      del.title = "Delete";
       del.addEventListener("click", async () => {
         try {
           await deleteEntry(e.id);
@@ -161,39 +313,71 @@ for (const [path, mod] of Object.entries(agents)) {
         say(`Deleted the record for ${title}.`);
         await refresh();
         // Keep focus in the list; when it's empty, move it to the next thing to do.
-        ((list.querySelector(".del") as HTMLElement | null) ?? folderBtn).focus();
+        ((list.querySelector(".del") as HTMLElement | null) ?? emptyLink()).focus();
       });
       head.append(del);
     }
     li.append(head);
-    li.append(el("p", e.ok ? e.summary : `Failed: ${e.error ?? e.summary}`, e.ok ? "" : "bad"));
+    if (!e.ok) li.append(el("p", `Couldn't finish: ${e.error ?? e.summary}`, "bad"));
 
-    const dl = el("dl");
-    const add = (k: string, v: Node | string) => { dl.append(el("dt", k)); const dd = el("dd"); dd.append(v); dl.append(dd); };
-    const settings = Object.entries(e.settings ?? {});
-    if (settings.length) add("Settings", settings.map(([k, v]) => `${k}: ${typeof v === "object" ? JSON.stringify(v) : v}`).join("; "));
-    if (e.inputs.length) add("Inputs", e.inputs.map((f) => `${f.name} (${fmt(f.size)})`).join(", "));
+    // Files: each with its picture (photos) or kind, size, Download and Share.
     if (e.outputs.length) {
-      const ul = el("ul");
+      const files = el("ul", "", "files");
       e.outputs.forEach((f, i) => {
-        const item = el("li");
-        item.append(`${f.name} (${fmt(f.size)}) `);
+        const item = el("li", "", "file");
+        const thumb = el("span", "", "fthumb");
+        thumb.append(icon(fileIcon(f.type || "", f.name)));
+        item.append(thumb, el("span", f.name, "f-name"), el("span", `${kindOf(f.type || "", f.name)} · ${fmt(f.size)}`, "f-meta"));
         const have = folder ? !!f.path : !!kept?.has(`${e.id}/${i}`);
+        const get = () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i));
         if (have) {
-          const b = el("button", "Download", "btn line");
+          const act = el("span", "", "f-act");
+          const b = el("button", "", "btn line");
           b.type = "button";
+          b.append(icon("download-simple"), "Download");
           b.setAttribute("aria-label", `Download ${f.name}`);
-          b.addEventListener("click", () => save(f.name, f.type, () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i))));
-          item.append(b);
-          const sh = shareButton(f.name, f.type || "application/octet-stream", () => (folder ? readFromFolder(folder, f.path!) : getBlob(e.id, i)), { say });
-          if (sh) item.append(sh);
-        } else item.append(el("span", "file not kept", "muted"));
-        ul.append(item);
+          b.addEventListener("click", () => save(f.name, f.type, get));
+          act.append(b);
+          const sh = shareButton(f.name, f.type || "application/octet-stream", get, { say });
+          if (sh) act.append(sh);
+          item.append(act);
+          if ((f.type || "").startsWith("image/")) { item.dataset.thumb = "1"; thumbLoaders.set(item, async () => { const blob = await get(); if (blob) thumb.replaceWith(imageThumb(blob)); }); }
+        } else item.append(el("span", "Not kept in this browser", "f-gone"));
+        files.append(item);
       });
-      add("Outputs", ul);
+      li.append(files);
     }
-    if (dl.childElementCount) li.append(dl);
+
+    // Details: what happened, settings in plain words, and what went in.
+    const settings = Object.entries(e.settings ?? {});
+    if (e.summary || settings.length || e.inputs.length) {
+      const more = el("details", "", "rec-more");
+      more.append(el("summary", "Details"));
+      const dl = el("dl");
+      const add = (k: string, v: string) => dl.append(el("dt", k), el("dd", v));
+      if (e.summary) add("What happened", e.summary);
+      for (const [k, v] of settings) add(k, settingText(v));
+      if (e.inputs.length) add("Inputs", e.inputs.map((f) => `${f.name} (${fmt(f.size)})`).join(", "));
+      more.append(dl);
+      li.append(more);
+    }
     return li;
+  }
+
+  // Photos load their picture only when their card comes into view.
+  const thumbLoaders = new WeakMap<Element, () => Promise<void>>();
+  const thumbs = "IntersectionObserver" in window ? new IntersectionObserver((seen) => {
+    for (const s of seen) {
+      if (!s.isIntersecting) continue;
+      thumbs?.unobserve(s.target);
+      thumbLoaders.get(s.target)?.().catch(() => {});
+    }
+  }, { rootMargin: "200px" }) : null;
+  function watchThumbs() {
+    for (const item of list.querySelectorAll("[data-thumb]")) {
+      if (thumbs) thumbs.observe(item);
+      else thumbLoaders.get(item)?.().catch(() => {});
+    }
   }
 
   async function save(name: string, type: string, get: () => Promise<Blob | File | undefined>) {
@@ -233,7 +417,7 @@ for (const [path, mod] of Object.entries(agents)) {
       ? "Cleared this browser's records. The jobs shown from the package's folder stay in that folder."
       : "The library is clear.");
     await refresh();
-    folderBtn.focus();
+    (local.length || fromFolder.length ? search : emptyLink()).focus();
   });
 
   // ---- The package's folder (File System Access API: Chrome and Edge) -----------------------

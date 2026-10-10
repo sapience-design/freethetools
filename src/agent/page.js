@@ -139,10 +139,11 @@ function clean(s) {
   return (s ?? "").replace(/\s+/g, " ").trim();
 }
 
-/** Text of a label without the text of controls inside it. */
+/** Text of a label without the text of controls inside it, or its <small> description. */
 function labelText(label) {
   const c = label.cloneNode(true);
-  c.querySelectorAll("input, select, textarea, option, .sr-only").forEach((n) => n.remove());
+  // "<b>Every page on its own</b><small>One file per page</small>": the setting is the <b>.
+  c.querySelectorAll("input, select, textarea, option, .sr-only, small").forEach((n) => n.remove());
   c.querySelectorAll("*").forEach((n) => n.after(" ")); // keep words apart: "<b>Every page</b><span>one file</span>"
   return clean(c.textContent);
 }

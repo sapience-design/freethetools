@@ -33,7 +33,7 @@ See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
 | `/<group>/` | `src/pages/[category]/index.astro`: every tool and wanted tool in the group |
 | `/<group>/<tool>/` | `src/pages/[category]/[tool]/index.astro` wrapping the tool's `Tool.astro`, with Like, usage count and FAQ |
 | `/saved/` | Tools the visitor saved, from their own `localStorage` |
-| `/library/` | `src/pages/library.astro`: every job done in this browser, by the visitor or an AI agent, with the results to download again. It can also open the package's library folder (Chrome and Edge). |
+| `/library/` | `src/pages/library.astro`: the files made in this browser, by the visitor or an AI agent, as recent files: jobs grouped by day and named by task, each file with a picture (images) or its kind, Download and Share, settings in plain words under Details, a search and a "who made it" filter. It can also open the package's library folder (Chrome and Edge). |
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
 | `/how-it-works/` | What comes in, what stays on the device and what goes out (a diagram in HTML, so it reflows and reads aloud), exactly what is sent, five checks anyone can do, and a live list of what the site stores in this browser, with Clear buttons |

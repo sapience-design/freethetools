@@ -14,6 +14,8 @@ major version.
 
 ### Changed
 
+- The Library reads as recent files: jobs grouped by day (Today, Yesterday, then dates) and named by the job ("Combine PDFs into one"), each file a card with its picture (images) or kind, size, Download and Share. Settings sit under Details in plain words (Yes and No, not true and false). A search covers tools and file names, and a filter shows jobs by you or by AI agents. The package's folder moves to a small "For AI assistants" section at the bottom, and an empty library shows only a way on.
+- Recorded settings no longer run an option's description into its name: "Every page on its own", not "Every page on its own One file per page".
 - The home page headline is "Everyday tools should be free." A "Why this exists" section near the bottom says what the site stands for: everyday tools shouldn't cost money, come with ads, put your files at risk or be hard to find. The About page and the README open with the same lines.
 - The home page has more room: "Most people come for" shows four tools at a time (two on tablets, one on phones) and the rest scroll sideways, with arrow buttons for mouse and keyboard; sections and cards have wider gaps.
 - The note "Usage numbers can't load right now" is gone. When usage numbers are missing, the label beside "All tools" already says the tools are shown A to Z.
