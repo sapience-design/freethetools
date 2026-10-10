@@ -18,7 +18,7 @@ Developers and AI agents can read the catalogue at [`/api/tools.json`](https://f
 
 ## For AI agents
 
-AI assistants can use the tools instead of installing software such as Ghostscript, ImageMagick or a Python package. Files stay on the device either way. There are two channels, and both use one definition per tool ([ADR 0008](docs/adr/0008-tools-for-ai-agents.md)).
+Claude, Cursor and other AI assistants can use the tools instead of installing software such as Ghostscript, ImageMagick or a Python package, and without sending files to a server. Files stay on the device either way. There are two channels, and both use one definition per tool ([ADR 0008](docs/adr/0008-tools-for-ai-agents.md)).
 
 | Channel | For | Setup |
 |---|---|---|
@@ -26,6 +26,12 @@ AI assistants can use the tools instead of installing software such as Ghostscri
 | WebMCP on each tool page | AI agents inside a browser | None. Chrome and Edge support it in origin trials; other browsers ignore it. |
 
 The package reads files by path, saves results in a `freethetools` folder in your home folder, and records every job in `library.jsonl`. It also has a command line for agents without MCP: `npx -y freethetools run <tool> '<json>'`. Setup for each client is in [docs/how-to/use-with-ai.md](docs/how-to/use-with-ai.md). The package source is in [packages/freethetools](packages/freethetools). There is no hosted MCP server, because the files would have to be uploaded.
+
+## Why in the browser, and how far it goes
+
+Services such as iLovePDF or CloudConvert process files on their servers, so every file costs them money, and they cap sizes and sell the rest. Here the visitor's device does the work and the pages are static files, so a million visitors cost about what one does. That is why "free, no limits" is a promise we can keep.
+
+A browser can do more than most people expect. Ghostscript and qpdf run inside the page as WebAssembly, alongside pdf-lib, pdf.js and the image codecs. Text recognition, translation and speech-to-text can run the same way. The gap between "needs a server" and "runs on your device" shrinks every year, and the tool list grows with it. What is next is in the [vision](docs/explanation/vision.md): working with no connection, files bigger than memory, on-device OCR and translation, and pages in more languages. Jobs a browser cannot do yet wait; we do not add a server to get there.
 
 ## Request a tool
 

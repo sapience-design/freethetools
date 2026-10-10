@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Changed
+
+- The home page, About, README and `/llms.txt` say the same thing about AI assistants (the tools run on your computer through the `freethetools` package, nothing uploaded), about how much a browser can do today, and about what comes next. The vision is published in `docs/explanation/vision.md`.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.

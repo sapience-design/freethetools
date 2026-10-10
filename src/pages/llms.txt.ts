@@ -8,7 +8,9 @@ export const GET: APIRoute = async ({ site }) => {
   const lines = [
     "# Free the Tools",
     "",
-    "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no tracking of people; only anonymous daily totals, published at /stats/. A Sapience initiative (https://sapience.design), licensed AGPL-3.0.",
+    "> Free, open-source tools that run entirely in the browser. Files are never uploaded: every page's Content Security Policy blocks connections to other servers. No sign-up, no ads, no limits, no tracking of people; only anonymous daily totals, published at /stats/. A Sapience initiative (https://sapience.design), licensed AGPL-3.0.",
+    "",
+    "What runs on the device: Ghostscript and qpdf compiled to WebAssembly, pdf-lib, pdf.js and the browser's image codecs. Because the visitor's device does the work and the pages are static files, the site can stay free with no limits at any scale. Planned: tools that work with no connection, files bigger than memory, on-device text recognition and translation, and pages in more languages. Jobs a browser cannot do yet are not offered through a server.",
     "",
     `Machine-readable catalogue: ${abs("/api/tools.json")} (schema: ${REPO}/blob/main/openapi.yaml). Anonymous usage totals: ${abs("/api/stats/summary")}. Source code: ${REPO}.`,
     "",

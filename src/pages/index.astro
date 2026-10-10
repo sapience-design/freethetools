@@ -80,6 +80,11 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
         </ul>
       </section>
 
+      <section class="ai card" aria-labelledby="ai-note-h">
+        <h2 class="h3" id="ai-note-h">Using an AI assistant?</h2>
+        <p>Claude, Cursor and other assistants can run these tools on your own computer, so your files are never uploaded. <a href="/about/#ai-h">How to set it up</a></p>
+      </section>
+
       <section class="all" aria-labelledby="all-h">
         <div class="all-head">
           <h2 class="h2" id="all-h">All tools</h2>
@@ -169,6 +174,9 @@ const sorts = [["used", "Most used"], ["new", "Newest"], ["liked", "Most liked"]
 
   .default { display: grid; gap: clamp(32px, 4vw, 44px); }
   .popular .h2, .all-head { margin-bottom: 12px; }
+  .ai { padding: 16px 18px; display: grid; gap: 6px; }
+  .ai p { margin: 0; color: var(--soft); }
+  .ai a { color: var(--ink); }
   .pops { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 14px; }
   .pops li { min-width: 0; }
   .pop {
