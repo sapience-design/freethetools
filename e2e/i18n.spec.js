@@ -2,6 +2,10 @@
 // outside requests, and accessibility in both themes.
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+import { readFileSync } from "node:fs";
+
+// Norwegian has been reviewed by a person; the machine-translation note shows only while it is not.
+const nbReviewed = JSON.parse(readFileSync("src/i18n/nb.json", "utf8")).meta.reviewed;
 
 // Like every other spec: nothing may reach another origin, and the policy must never be broken.
 test.beforeEach(async ({ page }) => {
@@ -28,7 +32,8 @@ test("the language switcher keeps you on the same tool, there and back", async (
   await expect(page).toHaveURL(/\/nb\/pdf\/compress\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "nb");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Gjør en PDF mindre");
-  await expect(page.locator(".review-note")).toContainText("oversatt maskinelt");
+  if (nbReviewed) await expect(page.locator(".review-note")).toHaveCount(0);
+  else await expect(page.locator(".review-note")).toContainText("oversatt maskinelt");
   await expect(page.locator(".tool-note")).toContainText("fortsatt på engelsk");
   const nbFoot = page.getByRole("navigation", { name: "Språk" });
   await expect(nbFoot.getByRole("link", { name: "Norsk bokmål" })).toHaveAttribute("aria-current", "true");
