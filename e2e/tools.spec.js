@@ -369,7 +369,7 @@ test.describe("text, data and everyday tools", () => {
     await page.fill("#tz-when", "2026-11-01T01:30");
     await expect(page.locator("#tz-note")).toContainText("happens twice");
     await page.fill("#tz-when", "2026-09-27T09:00");
-    await expect(page.locator("#tz-note")).toBeHidden();
+    await expect(page.locator("#tz-note")).toBeEmpty();
   });
 });
 
