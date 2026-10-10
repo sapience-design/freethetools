@@ -72,11 +72,13 @@ test("Split PDF: one Share per file", async ({ page }) => {
   await page.goto("/pdf/split/");
   await page.setInputFiles("#pdfs-file", PDF);
   await page.click("#pdfs-go");
-  await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
-  await expect(page.locator(".share-btn")).toHaveCount(3);
-  const names = await page.locator("a[download]").evaluateAll((as) => as.map((a) => a.getAttribute("download")));
+  await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
+  // One Share per file, and one for the "Download all" ZIP, which comes first.
+  await expect(page.locator(".share-btn")).toHaveCount(4);
+  const names = await page.locator("a[download]").evaluateAll((as) => as.map((a) => a.getAttribute("download")).filter((n) => !n.endsWith(".zip")));
+  expect(names).toHaveLength(3);
   for (const n of names) await expect(page.getByRole("button", { name: `Share ${n}` })).toHaveCount(1);
-  await page.locator(".share-btn").nth(1).click();
+  await page.locator(".share-btn").nth(2).click();
   await expect.poll(() => shared(page)).toHaveLength(1);
   expect((await shared(page))[0].files[0].name).toBe(names[1]);
 });

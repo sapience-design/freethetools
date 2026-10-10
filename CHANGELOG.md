@@ -8,6 +8,10 @@ major version.
 
 ## [Unreleased]
 
+### Added
+
+- "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
+
 ## [1.1.0] - 2026-10-09
 
 The first release since launch: 27 new tools (28 in all), a new design, tools for AI agents with a library of every job, Share, anonymous usage totals, and WCAG 2.2 AA checks on every page.

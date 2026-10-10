@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
+import { unzipSync } from "fflate";
 import { OPEN_PASSWORD, withPassword, withRestrictions } from "../tools/pdf/unlock/tests/helpers.js";
 
 const PDF = "tools/pdf/compress/tests/fixtures/sample.pdf";
@@ -56,9 +57,26 @@ test.describe("PDF tools", () => {
     await page.setInputFiles("#pdfs-file", PDF);
     await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages · .+ · \d+ KB$/);
     await page.click("#pdfs-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
-    const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
+    const out = await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
     expect(await pageCount(out)).toBe(1);
+  });
+
+  test("Split PDF downloads every page as one ZIP", async ({ page }) => {
+    await page.goto("/pdf/split/");
+    await page.setInputFiles("#pdfs-file", PDF);
+    await expect(page.locator("#pdfs-meta")).toContainText(/^3 pages/);
+    await page.click("#pdfs-go");
+    const all = page.getByRole("link", { name: "Download all (3 files, ZIP)" });
+    await expect(all).toBeVisible();
+    const out = await download(page, () => all.click());
+    const files = unzipSync(new Uint8Array(out));
+    const names = Object.keys(files);
+    expect(names).toHaveLength(3);
+    for (const n of names) {
+      expect(n).toMatch(/\.pdf$/);
+      expect(await pageCount(Buffer.from(files[n]))).toBe(1);
+    }
   });
 
   test("Merge PDFs keeps keyboard focus on the arrows while reordering", async ({ page }) => {
@@ -73,9 +91,9 @@ test.describe("PDF tools", () => {
     await page.goto("/pdf/split/");
     await page.setInputFiles("#pdfs-file", PDF);
     await page.click("#pdfs-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
     await page.click('label[for="pdfs-ranges"]');
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(0);
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(0);
     await expect(page.locator("#pdfs-result")).toContainText("will appear here");
   });
 
@@ -422,6 +440,17 @@ test.describe("image tools", () => {
     expect(out[1]).toBe(0xd8);
   });
 
+  test("Convert Image Format offers a ZIP for several photos", async ({ page }) => {
+    await page.goto("/images/convert/");
+    await page.setInputFiles("#cvi-file", [png(), { ...png(), name: "second.png" }]);
+    await page.click("#cvi-go");
+    const all = page.getByRole("link", { name: "Download all (2 files, ZIP)" });
+    await expect(all).toBeVisible();
+    const files = unzipSync(new Uint8Array(await download(page, () => all.click())));
+    expect(Object.keys(files).sort()).toEqual(["gradient.jpg", "second.jpg"]);
+    expect(files["gradient.jpg"][0]).toBe(0xff);
+  });
+
   test("Compress Images reports a result", async ({ page }) => {
     await page.goto("/images/compress/");
     await page.setInputFiles("#cmi-file", png());
@@ -465,8 +494,8 @@ test.describe("PDF to images", () => {
     await expect(page.locator("#p2i-thumb canvas")).toBeVisible();
     await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
     await page.click("#p2i-go");
-    await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3, { timeout: 30_000 });
-    const out = await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
+    await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3, { timeout: 30_000 });
+    const out = await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
     expect(out.subarray(1, 4).toString()).toBe("PNG");
   });
 });

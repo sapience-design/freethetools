@@ -160,10 +160,10 @@ test("Split PDF's several files become one record, and a record can be deleted",
   await page.goto("/pdf/split/");
   await page.setInputFiles("#pdfs-file", PDF);
   await page.click("#pdfs-go");
-  await expect(page.getByRole("link", { name: "Download" })).toHaveCount(3);
+  await expect(page.getByRole("link", { name: "Download", exact: true })).toHaveCount(3);
   // Nothing is recorded until the person takes a result; then the whole job is recorded once.
-  await download(page, () => page.getByRole("link", { name: "Download" }).first().click());
-  await download(page, () => page.getByRole("link", { name: "Download" }).nth(1).click());
+  await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
+  await download(page, () => page.getByRole("link", { name: "Download", exact: true }).nth(1).click());
   await page.waitForTimeout(700);
   await page.goto("/library/");
   await expect(page.locator("#lib-list li.rec")).toHaveCount(1);

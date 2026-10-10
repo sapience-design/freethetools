@@ -39,7 +39,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { parseRanges, everyPage, splitPdf } from "./core.js";
   import { pageCount } from "../merge/core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
 
@@ -83,6 +83,7 @@ import Icon from "../../../src/components/Icon.astro";
       const ranges = mode === "each" ? everyPage(total) : parseRanges(($("pdfs-range") as HTMLInputElement).value, total);
       const parts = await splitPdf(bytes.slice(0), ranges);
       const rows: HTMLElement[] = [];
+      const made: { name: string; blob: Blob }[] = [];
       for (const p of parts) {
         const label = p.range[0] === p.range[1] ? `page ${p.range[0]}` : `pages ${p.range[0]}-${p.range[1]}`;
         const fname = `${baseName(file.name)}_${label.replace(/\s/g, "-")}.pdf`;
@@ -91,8 +92,10 @@ import Icon from "../../../src/components/Icon.astro";
         const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${label} · ${fmtBytes(p.bytes.byteLength)}`;
         const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(p.bytes, fname, "application/pdf"));
         li.append(n, m, a); rows.push(li);
+        made.push({ name: fname, blob: new Blob([p.bytes], { type: "application/pdf" }) });
       }
-      showDone(result, `Done. ${parts.length} new ${parts.length === 1 ? "PDF" : "PDFs"}.`);
+      const all = downloadAllButton(() => made, `${baseName(file.name)}-pages.zip`);
+      showDone(result, `Done. ${parts.length} new ${parts.length === 1 ? "PDF" : "PDFs"}.`, ...(all ? [all] : []));
       files.replaceChildren(...rows);
       stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
