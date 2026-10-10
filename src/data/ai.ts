@@ -23,6 +23,24 @@ export const MCP_JSON = `{
   }
 }`;
 export const WINDOWS_NOTE = `On Windows, if the app cannot start npx, use "command": "cmd" and "args": ["/c", "npx", "-y", "freethetools", "mcp"].`;
+// One-step installs. Each opens or runs on the person's own computer; nothing is uploaded.
+export const PLUGIN_CMDS = `/plugin marketplace add sapience-design/freethetools
+/plugin install freethetools@freethetools`;
+export const GEMINI_CMD = "gemini extensions install https://github.com/sapience-design/freethetools";
+export const CODEX_TOML = `[mcp_servers.freethetools]
+command = "npx"
+args = ["-y", "freethetools", "mcp"]`;
+export const WEB_ASSISTANTS_NOTE = "ChatGPT, Gemini and Claude on the web cannot run tools on your computer. Use the tools on this website instead.";
+export const ONE_STEP_NOTE = "Each button opens the app on your computer. Nothing is uploaded.";
+
+const SERVER = { command: "npx", args: ["-y", "freethetools", "mcp"] };
+/** "Add to Cursor": the server settings as base64 JSON in a cursor:// link. */
+export const CURSOR_LINK = `cursor://anysphere.cursor-deeplink/mcp/install?name=freethetools&config=${encodeURIComponent(Buffer.from(JSON.stringify(SERVER)).toString("base64"))}`;
+/** "Add to VS Code": the name and server settings as URL-encoded JSON. */
+const vscodeJson = encodeURIComponent(JSON.stringify({ name: "freethetools", type: "stdio", ...SERVER }));
+export const VSCODE_LINK = `vscode:mcp/install?${vscodeJson}`;
+export const VSCODE_INSIDERS_LINK = `vscode-insiders:mcp/install?${vscodeJson}`;
+
 export const CLI_LIST = "npx -y freethetools list";
 export const CLI_RUN = `npx -y freethetools run merge_pdfs '{"files":["a.pdf","b.pdf"]}'`;
 

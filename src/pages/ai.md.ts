@@ -1,7 +1,7 @@
 // /ai.md: the AI assistants page as plain Markdown, built from the same data as /ai/.
 import type { APIRoute } from "astro";
 import { REPO } from "../data/catalogue";
-import { agentRows, CLAUDE_CODE_CMD, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY, WINDOWS_NOTE } from "../data/ai";
+import { agentRows, CLAUDE_CODE_CMD, CODEX_TOML, CURSOR_LINK, GEMINI_CMD, ONE_STEP_NOTE, PLUGIN_CMDS, VSCODE_INSIDERS_LINK, VSCODE_LINK, WEB_ASSISTANTS_NOTE, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY, WINDOWS_NOTE } from "../data/ai";
 
 export const GET: APIRoute = async ({ site }) => {
   const abs = (p: string) => new URL(p, site).href;
@@ -20,6 +20,42 @@ export const GET: APIRoute = async ({ site }) => {
     "## Set it up",
     "",
     "You need Node.js 22 or later.",
+    "",
+    "### Claude Code plugin",
+    "",
+    "In Claude Code, run these two commands:",
+    "",
+    "```text",
+    PLUGIN_CMDS,
+    "```",
+    "",
+    "### Cursor and VS Code",
+    "",
+    `- [Add to Cursor](${CURSOR_LINK})`,
+    `- [Add to VS Code](${VSCODE_LINK})`,
+    `- [Add to VS Code Insiders](${VSCODE_INSIDERS_LINK})`,
+    "",
+    ONE_STEP_NOTE,
+    "",
+    "### Gemini CLI",
+    "",
+    "```sh",
+    GEMINI_CMD,
+    "```",
+    "",
+    "### OpenAI Codex",
+    "",
+    "Add this block to `~/.codex/config.toml`, then restart Codex:",
+    "",
+    "```toml",
+    CODEX_TOML,
+    "```",
+    "",
+    "### ChatGPT, Gemini and Claude on the web",
+    "",
+    WEB_ASSISTANTS_NOTE,
+    "",
+    "## Set it up by hand",
     "",
     "### Claude Code",
     "",

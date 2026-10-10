@@ -29,7 +29,7 @@ Claude, Cursor and other AI assistants can use the tools instead of installing s
 
 | Channel | For | Setup |
 |---|---|---|
-| The `freethetools` npm package, an MCP server on your computer | Claude Code, Claude Desktop, Cursor and other MCP clients | `claude mcp add freethetools -- npx -y freethetools mcp` |
+| The `freethetools` npm package, an MCP server on your computer | Claude Code, Claude Desktop, Cursor and other MCP clients | One step: Claude Code plugin (`/plugin marketplace add sapience-design/freethetools`, then `/plugin install freethetools@freethetools`), Gemini CLI (`gemini extensions install https://github.com/sapience-design/freethetools`), or the Add to Cursor and Add to VS Code buttons on [freethetools.com/ai](https://freethetools.com/ai/). By hand: `claude mcp add freethetools -- npx -y freethetools mcp` |
 | WebMCP on each tool page | AI agents inside a browser | None. Chrome and Edge support it in origin trials; other browsers ignore it. |
 
 The package is published on [npm](https://www.npmjs.com/package/freethetools) and listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`. It reads files by path, saves results in a `freethetools` folder in your home folder, and records every job in `library.jsonl`. It also has a command line for agents without MCP: `npx -y freethetools run <tool> '<json>'`. Setup for each client is in [docs/how-to/use-with-ai.md](docs/how-to/use-with-ai.md). The package source is in [packages/freethetools](packages/freethetools). There is no hosted MCP server, because the files would have to be uploaded.

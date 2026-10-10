@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "freethetools": {
+      "command": "npx",
+      "args": ["-y", "freethetools", "mcp"]
+    }
+  }
+}

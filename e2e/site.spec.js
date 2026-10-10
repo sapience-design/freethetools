@@ -210,3 +210,13 @@ test("the Copy button on the AI assistants page copies the prompt", async ({ bro
   expect(offsite, "requests to other origins").toEqual([]);
   await context.close();
 });
+
+test("the AI assistants page puts one-step installs first", async ({ page }) => {
+  await page.goto("/ai/");
+  await expect(page.getByRole("link", { name: "Add to Cursor", exact: true })).toHaveAttribute("href", /^cursor:\/\//);
+  await expect(page.getByRole("link", { name: "Add to VS Code", exact: true })).toHaveAttribute("href", /^vscode:mcp\/install\?/);
+  await expect(page.locator("#ai-plugin")).toContainText("/plugin install freethetools@freethetools");
+  await expect(page.locator("#ai-gemini")).toContainText("gemini extensions install");
+  await expect(page.locator("#ai-codex")).toContainText("[mcp_servers.freethetools]");
+  await expect(page.getByRole("heading", { name: "Set it up by hand" })).toBeVisible();
+});
