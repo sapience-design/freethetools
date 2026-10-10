@@ -359,6 +359,18 @@ test.describe("text, data and everyday tools", () => {
     await page.goto("/everyday/time-zone-converter/");
     await expect(page.locator("#tz-list li").first()).toBeVisible();
   });
+
+  test("Time Zone Converter says when a time is skipped or repeated", async ({ page }) => {
+    await page.goto("/everyday/time-zone-converter/");
+    await page.selectOption("#tz-from", "America/New_York");
+    await page.fill("#tz-when", "2026-03-08T02:30");
+    await expect(page.locator("#tz-note")).toContainText("2:30 does not exist on 8 March in New York");
+    await expect(page.locator("#tz-note")).toContainText("Showing 3:30");
+    await page.fill("#tz-when", "2026-11-01T01:30");
+    await expect(page.locator("#tz-note")).toContainText("happens twice");
+    await page.fill("#tz-when", "2026-09-27T09:00");
+    await expect(page.locator("#tz-note")).toBeEmpty();
+  });
 });
 
 // ---- Image tools -------------------------------------------------------------------------------
@@ -416,6 +428,24 @@ function jpegWithDetails() {
   return Buffer.concat([Buffer.from([0xff, 0xd8]), app1, Buffer.from([0xff, 0xda, 0, 4, 1, 2, 9, 9, 0xff, 0xd9])]);
 }
 function rationals(...v) { const b = Buffer.alloc(v.length * 4); v.forEach((x, i) => b.writeUInt32LE(x, i * 4)); return b; }
+
+test.describe("Video to GIF", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("Video to GIF turns a short video into a GIF", async ({ page }) => {
+    await page.goto("/images/video-to-gif/");
+    await page.setInputFiles("#v2g-file", "tools/images/video-to-gif/tests/fixtures/sample.webm");
+    await expect(page.locator("#v2g-meta")).toContainText("seconds");
+    await expect(page.locator("#v2g-estimate")).toContainText(/^About .+ frames/);
+    await page.locator('label[for="v2g-w320"]').click();
+    await page.locator('label[for="v2g-f5"]').click();
+    await page.click("#v2g-go");
+    await expect(page.locator("#v2g-out img")).toBeVisible({ timeout: 30000 });
+    const out = await download(page, () => page.locator("#v2g-out").getByRole("link", { name: /^Download/ }).click());
+    expect(out.subarray(0, 6).toString("latin1")).toBe("GIF89a");
+    expect(out.readUInt16LE(6)).toBe(320);
+  });
+});
 
 test.describe("image tools", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");

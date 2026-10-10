@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Web Crypto API; MD5 in plain JavaScript", "Files": "Hashed on your device, never uploaded" },
+  "specs": { "Engine": "Web Crypto API; MD5 in plain JavaScript", "Files": "Hashed on your device, never uploaded", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is my file uploaded to be hashed?", "a": "No. The file is read and hashed in this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Should I use MD5?", "a": "Only to match a checksum someone published in MD5. It's broken for security uses; use SHA-256 for anything new." }

@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "qrcode-generator 2 (MIT), in your browser", "Tracking": "None: the code holds your text directly, not a redirect link" },
+  "specs": { "Engine": "qrcode-generator 2 (MIT), in your browser", "Tracking": "None: the code holds your text directly, not a redirect link", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Do these QR codes expire?", "a": "Never. Many free QR sites encode a link to their own server so they can track scans or switch the code off later. This one puts your link or text directly in the code." },
     { "q": "Which error correction should I pick?", "a": "Medium suits most uses. Choose High if the code will be printed small, on fabric, or with a logo over it." }

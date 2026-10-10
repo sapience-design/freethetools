@@ -1,0 +1,1 @@
+- Search: "open protected pdf" and "decrypt pdf" find Unlock PDF.

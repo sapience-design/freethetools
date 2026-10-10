@@ -22,3 +22,7 @@ test("hashes raw bytes", async () => {
   const bytes = Uint8Array.from([0, 1, 2, 255]);
   assert.equal(await hash(bytes, "SHA-256"), createHash("sha256").update(bytes).digest("hex"));
 });
+
+test("an unknown algorithm lists the valid ones", async () => {
+  await assert.rejects(() => hashText("abc", "SHA-3"), /Unknown algorithm "SHA-3"\. Use one of: SHA-256, SHA-512, SHA-384, SHA-1, MD5\./);
+});

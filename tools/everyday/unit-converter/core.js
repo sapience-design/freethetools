@@ -22,7 +22,7 @@ const fromC = { C: (v) => v, F: (v) => (v * 9) / 5 + 32, K: (v) => v + 273.15 };
  */
 export function convert(value, category, from, to) {
   const cat = UNITS[category];
-  if (!cat) throw new Error(`Unknown category "${category}".`);
+  if (!cat) throw new Error(`Unknown category "${category}". Use one of: ${Object.keys(UNITS).join(", ")}.`);
   if (!(from in cat.units) || !(to in cat.units)) throw new Error("Pick two units from the same group.");
   if (!Number.isFinite(value)) throw new Error("Enter a number.");
   if (category === "temperature") {

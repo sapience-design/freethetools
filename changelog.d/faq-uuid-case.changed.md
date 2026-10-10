@@ -1,0 +1,1 @@
+- UUID Generator and Case Converter: a new answer in each FAQ. UUID Generator says how many IDs you can make at once. Case Converter says what happens to numbers and emoji.

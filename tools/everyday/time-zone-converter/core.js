@@ -11,18 +11,33 @@ export function offsetMinutes(zone, date) {
 }
 
 /**
+ * Work out which instants show the given local time in a zone. Around a clock change a local time
+ * can show twice (autumn) or never (spring). The rule is the one Temporal and java.time call "compatible":
+ * a time that happens twice takes the earlier one; a time that does not exist moves forward by the gap.
+ * @returns {{ instant: Date, change: null | "gap" | "overlap" }}
+ */
+function resolve(localIso, zone) {
+  const m = localIso.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})$/);
+  if (!m) throw new Error("Enter a date and time.");
+  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  const DAY = 86400000;
+  const before = offsetMinutes(zone, new Date(guess - DAY));
+  const after = offsetMinutes(zone, new Date(guess + DAY));
+  // An offset is right only if the zone really uses it at the instant it gives.
+  const fits = [...new Set([before, after])].map((o) => guess - o * 60000).filter((t) => guess - offsetMinutes(zone, new Date(t)) * 60000 === t);
+  if (fits.length === 0) return { instant: new Date(guess - before * 60000), change: "gap" };
+  return { instant: new Date(Math.min(...fits)), change: fits.length > 1 ? "overlap" : null };
+}
+
+/**
  * The instant when the wall clock in `zone` shows the given local date and time.
  * @param {string} localIso "2026-09-27T09:00"
  * @param {string} zone IANA name, e.g. "Europe/Oslo"
  */
-export function zonedToInstant(localIso, zone) {
-  const m = localIso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
-  if (!m) throw new Error("Enter a date and time.");
-  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
-  let t = guess - offsetMinutes(zone, new Date(guess)) * 60000;
-  t = guess - offsetMinutes(zone, new Date(t)) * 60000; // second pass settles DST boundaries
-  return new Date(t);
-}
+export const zonedToInstant = (localIso, zone) => resolve(localIso, zone).instant;
+
+/** Does the local time fall on a clock change? "gap" = it does not exist, "overlap" = it happens twice, null = neither. */
+export const clockChange = (localIso, zone) => resolve(localIso, zone).change;
 
 /** Wall-clock time of an instant in a zone, e.g. { time: "15:00", date: "Sun 27 Sep", offset: "UTC+2", dayShift: 0 }. */
 export function inZone(date, zone, refZone) {

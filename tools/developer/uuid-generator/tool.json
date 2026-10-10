@@ -12,9 +12,10 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "crypto.getRandomValues (secure random)", "Standard": "RFC 9562: v4 random, v7 time-ordered" },
+  "specs": { "Engine": "crypto.getRandomValues (secure random)", "Standard": "RFC 9562: v4 random, v7 time-ordered", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "v4 or v7?", "a": "v4 is fully random. v7 starts with the time it was made, so IDs sort in creation order, which keeps database indexes fast." },
-    { "q": "Are these generated on a server?", "a": "No. They're made in this tab from your device's secure random number generator." }
+    { "q": "Are these generated on a server?", "a": "No. They're made in this tab from your device's secure random number generator." },
+    { "q": "How many can I make at once?", "a": "Up to 1,000 at a time. Type a number from 1 to 1,000 in the How many box, and a bigger number is cut back to 1,000." }
   ]
 }

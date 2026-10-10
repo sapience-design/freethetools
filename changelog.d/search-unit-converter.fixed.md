@@ -1,0 +1,1 @@
+- Search: "miles", "weight", "distance" and other long unit names now find Unit Converter.

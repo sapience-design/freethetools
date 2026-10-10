@@ -12,7 +12,7 @@
   "status": "live",
   "added": "2026-09-27",
   "offline": true,
-  "specs": { "Engine": "Papa Parse 5.7 (MIT), in your browser", "Delimiters": "Comma, semicolon, tab and pipe, detected automatically" },
+  "specs": { "Engine": "Papa Parse 5.7 (MIT), in your browser", "Delimiters": "Comma, semicolon, tab and pipe, detected automatically", "Works offline": "Yes, once the page has loaded" },
   "faq": [
     { "q": "Is my data uploaded?", "a": "No. It's converted in this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Can I use an Excel file?", "a": "Save it as CSV first (File, Save as, CSV). Reading .xlsx directly is on the list." }

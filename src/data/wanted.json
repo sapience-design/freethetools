@@ -23,7 +23,6 @@
   { "name": "PDF Watermark and Page Numbers", "category": "pdf", "section": "Organize", "blurb": "Stamp text on every page, or number the pages." },
   { "name": "Zip and Unzip", "category": "everyday", "section": "Convert", "blurb": "Pack files into a ZIP, or open one, without installing anything." },
   { "name": "Image Crop", "category": "images", "section": "Optimize", "blurb": "Cut a photo to the part you want, or to a fixed ratio." },
-  { "name": "Video to GIF", "category": "images", "section": "Convert", "blurb": "Turn a short clip or screen recording into a GIF." },
   { "name": "JSON to YAML", "category": "data", "section": "Convert", "blurb": "Turn JSON into YAML and back." },
   { "name": "URL Encode and Decode", "category": "developer", "section": "Encode", "blurb": "Make text safe for a link, or read an encoded one." },
   { "name": "Unix Timestamp Converter", "category": "everyday", "section": "Time", "blurb": "Turn a timestamp into a date and time, and back." },
