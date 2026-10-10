@@ -1,1 +1,0 @@
-- Case Converter, Markdown to HTML, Text Diff, Word Counter, File Converter, Time Zone Converter, Unit Converter, Compress Images, Convert Image Format, Remove Photo Location, Resize Images and Fill PDF Form: the spec table now says each one works offline once the page has loaded.

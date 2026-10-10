@@ -8,6 +8,39 @@ major version.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-10-10
+
+### Added
+
+- A new page for AI assistants, with a prompt to copy, setup for each assistant and the list of tools they can use. It is also available as Markdown at /ai.md.
+- Search shortcut switch: a new checkbox in the footer turns off the "/" key that jumps to search. Your choice is kept in this browser.
+- Video to GIF (Images, Convert): turn a short clip or screen recording into a GIF, in the browser.
+- Every tool that is not built yet now has its own page at the address it will have. It says what the tool will do, shows how many people want it, and has an "I want this" button. You can also sponsor it or tell us what you need.
+- One form, "Suggest a tool or report a problem", for suggestions and problems. No account is needed. Your message goes by email to the maintainers and is not stored on the site.
+
+### Changed
+
+- "Suggest a tool", "Report a problem" and "ask us to build it" now open the new form instead of GitHub. GitHub links stay for people who want to build a tool.
+- Every page except home tells search engines where it sits (Free the Tools › group › tool), and tool pages name Sapience Design as an organisation, not a person.
+- The top bar reads Library (with a books icon), Favourites (All tools on other pages), GitHub, then a yellow "Donate" button, which goes straight to Ko-fi. About moves to the footer. On phones the bar fits on one line.
+- After a tool finishes, a small card under the Download button asks for a donation, at most once per visit and never after an error. "Next time" hides it for that visit.
+- The footer has "Donate" and "Sponsor a tool". Group pages and the "Nothing found" search message offer to sponsor a missing tool so it is built sooner.
+- About explains why the tools are free and what donations pay for. The support page is now "Donate or sponsor a tool".
+- Hash Generator and Unit Converter: when you give an unknown algorithm or category, the error now lists the choices that work.
+- UUID Generator and Case Converter: a new answer in each FAQ. UUID Generator says how many IDs you can make at once. Case Converter says what happens to numbers and emoji.
+- "Saved" and "Like" are now one heart, called Favourites: adding a tool to your favourites also counts one like, and removing it takes the like back.
+- The home page shows "Your favourites" at the top once you have kept a tool, with a link to manage them.
+- The site says "Sapience Design" instead of "Sapience" when it names the studio behind it.
+- About, the home page, the README, the setup guide and `/llms.txt` say the `freethetools` package is on npm and in the official MCP Registry, with links.
+- CSV to JSON, JSON Formatter, Base64, Hash Generator, JWT Decoder, Password Generator, QR Code Maker, Regex Tester and UUID Generator: the spec table now says each one works offline once the page has loaded.
+- Case Converter, Markdown to HTML, Text Diff, Word Counter, File Converter, Time Zone Converter, Unit Converter, Compress Images, Convert Image Format, Remove Photo Location, Resize Images and Fill PDF Form: the spec table now says each one works offline once the page has loaded.
+
+### Fixed
+
+- Search: "miles", "weight", "distance" and other long unit names now find Unit Converter.
+- Search: "open protected pdf" and "decrypt pdf" find Unlock PDF.
+- Time Zone Converter: a time that the clocks skip now moves forward by the gap, and a time that happens twice uses the first one. The page says so when this happens.
+
 ## [1.2.0] - 2026-10-10
 
 ### Added
@@ -163,7 +196,8 @@ The first release since launch: 27 new tools (28 in all), a new design, tools fo
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/sapience-design/freethetools/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sapience-design/freethetools/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sapience-design/freethetools/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/sapience-design/freethetools/releases/tag/v1.0.0
