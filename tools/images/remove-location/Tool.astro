@@ -26,7 +26,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { stripMetadata, readMetadata } from "./core.js";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("rml-tool"), picked = $("rml-picked"), list = $("rml-list"), status = $("rml-status");
@@ -101,6 +101,7 @@ import Icon from "../../../src/components/Icon.astro";
     compactDrop("rml", true);
     showBusy(status, files.length > 1 ? `Cleaning ${files.length} photos. Please keep this page open.` : undefined);
     let done = 0, gps = 0;
+    const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
       const li = fileRow({ name: f.name, meta: "", thumb: imageThumb(f) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
@@ -110,7 +111,9 @@ import Icon from "../../../src/components/Icon.astro";
         const removed = [r.found.gps && "GPS location", r.found.exif && "camera and date details", r.found.xmp && "XMP", r.found.iptc && "IPTC", r.found.comment && "comments"].filter(Boolean);
         m.textContent = removed.length ? `Removed ${removed.join(", ")} · ${fmtBytes(f.size)} → ${fmtBytes(r.bytes.length)}` : "No location or camera data found. This copy is clean.";
         if (r.found.gps) { li.classList.add("rml-gps"); gps++; }
-        act.append(downloadLink(r.bytes, `${baseName(f.name)}_clean.${EXT[r.format]}`, MIME[r.format]));
+        const out = `${baseName(f.name)}_clean.${EXT[r.format]}`;
+        act.append(downloadLink(r.bytes, out, MIME[r.format]));
+        outs.push({ name: out, blob: new Blob([r.bytes], { type: MIME[r.format] }) });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; m.classList.add("bad"); }
     }
@@ -122,8 +125,9 @@ import Icon from "../../../src/components/Icon.astro";
       return;
     }
     stepTo(root, 4);
+    const all = downloadAllButton(() => outs, `clean-photos-${dateStamp()}.zip`);
     const note = gps ? [] : [done > 1 ? "None of them had a location to remove." : "It had no location to remove."];
-    showDone(status, done > 1 ? `Done. No location left in these ${done} photos.` : "Done. No location left in this photo.", ...note);
+    showDone(status, done > 1 ? `Done. No location left in these ${done} photos.` : "Done. No location left in this photo.", ...note, ...(all ? [all] : []));
   });
 
   again.addEventListener("click", () => {

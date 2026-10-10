@@ -48,7 +48,7 @@ import { RESOLUTIONS } from "./core.js";
   import { safeScale, pageFileName } from "./core.js";
   import { parseRanges, everyPage } from "../split/core.js";
   import { pagesFromRanges } from "../rotate/core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, baseName, showError, showBusy, showDone, showWait, compactDrop } from "../../../src/lib/files";
   import { paperName } from "../../../src/lib/paper.js";
   import { stepTo } from "../../../src/lib/steps";
 
@@ -100,6 +100,7 @@ import { RESOLUTIONS } from "./core.js";
     stepTo(root, 3);
     showBusy(result);
     let made = 0;
+    const outs: { name: string; blob: Blob }[] = [];
     try {
       const pages = pagesFromRanges(rangeText ? parseRanges(rangeText, doc.numPages) : everyPage(doc.numPages));
       // Each picture appears as soon as it's made, so a long PDF shows progress and a late error keeps the rest.
@@ -121,9 +122,10 @@ import { RESOLUTIONS } from "./core.js";
         const nm = document.createElement("span"); nm.className = "fname"; nm.textContent = name;
         const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `Page ${n} · ${canvas.width}×${canvas.height} · ${fmtBytes(blob.size)}`;
         const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(blob, name, type));
-        li.append(nm, m, a); files.append(li); made++;
+        li.append(nm, m, a); files.append(li); made++; outs.push({ name, blob });
       }
-      showDone(result, `Done. ${made} ${made === 1 ? "picture" : "pictures"}.`);
+      const all = downloadAllButton(() => outs, `${baseName(file.name)}-images.zip`);
+      showDone(result, `Done. ${made} ${made === 1 ? "picture" : "pictures"}.`, ...(all ? [all] : []));
       stepTo(root, 4);
     } catch (e) { showError(result, made ? `${(e as Error).message} The ${made} ${made === 1 ? "picture" : "pictures"} below were made before it stopped.` : (e as Error).message); }
     go.disabled = false;

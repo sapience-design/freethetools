@@ -19,6 +19,7 @@ major version.
 - A "What's new" page at `/changelog/` and an RSS feed at `/changelog.xml`, both built from this file. The footer version links to the page.
 - Verifiable builds: every build writes `integrity.json`, the SHA-256 of each deployed file, and the new Verify this site page (`/verify/`) checks the live files against it in your browser. Anyone can rebuild a commit and compare the hashes ([ADR 0012](docs/adr/0012-verifiable-builds.md)).
 - HEIC to JPG (Images, Convert): turn iPhone HEIC photos into JPG or PNG in the browser, one or many at once. Safari uses its own decoder; other browsers use libheif compiled to WebAssembly, run in a worker.
+- "Download all" saves every file a tool made as one ZIP (Split PDF, PDF to Images, Compress, Convert, Resize and Remove Photo Location), with Share where the browser can share a ZIP.
 
 ### Changed
 

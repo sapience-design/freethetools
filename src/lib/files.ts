@@ -1,5 +1,10 @@
 // Small helpers shared by tool pages: file sizes, downloads, the drop area and result boxes.
 // Everything stays in the browser: files are read with the File API and handed back as blob: URLs.
+import { zipAll } from "./zip.js";
+import type { ZipEntry } from "./zip.js";
+import { shareButton, canShareFile } from "./share";
+
+export { zipAll };
 
 export const fmtBytes = (n: number) =>
   n >= 1048576 ? `${(n / 1048576).toFixed(2)} MB` : n >= 1024 ? `${Math.round(n / 1024)} KB` : `${n} B`;
@@ -12,6 +17,63 @@ export function downloadLink(data: BlobPart, filename: string, type: string, lab
   a.download = filename;
   a.href = URL.createObjectURL(new Blob([data], { type }));
   return a;
+}
+
+/** Today as "2026-10-10", for names of files made here. */
+export const dateStamp = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * "Download all (N files, ZIP)" for a tool that made several files. Returns null for fewer than two.
+ * The ZIP is built when the person asks, not before. `getFiles` is read at that moment. The link
+ * is a normal a[download] with a blob: href once built, so the library records it like any result.
+ * A Share button follows where the browser can share a ZIP.
+ */
+export function downloadAllButton(getFiles: () => ZipEntry[], zipName: string): HTMLElement | null {
+  const count = getFiles().length;
+  if (count < 2) return null;
+  const label = `Download all (${count} files, ZIP)`;
+  const wrap = document.createElement("span");
+  wrap.className = "dl-all";
+  const a = document.createElement("a");
+  a.className = "btn";
+  a.textContent = label;
+  a.download = zipName;
+  a.href = "#";
+  a.dataset.ownShare = "";
+  wrap.append(a);
+
+  let building: Promise<Blob> | null = null;
+  const build = () => building ??= zipAll(getFiles()).then((blob) => {
+    a.href = URL.createObjectURL(blob);
+    return blob;
+  }, (e) => { building = null; throw e; });
+
+  a.addEventListener("click", async (e) => {
+    if (a.href.startsWith("blob:")) return; // already built: the browser downloads it
+    e.preventDefault();
+    if (a.getAttribute("aria-busy")) return;
+    a.setAttribute("aria-busy", "true");
+    a.textContent = "Making the ZIP…";
+    try {
+      await build();
+      a.textContent = label;
+      a.removeAttribute("aria-busy");
+      await Promise.resolve(); // let the library see the new link before it is clicked
+      a.click();
+    } catch {
+      reportFailure();
+      a.textContent = "The ZIP could not be made. Download the files one by one.";
+      a.removeAttribute("aria-busy");
+    }
+  });
+
+  if (canShareFile(zipName, "application/zip")) {
+    const share = shareButton(zipName, "application/zip", build, {
+      onShared: () => a.dispatchEvent(new CustomEvent("ftt:shared", { bubbles: true, detail: { link: a } })),
+    });
+    if (share) wrap.append(share);
+  }
+  return wrap;
 }
 
 /** Base name without extension: "report.final.pdf" -> "report.final". */

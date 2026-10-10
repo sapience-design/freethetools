@@ -12,7 +12,7 @@ export default defineConfig({
     // old bundle loses its script (a 504 "Outdated Optimize Dep") until it is reloaded. Keep this
     // list in step with the libraries imported by tools/*/*/ and src/.
     optimizeDeps: {
-      include: ["diff", "dompurify", "marked", "minisearch", "papaparse", "pdf-lib", "pdfjs-dist", "qrcode-generator", "turndown"],
+      include: ["diff", "dompurify", "fflate", "marked", "minisearch", "papaparse", "pdf-lib", "pdfjs-dist", "qrcode-generator", "turndown"],
     },
   },
   security: {

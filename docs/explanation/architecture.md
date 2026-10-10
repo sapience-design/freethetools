@@ -65,6 +65,8 @@ Every job is recorded on the device that did it, so a person can see what they o
 
 Next to every result to download, on tool pages, in the agent activity panel and in the library, a Share button opens the device's own share menu through the Web Share API (`src/lib/share.ts`). The file goes only where the person sends it. The button appears only where the browser can share that kind of file. A completed share counts as a success in the anonymous totals and records the job in the library, like a download.
 
+When a tool makes two or more files, `downloadAllButton` in `src/lib/files.ts` adds "Download all (N files, ZIP)". The ZIP is built in the browser (fflate, `src/lib/zip.js`) only when the person asks, and its link is a normal `a[download]`. The library records it as its own job, after any per-file download, because the link appears later than 300 ms after the file links.
+
 ## Search and sorting
 
 Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisearch) over an index built from every `tool.json`, expanded with synonyms (`src/data/synonyms.js`) so "combine" finds Merge. It allows typos in longer words, matches partial words, and ignores filler words (`src/lib/search.js`). The home page sorts tools by Most used, Newest, Most liked or A–Z. The two usage sorts use the totals below; when the totals can't load (previews have no database), they fall back to A–Z and the label beside "All tools" says so. "Most people come for" shows four tools at a time; the rest scroll sideways, with arrow buttons for mouse and keyboard.
