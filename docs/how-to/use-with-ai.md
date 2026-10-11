@@ -6,7 +6,46 @@ You need [Node.js](https://nodejs.org) 22 or later.
 
 The package is published on [npm](https://www.npmjs.com/package/freethetools) and listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`. An assistant that can search the registry finds it under that name; the steps below set it up by hand.
 
-## Claude Code
+## Install in one step
+
+Each install below runs the package on your computer. Nothing is uploaded.
+
+### Claude Code plugin
+
+1. In Claude Code, run `/plugin marketplace add sapience-design/freethetools`.
+2. Run `/plugin install freethetools@freethetools`.
+
+The plugin adds the tools and a skill that tells Claude when to use them.
+
+### Cursor and VS Code
+
+1. Open [the AI assistants page](https://freethetools.com/ai/).
+2. Select Add to Cursor, or Add to VS Code. For VS Code Insiders, select Add to VS Code Insiders.
+3. Confirm in the app.
+
+### Gemini CLI
+
+1. Open a terminal.
+2. Run `gemini extensions install https://github.com/sapience-design/freethetools`.
+
+### OpenAI Codex
+
+1. Open `~/.codex/config.toml`.
+2. Add this block, then restart Codex.
+
+```toml
+[mcp_servers.freethetools]
+command = "npx"
+args = ["-y", "freethetools", "mcp"]
+```
+
+### ChatGPT, Gemini and Claude on the web
+
+These cannot run tools on your computer. Use the tools on [freethetools.com](https://freethetools.com) instead.
+
+## Set it up by hand
+
+### Claude Code
 
 1. Open a terminal.
 2. Run `claude mcp add freethetools -- npx -y freethetools mcp`.
@@ -14,7 +53,7 @@ The package is published on [npm](https://www.npmjs.com/package/freethetools) an
 4. Run `claude mcp list` and check that `freethetools` is listed.
 5. Ask for a job, for example: "Compress report.pdf."
 
-## Claude Desktop
+### Claude Desktop
 
 Claude Desktop does not run in your project folder, so it cannot find a short path such as `report.pdf`. Always tell it the full path, for example `C:\Users\you\Documents\report.pdf` or `/Users/you/Documents/report.pdf`.
 
@@ -37,19 +76,19 @@ Claude Desktop does not run in your project folder, so it cannot find a short pa
 
 On Windows, if the app cannot start `npx`, use `"command": "cmd"` and `"args": ["/c", "npx", "-y", "freethetools", "mcp"]`.
 
-## Cursor
+### Cursor
 
 1. Open `~/.cursor/mcp.json` for all projects, or `.cursor/mcp.json` in one project. Create the file if it does not exist.
 2. Add the same `mcpServers` block as for Claude Desktop.
 3. Restart Cursor, or reload MCP servers in its settings.
 
-## Another MCP client
+### Another MCP client
 
 1. Find where the client lists local (stdio) servers.
 2. Set the command to `npx` and the arguments to `-y freethetools mcp`.
 3. Restart the client.
 
-## An assistant without MCP
+### An assistant without MCP
 
 1. Let the assistant run commands in a terminal.
 2. Tell it to run `npx -y freethetools list` to see the tools.

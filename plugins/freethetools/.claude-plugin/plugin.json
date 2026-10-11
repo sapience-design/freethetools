@@ -1,0 +1,13 @@
+{
+  "name": "freethetools",
+  "version": "0.1.0",
+  "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer. Nothing is uploaded.",
+  "author": {
+    "name": "Sapience Design",
+    "url": "https://sapience.design"
+  },
+  "homepage": "https://freethetools.com/ai/",
+  "repository": "https://github.com/sapience-design/freethetools",
+  "license": "AGPL-3.0-only",
+  "keywords": ["mcp", "pdf", "files", "privacy", "local", "csv", "json"]
+}

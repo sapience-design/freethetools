@@ -207,3 +207,45 @@ for (const t of tools) {
     for (const a of app.author) if (a.name === "Sapience Design") assert.equal(a["@type"], "Organization");
   });
 }
+
+// One-step installs: the plugin and extension files must name the package and carry its version,
+// and the Cursor and VS Code links on /ai/ must run the same server.
+test("the Claude Code plugin, marketplace and Gemini extension match the npm package", () => {
+  const read = (p) => JSON.parse(readFileSync(p, "utf8"));
+  const pkg = read("packages/freethetools/package.json");
+  const market = read(".claude-plugin/marketplace.json");
+  assert.equal(market.name, "freethetools");
+  const entry = market.plugins.find((p) => p.name === pkg.name);
+  assert.ok(entry, "marketplace.json must list the plugin");
+  assert.ok(existsSync(join(entry.source, ".claude-plugin", "plugin.json")), "plugin source folder has no plugin.json");
+  const plugin = read(join(entry.source, ".claude-plugin", "plugin.json"));
+  assert.equal(plugin.name, pkg.name);
+  assert.equal(plugin.version, pkg.version);
+  const server = read(join(entry.source, ".mcp.json")).mcpServers[pkg.name];
+  assert.deepEqual([server.command, ...server.args], ["npx", "-y", "freethetools", "mcp"]);
+  assert.ok(existsSync(join(entry.source, "skills", "free-the-tools", "SKILL.md")), "the plugin needs its skill");
+  const gem = read("gemini-extension.json");
+  assert.equal(gem.name, pkg.name);
+  assert.equal(gem.version, pkg.version);
+  assert.deepEqual([gem.mcpServers[pkg.name].command, ...gem.mcpServers[pkg.name].args], ["npx", "-y", "freethetools", "mcp"]);
+  assert.ok(existsSync(gem.contextFileName), "contextFileName must point to a file in the repository");
+});
+
+test("the Add to Cursor and Add to VS Code links on /ai/ run npx -y freethetools mcp", () => {
+  const page = html("ai/index.html");
+  const href = (prefix) => {
+    const m = page.match(new RegExp(`href="(${prefix}[^"]*)"`));
+    assert.ok(m, `no ${prefix} link on /ai/`);
+    return m[1].replace(/&amp;/g, "&");
+  };
+  const want = ["npx", "-y", "freethetools", "mcp"];
+  const cursor = new URL(href("cursor://"));
+  assert.equal(cursor.searchParams.get("name"), "freethetools");
+  const cfg = JSON.parse(Buffer.from(cursor.searchParams.get("config"), "base64").toString("utf8"));
+  assert.deepEqual([cfg.command, ...cfg.args], want);
+  for (const scheme of ["vscode:mcp/install?", "vscode-insiders:mcp/install?"]) {
+    const v = JSON.parse(decodeURIComponent(href(scheme).slice(scheme.length)));
+    assert.equal(v.name, "freethetools");
+    assert.deepEqual([v.command, ...v.args], want);
+  }
+});

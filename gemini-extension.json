@@ -1,0 +1,12 @@
+{
+  "name": "freethetools",
+  "version": "0.1.0",
+  "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer. Nothing is uploaded.",
+  "mcpServers": {
+    "freethetools": {
+      "command": "npx",
+      "args": ["-y", "freethetools", "mcp"]
+    }
+  },
+  "contextFileName": "GEMINI.md"
+}
