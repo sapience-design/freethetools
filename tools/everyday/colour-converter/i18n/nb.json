@@ -1,0 +1,42 @@
+{
+  "name": "Fargekonverterer",
+  "task": "Konverter en farge mellom formater",
+  "tagline": "Skriv en farge som HEX, RGB, HSL eller navn, og få den i alle former, med kontrastsjekk.",
+  "seoTitle": "Fargekonverterer: HEX, RGB, HSL og CSS-navn",
+  "description": "Konverter en farge mellom HEX, RGB, HSL og CSS-navn, velg en farge, og sjekk kontrasten mot hvit og svart. Gratis, ingenting lastes opp.",
+  "keywords": [
+    "fargekonverterer",
+    "hex til rgb",
+    "rgb til hex",
+    "hex til hsl",
+    "hsl til rgb",
+    "css-fargenavn",
+    "fargevelger",
+    "kontrastsjekk",
+    "wcag-kontrast"
+  ],
+  "specs": {
+    "Reads": "HEX (3, 4, 6 eller 8 sifre), rgb() og rgba(), hsl() og hsla(), og alle 148 CSS-fargenavn",
+    "Writes": "HEX, RGB, HSL og nærmeste CSS-fargenavn",
+    "Contrast": "WCAG 2-forhold mot hvit og svart: 4,5:1 for vanlig tekst, 3:1 for stor tekst",
+    "Works offline": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Hvilke fargeformer kan jeg skrive?",
+      "a": "HEX som #f80, #ff8800 eller #ff880080, rgb() eller rgba() som rgb(255 136 0 / 50%), hsl() eller hsla() som hsl(32 100% 50%), eller et CSS-fargenavn som rebeccapurple. Du kan også bruke fargevelgeren."
+    },
+    {
+      "q": "Hvordan velges det nærmeste CSS-navnet?",
+      "a": "Verktøyet sammenligner fargen din med alle 148 CSS-fargenavn og velger det som ligner mest for øyet, med en vektet avstand i RGB. Det sier fra når treffet er helt likt."
+    },
+    {
+      "q": "Hva betyr bestått og ikke bestått for kontrast?",
+      "a": "Det følger WCAG 2. Vanlig tekst trenger minst 4,5:1, og stor tekst (rundt 24 px, eller 19 px i fet skrift) trenger minst 3:1. Forholdet kuttes til to desimaler, aldri rundes opp. En gjennomsiktig farge legges først over hvit eller svart."
+    },
+    {
+      "q": "Lastes dataene mine opp noe sted?",
+      "a": "Nei. Alt kjører i nettleserfanen din, og sidens sikkerhetsregler hindrer at noe sendes ut."
+    }
+  ]
+}

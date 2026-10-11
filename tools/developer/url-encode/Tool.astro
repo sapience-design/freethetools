@@ -1,0 +1,127 @@
+---
+// URL Encode and Decode: percent-encode text, decode it, or take a web address apart.
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+---
+<section class="tool" aria-label="URL Encode and Decode">
+  <Step n={1} title="What do you want to do?">
+    <fieldset class="field">
+      <legend class="sr-only">Action</legend>
+      <div class="seg">
+        <input type="radio" name="ue-mode" id="ue-enc" value="enc" checked><label for="ue-enc">Encode</label>
+        <input type="radio" name="ue-mode" id="ue-dec" value="dec"><label for="ue-dec">Decode</label>
+        <input type="radio" name="ue-mode" id="ue-parts" value="parts"><label for="ue-parts">Take a web address apart</label>
+      </div>
+    </fieldset>
+  </Step>
+  <Step n={2} title="Type or paste your text">
+    <label class="field"><span id="ue-in-label">Text</span><textarea id="ue-in" rows="4" spellcheck="false"></textarea></label>
+    <label class="field" id="ue-scope-wrap"><span>What are you working with?</span>
+      <select id="ue-scope">
+        <option value="component">One part of an address, such as a search word</option>
+        <option value="url">A whole address</option>
+      </select>
+    </label>
+    <p class="hint" id="ue-scope-hint"></p>
+    <label class="check" id="ue-plus-wrap"><input type="checkbox" id="ue-plus"> Read + as a space (forms and search words)</label>
+  </Step>
+  <Step n={3} title="Copy the result">
+    <p class="tool-error" id="ue-err" role="alert" hidden></p>
+    <div class="out" id="ue-text-out">
+      <span class="hint" id="ue-status">Result</span>
+      <pre class="out-box" id="ue-out" aria-live="polite"></pre>
+      <div class="actions"><button class="btn run" id="ue-copy" type="button"><Icon name="copy" /><span id="ue-copy-label">Copy</span></button></div>
+    </div>
+    <div id="ue-parts-out" hidden>
+      <p class="tool-error" id="ue-warn" role="alert" hidden></p>
+      <div class="ue-scroll"><table class="ue-table" id="ue-parts-table"><caption class="sr-only">Parts of the address</caption><thead><tr><th scope="col">Part</th><th scope="col">Value</th></tr></thead><tbody></tbody></table></div>
+      <div class="ue-scroll"><table class="ue-table" id="ue-params-table"><caption class="sr-only">Query parameters, decoded</caption><thead><tr><th scope="col">Parameter</th><th scope="col">Value</th></tr></thead><tbody></tbody></table></div>
+      <p class="hint" id="ue-noparams" hidden>This address has no query parameters.</p>
+    </div>
+  </Step>
+</section>
+
+<script>
+  import { encode, decode, parseUrl } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("ue-in") as HTMLTextAreaElement, scope = $("ue-scope") as HTMLSelectElement, plus = $("ue-plus") as HTMLInputElement;
+  const out = $("ue-out"), err = $("ue-err"), status = $("ue-status");
+  const EXAMPLES: Record<string, string> = {
+    enc: "café & crème brûlée, 100% 👍",
+    dec: "caf%C3%A9%20%26%20cr%C3%A8me%20br%C3%BBl%C3%A9e%2C%20100%25%20%F0%9F%91%8D",
+    parts: "https://example.com:8080/caf%C3%A9/menu?q=cr%C3%A8me+br%C3%BBl%C3%A9e&tag=%F0%9F%91%8D&sort=price#top",
+  };
+  const HINTS: Record<string, string> = {
+    component: "Also changes / ? & = # and : so the text is safe inside one part of an address.",
+    url: "Keeps / ? & = # and : as they are, so the address keeps its shape.",
+  };
+  let edited = false;
+  const mode = () => (document.querySelector('input[name="ue-mode"]:checked') as HTMLInputElement).value;
+  // Live regions speak whenever text is written, so write only when it changes.
+  const setText = (el: HTMLElement, text: string) => { if (el.textContent !== text) el.textContent = text; };
+
+  function fill(tbody: HTMLElement, rows: { name: string; value: string }[]) {
+    tbody.replaceChildren(...rows.map((r) => {
+      const tr = document.createElement("tr");
+      const th = document.createElement("th"); th.scope = "row"; th.textContent = r.name || "(no name)";
+      const td = document.createElement("td"); td.textContent = r.value;
+      tr.append(th, td);
+      return tr;
+    }));
+  }
+
+  function update() {
+    const m = mode();
+    $("ue-in-label").textContent = m === "enc" ? "Text" : m === "dec" ? "Encoded text" : "Web address";
+    $("ue-scope-wrap").hidden = m === "parts";
+    $("ue-scope-hint").hidden = m === "parts";
+    setText($("ue-scope-hint"), HINTS[scope.value]);
+    $("ue-plus-wrap").hidden = m !== "dec" || scope.value !== "component";
+    $("ue-text-out").hidden = m === "parts";
+    $("ue-parts-out").hidden = m !== "parts";
+    try {
+      if (m === "parts") {
+        const r = parseUrl(input.value);
+        fill($("ue-parts-table").querySelector("tbody")!, r.parts);
+        fill($("ue-params-table").querySelector("tbody")!, r.params.map((p) => ({ name: p.name, value: p.value })));
+        $("ue-params-table").hidden = r.params.length === 0;
+        $("ue-noparams").hidden = r.params.length > 0;
+        const warn = $("ue-warn");
+        setText(warn, r.warning); warn.hidden = !r.warning;
+      } else {
+        setText(out, m === "enc" ? encode(input.value, scope.value as "component" | "url") : decode(input.value, { mode: scope.value as "component" | "url", plusAsSpace: plus.checked }));
+        setText(status, "Result");
+      }
+      err.hidden = true;
+    } catch (e) {
+      setText(err, (e as Error).message); err.hidden = false;
+      if (m === "parts") { $("ue-parts-out").hidden = true; } else { setText(out, ""); setText(status, "Needs fixing"); }
+    }
+  }
+
+  input.addEventListener("input", () => { edited = true; update(); });
+  scope.addEventListener("change", update);
+  plus.addEventListener("change", update);
+  document.querySelectorAll('input[name="ue-mode"]').forEach((el) => el.addEventListener("change", () => {
+    if (!edited) input.value = EXAMPLES[mode()];
+    update();
+  }));
+
+  const copy = $("ue-copy") as HTMLButtonElement, copyLabel = $("ue-copy-label");
+  copy.addEventListener("click", async () => {
+    try { await navigator.clipboard.writeText(out.textContent ?? ""); copyLabel.textContent = "Copied"; } catch { copyLabel.textContent = "Select the text to copy"; }
+    setTimeout(() => (copyLabel.textContent = "Copy"), 1600);
+  });
+
+  input.value = EXAMPLES.enc; // a working example on first load
+  update();
+</script>
+
+<style>
+  .ue-scroll { overflow-x: auto; margin-bottom: 16px; }
+  .ue-table { width: 100%; border-collapse: collapse; border: 1px solid var(--hair); }
+  .ue-table :is(th, td) { padding: 10px 14px; text-align: left; vertical-align: top; border-top: 1px solid var(--hair); overflow-wrap: anywhere; }
+  .ue-table thead th { background: var(--bg); border-top: 0; color: var(--soft); font-size: 14px; }
+  .ue-table tbody th { font-weight: 600; width: 34%; }
+  .ue-table td { font-family: var(--mono); }
+</style>

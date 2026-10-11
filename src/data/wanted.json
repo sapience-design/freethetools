@@ -90,42 +90,6 @@
     }
   },
   {
-    "name": "URL Encode and Decode",
-    "category": "developer",
-    "section": "Encode",
-    "blurb": "Make text safe for a link, or read an encoded one.",
-    "slug": "url-encode",
-    "issue": 68,
-    "task": "Encode or decode a web address",
-    "concept": {
-      "in": "Text or a web address.",
-      "out": "The percent-encoded form, or the decoded text.",
-      "options": [
-        "Encode a whole address or one part of it",
-        "Decode",
-        "A clear message for a broken % sequence"
-      ]
-    }
-  },
-  {
-    "name": "Unix Timestamp Converter",
-    "category": "everyday",
-    "section": "Time",
-    "blurb": "Turn a timestamp into a date and time, and back.",
-    "slug": "unix-timestamp",
-    "issue": 69,
-    "task": "Convert a Unix timestamp to a date",
-    "concept": {
-      "in": "A Unix timestamp in seconds or milliseconds, or a date.",
-      "out": "The date in UTC and in a time zone you choose, or the timestamp.",
-      "options": [
-        "Guesses seconds or milliseconds, and says which",
-        "Choose a time zone",
-        "Date to timestamp"
-      ]
-    }
-  },
-  {
     "name": "Cron Expression Explainer",
     "category": "developer",
     "section": "Generate",
@@ -139,24 +103,6 @@
       "options": [
         "Plain-words sentence",
         "Next run times"
-      ]
-    }
-  },
-  {
-    "name": "Colour Converter",
-    "category": "everyday",
-    "section": "Convert",
-    "blurb": "HEX, RGB, HSL and names, back and forth.",
-    "slug": "colour-converter",
-    "issue": 71,
-    "task": "Convert a colour between formats",
-    "concept": {
-      "in": "A colour as HEX, RGB, HSL or a name.",
-      "out": "The same colour in every format, with a swatch and a contrast ratio against black and white.",
-      "options": [
-        "HEX, RGB, HSL and colour names",
-        "Swatch",
-        "Contrast against black and white"
       ]
     }
   },

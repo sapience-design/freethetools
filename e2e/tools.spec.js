@@ -355,6 +355,32 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#uc-out")).toHaveText("10 in = 25.4 cm");
   });
 
+  test("Colour Converter shows a colour in every form and checks contrast", async ({ page }) => {
+    await page.goto("/everyday/colour-converter/");
+    await expect(page.locator("#cc-hex")).toHaveText("#663399");
+    await page.fill("#cc-in", "hsl(210 50% 40%)");
+    await expect(page.locator("#cc-hex")).toHaveText("#336699");
+    await expect(page.locator("#cc-rgb")).toHaveText("rgb(51, 102, 153)");
+    await expect(page.locator("#cc-name")).toContainText("steelblue");
+    await expect(page.locator("#cc-r-white")).toHaveText("5.99:1");
+    await expect(page.locator("#cc-n-white")).toHaveText("Normal text: pass");
+    await expect(page.locator("#cc-n-black")).toHaveText("Normal text: fail");
+    await expect(page.locator("#cc-l-black")).toHaveText("Large text: pass");
+    // The swatch colour is set from script, not from a style attribute.
+    await expect(page.locator("#cc-fill")).toHaveCSS("background-color", "rgb(51, 102, 153)");
+  });
+
+  test("Colour Converter follows the picker and explains input it cannot read", async ({ page }) => {
+    await page.goto("/everyday/colour-converter/");
+    await page.locator("#cc-pick").fill("#ff8800");
+    await expect(page.locator("#cc-in")).toHaveValue("#ff8800");
+    await expect(page.locator("#cc-hsl")).toHaveText("hsl(32, 100%, 50%)");
+    await page.fill("#cc-in", "banana");
+    await expect(page.locator("#cc-err")).toContainText("HEX");
+    await expect(page.locator("#cc-err")).toContainText("hsl");
+    await expect(page.locator("#cc-hex")).toBeHidden();
+  });
+
   test("Time Zone Converter lists other cities with a day strip each", async ({ page }) => {
     await page.goto("/everyday/time-zone-converter/");
     await expect(page.locator("#tz-list li").first()).toHaveClass(/tz-ref/);
@@ -396,6 +422,37 @@ test.describe("text, data and everyday tools", () => {
     await page.fill("#tz-date", "2026-09-27");
     await page.fill("#tz-time", "09:00");
     await expect(page.locator("#tz-note")).toBeEmpty();
+  });
+
+  test("Unix Timestamp Converter shows an example, guesses the unit and converts both ways", async ({ page }) => {
+    await page.goto("/everyday/unix-timestamp/");
+    await expect(page.locator("#ut-out")).toContainText("2023-11-14T22:13:20Z");
+    await expect(page.locator("#ut-msg")).toContainText("Read as seconds");
+    await expect(page.locator("#ut-out2")).toContainText("1700000000");
+    await page.fill("#ut-ts", "1700000000123");
+    await expect(page.locator("#ut-msg")).toContainText("Read as milliseconds");
+    await expect(page.locator("#ut-out")).toContainText("2023-11-14T22:13:20.123Z");
+    await page.fill("#ut-ts", "1700000000");
+    await page.click('label[for="ut-unit-s"]');
+    await expect(page.locator("#ut-msg")).toContainText("as you chose");
+    await page.fill("#ut-ts", "-1");
+    await page.click('label[for="ut-unit-auto"]');
+    await expect(page.locator("#ut-out")).toContainText("1969-12-31T23:59:59Z");
+    await page.fill("#ut-date", "2038-01-19T03:14:07");
+    await expect(page.locator("#ut-out2")).toContainText("2147483647");
+  });
+
+  test("Unix Timestamp Converter explains bad input and has a Now button", async ({ page }) => {
+    await page.goto("/everyday/unix-timestamp/");
+    await page.fill("#ut-ts", "abc");
+    await expect(page.locator("#ut-msg")).toContainText("not a number");
+    await expect(page.locator("#ut-out li")).toHaveCount(0);
+    await page.fill("#ut-date", "");
+    await expect(page.locator("#ut-msg2")).toContainText("Pick a date and time");
+    await page.click("#ut-now");
+    await expect(page.locator("#ut-msg")).toContainText("Read as seconds");
+    await expect(page.locator("#ut-out")).toContainText("now");
+    await expect(page.locator("#ut-msg2")).toBeEmpty();
   });
 });
 
@@ -601,6 +658,21 @@ test.describe("fill form and developer tools", () => {
     await expect(page.locator("#jwt-body")).toContainText('"sub": "user-42"');
     await page.fill("#jwt-secret", "free-the-tools");
     await expect(page.locator("#jwt-verdict")).toHaveText("Signature is valid for this secret.");
+  });
+
+  test("URL Encode and Decode encodes, decodes and takes an address apart", async ({ page }) => {
+    await page.goto("/developer/url-encode/");
+    await expect(page.locator("#ue-out")).toHaveText("caf%C3%A9%20%26%20cr%C3%A8me%20br%C3%BBl%C3%A9e%2C%20100%25%20%F0%9F%91%8D");
+    await page.click("label[for=ue-dec]");
+    await expect(page.locator("#ue-out")).toHaveText("café & crème brûlée, 100% 👍");
+    await page.fill("#ue-in", "%E0%A4%A");
+    await expect(page.locator("#ue-err")).toContainText("not a complete % sequence");
+    await page.click("label[for=ue-parts]");
+    await expect(page.locator("#ue-scope-wrap")).toBeHidden();
+    await page.fill("#ue-in", "https://example.com/a%20b?q=hello+world&tag=%F0%9F%91%8D");
+    await expect(page.locator("#ue-parts-table")).toContainText("example.com");
+    await expect(page.locator("#ue-params-table")).toContainText("hello world");
+    await expect(page.locator("#ue-params-table")).toContainText("👍");
   });
 
   test("Regex Tester highlights matches", async ({ page }) => {

@@ -1,0 +1,101 @@
+---
+import Step from "../../../src/components/Step.astro";
+const UNITS = [["auto", "Auto"], ["s", "Seconds"], ["ms", "Milliseconds"], ["us", "Microseconds"]];
+---
+<section class="tool" id="ut-tool" aria-label="Unix timestamp converter">
+  <Step n={1} title="Timestamp to date">
+    <div class="ut-row">
+      <label class="field"><span>Unix timestamp</span><input type="text" id="ut-ts" value="1700000000" inputmode="text" autocomplete="off" spellcheck="false" aria-describedby="ut-msg"></label>
+      <button class="btn quiet" type="button" id="ut-now">Now</button>
+    </div>
+    <fieldset class="field">
+      <legend>Unit</legend>
+      <div class="seg">
+        {UNITS.map(([v, l], i) => (<><input type="radio" name="ut-unit" id={`ut-unit-${v}`} value={v} checked={i === 0} /><label for={`ut-unit-${v}`}>{l}</label></>))}
+      </div>
+    </fieldset>
+    <p class="hint" id="ut-msg" role="status"></p>
+    <ul class="file-list" id="ut-out"></ul>
+  </Step>
+  <Step n={2} title="Date to timestamp">
+    <label class="field"><span>Date and time</span><input type="datetime-local" id="ut-date" class="input" step="1" value="2023-11-14T22:13:20"></label>
+    <fieldset class="field">
+      <legend>This date is in</legend>
+      <div class="seg">
+        <input type="radio" name="ut-mode" id="ut-mode-utc" value="utc" checked /><label for="ut-mode-utc">UTC</label>
+        <input type="radio" name="ut-mode" id="ut-mode-local" value="local" /><label for="ut-mode-local" id="ut-mode-local-label">Your time zone</label>
+      </div>
+    </fieldset>
+    <p class="hint" id="ut-msg2" role="status"></p>
+    <ul class="file-list" id="ut-out2"></ul>
+  </Step>
+</section>
+
+<script>
+  import { fromTimestamp, dateToTimestamp, deviceZone } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const ts = $("ut-ts") as HTMLInputElement, date = $("ut-date") as HTMLInputElement;
+  const zone = deviceZone();
+  const locale = document.documentElement.lang || "en";
+  const checked = (name: string) => (document.querySelector(`input[name="${name}"]:checked`) as HTMLInputElement).value;
+  $("ut-mode-local-label").textContent = `Your time zone (${zone.replace(/_/g, " ")})`;
+
+  function rows(list: HTMLElement, items: [string, string][]) {
+    list.replaceChildren(...items.map(([label, value]) => {
+      const li = document.createElement("li");
+      const n = document.createElement("span"); n.className = "fname"; n.textContent = value;
+      const m = document.createElement("span"); m.className = "fmeta"; m.textContent = label;
+      const act = document.createElement("span"); act.className = "fact";
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn quiet"; b.textContent = "Copy";
+      b.setAttribute("aria-label", `Copy ${label}`);
+      b.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(value); b.textContent = "Copied"; } catch { b.textContent = "Select the text"; }
+        setTimeout(() => (b.textContent = "Copy"), 1600);
+      });
+      act.append(b); li.append(n, m, act); return li;
+    }));
+  }
+  function show(msg: HTMLElement, text: string, bad = false) { msg.textContent = text; msg.classList.toggle("err", bad); }
+
+  function fromTs() {
+    const msg = $("ut-msg"), list = $("ut-out");
+    try {
+      const r = fromTimestamp(ts.value, { unit: checked("ut-unit") as "auto", zone, locale });
+      show(msg, r.guessed ? `Read as ${r.unitName}, because the number has ${r.digits} digits. Choose another unit above if that is wrong.` : `Read as ${r.unitName}, as you chose.`);
+      rows(list, [["UTC", r.utc], [`Your time zone (${zone.replace(/_/g, " ")})`, r.local], ["ISO 8601, UTC", r.isoUtc], ["ISO 8601, your time zone", r.isoLocal], ["Relative to now", r.relative]]);
+    } catch (e) { show(msg, (e as Error).message, true); list.replaceChildren(); }
+  }
+  function toTs() {
+    const msg = $("ut-msg2"), list = $("ut-out2");
+    try {
+      const r = dateToTimestamp(date.value, { mode: checked("ut-mode") as "utc", zone });
+      const place = checked("ut-mode") === "local" ? zone.replace(/_/g, " ") : "UTC";
+      show(msg, r.change === "gap" ? `That time does not exist in ${place}, because the clocks go forward. Showing the time just after the gap.`
+        : r.change === "overlap" ? `That time happens twice in ${place}, because the clocks go back. Showing the first time.` : "");
+      rows(list, [["Seconds", String(r.seconds)], ["Milliseconds", String(r.milliseconds)], ["ISO 8601, UTC", r.isoUtc]]);
+    } catch (e) { show(msg, (e as Error).message, true); list.replaceChildren(); }
+  }
+
+  ts.addEventListener("input", fromTs);
+  date.addEventListener("input", toTs);
+  document.querySelectorAll('input[name="ut-unit"]').forEach((r) => r.addEventListener("change", fromTs));
+  document.querySelectorAll('input[name="ut-mode"]').forEach((r) => r.addEventListener("change", toTs));
+  $("ut-now").addEventListener("click", () => {
+    const now = new Date();
+    (document.getElementById("ut-unit-auto") as HTMLInputElement).checked = true;
+    ts.value = String(Math.floor(now.getTime() / 1000));
+    const shifted = checked("ut-mode") === "local" ? new Date(now.getTime() - now.getTimezoneOffset() * 60000) : now;
+    date.value = shifted.toISOString().slice(0, 19);
+    fromTs(); toTs();
+  });
+  fromTs(); toTs(); // show a working example on first load
+</script>
+
+<style>
+  .ut-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; }
+  #ut-ts { font-family: var(--mono); }
+  #ut-out :global(.fname), #ut-out2 :global(.fname) { font-family: var(--display); font-size: 19px; line-height: 1.3; }
+  /* Empty notes stay in the page so screen readers announce them when they fill; they take no space. */
+  .hint:empty { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  @media (max-width: 480px) { .ut-row { grid-template-columns: 1fr; } }
+</style>
