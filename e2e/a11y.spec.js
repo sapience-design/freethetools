@@ -1,10 +1,9 @@
-// Accessibility: every page in the sitemap, in light and dark, must pass axe-core's WCAG 2.2 A and
-// AA rules. Runs on desktop and phone (see playwright.config.js).
+// Accessibility: the pages in e2e/pages.js (every English page and a sample per language), in light
+// and dark, must pass axe-core's WCAG 2.2 A and AA rules. Runs on desktop and phone (see playwright.config.js).
 import { test, expect } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
-import { readFileSync } from "node:fs";
+import { paths } from "./pages.js";
 
-const paths = [...readFileSync("dist/sitemap.xml", "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 for (const theme of ["light", "dark"]) {

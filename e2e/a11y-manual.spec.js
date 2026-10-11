@@ -6,9 +6,8 @@
 // These tests use the keyboard only where they say so. They do not replace a pass with NVDA and
 // VoiceOver: see "Not covered by automated tools" in docs/research/2026-09-28-accessibility-speed-audit.md.
 import { test, expect } from "@playwright/test";
-import { readFileSync } from "node:fs";
+import { paths } from "./pages.js";
 
-const paths = [...readFileSync("dist/sitemap.xml", "utf8").matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname);
 const toolPaths = paths.filter((p) => p.split("/").filter(Boolean).length === 2 && !p.startsWith("/api/"));
 // One tool per group, as the audit asks. PDF and Images use a drop zone; the rest use fields.
 const GROUP_TOOLS = ["/pdf/merge/", "/images/compress/", "/text/case-converter/", "/data/json-formatter/", "/developer/uuid-generator/", "/everyday/unit-converter/"];
