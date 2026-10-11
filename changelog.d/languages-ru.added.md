@@ -1,1 +1,0 @@
-- Russian (Русский): the home page, groups, tool pages and the "not built yet" pages are now in Russian at /ru/. The tools themselves are still in English, and the Russian text is a machine draft that has not been checked yet.
