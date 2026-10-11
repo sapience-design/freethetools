@@ -1,0 +1,1 @@
+- Colour Converter: type a colour as HEX, RGB, HSL or a CSS name, or pick one, then copy it in every form, find the nearest CSS name and check its WCAG contrast against white and black.

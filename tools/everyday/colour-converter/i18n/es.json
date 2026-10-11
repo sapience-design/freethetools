@@ -1,0 +1,42 @@
+{
+  "name": "Conversor de color",
+  "task": "Convertir un color entre formatos",
+  "tagline": "Escribe un color en HEX, RGB, HSL o por su nombre y obtén todas sus formas, con una prueba de contraste.",
+  "seoTitle": "Conversor de color: HEX, RGB, HSL y nombres CSS",
+  "description": "Convierte un color entre HEX, RGB, HSL y nombres CSS, elígelo y comprueba su contraste con el blanco y el negro. Gratis, sin subir nada.",
+  "keywords": [
+    "conversor de color",
+    "hex a rgb",
+    "rgb a hex",
+    "hex a hsl",
+    "hsl a rgb",
+    "nombres de color css",
+    "selector de color",
+    "comprobador de contraste",
+    "contraste wcag"
+  ],
+  "specs": {
+    "Reads": "HEX (3, 4, 6 u 8 dígitos), rgb() y rgba(), hsl() y hsla(), y los 148 nombres de color CSS",
+    "Writes": "HEX, RGB, HSL y el nombre CSS más cercano",
+    "Contrast": "Relación WCAG 2 con el blanco y el negro: 4,5:1 para texto normal, 3:1 para texto grande",
+    "Works offline": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Qué formas de color puedo escribir?",
+      "a": "HEX como #f80, #ff8800 o #ff880080, rgb() o rgba() como rgb(255 136 0 / 50%), hsl() o hsla() como hsl(32 100% 50%), o un nombre de color CSS como rebeccapurple. También puedes usar el selector de color."
+    },
+    {
+      "q": "¿Cómo se elige el nombre CSS más cercano?",
+      "a": "La herramienta compara tu color con los 148 nombres de color CSS y elige el más parecido a la vista, con una distancia ponderada en RGB. Avisa cuando la coincidencia es exacta."
+    },
+    {
+      "q": "¿Qué significan aprobado y suspenso en el contraste?",
+      "a": "Siguen WCAG 2. El texto normal necesita al menos 4,5:1 y el texto grande (unos 24 px, o 19 px en negrita) al menos 3:1. La relación se corta a dos decimales, nunca se redondea hacia arriba. Un color translúcido se coloca antes sobre blanco o negro."
+    },
+    {
+      "q": "¿Se suben mis datos a algún sitio?",
+      "a": "No. Todo se ejecuta en la pestaña de tu navegador, y la política de seguridad de la página impide que envíe nada."
+    }
+  ]
+}

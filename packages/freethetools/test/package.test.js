@@ -6,7 +6,7 @@ import { execFile } from "node:child_process";
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { isAbsolute, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { promisify } from "node:util";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
@@ -19,6 +19,21 @@ const here = fileURLToPath(new URL(".", import.meta.url));
 const CLI = join(here, "../dist/cli.js");
 const FIXTURE = join(here, "../../../tools/pdf/compress/tests/fixtures/sample.pdf");
 const run = promisify(execFile);
+
+// Every tool the package should offer, read from the source the same way the build does, so a
+// new tool needs no change here and a tool missing from the package still fails.
+const TOOLS_DIR = join(here, "../../../tools");
+async function sourceToolNames() {
+  const names = [];
+  for (const g of readdirSync(TOOLS_DIR, { withFileTypes: true })) {
+    if (!g.isDirectory() || g.name.startsWith("_")) continue;
+    for (const t of readdirSync(join(TOOLS_DIR, g.name), { withFileTypes: true })) {
+      const file = join(TOOLS_DIR, g.name, t.name, "agent.js");
+      if (t.isDirectory() && existsSync(file)) for (const d of [(await import(pathToFileURL(file).href)).default].flat()) names.push(d.name);
+    }
+  }
+  return names.sort();
+}
 
 const tmp = mkdtempSync(join(tmpdir(), "ftt-test-"));
 const library = join(tmp, "library");
@@ -45,9 +60,9 @@ const entries = () => parseLog(readFileSync(join(library, "library.jsonl"), "utf
 const pageCount = async (p) => (await PDFDocument.load(readFileSync(p))).getPageCount();
 const section = (r, title) => text(r).split(`${title}:\n`)[1]?.split("\n\n")[0].split("\n") ?? [];
 
-test("the server lists all 25 tools, with file fields as paths", async () => {
+test("the server lists every tool in the source, with file fields as paths", async () => {
   const { tools } = await client.listTools();
-  assert.equal(tools.length, 25);
+  assert.deepEqual(tools.map((t) => t.name).sort(), await sourceToolNames());
   const merge = tools.find((t) => t.name === "merge_pdfs");
   assert.equal(merge.inputSchema.properties.files.items.type, "string");
   assert.match(merge.inputSchema.properties.files.items.description, /Path to a file on this computer, absolute or relative to the working directory/);
@@ -167,7 +182,7 @@ test("the library log parses and holds every call", () => {
 
 test("the command line lists tools and runs one", async () => {
   const list = await run(process.execPath, [CLI, "list"], { env });
-  assert.match(list.stdout, /25 tools/);
+  assert.ok(list.stdout.includes(`${(await sourceToolNames()).length} tools`), list.stdout);
   assert.match(list.stdout, /compress_pdf/);
   const help = await run(process.execPath, [CLI, "--help"], { env });
   assert.match(help.stdout, /never uploaded/);

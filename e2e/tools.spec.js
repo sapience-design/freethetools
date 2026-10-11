@@ -355,6 +355,32 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#uc-out")).toHaveText("10 in = 25.4 cm");
   });
 
+  test("Colour Converter shows a colour in every form and checks contrast", async ({ page }) => {
+    await page.goto("/everyday/colour-converter/");
+    await expect(page.locator("#cc-hex")).toHaveText("#663399");
+    await page.fill("#cc-in", "hsl(210 50% 40%)");
+    await expect(page.locator("#cc-hex")).toHaveText("#336699");
+    await expect(page.locator("#cc-rgb")).toHaveText("rgb(51, 102, 153)");
+    await expect(page.locator("#cc-name")).toContainText("steelblue");
+    await expect(page.locator("#cc-r-white")).toHaveText("5.99:1");
+    await expect(page.locator("#cc-n-white")).toHaveText("Normal text: pass");
+    await expect(page.locator("#cc-n-black")).toHaveText("Normal text: fail");
+    await expect(page.locator("#cc-l-black")).toHaveText("Large text: pass");
+    // The swatch colour is set from script, not from a style attribute.
+    await expect(page.locator("#cc-fill")).toHaveCSS("background-color", "rgb(51, 102, 153)");
+  });
+
+  test("Colour Converter follows the picker and explains input it cannot read", async ({ page }) => {
+    await page.goto("/everyday/colour-converter/");
+    await page.locator("#cc-pick").fill("#ff8800");
+    await expect(page.locator("#cc-in")).toHaveValue("#ff8800");
+    await expect(page.locator("#cc-hsl")).toHaveText("hsl(32, 100%, 50%)");
+    await page.fill("#cc-in", "banana");
+    await expect(page.locator("#cc-err")).toContainText("HEX");
+    await expect(page.locator("#cc-err")).toContainText("hsl");
+    await expect(page.locator("#cc-hex")).toBeHidden();
+  });
+
   test("Time Zone Converter lists other cities", async ({ page }) => {
     await page.goto("/everyday/time-zone-converter/");
     await expect(page.locator("#tz-list li").first()).toBeVisible();

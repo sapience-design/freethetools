@@ -382,20 +382,6 @@
         ]
       }
     },
-    "everyday/colour-converter": {
-      "name": "Conversor de color",
-      "task": "Convertir un color entre formatos",
-      "blurb": "HEX, RGB, HSL y nombres, de ida y vuelta.",
-      "concept": {
-        "in": "Un color en HEX, RGB, HSL o por su nombre.",
-        "out": "El mismo color en todos los formatos, con una muestra y la relación de contraste con el negro y el blanco.",
-        "options": [
-          "HEX, RGB, HSL y nombres de color",
-          "Muestra de color",
-          "Contraste con el negro y el blanco"
-        ]
-      }
-    },
     "developer/iban-phone-check": {
       "name": "Comprobador de IBAN y de teléfono",
       "task": "Comprobar un IBAN o un número de teléfono",
