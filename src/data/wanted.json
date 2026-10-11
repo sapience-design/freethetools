@@ -90,24 +90,6 @@
     }
   },
   {
-    "name": "URL Encode and Decode",
-    "category": "developer",
-    "section": "Encode",
-    "blurb": "Make text safe for a link, or read an encoded one.",
-    "slug": "url-encode",
-    "issue": 68,
-    "task": "Encode or decode a web address",
-    "concept": {
-      "in": "Text or a web address.",
-      "out": "The percent-encoded form, or the decoded text.",
-      "options": [
-        "Encode a whole address or one part of it",
-        "Decode",
-        "A clear message for a broken % sequence"
-      ]
-    }
-  },
-  {
     "name": "Unix Timestamp Converter",
     "category": "everyday",
     "section": "Time",

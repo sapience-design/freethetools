@@ -355,20 +355,6 @@
         ]
       }
     },
-    "developer/url-encode": {
-      "name": "Codificar y decodificar URL",
-      "task": "Codificar o decodificar una dirección web",
-      "blurb": "Prepara texto para usarlo en un enlace o lee uno codificado.",
-      "concept": {
-        "in": "Texto o una dirección web.",
-        "out": "La forma con codificación porcentual o el texto decodificado.",
-        "options": [
-          "Codificar una dirección entera o solo una parte",
-          "Decodificar",
-          "Un mensaje claro si una secuencia % está rota"
-        ]
-      }
-    },
     "everyday/unix-timestamp": {
       "name": "Conversor de marca de tiempo Unix",
       "task": "Convertir una marca de tiempo Unix en una fecha",

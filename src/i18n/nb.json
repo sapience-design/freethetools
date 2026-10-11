@@ -335,16 +335,6 @@
         "options": ["JSON til YAML", "YAML til JSON", "Sikker parsing: egendefinerte tagger avvises"]
       }
     },
-    "developer/url-encode": {
-      "name": "URL-koding og -dekoding",
-      "task": "Kod eller dekod en nettadresse",
-      "blurb": "Gjør tekst klar til bruk i en URL, eller dekod en kodet URL.",
-      "concept": {
-        "in": "Tekst eller en nettadresse.",
-        "out": "Den prosentkodede versjonen eller den dekodede teksten.",
-        "options": ["Kod en hel adresse eller bare én del", "Dekod", "En tydelig melding for en ødelagt %-sekvens"]
-      }
-    },
     "everyday/unix-timestamp": {
       "name": "Unix-tidsstempel",
       "task": "Gjør et Unix-tidsstempel om til en dato",
