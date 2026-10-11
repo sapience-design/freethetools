@@ -369,6 +369,43 @@ export function imageThumb(file: Blob, onSize?: (width: number, height: number) 
   return t.box;
 }
 
+/** A tile that names the kind of file, for files with no picture of their own: "CSV", "JSON", "MP3". */
+export function typeThumb(label: string) {
+  const box = document.createElement("span");
+  box.className = "fthumb ftype";
+  box.textContent = label.length > 5 ? label.slice(0, 4) : label;
+  box.setAttribute("aria-hidden", "true");
+  return box;
+}
+
+/**
+ * A thumbnail of a video: one frame from near the start, drawn by the browser's own player.
+ * Falls back to the plain tile when the browser can't play the file.
+ */
+export function videoThumb(file: Blob, label = "Video") {
+  const box = typeThumb(label);
+  const v = document.createElement("video");
+  v.muted = true; v.preload = "metadata"; v.playsInline = true;
+  const url = URL.createObjectURL(file);
+  const done = () => { URL.revokeObjectURL(url); v.remove(); };
+  v.addEventListener("loadedmetadata", () => { v.currentTime = Math.min(0.5, (v.duration || 1) / 2); }, { once: true });
+  v.addEventListener("seeked", () => {
+    try {
+      const c = document.createElement("canvas");
+      const s = 112 / Math.max(v.videoWidth, v.videoHeight);
+      c.width = Math.round(v.videoWidth * s); c.height = Math.round(v.videoHeight * s);
+      c.getContext("2d")!.drawImage(v, 0, 0, c.width, c.height);
+      box.textContent = "";
+      box.classList.remove("ftype");
+      box.append(c);
+    } catch {}
+    done();
+  }, { once: true });
+  v.addEventListener("error", done, { once: true });
+  v.src = url;
+  return box;
+}
+
 /** A PDF tile, or a canvas when the caller can draw the first page into it. */
 export function pdfThumb() {
   const box = document.createElement("span");

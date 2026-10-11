@@ -33,6 +33,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
+  import { compareButton } from "../../../src/lib/preview";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = $("#cmi-tool"), picked = $("#cmi-picked"), list = $("#cmi-list"), status = $("#cmi-status");
   const go = $<HTMLButtonElement>("#cmi-go"), goLabel = $("#cmi-go-label"), again = $("#cmi-again");
@@ -88,7 +89,7 @@ import Icon from "../../../src/components/Icon.astro";
           m.textContent = `${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${saving(f.size, blob.size)}% smaller`;
           li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
           const out = `${baseName(f.name)}_small.${EXT[type]}`;
-          act.append(downloadLink(blob, out, type));
+          act.append(compareButton(li, f, blob, { beforeLabel: "Original", afterLabel: "Smaller" }), downloadLink(blob, out, type));
           outs.push({ name: out, blob });
         } else {
           after += f.size;

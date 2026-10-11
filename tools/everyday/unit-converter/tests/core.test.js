@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { convert, pretty } from "../core.js";
+import { convert, pretty, nice } from "../core.js";
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) <= eps * Math.max(1, Math.abs(b)), `${a} vs ${b}`);
 
@@ -35,4 +35,14 @@ test("pretty-prints without float noise", () => {
 
 test("an unknown category lists the valid ones", () => {
   assert.throws(() => convert(1, "colour", "a", "b"), /Unknown category "colour"\. Use one of: .*length.*temperature/);
+});
+
+test("nice rounds to four significant digits for the headline", () => {
+  assert.equal(nice(70.86614173), "70.87");
+  assert.equal(nice(1800), "1800");
+  assert.equal(nice(0.0018), "0.0018");
+  assert.equal(nice(1.609344), "1.609");
+  assert.equal(nice(25.4), "25.4");
+  assert.equal(nice(1234.5678), "1235");
+  assert.equal(nice(0), "0");
 });

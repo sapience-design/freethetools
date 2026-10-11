@@ -105,7 +105,9 @@ Layout:
 - Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
 - Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.
 - Each group has a tint and a mark (a Phosphor icon); each tool has its own icon (`icon` in `tool.json`). The studio product shots (`src/data/art.ts`) sit on the group's tint.
-- Chosen files are rows with a thumbnail and the details that matter for the tool (`fileRow`, `photoRow` in `src/lib/files.ts`; PDF pages and paper size from `src/lib/pdfinfo.ts`).
+- Chosen files are rows with a thumbnail and the details that matter for the tool (`fileRow`, `photoRow`, `typeThumb`, `videoThumb` in `src/lib/files.ts`; PDF pages and paper size from `src/lib/pdfinfo.ts`).
+- See it before you save it: PDF tools draw page pictures with pdf.js (`src/lib/pdfthumb.ts`: a thumbnail per file, a strip of numbered page tiles that Rotate turns and Split marks, and the finished PDF's first page beside Download). Image tools add a Compare button that slides between the original and the result, and converted sound or video gets a player (`src/lib/preview.ts`). Previews keep the picture's own shape and orientation.
+- Results that change as you type (times, units, counts, passwords, hashes) flash briefly (`src/lib/live.ts`, the `.changed` animation), never on first paint, and not at all under reduced motion.
 - Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages with a "Requested" badge, an "I want this" button and "Sponsor this tool". Each links to its own page, which says "Not built yet".
 
 Type:

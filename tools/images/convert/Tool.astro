@@ -39,6 +39,7 @@ const blurb: Record<string, string> = {
   import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
+  import { compareButton } from "../../../src/lib/preview";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("cvi-tool"), picked = $("cvi-picked"), list = $("cvi-list"), status = $("cvi-status");
   const go = $("cvi-go") as HTMLButtonElement, goLabel = $("cvi-go-label"), again = $("cvi-again");
@@ -94,7 +95,7 @@ const blurb: Record<string, string> = {
         m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
         li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
         const out = renameTo(f.name, fmt.ext);
-        act.append(downloadLink(blob, out, type));
+        act.append(compareButton(li, f, blob, { beforeLabel: (f.type.split("/")[1] || "Original").toUpperCase(), afterLabel: fmt.label }), downloadLink(blob, out, type));
         outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }

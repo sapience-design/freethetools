@@ -21,5 +21,6 @@
     { "q": "Are my files uploaded?", "a": "No. The PDF is read and split inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "How do I write page ranges?", "a": "Separate ranges with commas. 2 is a single page, 4-7 is pages 4 to 7, 8- runs to the end and -3 starts at page 1. Each range becomes its own file." },
     { "q": "Can I pull out a few pages into one file?", "a": "Yes. Choose custom ranges and enter one range, for example 3-6." }
-  ]
+  ],
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }]
 }

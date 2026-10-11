@@ -1,5 +1,6 @@
 ---
 import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 import { UNITS } from "./core.js";
 const cats = Object.keys(UNITS);
 ---
@@ -14,20 +15,22 @@ const cats = Object.keys(UNITS);
   </Step>
   <Step n={2} title="Type a number">
     <div class="uc-row">
-      <label class="field"><span>Value</span><input type="number" id="uc-val" value="1" step="any"></label>
+      <label class="field uc-val"><span>Value</span><input type="number" id="uc-val" value="1" step="any"></label>
       <label class="field"><span>From</span><select id="uc-from"></select></label>
-      <button class="icon-btn uc-swap" id="uc-swap" type="button" aria-label="Swap units">⇄</button>
+      <button class="icon-btn uc-swap" id="uc-swap" type="button" aria-label="Swap units"><Icon name="arrows-left-right" /></button>
       <label class="field"><span>To</span><select id="uc-to"></select></label>
     </div>
   </Step>
   <Step n={3} title="Result">
     <p class="uc-result" id="uc-out" aria-live="polite"></p>
+    <p class="hint uc-exact" id="uc-exact"></p>
     <ul class="file-list" id="uc-all"></ul>
   </Step>
 </section>
 
 <script>
-  import { UNITS, convert, pretty } from "./core.js";
+  import { UNITS, convert, pretty, nice } from "./core.js";
+  import { setLive } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const from = $("uc-from") as HTMLSelectElement, to = $("uc-to") as HTMLSelectElement, val = $("uc-val") as HTMLInputElement;
   const defaults: Record<string, [string, string]> = { length: ["cm", "in"], weight: ["kg", "lb"], temperature: ["C", "F"], volume: ["cup", "ml"], area: ["m2", "ft2"], speed: ["km/h", "mph"], data: ["GB", "GiB"] };
@@ -44,15 +47,18 @@ const cats = Object.keys(UNITS);
     try {
       const v = parseFloat(val.value);
       const r = convert(v, c, from.value, to.value);
-      $("uc-out").textContent = `${pretty(v)} ${from.value} = ${pretty(r)} ${to.value}`;
+      // The headline is the answer as a person would say it; the exact figure sits under it.
+      setLive($("uc-out"), `${pretty(v)} ${from.value} = ${nice(r)} ${to.value}`);
       $("uc-out").classList.remove("bad");
+      $("uc-exact").textContent = nice(r) === pretty(r) ? "" : `Exactly ${pretty(r)} ${to.value}`;
       $("uc-all").replaceChildren(...Object.entries(UNITS[c].units).filter(([k]) => k !== from.value).map(([k, [label]]) => {
+        const x = convert(v, c, from.value, k);
         const li = document.createElement("li");
-        const n = document.createElement("span"); n.className = "fname"; n.textContent = `${pretty(convert(v, c, from.value, k))} ${k}`;
-        const m = document.createElement("span"); m.className = "fmeta"; m.textContent = label;
+        const n = document.createElement("span"); n.className = "fname"; n.textContent = `${nice(x)} ${k}`;
+        const m = document.createElement("span"); m.className = "fmeta"; m.textContent = nice(x) === pretty(x) ? label : `${label} · exactly ${pretty(x)}`;
         li.append(n, m); return li;
       }));
-    } catch (e) { $("uc-out").textContent = (e as Error).message; $("uc-out").classList.add("bad"); $("uc-all").replaceChildren(); }
+    } catch (e) { $("uc-out").textContent = (e as Error).message; $("uc-out").classList.add("bad"); $("uc-exact").textContent = ""; $("uc-all").replaceChildren(); }
   }
   document.querySelectorAll('input[name="uc-cat"]').forEach((r) => r.addEventListener("change", fill));
   [from, to].forEach((s) => s.addEventListener("change", update));
@@ -63,10 +69,15 @@ const cats = Object.keys(UNITS);
 
 <style>
   .uc-row { display: grid; grid-template-columns: minmax(90px, 1fr) minmax(0, 2fr) auto minmax(0, 2fr); gap: 16px; align-items: end; }
-  .uc-swap { height: 52px; }
+  .uc-swap { height: 52px; border-color: var(--edge); font-size: 20px; }
   #uc-all { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); }
   #uc-all :global(li) { min-height: 0; }
-  .uc-result { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; }
+  .uc-result { font-family: var(--display); font-weight: 700; font-size: 30px; line-height: 1.2; color: var(--ink); overflow-wrap: anywhere; border-radius: var(--r-sm); }
   .uc-result.bad { font-family: var(--sans); font-weight: 600; font-size: 15px; color: var(--bad); }
-  @media (max-width: 640px) { .uc-row { grid-template-columns: 1fr 1fr; } .uc-row .field:first-child { grid-column: 1 / -1; } .uc-swap { display: none; } }
+  .uc-exact:empty { display: none; }
+  /* Phones: the value on its own line, then From, the swap button and To side by side. */
+  @media (max-width: 640px) {
+    .uc-row { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
+    .uc-row .uc-val { grid-column: 1 / -1; }
+  }
 </style>

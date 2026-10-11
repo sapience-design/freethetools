@@ -19,17 +19,23 @@ import Step from "../../../src/components/Step.astro";
 
 <script>
   import { stats } from "./core.js";
+  import { flash } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("wc-in") as HTMLTextAreaElement;
   const nf = new Intl.NumberFormat();
+  // A count that changed flashes its tile, so a change is seen without reading every number.
+  // The first count, drawn as the page loads, is not a change.
+  let loaded = false;
+  const show = (id: string, n: number) => { const el = $(id), text = nf.format(n); if (el.textContent !== text) { el.textContent = text; if (loaded) flash(el.parentElement); } };
   function update() {
     const s = stats(input.value);
-    $("wc-words").textContent = nf.format(s.words);
-    $("wc-chars").textContent = nf.format(s.characters);
-    $("wc-sent").textContent = nf.format(s.sentences);
-    $("wc-read").textContent = nf.format(s.readingMinutes);
+    show("wc-words", s.words);
+    show("wc-chars", s.characters);
+    show("wc-sent", s.sentences);
+    show("wc-read", s.readingMinutes);
     $("wc-more").textContent = `${nf.format(s.charactersNoSpaces)} characters without spaces · ${nf.format(s.paragraphs)} ${s.paragraphs === 1 ? "paragraph" : "paragraphs"} · about ${s.speakingMinutes} min to say aloud. Counts update as you type.`;
   }
   input.addEventListener("input", update);
   update();
+  loaded = true;
 </script>

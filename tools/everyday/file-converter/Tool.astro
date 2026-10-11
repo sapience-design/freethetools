@@ -26,7 +26,8 @@ import Step from "../../../src/components/Step.astro";
     decodeText, delimiterName, estimateAudio, longAudioWarning,
   } from "./core.js";
   import { decode, encode, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, imageThumb, compactDrop } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, imageThumb, typeThumb, videoThumb, compactDrop } from "../../../src/lib/files";
+  import { compareButton, mediaPlayer } from "../../../src/lib/preview";
 
   const list = document.getElementById("fc-list")!;
   type Det = ReturnType<typeof detectType>;
@@ -149,8 +150,10 @@ import Step from "../../../src/components/Step.astro";
   }
 
   async function addRow(file: File, before: ChildNode | null) {
-    // Photos show a thumbnail; other files a plain row.
-    const li = fileRow({ name: file.name, meta: "Reading…", thumb: file.type.startsWith("image/") && file.type !== "image/svg+xml" ? imageThumb(file) : undefined });
+    // Photos show a thumbnail, videos a frame, and every other file a tile naming its kind.
+    const ext = file.name.includes(".") ? file.name.split(".").pop()!.toUpperCase() : "File";
+    const thumb = file.type.startsWith("image/") && file.type !== "image/svg+xml" ? imageThumb(file) : file.type.startsWith("video/") ? videoThumb(file, ext) : typeThumb(ext);
+    const li = fileRow({ name: file.name, meta: "Reading…", thumb });
     const meta = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!, info = li.querySelector<HTMLElement>(".finfo")!;
     list.insertBefore(li, before);
 
@@ -158,6 +161,7 @@ import Step from "../../../src/components/Step.astro";
     try {
       head = new Uint8Array(await file.slice(0, 65536).arrayBuffer());
       det = detectType(head, file.name);
+      if (thumb.classList.contains("ftype")) thumb.textContent = det.format.length > 5 ? det.format.slice(0, 4).toUpperCase() : det.format.toUpperCase();
     } catch {
       reportFailure();
       meta.textContent = "The browser couldn't read this file. Check that it still exists, then add it again.";
@@ -204,11 +208,14 @@ import Step from "../../../src/components/Step.astro";
     info.append(notes);
     const setNotes = (t: string) => { notes.textContent = t; notes.hidden = !t; };
     let proceed: HTMLButtonElement | null = null;
+    let preview: HTMLElement | null = null; // a Compare button or a player for the last result
 
     async function run(confirmed = false) {
       const out = outputs.find((o) => o.id === select.value)!;
       if (download) { URL.revokeObjectURL(download.href); download.remove(); download = null; }
       proceed?.remove(); proceed = null;
+      preview?.remove(); preview = null;
+      li.querySelector(".fwide")?.remove();
       setNotes("");
       if (det.kind === "audio" && !confirmed) {
         const warning = longAudioWarning(estimateAudio(head, file.size, det.format));
@@ -229,6 +236,14 @@ import Step from "../../../src/components/Step.astro";
         const newName = renameTo(file.name, out.ext);
         download = downloadLink(blob, newName, out.mime);
         download.setAttribute("aria-label", `Download ${newName}`);
+        // See it before saving it: a slider for pictures, a player for sound (and video, when it comes).
+        if (det.kind === "image" && /^image\/(png|jpeg|webp|avif|gif|bmp)$/.test(blob.type)) {
+          preview = compareButton(li, file, blob, { beforeLabel: det.label.replace(/ image$/, ""), afterLabel: out.label });
+          act.append(preview);
+        } else {
+          preview = mediaPlayer(blob, `Play ${newName}`);
+          if (preview) li.append(preview);
+        }
         act.append(download);
         meta.textContent = `${det.label} → ${out.label} · ${size} → ${fmtBytes(blob.size)}`;
         setNotes(note);

@@ -52,3 +52,42 @@ export function inZone(date, zone, refZone) {
 
 /** Is this local hour within normal working hours (08-18)? */
 export const workingHour = (h) => h >= 8 && h < 18;
+
+/** The wall clock of an instant in a zone as parts: { date: "2026-10-15", time: "09:05", hour: 9, minute: 5 }. */
+export function localParts(date, zone) {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: zone, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" })
+      .formatToParts(date).filter((x) => x.type !== "literal").map((x) => [x.type, x.value]),
+  );
+  const hour = +p.hour % 24, minute = +p.minute;
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${String(hour).padStart(2, "0")}:${p.minute}`, hour, minute };
+}
+
+/**
+ * The chosen day in `refZone` as 24 hour cells, each seen from `zone`: the local hour there,
+ * whether it is a working hour, whether it holds the chosen instant, the date when that cell is
+ * the first hour of a new local day, and the reference time to pick when the cell is pressed.
+ * Cells are one hour apart in real time, so every city's strip lines up with every other.
+ */
+export function dayStrip(instant, refZone, zone) {
+  const ref = localParts(instant, refZone);
+  const start = zonedToInstant(`${ref.date}T00:00`, refZone).getTime();
+  const HOUR = 3600000;
+  const at = instant.getTime();
+  const cells = [];
+  let lastDate = null;
+  for (let i = 0; i < 24; i++) {
+    const t = new Date(start + i * HOUR);
+    const here = localParts(t, zone);
+    const first = lastDate !== null && here.date !== lastDate;
+    lastDate = here.date;
+    cells.push({
+      hour: here.hour,
+      working: workingHour(here.hour),
+      now: at >= t.getTime() && at < t.getTime() + HOUR,
+      dayStart: i === 0 || first ? new Intl.DateTimeFormat("en-GB", { timeZone: zone, weekday: "short", day: "numeric", month: "short" }).format(t) : null,
+      pick: `${ref.date}T${String(localParts(t, refZone).hour).padStart(2, "0")}:00`,
+    });
+  }
+  return cells;
+}

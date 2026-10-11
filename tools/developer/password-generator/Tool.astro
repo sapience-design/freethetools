@@ -40,6 +40,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { password, passphrase, strength } from "./core.js";
   import { WORDS } from "./words.js";
+  import { setLive } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const on = (id: string) => ($(id) as HTMLInputElement).checked;
   const val = (id: string) => +($(id) as HTMLInputElement).value;
@@ -51,7 +52,7 @@ import Icon from "../../../src/components/Icon.astro";
       const r = phrase
         ? passphrase(WORDS, { count: val("pw-words"), capitalize: on("pw-cap"), number: on("pw-num") })
         : password({ length: val("pw-len"), upper: on("pw-upper"), lower: on("pw-lower"), digits: on("pw-digits"), symbols: on("pw-symbols"), similar: on("pw-similar") });
-      $("pw-out").textContent = r.value;
+      setLive($("pw-out"), r.value);
       $("pw-meta").textContent = `${strength(r.bits)} · about ${r.bits} bits of randomness`;
     } catch (e) { $("pw-out").textContent = ""; $("pw-meta").textContent = (e as Error).message; }
   }
@@ -69,5 +70,6 @@ import Icon from "../../../src/components/Icon.astro";
   .pw-opts { display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; }
   .pw-opts .field { width: 100%; }
   #pw-out { display: block; font-size: 20px; line-height: 1.4; overflow-wrap: anywhere; white-space: normal; }
+  #pw-meta { font-weight: 600; color: var(--soft); }
   input[type="range"] { accent-color: var(--ink); }
 </style>
