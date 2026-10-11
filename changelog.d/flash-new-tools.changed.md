@@ -1,0 +1,1 @@
+- Colour Converter, URL Encode and Decode and Unix Timestamp Converter: results flash briefly when they change, like the other converters.

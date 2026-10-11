@@ -44,6 +44,7 @@ const rows = [
 
 <script>
   import { parseColour, convertColour, toHex } from "./core.js";
+  import { setLive } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("cc-in") as HTMLInputElement;
   const picker = $("cc-pick") as HTMLInputElement;
@@ -57,14 +58,14 @@ const rows = [
   function update() {
     try {
       const r = convertColour(input.value);
-      $("cc-hex").textContent = r.hex;
-      $("cc-rgb").textContent = r.rgb;
-      $("cc-hsl").textContent = r.hsl;
-      $("cc-name").textContent = r.nameIsExact ? r.name : `${r.name} (nearest, ${r.nameHex})`;
+      setLive($("cc-hex"), r.hex);
+      setLive($("cc-rgb"), r.rgb);
+      setLive($("cc-hsl"), r.hsl);
+      setLive($("cc-name"), r.nameIsExact ? r.name : `${r.name} (nearest, ${r.nameHex})`);
       // The policy blocks style attributes in markup, but setting a property from script is allowed.
       $("cc-fill").style.setProperty("--cc-colour", r.rgb);
       for (const [key, c] of [["white", r.contrastWithWhite], ["black", r.contrastWithBlack]] as const) {
-        $(`cc-r-${key}`).textContent = `${c.ratio}:1`;
+        setLive($(`cc-r-${key}`), `${c.ratio}:1`);
         verdict($(`cc-n-${key}`), "Normal text", c.normalText);
         verdict($(`cc-l-${key}`), "Large text", c.largeText);
       }
