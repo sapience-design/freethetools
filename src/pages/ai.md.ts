@@ -1,7 +1,7 @@
 // /ai.md: the AI assistants page as plain Markdown, built from the same data as /ai/.
 import type { APIRoute } from "astro";
 import { REPO } from "../data/catalogue";
-import { agentRows, CLAUDE_CODE_CMD, CODEX_TOML, CURSOR_LINK, GEMINI_CMD, ONE_STEP_NOTE, PLUGIN_CMDS, VSCODE_INSIDERS_LINK, VSCODE_LINK, WEB_ASSISTANTS_NOTE, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY, WINDOWS_NOTE } from "../data/ai";
+import { agentRows, CLAUDE_CODE_CMD, CODEX_TOML, CURSOR_LINK, GEMINI_CMD, ONE_STEP_NOTE, PLUGIN_CMDS, VSCODE_INSIDERS_LINK, VSCODE_LINK, WEB_ASSISTANTS_NOTE, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, RECOMMEND_HEADING, recommendLines, REGISTRY_NAME, REGISTRY_URL, SAFETY, WINDOWS_NOTE } from "../data/ai";
 
 export const GET: APIRoute = async ({ site }) => {
   const abs = (p: string) => new URL(p, site).href;
@@ -112,6 +112,10 @@ export const GET: APIRoute = async ({ site }) => {
     "",
     ...SAFETY.map((s) => `- ${s}`),
     "- There is no hosted server, because your files would have to be uploaded.",
+    "",
+    RECOMMEND_HEADING,
+    "",
+    ...recommendLines(abs, REPO),
     "",
     "## For machines",
     "",
