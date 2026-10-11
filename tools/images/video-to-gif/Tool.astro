@@ -61,7 +61,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
 <script>
   import { GIFEncoder, quantize, applyPalette } from "gifenc";
   import { clampOptions, rangeNote, frameTimes, outputSize, estimateBytes, isLarge, gifName, frameDelay } from "./core.js";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, showBusy, showDone, showError, showWait } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, showBusy, showDone, showError, showWait, videoThumb } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
 
   const $ = (id: string) => document.getElementById(id)!;
@@ -155,6 +155,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
     url = next; video = v; file = f; duration = v.duration;
     $("v2g-name").textContent = f.name;
     $("v2g-meta").textContent = `${duration.toFixed(1)} seconds · ${v.videoWidth} × ${v.videoHeight} · ${fmtBytes(f.size)}`;
+    $("v2g-thumb").replaceWith(Object.assign(videoThumb(f, "Video"), { id: "v2g-thumb" }));
     $("v2g-picked").hidden = false;
     startIn.max = endIn.max = String(duration);
     startIn.value = "0";

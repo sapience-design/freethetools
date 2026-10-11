@@ -65,17 +65,20 @@ const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("s
     <div class="tp-main">
       <a class="back" href={localePath(lang, `/${category}/`)}><Icon name="caret-left" />{groupText.label}</a>
       <header class="tp-head">
-        <span class="tag"><span class="tag-ic"><Icon name={tool.category.mark} /></span>{d.name}</span>
+        {/* The name and the heart share one line, so the first control of the tool sits higher. */}
+        <div class="tp-top">
+          <span class="tag"><span class="tag-ic"><Icon name={tool.category.mark} /></span>{d.name}</span>
+          <div class="tp-actions">
+            <span class="usage" id="tool-usage" hidden></span>
+            {/* One heart: it keeps the tool in Favourites (see Base.astro) and counts one public like. */}
+            <button class="pillbtn like" type="button" id="tool-like" data-save={tool.id} data-name={tool.data.name} data-href={tool.url} aria-pressed="false">
+              <span class="off"><Icon name="heart" /></span><span class="on"><Icon name="heart" weight="fill" /></span>
+              <span class="off">{T("favAdd")}</span><span class="on">{T("favOn")}</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
+            </button>
+          </div>
+        </div>
         <h1 class="h1">{d.task}</h1>
         <p class="lede">{d.tagline}</p>
-        <div class="tp-actions">
-          {/* One heart: it keeps the tool in Favourites (see Base.astro) and counts one public like. */}
-          <button class="pillbtn like" type="button" id="tool-like" data-save={tool.id} data-name={tool.data.name} data-href={tool.url} aria-pressed="false">
-            <span class="off"><Icon name="heart" /></span><span class="on"><Icon name="heart" weight="fill" /></span>
-            <span class="off">{T("favAdd")}</span><span class="on">{T("favOn")}</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
-          </button>
-          <span class="usage" id="tool-usage" hidden></span>
-        </div>
       </header>
       {lang !== "en" && <p class="tool-note">{ui(lang, "toolNote")}</p>}
       <div class="work" id="tool-work" lang={lang !== "en" ? "en" : undefined} data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => `/${tool.id}/vendor/${v.to}`))}>
@@ -170,10 +173,11 @@ const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("s
 
 <style>
   .tool-page { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px clamp(28px, 3vw, 48px); align-items: start; }
-  .tp-main { min-width: 0; display: grid; gap: 22px; }
-  .tp-head { display: grid; gap: 10px; justify-items: start; }
+  .tp-main { min-width: 0; display: grid; gap: 18px; }
+  .tp-head { display: grid; gap: 8px; justify-items: start; }
+  .tp-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px 16px; width: 100%; }
   .tp-head .h1 { margin-top: 2px; }
-  .tp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 4px; }
+  .tp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
   .pillbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--hair); border-radius: 999px; background: var(--card); font-weight: 650; font-size: 15px; cursor: pointer; }
   .pillbtn:hover { border-color: var(--edge); }
   .pillbtn :global(.ic) { font-size: 18px; }

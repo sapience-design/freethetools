@@ -355,20 +355,46 @@ test.describe("text, data and everyday tools", () => {
     await expect(page.locator("#uc-out")).toHaveText("10 in = 25.4 cm");
   });
 
-  test("Time Zone Converter lists other cities", async ({ page }) => {
+  test("Time Zone Converter lists other cities with a day strip each", async ({ page }) => {
     await page.goto("/everyday/time-zone-converter/");
-    await expect(page.locator("#tz-list li").first()).toBeVisible();
+    await expect(page.locator("#tz-list li").first()).toHaveClass(/tz-ref/);
+    await expect(page.locator("#tz-list li").nth(1)).toBeVisible();
+    await expect(page.locator("#tz-list li").nth(1).locator(".tz-h")).toHaveCount(24);
+    await expect(page.locator("#tz-list li").nth(1).locator(".tz-h.now")).toHaveCount(1);
+  });
+
+  test("Time Zone Converter shows the chosen time in words and steps it by the hour", async ({ page }) => {
+    await page.goto("/everyday/time-zone-converter/");
+    await page.selectOption("#tz-from", "Europe/Oslo");
+    await page.fill("#tz-date", "2026-10-15");
+    await page.fill("#tz-time", "09:00");
+    await expect(page.locator("#tz-lead")).toHaveText("Thursday 15 October 2026, 09:00 in Oslo");
+    const tokyo = page.locator('#tz-list li[data-zone="Asia/Tokyo"]');
+    await expect(tokyo.locator(".tz-time")).toHaveText("16:00");
+    await page.click("#tz-hour-next");
+    await expect(page.locator("#tz-time")).toHaveValue("10:00");
+    await expect(tokyo.locator(".tz-time")).toHaveText("17:00");
+    await page.click("#tz-day-next");
+    await expect(page.locator("#tz-lead")).toHaveText("Friday 16 October 2026, 10:00 in Oslo");
+    // Pressing an hour on a strip picks that hour in the chosen city.
+    await tokyo.locator(".tz-h").nth(14).click();
+    await expect(page.locator("#tz-time")).toHaveValue("14:00");
+    await expect(tokyo.locator(".tz-time")).toHaveText("21:00");
+    await expect(tokyo.locator(".tz-offb")).toBeVisible();
   });
 
   test("Time Zone Converter says when a time is skipped or repeated", async ({ page }) => {
     await page.goto("/everyday/time-zone-converter/");
     await page.selectOption("#tz-from", "America/New_York");
-    await page.fill("#tz-when", "2026-03-08T02:30");
+    await page.fill("#tz-date", "2026-03-08");
+    await page.fill("#tz-time", "02:30");
     await expect(page.locator("#tz-note")).toContainText("2:30 does not exist on 8 March in New York");
     await expect(page.locator("#tz-note")).toContainText("Showing 3:30");
-    await page.fill("#tz-when", "2026-11-01T01:30");
+    await page.fill("#tz-date", "2026-11-01");
+    await page.fill("#tz-time", "01:30");
     await expect(page.locator("#tz-note")).toContainText("happens twice");
-    await page.fill("#tz-when", "2026-09-27T09:00");
+    await page.fill("#tz-date", "2026-09-27");
+    await page.fill("#tz-time", "09:00");
     await expect(page.locator("#tz-note")).toBeEmpty();
   });
 });
@@ -599,7 +625,7 @@ test.describe("phone layout", () => {
     // 3 px too wide. A large wide font makes that certain.
     await page.setViewportSize({ width: 320, height: 700 });
     await page.goto("/everyday/time-zone-converter/");
-    await page.locator("#tz-when").evaluate((i) => { i.style.fontFamily = "Verdana, 'DejaVu Sans', sans-serif"; i.style.fontSize = "24px"; });
+    await page.locator("#tz-date").evaluate((i) => { i.style.fontFamily = "Verdana, 'DejaVu Sans', sans-serif"; i.style.fontSize = "24px"; });
     expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
   });
 });

@@ -22,5 +22,6 @@
     { "q": "Is my form uploaded?", "a": "No. Forms often hold personal details, so it's filled inside this tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "It says my PDF has no fields. Why?", "a": "Some forms are only printed lines, with no real fields inside the file. Those need a tool that places text anywhere on the page, which is planned." },
     { "q": "What does locking the answers do?", "a": "It flattens the form: your answers become part of the page and can no longer be changed in a PDF reader." }
-  ]
+  ],
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }]
 }

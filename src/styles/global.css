@@ -17,6 +17,7 @@
   --press: #1d1b16;       /* the 3px drop shadow under raised things */
   --hl: #ffe27a;          /* highlight: the mark, "now" step numbers, New badges */
   --hl-ink: #1d1b16;
+  --flash: #ffe27a;       /* a result that just changed (src/lib/live.ts) */
   --accent: #1d1b16;      /* primary buttons */
   --on-accent: #ffffff;
   --ok: #0f7a44;   --ok-t: #d9f2e3;
@@ -50,7 +51,7 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #18181b; --card: #222226; --ink: #f2f0ea; --soft: #d4d1ca; --muted: #a9a7a1; --edge: #dcd9d2; --hair: #36363c;
-    --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --accent: #ebe8e1; --on-accent: #18181b;
+    --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --flash: #5e5120; --accent: #ebe8e1; --on-accent: #18181b;
     --ok: #8ad9ab; --ok-t: #bbcfc4; --bad: #ff9d92; --bad-t: #d9c3c0; --busy: #a9c6ff; --busy-t: #c2cad8;
     --well: #2c2c31; --hover: #28282d; --row-hover: #26262a; --pick: #dad0af; --glass: rgba(24, 24, 27, .9);
     --tint-pdf: #dabdb6; --tint-images: #b1ccc1; --tint-text: #c5bfd9; --tint-data: #bbc5d9; --tint-developer: #c2c5c9; --tint-everyday: #dac5a6;
@@ -58,7 +59,7 @@
     color-scheme: dark;
   }
   :root:not([data-theme="light"]) :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .safe-note, .res-busy, .res-done, .res-bad, .tool-error,
-  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
+  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"], .tz-ref, .tz-h.work, .page-tile.pick .page-pic) {
     --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
     --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);
     color: var(--ink);
@@ -66,7 +67,7 @@
 }
 :root[data-theme="dark"] {
   --bg: #18181b; --card: #222226; --ink: #f2f0ea; --soft: #d4d1ca; --muted: #a9a7a1; --edge: #dcd9d2; --hair: #36363c;
-  --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --accent: #ebe8e1; --on-accent: #18181b;
+  --press: #dcd9d2; --hl: #dac26d; --hl-ink: #1d1b16; --flash: #5e5120; --accent: #ebe8e1; --on-accent: #18181b;
   --ok: #8ad9ab; --ok-t: #bbcfc4; --bad: #ff9d92; --bad-t: #d9c3c0; --busy: #a9c6ff; --busy-t: #c2cad8;
   --well: #2c2c31; --hover: #28282d; --row-hover: #26262a; --pick: #dad0af; --glass: rgba(24, 24, 27, .9);
   --tint-pdf: #dabdb6; --tint-images: #b1ccc1; --tint-text: #c5bfd9; --tint-data: #bbc5d9; --tint-developer: #c2c5c9; --tint-everyday: #dac5a6;
@@ -74,7 +75,7 @@
   color-scheme: dark;
 }
 :root[data-theme="dark"] :is(.gcard-head, .banner, .row:not(.want) > .row-ic, .chip-ic, .tag, .stats > div, .safe, .safe-note, .res-busy, .res-done, .res-bad, .tool-error,
-  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"]) {
+  .drop, .badge.new, .badge.rec, .choice input:checked + label, .fthumb, .pop-shot, .step[data-state="done"] .step-n, .like[aria-pressed="true"], .tz-ref, .tz-h.work, .page-tile.pick .page-pic) {
   --ink: #1d1b16; --soft: #3f3b34; --muted: #4b473f; --edge: #1d1b16; --card: #e4e2dc; --hair: #c9c5bc; --press: #1d1b16;
   --accent: #1d1b16; --on-accent: #f2f0ea; --ok: #0a5a32; --bad: #8e1c15; --busy: #164a9e; --glass: rgba(228, 226, 220, .94);
   color: var(--ink);
@@ -226,6 +227,9 @@ details.qa p { padding-bottom: 14px; color: var(--soft); }
 @keyframes ft-spin { to { transform: rotate(360deg); } }
 /* Transform, not width: the browser draws it apart from the page's own work, so it keeps moving while a tool is busy. */
 @keyframes ft-fill { from { transform: scaleX(.04); } to { transform: scaleX(.88); } }
+/* A result that changed under the person's eyes (src/lib/live.ts): a short highlight that fades. */
+@keyframes ft-changed { from { background-color: var(--flash); box-shadow: 0 0 0 4px var(--flash); } to { background-color: transparent; box-shadow: 0 0 0 4px transparent; } }
+.changed { animation: ft-changed .9s ease-out; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important; }
 }
@@ -437,3 +441,41 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
 @media (max-width: 480px) {
   .tag, .back { width: auto; white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
 }
+
+/* ---- Previews: see it before you save it ---- */
+/* Page pictures (src/lib/pdfthumb.ts): the first pages of a PDF as numbered tiles. A tile may be
+   chosen (.pick), left out (.dim) or shown turned (.t90, .t180, .t270), so Rotate and Split show
+   their result before the button is pressed. */
+.pages { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.page-tile { margin: 0; display: grid; gap: 4px; justify-items: center; }
+.page-pic { display: grid; place-items: center; width: 96px; height: 96px; border-radius: 8px; border: 1px solid var(--hair); background: var(--well); overflow: hidden; }
+.page-pic canvas { max-width: 100%; max-height: 100%; display: block; box-shadow: 0 1px 2px rgba(0, 0, 0, .18); transition: transform .3s cubic-bezier(.2, .7, .2, 1); }
+.page-tile figcaption { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.page-tile.pick .page-pic { outline: 2.5px solid var(--edge); outline-offset: 2px; background: var(--pick); }
+.page-tile.dim { opacity: .35; }
+.page-tile.t90 canvas { transform: rotate(90deg); }
+.page-tile.t180 canvas { transform: rotate(180deg); }
+.page-tile.t270 canvas { transform: rotate(-90deg); }
+.page-more { align-self: center; font-size: 14px; color: var(--muted); }
+/* The finished PDF's first page beside its Download button. */
+.out-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.out-row .fthumb { width: 96px; height: 120px; }
+.out-row .btn.run { flex: 1 1 240px; width: auto; }
+/* Something full-width under a file row: a before/after slider or a player. */
+.file-list > li > .fwide { grid-column: 1 / -1; min-width: 0; padding-top: 6px; }
+.media-preview { display: block; width: 100%; max-width: 560px; border-radius: var(--r-sm); }
+video.media-preview { background: #000; }
+/* Before and after pictures with a slider (src/lib/preview.ts). */
+.cmp-pics { display: grid; gap: 8px; }
+.cmp-stage { position: relative; aspect-ratio: 3 / 2; width: 100%; max-height: 520px; border-radius: var(--r); overflow: hidden; background: var(--well); touch-action: none; cursor: ew-resize; user-select: none; }
+.cmp-stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; display: block; }
+.cmp-handle { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--card); box-shadow: 0 0 0 1px var(--edge); }
+.cmp-handle::after { content: "⇄"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--edge); display: grid; place-items: center; font-size: 16px; color: var(--ink); }
+.cmp-tag { position: absolute; top: 8px; padding: 2px 8px; border-radius: 999px; background: var(--glass); border: 1px solid var(--hair); font-size: 12px; font-weight: 650; color: var(--ink); }
+.cmp-tag.a { left: 8px; }
+.cmp-tag.b { right: 8px; }
+.cmp-range { width: 100%; accent-color: var(--ink); }
+/* A tile naming the kind of file ("CSV", "MP3") where there is no picture to show. */
+.fthumb.ftype { font: 700 12px/1 var(--mono); letter-spacing: .04em; color: var(--soft); text-transform: uppercase; }
+/* Players keep the clip's own shape and orientation; nothing is stretched into a box. */
+video.media-preview { width: auto; height: auto; max-width: 100%; max-height: 420px; }

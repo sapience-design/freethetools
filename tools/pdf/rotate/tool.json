@@ -20,5 +20,6 @@
   "faq": [
     { "q": "Are my files uploaded?", "a": "No. The PDF is changed inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Does rotating lower the quality?", "a": "No. The tool changes each page's rotation setting; nothing is re-rendered or compressed." }
-  ]
+  ],
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }]
 }
