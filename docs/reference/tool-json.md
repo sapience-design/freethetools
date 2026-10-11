@@ -21,6 +21,7 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `offline` | no | Boolean, default `true` | "Your files stay on your device" wording |
 | `specs` | no | `{ "Label": "Value" }` | Extra rows in the spec table |
 | `faq` | no | `[{ "q", "a" }]` | Questions beside the tool and FAQ structured data for search engines. Start with whether anything is uploaded. |
+| `related` | no | Up to 6 ids of other live tools, `"group/slug"`, e.g. `["pdf/merge", "pdf/split"]`. The build stops if one is missing, requested but not built, or the tool itself. | The "Related tools" block on the tool page. Without it, the page uses the next-step map in `src/data/related.ts`, then fills up to four from the same section and group. |
 | `vendor` | no | `[{ "from", "to" }]` | Runtime files copied from `node_modules`; optional `"extract"` names a build-time extractor in `scripts/sync-tool-assets.mjs`; see [vendoring](../how-to/vendor-a-library.md) |
 
 ## Other files in the folder

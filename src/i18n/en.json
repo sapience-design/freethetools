@@ -113,6 +113,7 @@
       "offlineBold": "Works offline:",
       "offlineText": "you can turn off Wi-Fi and this tool still runs.",
       "questions": "Questions",
+      "related": "Related tools",
       "about": "About this tool",
       "specRuns": "Runs",
       "specRunsOffline": "In your browser. Your files stay on your device.",
