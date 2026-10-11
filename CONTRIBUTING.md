@@ -59,6 +59,22 @@ npm run test:e2e     # browser tests; run `npx playwright install chromium` once
 
 `npm run check` runs all four.
 
+## Security review
+
+Every new tool, and every change to a tool's code or libraries, gets a security review before it merges. Automatic checks catch the common problems:
+
+- [`tests/tool-safety.test.js`](tests/tool-safety.test.js) fails on code built from text (`eval`, `new Function`), raw HTML writes without a written reason, and any network, Node built-in or `process` use in `core.js` and `agent.js`. Those two files also run inside the npm package on people's computers, where no Content Security Policy applies.
+- The browser tests fail if a page contacts another site or breaks the Content Security Policy.
+- Dependency review blocks a new or updated dependency with a known vulnerability, and CodeQL scans every pull request.
+
+The reviewer then reads the code for what tests cannot see:
+
+- **Crafted files.** A file may be made to attack the tool. Check limits on size, pages, frames and decompression, so a small file cannot freeze the tab or the computer.
+- **Patterns from people.** A regular expression or other pattern a person types, or one run on large text, must not hang the page.
+- **Output.** Text from a file or a person goes into the page as text, never as HTML. A name found inside a file, such as a path in a ZIP, never decides where a result is saved.
+- **Libraries.** An exact version from the official package, a compatible licence, and no install script that downloads code.
+- **Agents.** `agent.js` accepts only what its input schema allows, and returns files as bytes. Saving them is the channel's job.
+
 ## Commit and open a pull request
 
 - **Sign off every commit** with `git commit -s`. This adds a `Signed-off-by` line certifying the [Developer Certificate of Origin](https://developercertificate.org/): that you wrote the change or have the right to submit it under the project's licence. A check blocks pull requests with unsigned commits. Forgot? `git rebase --signoff main`, then force-push your branch.

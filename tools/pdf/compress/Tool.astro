@@ -47,6 +47,7 @@ import Icon from "../../../src/components/Icon.astro";
   const running = () => batch.done + batch.failed < batch.total;
 
   const labels: Record<string, string> = { screen: "smallest", ebook: "good quality", printer: "for printing", prepress: "for a print shop" };
+  // safe-html: only sizes, percentages and fixed labels go in, never a file name.
   const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".fmeta") as HTMLElement).innerHTML = html);
 
   const LOAD_ERROR = '<span class="err">The compressor could not load. Reload the page and try again.</span>';
