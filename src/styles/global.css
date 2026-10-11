@@ -416,3 +416,8 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
 :where(h1, h2, h3, h4, p, li, dd, .lede, .h1, .h2, .h3):not(:lang(en)) {
   hyphens: auto;
 }
+/* On narrow screens the group label and the back link may wrap too, so a long label ("Инструменты
+   для разработчиков") never widens the page. Wider screens keep them on one line. */
+@media (max-width: 480px) {
+  .tag, .back { white-space: normal; overflow-wrap: anywhere; max-width: 100%; }
+}
