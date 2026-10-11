@@ -50,8 +50,8 @@
     "row": { "new": "Ny", "notBuilt": "Ønsket" },
     "home": {
       "title": "Free the Tools – hverdagsverktøy som aldri forlater enheten din",
-      "description": "Verktøy med åpen kildekode som kjører i nettleseren. Komprimer PDF-er og mer uten å laste opp noe. Ingen kontoer, ingen reklame. Et initiativ fra Sapience Design.",
-      "schemaDescription": "Verktøy med åpen kildekode som kjører i nettleseren. Ingenting lastes opp.",
+      "description": "Gratis verktøy med åpen kildekode for PDF, bilder, tekst og mer, rett i nettleseren. Filene dine blir på enheten din. Ingen kontoer, ingen reklame.",
+      "schemaDescription": "Gratis verktøy med åpen kildekode som kjører i nettleseren. Filene dine blir på enheten din.",
       "h1a": "Hverdagsverktøy",
       "h1b": "bør være gratis.",
       "trustNoAds": "Ingen reklame",
@@ -92,7 +92,7 @@
     "group": {
       "back": "Alle verktøy",
       "title": "{title} som kjører i nettleseren | Free the Tools",
-      "description": "{blurb} Åpen kildekode, ingen kontoer og ingen opplasting.",
+      "description": "{blurb} Gratis og åpen kildekode, uten konto. Filene dine blir på enheten din.",
       "more": "Savner du et verktøy? {suggest} eller {sponsor} for å få det laget raskere.",
       "moreSuggest": "Foreslå et verktøy",
       "moreSponsor": "spons et"
@@ -114,7 +114,7 @@
       "questions": "Spørsmål",
       "about": "Om dette verktøyet",
       "specRuns": "Kjører",
-      "specRunsOffline": "I nettleseren din. Ingenting lastes opp.",
+      "specRunsOffline": "I nettleseren din. Filene dine blir på enheten din.",
       "specRunsOnline": "I nettleseren din",
       "specLicence": "Lisens",
       "specAdded": "Lagt til",

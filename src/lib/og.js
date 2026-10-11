@@ -108,7 +108,7 @@ export function ogSvg({ eyebrow, title, text, art, group }) {
   for (const l of room ? wrap(TEXT, text, 26, COL, room) : []) { parts.push(line(TEXT, l, 26).svg(PAD, y, SOFT)); y += 36; }
 
   // Address and the promise, on a highlighter stroke.
-  const promise = line(DISPLAY_MED, "Nothing is uploaded.", 24);
+  const promise = line(DISPLAY_MED, "Your files stay on your device.", 24);
   const addr = line(MONO, "freethetools.com", 20);
   parts.push(addr.svg(PAD, OG_H - 104, MUTED));
   parts.push(`<rect x="${PAD - 4}" y="${OG_H - 82}" width="${Math.round(promise.width + 8)}" height="18" rx="2" fill="${HL}"/>`);
