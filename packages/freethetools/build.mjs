@@ -4,7 +4,7 @@
 import { build } from "esbuild";
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, existsSync, rmSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -12,6 +12,9 @@ const root = resolve(here, "../..");
 const toolsDir = join(root, "tools");
 const require = createRequire(import.meta.url);
 const pkg = JSON.parse(readFileSync(join(here, "package.json"), "utf8"));
+
+// The README's tool table comes from the same agent.js files, so the published README is complete.
+await (await import(pathToFileURL(join(root, "scripts", "tool-table.mjs")).href)).writeToolTable();
 
 const ids = readdirSync(toolsDir)
   .filter((g) => !g.startsWith("_") && statSync(join(toolsDir, g)).isDirectory())

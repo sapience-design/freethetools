@@ -192,6 +192,9 @@ test("the AI assistants page is in the sitemap, and /ai.md has the prompt and ev
     assert.match(html(f), /AGENTS\.md/, `${f} links AGENTS.md`);
   }
   assert.ok(existsSync("AGENTS.md"), "AGENTS.md guides coding agents");
+  // The npm README's tool table is written from agent.js by scripts/tool-table.mjs on every build.
+  const readme = readFileSync("packages/freethetools/README.md", "utf8");
+  for (const n of names) assert.ok(readme.includes("`" + n + "`"), `the package README lacks ${n}`);
 });
 
 // Structured data search engines read: breadcrumbs on every page but home, and the studio as an
@@ -260,4 +263,18 @@ test("the Add to Cursor and Add to VS Code links on /ai/ run npx -y freethetools
     assert.equal(v.name, "freethetools");
     assert.deepEqual([v.command, ...v.args], want);
   }
+});
+
+// The sitemap is the list search engines crawl: every page they may index, and nothing else.
+test("the sitemap lists every indexable page, and only built, indexable pages", () => {
+  const inMap = new Set([...html("sitemap.xml").matchAll(/<loc>https:\/\/freethetools\.com(\/[^<]*)<\/loc>/g)].map((m) => m[1]));
+  const built = new Set();
+  for (const p of pages.filter((p) => p.endsWith("index.html"))) {
+    const path = "/" + p.slice(0, -"index.html".length);
+    built.add(path);
+    const noindex = /<meta name="robots" content="noindex/.test(html(p));
+    if (noindex) assert.ok(!inMap.has(path), `${path} is marked noindex but is in the sitemap`);
+    else assert.ok(inMap.has(path), `${path} can be indexed but is not in the sitemap (src/pages/sitemap.xml.ts)`);
+  }
+  for (const path of inMap) assert.ok(built.has(path), `${path} is in the sitemap but no page was built`);
 });

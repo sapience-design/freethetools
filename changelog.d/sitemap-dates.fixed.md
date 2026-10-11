@@ -1,0 +1,1 @@
+- The sitemap now lists the usage stats page, and gives each tool page the date it last changed.
