@@ -18,7 +18,8 @@ const walk = (dir, out = []) => {
 };
 const en = json("src/i18n/en.json");
 const langs = readdirSync("src/i18n").filter((f) => f.endsWith(".json") && f !== "en.json").map((f) => f.slice(0, -5));
-const decode = (s) => s.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">");
+// &amp; goes last, so "&amp;lt;" becomes "&lt;" and is not decoded twice.
+const decode = (s) => s.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
 
 test("the helpers fill, split, count and address as documented", () => {
   assert.equal(fill("Hei {name}, {n}", { name: "Ola" }), "Hei Ola, {n}");

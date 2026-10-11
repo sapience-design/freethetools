@@ -24,7 +24,8 @@ export function parseSheet(text) {
     if (/^\|\s*-+\s*\|\s*-+\s*\|\s*$/.test(l)) continue; // separator
     if (/^\|\s*-+\s*\|\s*-+\s*\|\s*$/.test(lines[i + 1] ?? "")) continue; // header row above a separator
     // Split on unescaped pipes; "\|" is a pipe inside a cell.
-    const cells = l.slice(1, l.trimEnd().length - 1).split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, "|"));
+    // A pipe inside a cell is written "&#124;" (older sheets used "\|"); turn both back into "|".
+    const cells = l.slice(1, l.trimEnd().length - 1).split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, "|").replace(/&#124;/g, "|"));
     if (cells.length === 2) out.push(cells);
   }
   return out;

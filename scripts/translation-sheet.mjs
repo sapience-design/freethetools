@@ -14,7 +14,8 @@ if (!lang || !out || lang === "en") {
   process.exit(1);
 }
 const { meta, sections } = sheetRows(lang);
-const cell = (s) => String(s ?? "").replace(/\|/g, "\\|").replace(/\r?\n/g, " ");
+// A pipe would end the table cell, so it is written as the HTML entity &#124;, which Markdown shows as "|".
+const cell = (s) => String(s ?? "").replace(/\|/g, "&#124;").replace(/\r?\n/g, " ");
 const lines = [
   `# ${meta.name} (${lang}): review sheet`,
   "",

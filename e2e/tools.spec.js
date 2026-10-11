@@ -1009,3 +1009,25 @@ test.describe("a click opens the file picker", () => {
     });
   }
 });
+
+test.describe("Video to GIF times", () => {
+  test.skip(({ isMobile }) => isMobile, "desktop only");
+  test("an end before the start is corrected to a clip of at least one second, and the page says so", async ({ page }) => {
+    await page.goto("/images/video-to-gif/");
+    await page.setInputFiles("input[type=file]", "tools/images/video-to-gif/tests/fixtures/sample.webm");
+    await expect(page.locator("#v2g-end")).not.toHaveValue("");
+    const note = page.locator("#v2g-range-note");
+    await expect(note).toHaveAttribute("role", "status");
+    await expect(note).toBeEmpty();
+    // The sample is about 2.1 seconds long: start 1.5, end 1 cannot stay as typed.
+    await page.locator("#v2g-start").fill("1.5");
+    await page.locator("#v2g-start").dispatchEvent("change");
+    await page.locator("#v2g-end").fill("1");
+    await page.locator("#v2g-end").dispatchEvent("change");
+    const start = Number(await page.locator("#v2g-start").inputValue());
+    const end = Number(await page.locator("#v2g-end").inputValue());
+    expect(end - start).toBeGreaterThanOrEqual(1);
+    expect(end).toBeGreaterThan(start);
+    await expect(note).toContainText("The end was before the start");
+  });
+});
