@@ -1,0 +1,1 @@
+- Russian: 35 texts corrected by a native speaker, among them the note on AI assistants, the pages for tools not built yet, the sort labels, and spec labels that were still in English ("Reads", "Writes", "Contrast", "Works offline").
