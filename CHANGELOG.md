@@ -22,6 +22,7 @@ major version.
 
 ### Changed
 
+- The freethetools package for AI assistants is version 0.1.2, with four new tools: `convert_colour`, `url_encode`, `url_decode` and `convert_unix_timestamp`.
 - Clearer wording: "Your files stay on your device" instead of "Nothing is uploaded", and share images no longer count the tools, since more keep coming.
 - Time Zone Converter: the chosen day in words, buttons to step by an hour or a day, a Now button, and a 24-hour strip per city with working hours shaded. Press an hour on a strip to pick it.
 - Merge, Split, Rotate and Fill PDF Form show pictures of the pages. Rotate turns them as you choose a direction; Split marks the pages you typed. The finished PDF shows its first page beside Download.
