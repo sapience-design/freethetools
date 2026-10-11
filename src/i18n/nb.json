@@ -335,16 +335,6 @@
         "options": ["JSON til YAML", "YAML til JSON", "Sikker parsing: egendefinerte tagger avvises"]
       }
     },
-    "everyday/unix-timestamp": {
-      "name": "Unix-tidsstempel",
-      "task": "Gjør et Unix-tidsstempel om til en dato",
-      "blurb": "Gjør et tidsstempel om til dato og klokkeslett, og tilbake.",
-      "concept": {
-        "in": "Et Unix-tidsstempel i sekunder eller millisekunder, eller en dato.",
-        "out": "Datoen i UTC og i den valgte tidssonen, eller tidsstempelet.",
-        "options": ["Gjenkjenner om tidsstempelet er i sekunder eller millisekunder og oppgir hvilken enhet som brukes", "Velg en tidssone", "Dato til tidsstempel"]
-      }
-    },
     "developer/cron-explainer": {
       "name": "Cron-uttrykk forklart",
       "task": "Forklar en cron-tidsplan",

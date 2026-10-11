@@ -1,0 +1,46 @@
+{
+  "name": "Unix-tidsstempel",
+  "task": "Gjør et Unix-tidsstempel om til en dato",
+  "tagline": "Gjør et Unix-tidsstempel om til dato og klokkeslett, eller en dato om til et tidsstempel.",
+  "seoTitle": "Unix-tidsstempel til dato og tilbake",
+  "description": "Gjør et Unix-tidsstempel i sekunder, millisekunder eller mikrosekunder om til dato i UTC og din tidssone, eller en dato om til tidsstempel. Gratis, ingenting lastes opp.",
+  "keywords": [
+    "unix-tidsstempel",
+    "epoch-konverterer",
+    "epoketid",
+    "tidsstempel til dato",
+    "dato til tidsstempel",
+    "millisekunder til dato",
+    "unix-tid",
+    "iso 8601",
+    "utc"
+  ],
+  "specs": {
+    "Enheter": "Sekunder, millisekunder og mikrosekunder, gjettet ut fra hvor langt tallet er",
+    "Område": "Årene 1 til 9999, også datoer før 1970",
+    "Motor": "Nettleserens Date og Intl, med tidssonedatabasen",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Hva er et Unix-tidsstempel?",
+      "a": "Antall sekunder siden 1. januar 1970 klokken 00:00:00 UTC, uten skuddsekunder. Mange programmer, logger og databaser lagrer tid slik. En dato før 1970 er et negativt tall."
+    },
+    {
+      "q": "Hvordan vet den om tallet er sekunder eller millisekunder?",
+      "a": "Ut fra lengden. Opptil 11 sifre leses som sekunder, 12 til 14 sifre som millisekunder, og lengre som mikrosekunder. Siden sier hva den antok, og du kan velge enhet selv hvis den tok feil."
+    },
+    {
+      "q": "Hvorfor er 2147483647 viktig?",
+      "a": "Det er det største tallet et fortegnsbasert 32-biters heltall kan holde. Som tidsstempel er det 19. januar 2038 klokken 03:14:07 UTC. Systemer som lagrer tid i 32 biter slutter å virke riktig etter det."
+    },
+    {
+      "q": "Hva skjer med et klokkeslett som hoppes over eller gjentas?",
+      "a": "Når klokken stilles frem, finnes ikke et klokkeslett i timen som hoppes over, så det flyttes frem med hoppet. Når den stilles tilbake, skjer et klokkeslett i timen som gjentas to ganger, så den første brukes. Siden sier fra når dette skjer."
+    },
+    {
+      "q": "Lastes dataene mine opp noe sted?",
+      "a": "Nei. Alt kjører i nettleserfanen din, og sidens sikkerhetspolicy hindrer den i å sende data noe sted."
+    }
+  ]
+}

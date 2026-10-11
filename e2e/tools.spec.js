@@ -397,6 +397,37 @@ test.describe("text, data and everyday tools", () => {
     await page.fill("#tz-when", "2026-09-27T09:00");
     await expect(page.locator("#tz-note")).toBeEmpty();
   });
+
+  test("Unix Timestamp Converter shows an example, guesses the unit and converts both ways", async ({ page }) => {
+    await page.goto("/everyday/unix-timestamp/");
+    await expect(page.locator("#ut-out")).toContainText("2023-11-14T22:13:20Z");
+    await expect(page.locator("#ut-msg")).toContainText("Read as seconds");
+    await expect(page.locator("#ut-out2")).toContainText("1700000000");
+    await page.fill("#ut-ts", "1700000000123");
+    await expect(page.locator("#ut-msg")).toContainText("Read as milliseconds");
+    await expect(page.locator("#ut-out")).toContainText("2023-11-14T22:13:20.123Z");
+    await page.fill("#ut-ts", "1700000000");
+    await page.click('label[for="ut-unit-s"]');
+    await expect(page.locator("#ut-msg")).toContainText("as you chose");
+    await page.fill("#ut-ts", "-1");
+    await page.click('label[for="ut-unit-auto"]');
+    await expect(page.locator("#ut-out")).toContainText("1969-12-31T23:59:59Z");
+    await page.fill("#ut-date", "2038-01-19T03:14:07");
+    await expect(page.locator("#ut-out2")).toContainText("2147483647");
+  });
+
+  test("Unix Timestamp Converter explains bad input and has a Now button", async ({ page }) => {
+    await page.goto("/everyday/unix-timestamp/");
+    await page.fill("#ut-ts", "abc");
+    await expect(page.locator("#ut-msg")).toContainText("not a number");
+    await expect(page.locator("#ut-out li")).toHaveCount(0);
+    await page.fill("#ut-date", "");
+    await expect(page.locator("#ut-msg2")).toContainText("Pick a date and time");
+    await page.click("#ut-now");
+    await expect(page.locator("#ut-msg")).toContainText("Read as seconds");
+    await expect(page.locator("#ut-out")).toContainText("now");
+    await expect(page.locator("#ut-msg2")).toBeEmpty();
+  });
 });
 
 // ---- Image tools -------------------------------------------------------------------------------
