@@ -30,7 +30,7 @@ We checked Astro's built-in i18n routing. It needs the locale list in `astro.con
 
 **Language switcher.** A list of plain links in the footer. Each language is written in its own name. A link goes to the same page in that language when it exists, and otherwise to that language's home. The current language has `aria-current="true"`.
 
-**Machine drafts say so.** `meta.reviewed` is `false` until a person approves the language. A page in such a language starts with a slim note: "This page was translated by machine and has not been checked yet." with a link to report a problem. The owner reviews `nb`. A client reviews `uk` and `ru`. `scripts/translation-sheet.mjs <lang> <file>` writes a two-column table (English, translation) for the reviewer.
+**Review status is tracked, not shown.** `meta.reviewed` is `false` until a person approves the language. Pages carry no note about it: a note on every page read as clutter, so it was removed on 2026-10-11. The owner reviews `nb`. A client reviews `uk` and `ru`. `scripts/translation-sheet.mjs <lang> <file>` writes a two-column table (English, translation) for the reviewer.
 
 **Search.** On a translated home page, the index holds the translated name and task, plus the English name, task, keywords and synonyms, so English words still work. A language file may add its own synonym groups and filler words under `search`.
 

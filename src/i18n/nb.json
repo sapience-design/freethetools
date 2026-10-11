@@ -46,10 +46,6 @@
       "version": "Versjon {version}"
     },
     "lang": { "label": "Språk" },
-    "review": {
-      "note": "Denne siden er oversatt maskinelt og er ikke kontrollert ennå.",
-      "report": "Meld fra om et problem"
-    },
     "toolNote": "Knappene i dette verktøyet er fortsatt på engelsk.",
     "row": { "new": "Ny", "notBuilt": "Ikke bygget ennå" },
     "home": {

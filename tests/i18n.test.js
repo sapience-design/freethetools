@@ -101,13 +101,6 @@ for (const l of langs) {
       void wantedPage;
     });
 
-    test(`${page}: the not-reviewed note shows exactly while reviewed is false`, () => {
-      const h = html(page);
-      const note = h.includes('class="review-note"') || /class="review-note[ "]/.test(h);
-      assert.equal(note, !file.meta.reviewed);
-      if (!file.meta.reviewed) assert.ok(h.includes(file.ui.review.note) && h.includes('href="/suggest/?kind=problem"'));
-    });
-
     test(`${page}: the switcher marks this language and links the same page in English`, () => {
       const h = html(page);
       const current = [...h.matchAll(/<a href="([^"]+)" lang="(\w+)" hreflang="\w+" aria-current="true"[^>]*>([^<]+)<\/a>/g)];

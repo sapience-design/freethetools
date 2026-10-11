@@ -46,10 +46,6 @@
       "version": "Versión {version}"
     },
     "lang": { "label": "Idioma" },
-    "review": {
-      "note": "Esta página se tradujo automáticamente y todavía no se ha revisado.",
-      "report": "Informar de un problema"
-    },
     "toolNote": "Los botones de esta herramienta siguen en inglés.",
     "row": { "new": "Nueva", "notBuilt": "Aún no existe" },
     "home": {
