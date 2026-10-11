@@ -90,7 +90,7 @@ Run `freethetools list` for the full list. Files are always paths on your comput
 | Images | `remove_photo_metadata` |
 | Text | `convert_case`, `compare_texts`, `count_words` |
 | Data | `csv_to_json`, `json_to_csv`, `format_json` |
-| Developer | `base64_encode`, `base64_decode`, `generate_hash`, `decode_jwt`, `generate_password`, `make_qr_code`, `test_regex`, `generate_uuids` |
+| Developer | `base64_encode`, `base64_decode`, `generate_hash`, `decode_jwt`, `generate_password`, `make_qr_code`, `test_regex`, `url_encode`, `url_decode`, `generate_uuids` |
 | Everyday | `convert_colour`, `convert_time_zone`, `convert_units` |
 <!-- tools:end -->
 

@@ -1,0 +1,45 @@
+{
+  "name": "Codificar y decodificar URL",
+  "task": "Codificar o decodificar una dirección web",
+  "tagline": "Haz que un texto sea seguro en una dirección web, lee una codificada o divide una dirección en partes.",
+  "seoTitle": "Codificar y decodificar URL en línea",
+  "description": "Codifica o decodifica texto para direcciones web con codificación porcentual, o divide una URL en sus partes y parámetros. Gratis, y nada sale de tu navegador.",
+  "keywords": [
+    "codificar url",
+    "decodificar url",
+    "codificación porcentual",
+    "encodeURIComponent",
+    "encodeURI",
+    "cadena de consulta",
+    "urlencode",
+    "%20",
+    "analizar url"
+  ],
+  "specs": {
+    "Motor": "encodeURIComponent y encodeURI integrados en tu navegador",
+    "Texto": "UTF-8, así que funcionan los acentos y los emoji",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Qué diferencia hay entre una parte y una dirección entera?",
+      "a": "Elige «una parte» para un solo valor, como una palabra de búsqueda. También cambia / ? & = # y :, para que no rompan la dirección. Elige «una dirección entera» para dejarlos como están."
+    },
+    {
+      "q": "¿Por qué mi texto tiene %20?",
+      "a": "Un % seguido de dos dígitos hexadecimales representa un byte. %20 es un espacio y %C3%A9 es la letra é. Decodifica el texto para leerlo."
+    },
+    {
+      "q": "¿+ es un espacio o un más?",
+      "a": "En una cadena de consulta o un formulario, + suele significar un espacio. En otros sitios es un signo más. Marca «Leer + como espacio» al decodificar datos de formulario."
+    },
+    {
+      "q": "¿Por qué falla la decodificación?",
+      "a": "Un % debe ir seguido de dos dígitos hexadecimales, como %20. Un % suelto o un código cortado como %E0%A4 no se puede leer. Escribe un % real como %25."
+    },
+    {
+      "q": "¿Se envían mis datos a algún sitio?",
+      "a": "No. Todo ocurre en esta pestaña, y la política de seguridad de la página impide que envíe datos."
+    }
+  ]
+}

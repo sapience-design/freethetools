@@ -603,6 +603,21 @@ test.describe("fill form and developer tools", () => {
     await expect(page.locator("#jwt-verdict")).toHaveText("Signature is valid for this secret.");
   });
 
+  test("URL Encode and Decode encodes, decodes and takes an address apart", async ({ page }) => {
+    await page.goto("/developer/url-encode/");
+    await expect(page.locator("#ue-out")).toHaveText("caf%C3%A9%20%26%20cr%C3%A8me%20br%C3%BBl%C3%A9e%2C%20100%25%20%F0%9F%91%8D");
+    await page.click("label[for=ue-dec]");
+    await expect(page.locator("#ue-out")).toHaveText("café & crème brûlée, 100% 👍");
+    await page.fill("#ue-in", "%E0%A4%A");
+    await expect(page.locator("#ue-err")).toContainText("not a complete % sequence");
+    await page.click("label[for=ue-parts]");
+    await expect(page.locator("#ue-scope-wrap")).toBeHidden();
+    await page.fill("#ue-in", "https://example.com/a%20b?q=hello+world&tag=%F0%9F%91%8D");
+    await expect(page.locator("#ue-parts-table")).toContainText("example.com");
+    await expect(page.locator("#ue-params-table")).toContainText("hello world");
+    await expect(page.locator("#ue-params-table")).toContainText("👍");
+  });
+
   test("Regex Tester highlights matches", async ({ page }) => {
     await page.goto("/developer/regex-tester/");
     await expect(page.locator("#rx-count")).toHaveText("2 matches");

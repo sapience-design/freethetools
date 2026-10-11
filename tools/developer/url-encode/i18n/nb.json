@@ -1,0 +1,45 @@
+{
+  "name": "URL-koding og -dekoding",
+  "task": "Kod eller dekod en nettadresse",
+  "tagline": "Gjør tekst trygg i en nettadresse, les en kodet adresse, eller del en adresse i biter.",
+  "seoTitle": "URL-koding og -dekoding på nett",
+  "description": "Kod eller dekod tekst for nettadresser med prosentkoding, eller del en URL i deler og søkeparametere. Gratis, og ingenting forlater nettleseren.",
+  "keywords": [
+    "url-koding",
+    "url-dekoding",
+    "prosentkoding",
+    "encodeURIComponent",
+    "encodeURI",
+    "spørrestreng",
+    "urlencode",
+    "%20",
+    "del opp url"
+  ],
+  "specs": {
+    "Motor": "Nettleserens innebygde encodeURIComponent og encodeURI",
+    "Tekst": "UTF-8, så aksenter og emoji virker",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Hva er forskjellen på én del og en hel adresse?",
+      "a": "Velg «én del» for én enkelt verdi, som et søkeord. Da kodes også / ? & = # og :, så de ikke kan ødelegge adressen. Velg «en hel adresse» for å beholde dem som de er."
+    },
+    {
+      "q": "Hvorfor står det %20 i teksten min?",
+      "a": "Et % etterfulgt av to heksadesimale siffer står for én byte. %20 er et mellomrom, og %C3%A9 er bokstaven é. Dekod teksten for å lese den."
+    },
+    {
+      "q": "Er + et mellomrom eller et plusstegn?",
+      "a": "I en spørrestreng eller et skjema betyr + ofte et mellomrom. Ellers er det et plusstegn. Huk av for «Les + som mellomrom» når du dekoder skjemadata."
+    },
+    {
+      "q": "Hvorfor feiler dekodingen?",
+      "a": "Et % må følges av to heksadesimale siffer, som %20. Et enkelt % eller en avkuttet kode som %E0%A4 kan ikke leses. Skriv et ekte %-tegn som %25."
+    },
+    {
+      "q": "Sendes dataene mine noe sted?",
+      "a": "Nei. Alt skjer i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    }
+  ]
+}
