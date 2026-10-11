@@ -43,6 +43,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { encode, decode, parseUrl } from "./core.js";
+  import { flash, setLive } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("ue-in") as HTMLTextAreaElement, scope = $("ue-scope") as HTMLSelectElement, plus = $("ue-plus") as HTMLInputElement;
   const out = $("ue-out"), err = $("ue-err"), status = $("ue-status");
@@ -58,9 +59,10 @@ import Icon from "../../../src/components/Icon.astro";
   let edited = false;
   const mode = () => (document.querySelector('input[name="ue-mode"]:checked') as HTMLInputElement).value;
   // Live regions speak whenever text is written, so write only when it changes.
-  const setText = (el: HTMLElement, text: string) => { if (el.textContent !== text) el.textContent = text; };
+  const setText = (el: HTMLElement, text: string) => { setLive(el, text); };
 
   function fill(tbody: HTMLElement, rows: { name: string; value: string }[]) {
+    const before = tbody.textContent;
     tbody.replaceChildren(...rows.map((r) => {
       const tr = document.createElement("tr");
       const th = document.createElement("th"); th.scope = "row"; th.textContent = r.name || "(no name)";
@@ -68,6 +70,7 @@ import Icon from "../../../src/components/Icon.astro";
       tr.append(th, td);
       return tr;
     }));
+    if (before && before !== tbody.textContent) flash(tbody.closest("table") ?? tbody);
   }
 
   function update() {

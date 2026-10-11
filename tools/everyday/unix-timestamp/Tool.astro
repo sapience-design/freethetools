@@ -33,6 +33,7 @@ const UNITS = [["auto", "Auto"], ["s", "Seconds"], ["ms", "Milliseconds"], ["us"
 
 <script>
   import { fromTimestamp, dateToTimestamp, deviceZone } from "./core.js";
+  import { flash } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const ts = $("ut-ts") as HTMLInputElement, date = $("ut-date") as HTMLInputElement;
   const zone = deviceZone();
@@ -41,9 +42,13 @@ const UNITS = [["auto", "Auto"], ["s", "Seconds"], ["ms", "Milliseconds"], ["us"
   $("ut-mode-local-label").textContent = `Your time zone (${zone.replace(/_/g, " ")})`;
 
   function rows(list: HTMLElement, items: [string, string][]) {
+    // A row flashes when its value replaced a different one; the first values never flash.
+    const before = new Map([...list.querySelectorAll("li")].map((li) => [li.querySelector(".fmeta")?.textContent ?? "", li.querySelector(".fname")?.textContent ?? ""]));
+    const changed: Element[] = [];
     list.replaceChildren(...items.map(([label, value]) => {
       const li = document.createElement("li");
       const n = document.createElement("span"); n.className = "fname"; n.textContent = value;
+      if (before.has(label) && before.get(label) !== value) changed.push(n);
       const m = document.createElement("span"); m.className = "fmeta"; m.textContent = label;
       const act = document.createElement("span"); act.className = "fact";
       const b = document.createElement("button"); b.type = "button"; b.className = "btn quiet"; b.textContent = "Copy";
@@ -54,6 +59,7 @@ const UNITS = [["auto", "Auto"], ["s", "Seconds"], ["ms", "Milliseconds"], ["us"
       });
       act.append(b); li.append(n, m, act); return li;
     }));
+    changed.forEach((el) => flash(el));
   }
   function show(msg: HTMLElement, text: string, bad = false) { msg.textContent = text; msg.classList.toggle("err", bad); }
 
