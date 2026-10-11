@@ -67,7 +67,7 @@ const CITIES = [
   add.append(...all.map((z) => new Option(z.replace(/_/g, " "), z)));
 
   // One row per city, kept between renders so a changed time can be seen to change.
-  type Row = { li: HTMLLIElement; time: HTMLElement; meta: HTMLElement; shift: HTMLElement; off: HTMLElement; strip: HTMLElement };
+  type Row = { li: HTMLLIElement; time: HTMLElement; meta: HTMLElement; shift: HTMLElement; off: HTMLElement; strip: HTMLElement; days: HTMLElement };
   const rows = new Map<string, Row>();
   function row(z: string, ref: boolean): Row {
     const li = document.createElement("li");
@@ -86,19 +86,21 @@ const CITIES = [
     if (!ref) act.append(iconButton("remove", `Remove ${label(z)}`, () => { zones = zones.filter((x) => x !== z); save(); render(); }));
     top.append(time, info, act);
     const strip = document.createElement("div"); strip.className = "tz-strip"; strip.setAttribute("aria-hidden", "true");
+    // The date labels sit in their own row under the cells, so they take the row's colours, not a cell's.
+    const days = document.createElement("div"); days.className = "tz-days"; days.setAttribute("aria-hidden", "true");
     for (let i = 0; i < 24; i++) {
       const b = document.createElement("button"); b.type = "button"; b.className = "tz-h"; b.tabIndex = -1;
-      const h = document.createElement("i"); const d = document.createElement("small");
-      b.append(h, d);
+      b.append(document.createElement("i"));
       b.addEventListener("click", () => {
         const [date, time] = b.dataset.pick!.split("T");
         set({ date, time: `${time.slice(0, 2)}:${timeIn.value.slice(3, 5) || "00"}` });
         render();
       });
       strip.append(b);
+      days.append(document.createElement("span"));
     }
-    li.append(top, strip);
-    return { li, time, meta, shift, off, strip };
+    li.append(top, strip, days);
+    return { li, time, meta, shift, off, strip, days };
   }
 
   function render() {
@@ -146,7 +148,7 @@ const CITIES = [
         b.classList.toggle("day", !!c.dayStart && i > 0);
         b.dataset.pick = c.pick;
         (b.firstChild as HTMLElement).textContent = String(c.hour);
-        (b.lastChild as HTMLElement).textContent = c.dayStart ?? "";
+        (r.days.children[i] as HTMLElement).textContent = c.dayStart ?? "";
         b.title = `${two(c.hour)}:00 in ${label(z)}`;
       });
     }
@@ -199,13 +201,17 @@ const CITIES = [
   .tz-list :global(.tz-meta) { font-size: 14px; color: var(--muted); }
   .tz-list :global(.tz-badges) { display: inline-flex; flex-wrap: wrap; gap: 6px; }
   .tz-list :global(.tz-shift) { background: var(--hl); color: var(--hl-ink); border: 1px solid var(--edge); }
-  .tz-list :global(.tz-offb) { background: var(--well); color: var(--soft); }
+  /* On the card, not the well: inside the highlighted row the well stays dark in dark mode. */
+  .tz-list :global(.tz-offb) { background: var(--card); color: var(--soft); border: 1px solid var(--hair); }
 
   /* 24 hours of the chosen day, lined up across cities; working hours tinted, the chosen hour marked. */
   .tz-list :global(.tz-strip) { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; }
   .tz-list :global(.tz-h) { position: relative; display: grid; align-content: center; justify-items: center; min-width: 0; height: 34px; padding: 0; border: 0; border-radius: 5px; background: var(--well); color: var(--muted); font: 600 12px/1 var(--sans); font-variant-numeric: tabular-nums; cursor: pointer; }
   .tz-list :global(.tz-h i) { font-style: normal; white-space: nowrap; }
-  .tz-list :global(.tz-h small) { position: absolute; left: 0; top: calc(100% + 2px); font-size: 11px; line-height: 1; color: var(--soft); white-space: nowrap; }
+  .tz-list :global(.tz-days) { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; height: 12px; margin-top: -4px; }
+  .tz-list :global(.tz-days span) { font-size: 11px; line-height: 1; color: var(--soft); white-space: nowrap; overflow: visible; }
+  /* A label near the right edge runs leftwards, so it never spills out of the row. */
+  .tz-list :global(.tz-days span:nth-last-child(-n + 4)) { direction: rtl; text-align: right; }
   .tz-list :global(.tz-ref .tz-h) { background: var(--card); }
   .tz-list :global(.tz-h.work) { background: var(--ok-t); color: var(--ok); }
   .tz-list :global(.tz-h.day) { border-left: 2px solid var(--edge); border-radius: 0 5px 5px 0; }
@@ -213,14 +219,12 @@ const CITIES = [
   /* On the number itself: the dark-mode island rule re-inks the cell, and this must win over it. */
   .tz-list :global(.tz-h.now i) { color: var(--on-accent); }
   .tz-list :global(.tz-h:hover) { outline: 2px solid var(--edge); outline-offset: -2px; }
-  .tz-list :global(.tz-strip) { margin-bottom: 14px; }
   .tz-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
   .tz-key-work, .tz-key-now { display: inline-block; width: 16px; height: 12px; border-radius: 3px; background: var(--ok-t); border: 1px solid var(--ok); }
   .tz-key-now { background: var(--accent); border-color: var(--edge); margin-left: 8px; }
   @media (max-width: 640px) {
     .tz-list :global(.tz-h) { height: 30px; font-size: 10px; overflow: visible; }
     .tz-list :global(.tz-h:not(:nth-child(6n + 1)):not(.now) i) { display: none; }
-    .tz-list :global(.tz-h small) { display: none; }
-    .tz-list :global(.tz-strip) { margin-bottom: 0; }
+    .tz-list :global(.tz-days) { display: none; }
   }
 </style>
