@@ -1,0 +1,1 @@
+- Russian: shorter tool names and buttons, using the words Russian tool sites use.
