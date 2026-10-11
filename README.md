@@ -1,6 +1,38 @@
-# Free the Tools
+<p align="center">
+  <a href="https://freethetools.com"><img src="public/icon.svg" width="64" height="64" alt="Free the Tools"></a>
+</p>
 
-**Everyday tools should be free.**
+<h1 align="center">Free the Tools</h1>
+
+<p align="center"><strong>Everyday tools should be free.</strong></p>
+
+<p align="center">
+  Free tools for PDFs, images, text, data and more. They run in your browser, so your files stay on your device.
+</p>
+
+<p align="center">
+  <a href="https://freethetools.com">Website</a> ·
+  <a href="https://freethetools.com/ai/">Use with AI</a> ·
+  <a href="https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml">Request a tool</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a> ·
+  <a href="https://freethetools.com/support/">Donate</a>
+</p>
+
+<p align="center">
+
+[![CI](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml/badge.svg)](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sapience-design/freethetools/badge)](https://scorecard.dev/viewer/?uri=github.com/sapience-design/freethetools)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
+[![npm](https://img.shields.io/npm/v/freethetools?label=npm%20package)](https://www.npmjs.com/package/freethetools)
+
+</p>
+
+<a href="https://freethetools.com">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/home-dark.png">
+    <img src="docs/images/home-light.png" alt="The Free the Tools home page: a search box and the tool groups">
+  </picture>
+</a>
 
 Everyday tools shouldn't cost money.<br>
 They shouldn't come with ads.<br>
@@ -8,22 +40,39 @@ They shouldn't put your files at risk.<br>
 They shouldn't be hard to find.<br>
 So here they are: one place, every tool, free for everyone. Help us build the next one.
 
-[freethetools.com](https://freethetools.com) is a growing shelf of everyday tools, such as compressing a PDF, that run entirely in your browser. There are no accounts, no limits and no ads, and nothing tracks you: the site keeps only anonymous daily totals, such as how often each tool is used and liked ([what's counted](https://freethetools.com/stats/)). Every page carries a Content Security Policy that stops it from sending your data to any other server, and the automated tests fail if a tool tries.
-
 Free the Tools is a [Sapience Design](https://sapience.design) initiative, built in the open with anyone who wants to help.
 
-[![CI](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml/badge.svg)](https://github.com/sapience-design/freethetools/actions/workflows/ci.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/sapience-design/freethetools/badge)](https://scorecard.dev/viewer/?uri=github.com/sapience-design/freethetools)
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue)](LICENSE)
-[![npm](https://img.shields.io/npm/v/freethetools?label=npm%20package)](https://www.npmjs.com/package/freethetools)
+## Why Free the Tools
+
+- **Free, with no limits.** No ads, no accounts, no watermarks.
+- **Your files stay on your device.** A Content Security Policy stops every page from sending data to another server, and tests fail if a tool tries. The site keeps only anonymous daily totals ([what's counted](https://freethetools.com/stats/)).
+- **Works offline** once a tool has loaded.
+- **Open source** under AGPL-3.0.
+- **Works with AI assistants** through the [`freethetools`](https://www.npmjs.com/package/freethetools) package.
+- **Available in** English, Norwegian, Spanish and Russian.
+
+## Tools
+
+<!-- site-tools:start: written by scripts/tool-table.mjs -->
+| Group | Tools |
+|---|---|
+| PDF | [Make a PDF smaller](https://freethetools.com/pdf/compress/) · [Fill in a PDF form](https://freethetools.com/pdf/fill-form/) · [Turn photos into a PDF](https://freethetools.com/pdf/images-to-pdf/) · [Combine PDFs into one](https://freethetools.com/pdf/merge/) · [Save PDF pages as pictures](https://freethetools.com/pdf/to-images/) · [Turn PDF pages the right way up](https://freethetools.com/pdf/rotate/) · [Split a PDF into parts](https://freethetools.com/pdf/split/) · [Take the lock off a PDF](https://freethetools.com/pdf/unlock/) |
+| Images | [Make photos smaller](https://freethetools.com/images/compress/) · [Change a photo's type](https://freethetools.com/images/convert/) · [Open iPhone photos anywhere](https://freethetools.com/images/heic-to-jpg/) · [Remove location from photos](https://freethetools.com/images/remove-location/) · [Resize photos](https://freethetools.com/images/resize/) · [Turn a video into a GIF](https://freethetools.com/images/video-to-gif/) |
+| Text | [Change text to UPPER or lower case](https://freethetools.com/text/case-converter/) · [Turn Markdown into HTML](https://freethetools.com/text/markdown-to-html/) · [Compare two texts](https://freethetools.com/text/text-diff/) · [Count words](https://freethetools.com/text/word-counter/) |
+| Data | [Turn a spreadsheet into JSON](https://freethetools.com/data/csv-to-json/) · [Tidy up and check JSON](https://freethetools.com/data/json-formatter/) |
+| Developer | [Encode or decode Base64](https://freethetools.com/developer/base64/) · [Make a fingerprint (hash)](https://freethetools.com/developer/hash-generator/) · [Look inside a login token](https://freethetools.com/developer/jwt-decoder/) · [Make a strong password](https://freethetools.com/developer/password-generator/) · [Make a QR code](https://freethetools.com/developer/qr-code-maker/) · [Test a search pattern](https://freethetools.com/developer/regex-tester/) · [Encode or decode a web address](https://freethetools.com/developer/url-encode/) · [Make unique IDs](https://freethetools.com/developer/uuid-generator/) |
+| Everyday | [Convert a colour between formats](https://freethetools.com/everyday/colour-converter/) · [Convert any file](https://freethetools.com/everyday/file-converter/) · [Convert time zones](https://freethetools.com/everyday/time-zone-converter/) · [Convert units](https://freethetools.com/everyday/unit-converter/) · [Convert a Unix timestamp to a date](https://freethetools.com/everyday/unix-timestamp/) |
+<!-- site-tools:end -->
+
+People ask for tools that do not exist yet. Accepted requests are [open requests](https://github.com/sapience-design/freethetools/issues?q=is%3Aissue+is%3Aopen+label%3Awanted), and anyone can [suggest a tool](https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml).
 
 ## Use it
 
-Open [freethetools.com](https://freethetools.com). That's it.
+Open [freethetools.com](https://freethetools.com) and pick a tool. There is nothing to install and no account to make.
 
 Developers and AI agents can read the catalogue at [`/api/tools.json`](https://freethetools.com/api/tools.json) (described in [`openapi.yaml`](openapi.yaml)) or [`/llms.txt`](https://freethetools.com/llms.txt).
 
-## For AI agents
+## Use it with AI
 
 Claude, Cursor and other AI assistants can use the tools instead of installing software such as Ghostscript, ImageMagick or a Python package, and without sending files to a server. It is free, with no account or login. Files stay on the device either way. There are two channels, and both use one definition per tool ([ADR 0008](docs/adr/0008-tools-for-ai-agents.md)).
 
@@ -69,6 +118,10 @@ npm run dev          # http://localhost:4321/text/word-counter/
 | `docs/` | Tutorials, how-to guides, reference and design decisions |
 
 The site is static [Astro](https://astro.build) plus one small Worker for anonymous totals, hosted on Cloudflare Workers, which builds and deploys every merge to `main`. Read [docs/explanation/architecture.md](docs/explanation/architecture.md) for the reasoning.
+
+## Support
+
+Free the Tools has no ads and no paywall. If it saves you time, you can [donate or sponsor a tool](https://freethetools.com/support/). Money never buys features or placement.
 
 ## Project
 
