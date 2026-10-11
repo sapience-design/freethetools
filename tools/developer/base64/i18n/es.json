@@ -1,0 +1,33 @@
+{
+  "name": "Base64",
+  "task": "Codificar o decodificar Base64",
+  "tagline": "Convierte texto o archivos a Base64, y al revés.",
+  "seoTitle": "Codificar y decodificar Base64 online",
+  "description": "Codifica o decodifica Base64 de texto y archivos, estándar o seguro para URL, con compatibilidad total con UTF-8. Gratis, y nada sale de tu navegador.",
+  "keywords": [
+    "base64",
+    "codificar base64",
+    "decodificar base64",
+    "base64 a texto",
+    "texto a base64",
+    "seguro para url",
+    "data uri",
+    "btoa",
+    "atob"
+  ],
+  "specs": {
+    "Motor": "El codificador integrado de tu navegador",
+    "Texto": "UTF-8, así que funcionan los emojis y todos los idiomas",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se envían mis datos a algún sitio?",
+      "a": "No. La codificación ocurre en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio. Es seguro para tokens y claves."
+    },
+    {
+      "q": "¿Qué es Base64 seguro para URL?",
+      "a": "La misma codificación con - y _ en lugar de + y /, y sin el relleno =, para que pueda ir en una dirección web o en un JWT."
+    }
+  ]
+}

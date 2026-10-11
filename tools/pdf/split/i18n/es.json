@@ -1,0 +1,35 @@
+{
+  "name": "Dividir PDF",
+  "task": "Dividir un PDF en partes",
+  "tagline": "Saca las páginas que necesitas como archivos nuevos.",
+  "seoTitle": "Dividir páginas de PDF sin subirlas",
+  "description": "Divide un PDF en archivos separados gratis en tu navegador: cada página por separado o rangos personalizados como 1-3, 5, 8-. No se sube nada.",
+  "keywords": [
+    "dividir pdf",
+    "separar pdf",
+    "extraer páginas",
+    "rango de páginas",
+    "partir pdf",
+    "pdf",
+    "cortar pdf"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Rangos": "Páginas sueltas, rangos y rangos abiertos, por ejemplo 1-3, 5, 8-",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. El PDF se lee y se divide dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Cómo escribo los rangos de páginas?",
+      "a": "Separa los rangos con comas. 2 es una sola página, 4-7 son las páginas de la 4 a la 7, 8- llega hasta el final y -3 empieza en la página 1. Cada rango se convierte en su propio archivo."
+    },
+    {
+      "q": "¿Puedo sacar unas pocas páginas en un solo archivo?",
+      "a": "Sí. Elige rangos personalizados y escribe un único rango, por ejemplo 3-6."
+    }
+  ]
+}

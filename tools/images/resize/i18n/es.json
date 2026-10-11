@@ -1,0 +1,31 @@
+{
+  "name": "Cambiar el tamaño de imágenes",
+  "task": "Cambiar el tamaño de las fotos",
+  "tagline": "Deja las fotos con un tamaño exacto para el correo, sitios web o formularios.",
+  "seoTitle": "Cambiar el tamaño de imágenes online sin subirlas",
+  "description": "Cambia el tamaño de imágenes JPG, PNG y WebP a píxeles exactos o a un porcentaje, una o varias a la vez. Gratis, privado, y tus fotos no salen de tu dispositivo.",
+  "keywords": [
+    "cambiar tamaño de imagen",
+    "redimensionar imagen",
+    "reducir foto",
+    "píxeles",
+    "escalar",
+    "redimensionar en lote",
+    "dimensiones"
+  ],
+  "specs": {
+    "Motor": "El lienzo (canvas) de tu navegador, con suavizado de alta calidad",
+    "Lote": "Cambia el tamaño de muchas imágenes a la vez",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis fotos?",
+      "a": "No. Se redimensionan dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Por qué el resultado se ve algo borroso cuando la agrando?",
+      "a": "Al ampliar hay que inventar píxeles que no existían. Al reducir se ve nítida; si amplías mucho más allá del tamaño original, siempre se suaviza."
+    }
+  ]
+}

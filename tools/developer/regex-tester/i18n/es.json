@@ -1,0 +1,32 @@
+{
+  "name": "Probador de regex",
+  "task": "Probar un patrón de búsqueda",
+  "tagline": "Prueba una expresión regular y mira todas las coincidencias.",
+  "seoTitle": "Probador de regex para expresiones regulares de JavaScript",
+  "description": "Prueba expresiones regulares de JavaScript en vivo: coincidencias resaltadas, grupos y grupos con nombre, errores claros. Gratis, y tu texto no sale de la página.",
+  "keywords": [
+    "probador de regex",
+    "expresión regular",
+    "expresiones regulares",
+    "regex",
+    "regexp",
+    "patrón",
+    "coincidencia",
+    "regex javascript"
+  ],
+  "specs": {
+    "Motor": "El motor de regex de JavaScript de tu navegador",
+    "Indicadores": "g, i, m, s, u e y",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Qué variante de regex es esta?",
+      "a": "JavaScript (ECMAScript), la que se usa en los navegadores y en Node.js. La mayoría de los patrones funcionan igual en otros lenguajes; se admiten lookbehind y grupos con nombre."
+    },
+    {
+      "q": "¿Se envía mi texto a algún sitio?",
+      "a": "No. La búsqueda se ejecuta en esta pestaña, y la política de seguridad de la página bloquea cualquier conexión externa."
+    }
+  ]
+}

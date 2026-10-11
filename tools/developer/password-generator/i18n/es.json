@@ -1,0 +1,30 @@
+{
+  "name": "Generador de contraseñas",
+  "task": "Crear una contraseña segura",
+  "tagline": "Contraseñas aleatorias o frases de contraseña fáciles de escribir.",
+  "seoTitle": "Generador de contraseñas seguras y frases de contraseña",
+  "description": "Genera contraseñas aleatorias seguras o frases de contraseña fáciles de recordar, con una valoración clara de su fuerza. Se crean en tu dispositivo, sin enviarse ni guardarse.",
+  "keywords": [
+    "generador de contraseñas",
+    "contraseña segura",
+    "frase de contraseña",
+    "contraseña aleatoria",
+    "crear contraseña",
+    "diceware"
+  ],
+  "specs": {
+    "Motor": "crypto.getRandomValues, sin sesgo de módulo",
+    "Caracteres parecidos": "Se omiten l, I, O, 0 y 1 salvo que lo pidas",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se envía o se guarda la contraseña en algún sitio?",
+      "a": "No. Se crea en esta pestaña con el generador de números aleatorios seguro de tu dispositivo y nunca se guarda ni se envía. La política de seguridad de la página bloquea cualquier conexión externa."
+    },
+    {
+      "q": "¿Contraseña o frase de contraseña?",
+      "a": "Una frase de cinco o seis palabras al azar es más fácil de recordar y de escribir, y tan difícil de adivinar como un galimatías largo. Para el resto, usa un gestor de contraseñas."
+    }
+  ]
+}

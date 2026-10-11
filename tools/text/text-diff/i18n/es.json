@@ -1,0 +1,32 @@
+{
+  "name": "Comparador de textos",
+  "task": "Comparar dos textos",
+  "tagline": "Pega dos versiones y mira exactamente qué ha cambiado.",
+  "seoTitle": "Comparar dos textos online (diff)",
+  "description": "Compara dos textos y mira qué ha cambiado, línea por línea o palabra por palabra. Un comparador diff gratuito que mantiene tu texto en la página.",
+  "keywords": [
+    "comparar textos",
+    "diff",
+    "comparar texto",
+    "diferencias",
+    "cambios",
+    "comparador de textos",
+    "versiones",
+    "revisión"
+  ],
+  "specs": {
+    "Motor": "jsdiff 9 (BSD-3-Clause), en tu navegador",
+    "Modos": "Por línea o por palabra",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se envían mis textos a algún sitio?",
+      "a": "No. La comparación se ejecuta en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Líneas o palabras?",
+      "a": "Líneas sirve para código y listas. Palabras sirve para prosa, donde una frase cambia en una o dos palabras."
+    }
+  ]
+}

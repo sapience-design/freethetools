@@ -1,0 +1,33 @@
+{
+  "name": "Girar páginas",
+  "task": "Poner las páginas de un PDF del derecho",
+  "tagline": "Arregla las páginas de lado o del revés, todas o solo algunas.",
+  "seoTitle": "Girar páginas de PDF sin subirlas",
+  "description": "Gira páginas de PDF 90 o 180 grados gratis en tu navegador. Gira todas las páginas o solo las que elijas. No se sube nada.",
+  "keywords": [
+    "girar pdf",
+    "rotar pdf",
+    "girar páginas",
+    "rotar páginas",
+    "de lado",
+    "del revés",
+    "horizontal",
+    "vertical",
+    "orientación"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Calidad": "Sin pérdida: las páginas se giran, no se vuelven a procesar",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. El PDF se modifica dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Girar reduce la calidad?",
+      "a": "No. La herramienta cambia el ajuste de rotación de cada página; nada se vuelve a procesar ni se comprime."
+    }
+  ]
+}

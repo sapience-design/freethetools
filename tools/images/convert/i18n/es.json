@@ -1,0 +1,32 @@
+{
+  "name": "Convertir formato de imagen",
+  "task": "Cambiar el tipo de una foto",
+  "tagline": "JPG, PNG, WebP y AVIF, el que necesites.",
+  "seoTitle": "Convertir imágenes PNG, JPG y WebP sin subirlas",
+  "description": "Convierte imágenes entre PNG, JPG, WebP y AVIF gratis en tu navegador, una o varias a la vez. Tus imágenes no salen de tu dispositivo.",
+  "keywords": [
+    "png a jpg",
+    "webp a png",
+    "jpg a webp",
+    "avif",
+    "convertir imagen",
+    "formato de imagen",
+    "webp a jpg",
+    "pasar png a jpg"
+  ],
+  "specs": {
+    "Motor": "Los codificadores de imagen de tu propio navegador",
+    "AVIF": "Disponible cuando tu navegador puede escribirlo",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis imágenes?",
+      "a": "No. Se convierten dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Qué formato debo elegir?",
+      "a": "JPG para fotos que vas a compartir en cualquier sitio, PNG para capturas de pantalla y gráficos con transparencia, WebP para sitios web. AVIF es el más pequeño, pero no todas las aplicaciones lo abren todavía."
+    }
+  ]
+}

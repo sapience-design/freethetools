@@ -1,0 +1,36 @@
+{
+  "name": "HEIC a JPG",
+  "task": "Abrir fotos de iPhone en cualquier sitio",
+  "tagline": "Convierte fotos HEIC de iPhone en JPG o PNG que se abren en cualquier sitio.",
+  "seoTitle": "Convertir HEIC a JPG sin subir nada",
+  "description": "Convierte fotos HEIC y HEIF de un iPhone a JPG o PNG gratis, en tu navegador, una o varias a la vez. Tus fotos no salen de tu dispositivo.",
+  "keywords": [
+    "heic a jpg",
+    "heic a png",
+    "heif",
+    "foto de iphone",
+    "convertir heic",
+    "abrir heic",
+    "conversor heic"
+  ],
+  "specs": {
+    "Motor": "libheif 1.22 (LGPL-3.0) compilado a WebAssembly, empaquetado por heic-to",
+    "Safari": "Usa el decodificador HEIC del propio navegador, sin descarga",
+    "Primera carga": "Unos 3 MB en otros navegadores, y luego queda en caché",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis fotos?",
+      "a": "No. Se decodifican y se vuelven a codificar dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio. Una vez cargada la página, puedes quedarte sin conexión y sigue funcionando."
+    },
+    {
+      "q": "¿Por qué no se abren algunos archivos HEIC?",
+      "a": "El decodificador maneja las fotos fijas que hace un iPhone. No puede abrir archivos HEIC que contengan un vídeo, una secuencia de imágenes o un códec poco habitual, ni un archivo que se cortó durante la transferencia. La fila de ese archivo indica que no se pudo leer; los demás se convierten igualmente."
+    },
+    {
+      "q": "¿Qué pasa con las Live Photos?",
+      "a": "Una Live Photo es una foto HEIC fija más un vídeo corto. Obtienes la foto fija como JPG o PNG. La parte de vídeo es un archivo .mov aparte, que esta herramienta no toca."
+    }
+  ]
+}

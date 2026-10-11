@@ -1,0 +1,37 @@
+{
+  "name": "Conversor de mayúsculas y minúsculas",
+  "task": "Cambiar el texto a MAYÚSCULAS o minúsculas",
+  "tagline": "MAYÚSCULAS, minúsculas, Tipo Título y Tipo oración, más camelCase y snake_case.",
+  "seoTitle": "Conversor de mayúsculas y minúsculas: pasar texto a mayúsculas",
+  "description": "Cambia el texto a mayúsculas, minúsculas, tipo título o tipo oración, o a camelCase, snake_case y kebab-case. Gratis, y tu texto no sale de la página.",
+  "keywords": [
+    "mayúsculas",
+    "minúsculas",
+    "pasar a mayúsculas",
+    "convertir a minúsculas",
+    "tipo título",
+    "tipo oración",
+    "camelcase",
+    "snake case",
+    "capitalizar"
+  ],
+  "specs": {
+    "Motor": "JavaScript puro",
+    "Tipo título": "Mantiene en minúscula las palabras cortas como de, la, y y el",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se envía mi texto a algún sitio?",
+      "a": "No. Se convierte en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Qué palabras quedan en minúscula en el tipo título?",
+      "a": "Las palabras cortas de enlace, como a, de, el, la, y, en, un, para y con, salvo que empiecen el texto."
+    },
+    {
+      "q": "¿Qué pasa con los números y los emojis?",
+      "a": "Los números y los emojis se quedan como están en los estilos simples, como MAYÚSCULAS y Tipo Título. Los estilos de código, como camelCase y snake_case, quitan los emojis y la puntuación y conservan los números."
+    }
+  ]
+}

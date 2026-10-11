@@ -1,0 +1,31 @@
+{
+  "name": "PDF a imágenes",
+  "task": "Guardar páginas de PDF como imágenes",
+  "tagline": "Todas las páginas, o solo algunas, como JPG o PNG.",
+  "seoTitle": "PDF a JPG y PNG sin subir nada",
+  "description": "Convierte páginas de PDF en imágenes PNG o JPG gratis en tu navegador, a 72, 150 o 300 ppp. Elige las páginas. No se sube nada.",
+  "keywords": [
+    "pdf a jpg",
+    "pdf a png",
+    "pdf a imagen",
+    "extraer páginas",
+    "convertir pdf",
+    "captura de pdf",
+    "pasar pdf a jpg"
+  ],
+  "specs": {
+    "Motor": "pdf.js 6.3 (Apache-2.0), en tu navegador",
+    "Resolución": "72, 150 o 300 ppp, con un máximo de 8000 px por lado",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. pdf.js dibuja las páginas dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿PNG o JPG?",
+      "a": "PNG es nítido y sin pérdida, ideal para texto y diagramas. JPG pesa mucho menos, ideal para fotos y escaneos."
+    }
+  ]
+}

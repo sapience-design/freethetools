@@ -1,0 +1,46 @@
+{
+  "name": "Markdown a HTML",
+  "task": "Convertir Markdown en HTML",
+  "tagline": "HTML limpio desde Markdown, o Markdown desde HTML, con vista previa en vivo.",
+  "seoTitle": "Conversor de Markdown a HTML (y de HTML a Markdown)",
+  "description": "Convierte Markdown a HTML o HTML a Markdown gratis en tu navegador, con vista previa en vivo. Copia o descarga el resultado. No se sube nada.",
+  "keywords": [
+    "markdown a html",
+    "html a markdown",
+    "markdown",
+    "html",
+    "md a html",
+    "convertir markdown",
+    "vista previa de markdown",
+    "readme",
+    "commonmark"
+  ],
+  "specs": {
+    "Motores": "marked 18 (Markdown a HTML), Turndown 7 (HTML a Markdown), DOMPurify 3 (limpieza)",
+    "Variante de Markdown": "CommonMark más tablas, tachado y listas de tareas de GitHub",
+    "Seguridad": "La vista previa siempre se limpia y nunca carga imágenes de otros sitios",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se sube mi texto?",
+      "a": "No. Se convierte dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Es seguro publicar el HTML?",
+      "a": "Con la opción de limpieza activada, se quitan los scripts, los controladores de eventos y los enlaces javascript:. Desactívala solo cuando confíes en el Markdown y quieras el HTML exactamente como está escrito."
+    },
+    {
+      "q": "¿Qué Markdown entiende?",
+      "a": "CommonMark, el estándar, más los añadidos de GitHub: tablas, tachado y listas de tareas."
+    },
+    {
+      "q": "¿Por qué de HTML a Markdown cambia mi diseño?",
+      "a": "Markdown no tiene colores, columnas ni clases. Los encabezados, listas, enlaces, imágenes, código, citas y tablas sencillas se conservan. Todo lo demás se reduce a su texto."
+    },
+    {
+      "q": "¿Por qué falta una imagen en la vista previa?",
+      "a": "La vista previa nunca carga imágenes de otros sitios web, para que nada salga de tu dispositivo. Muestra la descripción de la imagen entre corchetes. El HTML que copies conserva la imagen."
+    }
+  ]
+}
