@@ -1,0 +1,1 @@
+- The freethetools package for AI assistants is version 0.1.1: Time Zone Converter handles clock changes, Hash Generator and Unit Converter list the valid choices in their errors, and the MCP Registry entry has the logo.

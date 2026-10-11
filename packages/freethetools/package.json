@@ -1,6 +1,6 @@
 {
   "name": "freethetools",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Free the Tools on your own computer: an MCP server and command line for AI assistants to compress, merge and split PDFs and do other file jobs without installing software. Nothing is uploaded.",
   "license": "AGPL-3.0-only",
   "author": "Sapience Design (https://sapience.design)",

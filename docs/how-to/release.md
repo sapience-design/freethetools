@@ -31,6 +31,20 @@ The script stops without changing anything if `main` is out of date, the working
 - The Release workflow (`.github/workflows/release.yml`) tags the merge commit `v1.3.0` and publishes a GitHub Release with that version's notes from `CHANGELOG.md`.
 - Every page's footer shows "Version 1.3.0", linked to that version on the What's new page (`/changelog/`).
 
+## Release the npm package
+
+The `freethetools` npm package (the MCP server and command line) has its own version number. The Claude Code plugin, the Gemini extension and the MCP Registry entry carry the same number, and a site test fails if they differ. Installed plugins and extensions update only when that number changes.
+
+1. In a pull request, raise the version in `packages/freethetools/package.json`, `packages/freethetools/package-lock.json`, both `version` fields of `packages/freethetools/server.json`, `plugins/freethetools/.claude-plugin/plugin.json` and `gemini-extension.json`. Merge it.
+2. Pull `main` and open the package folder: `cd packages/freethetools`.
+3. Install its build tools: `npm ci`.
+4. Check what will be published: `npm pack --dry-run`. The prepack step builds `dist/` and writes the tool table in the README.
+5. Publish: `npm publish`.
+6. On npmjs.com, open **Staged Packages** and approve the new version.
+7. Check that `npm view freethetools version` shows the new number.
+8. Sign in to the MCP Registry from the same folder: `mcp-publisher login github`.
+9. Publish the registry entry: `mcp-publisher publish`. The registry accepts each version once, so do this only after npm shows the new number.
+
 ## Find a version
 
 - **Every release:** the repository's Releases page. Each release shows its notes, its tag and its commit.
