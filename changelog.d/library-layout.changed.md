@@ -1,0 +1,1 @@
+- Library: result files sit in compact rows with Download and Share side by side.

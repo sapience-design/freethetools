@@ -47,7 +47,7 @@
     },
     "lang": { "label": "Språk" },
     "toolNote": "Knappene i dette verktøyet er fortsatt på engelsk.",
-    "row": { "new": "Ny", "notBuilt": "Ikke bygget ennå" },
+    "row": { "new": "Ny", "notBuilt": "Ønsket" },
     "home": {
       "title": "Free the Tools – hverdagsverktøy som aldri forlater enheten din",
       "description": "Verktøy med åpen kildekode som kjører i nettleseren. Komprimer PDF-er og mer uten å laste opp noe. Ingen kontoer, ingen reklame. Et initiativ fra Sapience Design.",

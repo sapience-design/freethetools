@@ -171,6 +171,22 @@ main { display: block; min-height: 60vh; }
 .row-sub { grid-column: 2; font-size: 14px; color: var(--muted); text-wrap: pretty; }
 .row-go { grid-row: 1 / span 2; grid-column: 3; color: var(--muted); font-size: 20px; display: grid; }
 .row.want .row-ic { background: var(--well); color: var(--muted); }
+/* A requested tool with a quick vote: the link and the button are siblings. */
+.rows > li.vote { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.rows > li.vote .row { grid-template-columns: 44px minmax(0, 1fr); }
+.rows > li.vote .row-go { display: none; }
+.row-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-right: 14px; }
+.row-want, .row-sponsor { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px; border: 1.5px solid var(--edge); border-radius: var(--r); font: inherit; font-size: 14px; font-weight: 650; line-height: 1.2; white-space: nowrap; text-decoration: none; cursor: pointer; }
+.row-want { background: var(--card); color: var(--ink); }
+.row-want:hover { background: var(--row-hover); }
+.row-sponsor { background: transparent; color: var(--soft); border-color: var(--hair); font-weight: 600; }
+.row-sponsor:hover { background: var(--row-hover); color: var(--ink); border-color: var(--edge); }
+.row-want .ic, .row-sponsor .ic { font-size: 20px; }
+.row-want[aria-pressed="true"] { opacity: 1; background: var(--ok-t); border-color: var(--ok); cursor: default; }
+@media (max-width: 520px) {
+  .rows > li.vote { grid-template-columns: minmax(0, 1fr); }
+  .row-acts { margin: 0 14px 10px 72px; }
+}
 
 /* ---- Buttons ---- */
 .btn {

@@ -155,6 +155,45 @@ export async function wantThis(tool: string): Promise<number | null> {
   return null;
 }
 
+/**
+ * Wire one "I want this" button to its vote: already voted shows the pressed state, a press
+ * sends one vote through wantThis (so the once-per-browser rule and the endpoint are the same
+ * everywhere). The caller decides how each state looks.
+ */
+export function bindWant(btn: HTMLButtonElement, id: string, on: { done: () => void; counted: (n: number) => void; failed: () => void }) {
+  if (hasWanted(id)) on.done();
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+    btn.disabled = true;
+    const n = await wantThis(id);
+    if (n === null) { btn.disabled = false; on.failed(); return; }
+    on.done();
+    on.counted(n);
+  });
+}
+
+/** Make the "I want this" button on every planned-tool row in the list work. */
+export function wireRowVotes(root: ParentNode = document) {
+  for (const li of root.querySelectorAll<HTMLElement>("li[data-want-id]")) {
+    const btn = li.querySelector<HTMLButtonElement>("[data-want-btn]");
+    if (!btn || btn.dataset.bound) continue;
+    btn.dataset.bound = "1";
+    const live = li.querySelector<HTMLElement>("[data-want-live]");
+    const text = btn.querySelector(".row-want-t")!;
+    bindWant(btn, li.dataset.wantId!, {
+      done: () => {
+        btn.setAttribute("aria-pressed", "true");
+        btn.disabled = true;
+        btn.setAttribute("aria-label", btn.dataset.doneLabel!);
+        text.textContent = btn.dataset.done!;
+        if (live) live.textContent = btn.dataset.doneLabel!;
+      },
+      counted: (n) => { const el = li.querySelector("[data-want]"); if (el) el.textContent = ` · ${wantText(n)}`; },
+      failed: () => { if (live) live.textContent = btn.dataset.failed!; },
+    });
+  }
+}
+
 export const wantText = (n: number) => txtN("want", n, { one: "{n} wants this", other: "{n} want this" }, { n: fmtCount(n) });
 
 /** Fill "12 want this" on every planned-tool row on the page, once the totals arrive. */

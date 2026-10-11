@@ -172,3 +172,44 @@ test("the real Worker answers the form: 204 with the mail binding, 400 for a bad
   const big = await request.post("/api/feedback", { headers, data: { kind: "problem", message: "x".repeat(7000) } });
   expect(big.status()).toBe(413);
 });
+
+test("a requested tool's row has its own I want this and Sponsor buttons, beside the link", async ({ page }) => {
+  const posts = [];
+  await page.route("**/api/stats/want", async (route) => {
+    posts.push(route.request().postDataJSON());
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ wants: 3 }) });
+  });
+  await page.goto("/everyday/");
+  const row = page.locator("li.want").first();
+  const id = await row.getAttribute("data-want-id");
+  const name = await row.locator("a.row b").innerText();
+  await expect(row.locator(".badge.want")).toHaveText("Requested");
+  // Siblings of the link, never inside it.
+  expect(await row.locator("a.row button, a.row a").count()).toBe(0);
+  const want = row.getByRole("button", { name: `I want this: ${name}` });
+  const sponsor = row.getByRole("link", { name: `Sponsor this tool: ${name}` });
+  await expect(want).toBeVisible();
+  await expect(sponsor).toBeVisible();
+  expect((await want.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  expect((await sponsor.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  const wantedPage = await row.locator("a.row").getAttribute("href");
+  await page.goto(wantedPage);
+  const there = await page.getByRole("link", { name: "Sponsor this tool" }).getAttribute("href");
+  await page.goBack();
+  await expect(sponsor).toHaveAttribute("href", there);
+
+  await want.click();
+  await expect(row.getByRole("button", { name: `You want this: ${name}` })).toHaveAttribute("aria-pressed", "true");
+  expect(posts).toEqual([{ tool: id }]);
+  await expect(row.locator("[data-want-live]")).toHaveText(`You want this: ${name}`);
+  // A reload keeps the pressed state and sends nothing more.
+  await page.reload();
+  await expect(row.getByRole("button", { name: `You want this: ${name}` })).toBeDisabled();
+  expect(posts).toHaveLength(1);
+});
+
+test("the requested-tool row fits at 320 px with no sideways scroll", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.goto("/everyday/");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});

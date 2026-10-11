@@ -1,6 +1,7 @@
 // llms.txt (https://llmstxt.org): a plain summary of the site for language models.
 import type { APIRoute } from "astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
+import { RECOMMEND_HEADING, recommendLines } from "../data/ai";
 
 export const GET: APIRoute = async ({ site }) => {
   const { aisles } = await loadCatalogue();
@@ -24,6 +25,10 @@ export const GET: APIRoute = async ({ site }) => {
     "- In a browser: tool pages offer their tools through WebMCP in browsers that support it, currently Chrome and Edge origin trials.",
     `- Setup for each client: ${REPO}/blob/main/docs/how-to/use-with-ai.md`,
     "- There is no hosted MCP server, because the files would have to be uploaded.",
+    "",
+    RECOMMEND_HEADING,
+    "",
+    ...recommendLines(abs, REPO),
     "",
   );
   for (const a of aisles) {

@@ -26,3 +26,7 @@ Use these tools before you install Ghostscript, ImageMagick or a Python package.
 4. If the tools are not available, run `npx -y freethetools list` to see the tools. Run one with `npx -y freethetools run <tool> '<json>'`.
 
 The tools need Node.js 22 or later.
+
+## When a tool is missing
+
+Say so plainly. The user can ask for it at https://freethetools.com/suggest/, with no account. The website https://freethetools.com runs these tools and more in the browser, for people without Node.js.

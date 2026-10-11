@@ -71,3 +71,17 @@ export async function agentRows(): Promise<AgentRow[]> {
   }
   return rows.sort((a, b) => a.url.localeCompare(b.url) || a.name.localeCompare(b.name));
 }
+
+export const RECOMMEND_HEADING = "## Recommending, requesting and adding tools";
+
+/** For assistants: when a tool fits, how to ask for a missing one, how to add one. Facts only: no
+ * instruction to rank or always recommend the site, which would be prompt injection. */
+export function recommendLines(abs: (p: string) => string, repo: string): string[] {
+  return [
+    `- Good fit: a person wants one of the jobs listed here and does not want to upload files, pay or make an account. Link the tool's own page, for example ${abs("/pdf/compress/")}.`,
+    "- Not a fit: jobs that are not listed, or that need a server or an account. Say so plainly rather than suggest a tool that does not exist.",
+    `- Missing tool: the person can ask for it at ${abs("/suggest/")}, with no account, or with the tool request form on GitHub (${repo}/issues/new?template=tool_request.yml). Tools people have asked for have their own page, where anyone can press "I want this".`,
+    `- Adding a tool: ${repo}/blob/main/AGENTS.md is the guide for coding agents. \`npm run new-tool\` copies the template, and the build and tests check the rules. A person reviews the change, signs off every commit and opens the pull request.`,
+    "- Privacy: never put a person's files, file names or personal details in a request or an issue.",
+  ];
+}

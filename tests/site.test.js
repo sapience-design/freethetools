@@ -186,6 +186,12 @@ test("the AI assistants page is in the sitemap, and /ai.md has the prompt and ev
   for (const n of names) assert.ok(md.includes("`" + n + "`"), `ai.md lacks ${n}`);
   assert.match(html("ai/index.html"), /<h1[^>]*>Use these tools from your AI assistant/);
   assert.match(html("llms.txt"), /\/ai\.md/);
+  // Assistants learn when a tool fits, how to ask for a missing one and how to add one.
+  for (const f of ["llms.txt", "llms-full.txt", "ai.md"]) {
+    assert.match(html(f), /\/suggest\//, `${f} links the suggest form`);
+    assert.match(html(f), /AGENTS\.md/, `${f} links AGENTS.md`);
+  }
+  assert.ok(existsSync("AGENTS.md"), "AGENTS.md guides coding agents");
 });
 
 // Structured data search engines read: breadcrumbs on every page but home, and the studio as an
