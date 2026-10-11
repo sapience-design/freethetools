@@ -1015,7 +1015,8 @@ test.describe("Video to GIF times", () => {
   test("an end before the start is corrected to a clip of at least one second, and the page says so", async ({ page }) => {
     await page.goto("/images/video-to-gif/");
     await page.setInputFiles("input[type=file]", "tools/images/video-to-gif/tests/fixtures/sample.webm");
-    await expect(page.locator("#v2g-end")).not.toHaveValue("");
+    // Wait until the video is read (its length shows), or the page resets the times after we type them.
+    await expect(page.locator("#v2g-meta")).toContainText("seconds");
     const note = page.locator("#v2g-range-note");
     await expect(note).toHaveAttribute("role", "status");
     await expect(note).toBeEmpty();
