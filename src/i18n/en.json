@@ -46,10 +46,6 @@
       "version": "Version {version}"
     },
     "lang": { "label": "Language" },
-    "review": {
-      "note": "This page was translated by machine and has not been checked yet.",
-      "report": "Report a problem"
-    },
     "toolNote": "The buttons in this tool are still in English.",
     "row": { "new": "New", "notBuilt": "Requested" },
     "home": {

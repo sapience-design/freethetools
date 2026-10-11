@@ -14,7 +14,7 @@ Free the Tools wants to be found by people who search for a job, such as "compre
 | Group page | `/pdf/` | Lists the tools for one kind of file, and the tools people have asked for. |
 | Guide | `/guides/compress-a-pdf-for-email/` | A short how-to for one job, in Diátaxis how-to style: the goal, the steps, the tool embedded, and what to do when it goes wrong. 300 to 600 words. One guide per job, never two guides for the same job. |
 | Preset page | `/pdf/compress/under-1-mb/` | A tool page with a preset applied, for a task people search for by its own name. Allowed only when all four conditions below hold. |
-| Language page | `/es/pdf/compress/` | The same tool, in the visitor's language, with `hreflang` links between versions. Machine drafts carry a visible "not yet reviewed" note until a person clears it. |
+| Language page | `/es/pdf/compress/` | The same tool, in the visitor's language, with `hreflang` links between versions. |
 | Comparison | `/compare/uploading/` | Explains, with sources and dates, how a browser-only tool differs from an upload-based service. Names a competitor only to identify it, never with its logo, and lists where the competitor is better. |
 
 ## Conditions for a preset page
