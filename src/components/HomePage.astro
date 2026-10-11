@@ -22,8 +22,6 @@ const popular = POPULAR.map(([id, when]) => {
 });
 const sorts = [["used", h("sortUsed")], ["new", h("sortNew")], ["liked", h("sortLiked")], ["az", h("sortAz")]];
 const homeUrl = localePath(lang, "/");
-const link = (href: string, text: string) => ({ href, text });
-const emptyParts = slots(h("empty")).map((x) => (typeof x === "string" ? x : x.slot === "ask" ? link(SUGGEST_URL, h("emptyAsk")) : link("/support/#company-h", h("emptySponsor"))));
 const whyEnd = slots(h("whyEnd"));
 const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
 ---
@@ -75,7 +73,10 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
         <a class="results-group" id="results-group" href={homeUrl} hidden><span></span><Icon name="arrow-right" /></a>
       </div>
       <ul class="rows card" id="search-results"></ul>
-      <p class="results-empty" id="results-empty" hidden>{emptyParts.map((x) => (typeof x === "string" ? x : <a href={x.href}>{x.text}</a>))}</p>
+      <div class="results-none" id="results-none" hidden>
+        <button type="button" class="btn small" id="results-suggest" data-suggest><Icon name="plus" />{ui(lang, "js.home.suggestIt")}</button>
+      </div>
+      <p class="results-empty" id="results-empty" hidden>{h("empty")}</p>
       <button type="button" class="btn quiet small" id="results-clear"><Icon name="x" />{h("clear")}</button>
     </section>
 
@@ -214,6 +215,8 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   .results-group { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 650; text-underline-offset: 3px; white-space: nowrap; }
   .results-head .sortbox + .results-group { margin-left: 0; }
   .results-empty { color: var(--soft); }
+  .results-none { display: grid; justify-items: inherit; gap: 12px; }
+  .results-none[hidden] { display: none; }
   /* Nothing found: centred under the centred search box. */
   .results.is-empty { justify-items: center; text-align: center; }
   .results.is-empty .results-head { justify-content: center; }
@@ -316,12 +319,11 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   const indexEl = document.getElementById("search-index")!;
   const index: Item[] = JSON.parse(indexEl.textContent!);
   const find = makeSearch(index, (indexEl.dataset.stop ?? "").split(",").filter(Boolean));
-  const REQUEST = "https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml";
 
   const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
   const input = $<HTMLInputElement>("find"), key = $("find-key");
   const results = $("results"), list = $("search-results"), title = $("results-title"), count = $("results-count");
-  const empty = $("results-empty"), groupLink = $<HTMLAnchorElement>("results-group"), def = $("default");
+  const empty = $("results-empty"), none = $("results-none"), suggestBtn = $<HTMLButtonElement>("results-suggest"), groupLink = $<HTMLAnchorElement>("results-group"), def = $("default");
   const sortbox = $("sortbox"), allHead = sortbox.parentElement!, resultsHead = groupLink.parentElement!;
   const chips = [...document.querySelectorAll<HTMLButtonElement>(".chip")];
   const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="sort"]')];
@@ -410,6 +412,11 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     list.replaceChildren(...rows);
     list.hidden = !rows.length;
     empty.hidden = rows.length > 0;
+    // Nothing found for a search: offer to suggest it. The term goes in as text, never as HTML.
+    none.hidden = !(q && !rows.length);
+    if (!none.hidden) {
+      suggestBtn.dataset.term = q;
+    }
     results.classList.toggle("is-empty", !rows.length);
     title.textContent = q ? `${rows.length ? h("best", "Best matches for") : h("none", "Nothing found for")} “${q}”${cname ? h("inGroup", " in {group}", { group: cname }) : ""}` : cname;
     count.textContent = nTools(rows.length);
@@ -445,7 +452,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     e.preventDefault();
     if (!input.value.trim()) return;
     const first = (list.querySelector("a.sel") ?? list.querySelector("a.row")) as HTMLAnchorElement | null;
-    location.href = first ? first.href : REQUEST;
+    if (first) location.href = first.href; else suggestBtn.click();
   });
 
   chips.forEach((c) => c.addEventListener("focus", () => c.scrollIntoView({ block: "nearest", inline: "nearest" })));

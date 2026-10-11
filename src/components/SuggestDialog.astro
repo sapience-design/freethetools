@@ -1,0 +1,269 @@
+---
+// "Suggest a tool" in three short steps, in a native <dialog>. Base.astro puts it on every page.
+// Any link to /suggest/ opens it; a button with data-suggest does too (data-term fills step 1).
+// It sends exactly what the form at /suggest/ sends, to /api/feedback, and only on "Send suggestion".
+// Nothing is stored. Text a person typed never goes through innerHTML.
+import Icon from "./Icon.astro";
+import { t, jsStrings } from "../i18n/index";
+
+interface Props { lang?: string }
+const { lang = "en" } = Astro.props;
+const S = (key: string, vars: Record<string, string | number> = {}) => t(lang, `js.suggest.${key}`, vars);
+const total = 3;
+const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c");
+---
+<dialog id="sg" class="sg" aria-labelledby="sg-title">
+  <div class="sg-box">
+    <header class="sg-head">
+      <h2 class="sg-title" id="sg-title">{S("title")}</h2>
+      <button type="button" class="sg-close" id="sg-close"><Icon name="x" />{S("close")}</button>
+    </header>
+
+    <form id="sg-form" novalidate>
+      <section data-step="1" aria-labelledby="sg-h1">
+        <h3 class="sg-h" id="sg-h1" tabindex="-1"><span class="sg-kicker">{S("step", { n: 1, total })}</span> <span id="sg-t1">{S("s1")}</span></h3>
+        <div class="sg-field">
+          <textarea id="sg-message" name="message" rows="3" maxlength="2000" required aria-labelledby="sg-t1" aria-describedby="sg-hint1 sg-e1"></textarea>
+          <span class="sg-hint" id="sg-hint1">{S("hint1")}</span>
+          <p class="sg-error" id="sg-e1" role="alert" hidden></p>
+        </div>
+      </section>
+
+      <section data-step="2" aria-labelledby="sg-h2" hidden>
+        <h3 class="sg-h" id="sg-h2" tabindex="-1"><span class="sg-kicker">{S("step", { n: 2, total })}</span> <span>{S("s2")}</span></h3>
+        <div class="sg-field">
+          <label for="sg-use">{S("useLabel")}</label>
+          <input type="text" id="sg-use" name="use" maxlength="300" autocomplete="off" aria-describedby="sg-hint-use">
+          <span class="sg-hint" id="sg-hint-use">{S("useHint")}</span>
+        </div>
+        <div class="sg-field">
+          <label for="sg-email">{S("emailLabel")}</label>
+          <input type="email" id="sg-email" name="email" maxlength="254" autocomplete="email" aria-describedby="sg-hint-email sg-e2">
+          <span class="sg-hint" id="sg-hint-email">{S("emailHint")}</span>
+          <p class="sg-error" id="sg-e2" role="alert" hidden></p>
+        </div>
+        <!-- A trap for bots: people never see this field and cannot reach it. -->
+        <div class="sg-trap" aria-hidden="true" inert>
+          <label for="sg-website">Leave this empty</label>
+          <input type="text" id="sg-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+      </section>
+
+      <section data-step="3" aria-labelledby="sg-h3" hidden>
+        <h3 class="sg-h" id="sg-h3" tabindex="-1"><span class="sg-kicker">{S("step", { n: 3, total })}</span> <span>{S("s3")}</span></h3>
+        <p class="sg-text">{S("sooner")}</p>
+        <a class="btn line sg-sponsor" href="/support/#company-h" target="_blank" rel="noopener"><Icon name="hand-heart" />{S("sponsor")}<span class="sr-only"> {S("newTab")}</span></a>
+        <p class="sg-text sg-note">{S("privacy")}</p>
+        <div class="sg-error" id="sg-e3" role="alert" hidden></div>
+      </section>
+
+      <div class="sg-actions">
+        <button type="button" class="btn quiet small" id="sg-back" hidden><Icon name="arrow-left" />{S("back")}</button>
+        <button type="button" class="btn" id="sg-next">{S("next")}<Icon name="arrow-right" /></button>
+        <button type="submit" class="btn" id="sg-send" hidden><Icon name="paper-plane-tilt" />{S("send")}</button>
+      </div>
+    </form>
+
+    <div id="sg-done" hidden>
+      <h3 class="sg-h" id="sg-done-h" tabindex="-1">{S("thanks")}</h3>
+      <p class="sg-text">{S("thanksBody")}</p>
+      <div class="sg-actions"><button type="button" class="btn" id="sg-done-close">{S("close")}</button></div>
+    </div>
+  </div>
+</dialog>
+<script type="application/json" id="ftt-suggest" set:html={json} />
+
+<script>
+  import { txt } from "../lib/ui";
+  const T = (key: string, fallback: string, vars: Record<string, string | number> = {}) => txt(key, fallback, vars, "ftt-suggest");
+  const $ = <E extends HTMLElement>(id: string) => document.getElementById(id) as E;
+  const dlg = $<HTMLDialogElement>("sg");
+  if (dlg && typeof dlg.showModal === "function") init();
+
+  function init() {
+    const form = $<HTMLFormElement>("sg-form");
+    const message = $<HTMLTextAreaElement>("sg-message");
+    const use = $<HTMLInputElement>("sg-use");
+    const email = $<HTMLInputElement>("sg-email");
+    const website = $<HTMLInputElement>("sg-website");
+    const back = $<HTMLButtonElement>("sg-back"), next = $<HTMLButtonElement>("sg-next"), send = $<HTMLButtonElement>("sg-send");
+    const done = $("sg-done");
+    const steps = [...form.querySelectorAll<HTMLElement>("[data-step]")];
+    const total = steps.length;
+    let step = 0, tool = "", opener: HTMLElement | null = null, sent = false;
+
+    // Same rules as the form at /suggest/ and as worker/logic.js.
+    const EMAIL = /^[^\s@<>()[\],;:"\\]+@[^\s@<>()[\],;:"\\]+\.[^\s@<>()[\],;:"\\]{2,}$/;
+    function fail(field: HTMLElement, box: HTMLElement, text: string) {
+      box.textContent = text;
+      box.hidden = false;
+      field.setAttribute("aria-invalid", "true");
+      field.focus();
+    }
+    function clear(field: HTMLElement | null, box: HTMLElement) {
+      box.textContent = "";
+      box.hidden = true;
+      field?.removeAttribute("aria-invalid");
+    }
+    function check(at: number): boolean {
+      if (at === 0) {
+        const n = message.value.trim().length;
+        clear(message, $("sg-e1"));
+        if (n < 10) { fail(message, $("sg-e1"), T("errShort", "Please write at least 10 characters.")); return false; }
+        if (n > 2000) { fail(message, $("sg-e1"), T("errLong", "Please keep it to 2000 characters or fewer.")); return false; }
+      }
+      if (at === 1) {
+        clear(email, $("sg-e2"));
+        if (email.value.trim() && !EMAIL.test(email.value.trim())) { fail(email, $("sg-e2"), T("errEmail", "That email address does not look right. You can also leave it empty.")); return false; }
+      }
+      return true;
+    }
+
+    function show(to: number, moveFocus: boolean) {
+      step = to;
+      steps.forEach((s, i) => { s.hidden = i !== to; });
+      back.hidden = to === 0;
+      next.hidden = to === total - 1;
+      send.hidden = to !== total - 1;
+      // Moving focus to the step heading makes a screen reader read "Step 2 of 3" and the title.
+      if (moveFocus) steps[to].querySelector<HTMLElement>(".sg-h")!.focus();
+    }
+
+    function reset() {
+      form.hidden = false;
+      done.hidden = true;
+      form.reset();
+      [message, email].forEach((f) => f.removeAttribute("aria-invalid"));
+      for (const id of ["sg-e1", "sg-e2", "sg-e3"]) { $(id).textContent = ""; $(id).hidden = true; }
+      send.disabled = false;
+      sent = false;
+    }
+
+    function open(from: HTMLElement | null, term: string, toolId: string) {
+      opener = from;
+      if (sent) reset();
+      tool = toolId;
+      if (term) message.value = term.slice(0, 2000);
+      show(0, false);
+      if (!dlg.open) dlg.showModal();
+      message.focus();
+      if (term) message.setSelectionRange(message.value.length, message.value.length);
+    }
+    function close() { if (dlg.open) dlg.close(); }
+    dlg.addEventListener("close", () => { if (opener?.isConnected) opener.focus(); opener = null; });
+    $("sg-close").addEventListener("click", close);
+    $("sg-done-close").addEventListener("click", close);
+    // A click on the dimmed area outside the box closes it.
+    dlg.addEventListener("click", (e) => { if (e.target === dlg) close(); });
+
+    next.addEventListener("click", () => { if (check(step)) show(step + 1, true); });
+    back.addEventListener("click", () => show(step - 1, true));
+    message.addEventListener("input", () => { if (message.getAttribute("aria-invalid")) clear(message, $("sg-e1")); });
+    email.addEventListener("input", () => { if (email.getAttribute("aria-invalid")) clear(email, $("sg-e2")); });
+    // Enter in a single-line field goes to the next step instead of sending early.
+    form.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && (e.target as HTMLElement).tagName === "INPUT" && step < total - 1) { e.preventDefault(); next.click(); }
+    });
+
+    // The same fields, names and rules as the form at /suggest/.
+    function body() {
+      return { kind: "suggestion", message: message.value.trim(), use: use.value.trim(), tool, email: email.value.trim(), website: website.value };
+    }
+
+    // When the message cannot be sent from here, offer an email with everything filled in.
+    function fallback(b: ReturnType<typeof body>) {
+      const lines = [b.message];
+      if (b.use) lines.push("", `What I use today: ${b.use}`);
+      if (b.tool) lines.push("", `Tool: ${b.tool}`);
+      const a = document.createElement("a");
+      a.href = `mailto:hello@freethetools.com?subject=${encodeURIComponent(`Suggestion: ${b.tool || "new tool"}`)}&body=${encodeURIComponent(lines.join("\n"))}`;
+      a.textContent = T("errMail", "email it to hello@freethetools.com");
+      const box = $("sg-e3");
+      box.replaceChildren(T("errSend", "We could not send this just now. Your text is still here. Please try again, or"), " ", a, ".");
+      box.hidden = false;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (step !== total - 1) return;
+      // Check the earlier steps again; go back to the one that needs a fix.
+      for (let i = 0; i < total - 1; i++) if (!check(i)) { show(i, false); (i === 0 ? message : email).focus(); return; }
+      const b = body();
+      $("sg-e3").hidden = true;
+      send.disabled = true;
+      try {
+        const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
+        if (!res.ok) throw new Error(String(res.status));
+        sent = true;
+        form.hidden = true;
+        done.hidden = false;
+        $("sg-done-h").focus();
+      } catch {
+        fallback(b);
+        $("sg-e3").scrollIntoView({ block: "nearest" });
+      } finally {
+        send.disabled = false;
+      }
+    });
+
+    // Links to /suggest/ open the dialog. Without script they still go to the page.
+    // Problem reports (kind=problem) keep the page, which has that form.
+    document.addEventListener("click", (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      const el = (e.target as HTMLElement).closest<HTMLElement>("a[href], [data-suggest]");
+      if (!el) return;
+      const term = el.dataset.term ?? "";
+      let toolId = "";
+      if (el instanceof HTMLAnchorElement) {
+        if (el.target === "_blank") return;
+        const u = new URL(el.href, location.href);
+        if (u.origin !== location.origin || u.pathname.replace(/\/+$/, "") !== "/suggest" || u.searchParams.get("kind") === "problem") return;
+        toolId = (u.searchParams.get("tool") ?? "").replace(/[^\w\-/.]/g, "").slice(0, 100);
+      } else if (!el.hasAttribute("data-suggest")) return;
+      e.preventDefault();
+      open(el, term, toolId);
+    });
+  }
+</script>
+
+<style>
+  .sg {
+    width: min(560px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; overflow: auto;
+    border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); color: var(--ink); box-shadow: var(--shadow);
+  }
+  .sg::backdrop { background: rgba(20, 18, 14, .55); }
+  .sg-box { display: grid; gap: 18px; padding: clamp(16px, 4vw, 24px); min-width: 0; }
+  .sg-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .sg-title { margin: 0; font-family: var(--display); font-size: 22px; line-height: 1.2; }
+  .sg-close { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--card); color: var(--ink); font: inherit; font-weight: 650; cursor: pointer; }
+  .sg-close:hover { border-color: var(--edge); }
+  form { display: grid; gap: 18px; min-width: 0; }
+  section { display: grid; gap: 14px; min-width: 0; }
+  [hidden] { display: none !important; }
+  .sg-h { margin: 0; display: grid; gap: 2px; font-family: var(--display); font-size: 20px; line-height: 1.25; }
+  .sg-h:focus { outline: none; }
+  .sg-h:focus-visible { outline: 2.5px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  .sg-kicker { font-family: var(--sans); font-size: 14px; font-weight: 650; color: var(--soft); }
+  .sg-field { display: grid; gap: 6px; min-width: 0; }
+  .sg-field label { font-weight: 650; }
+  textarea, input[type="text"], input[type="email"] {
+    width: 100%; min-height: 52px; padding: 10px 14px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--bg); color: var(--ink); font: inherit; font-size: 17px; line-height: 1.4;
+  }
+  textarea { min-height: 96px; resize: vertical; }
+  textarea:focus, input:focus { outline: none; box-shadow: 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  [aria-invalid="true"] { border-color: var(--bad); }
+  .sg-hint { font-size: 14px; color: var(--soft); }
+  .sg-error { margin: 0; padding: 12px 14px; border-radius: var(--r); background: var(--bad-t); color: var(--bad); font-weight: 600; overflow-wrap: anywhere; }
+  .sg-error a { color: inherit; }
+  .sg-text { margin: 0; color: var(--ink); }
+  .sg-note { font-size: 14px; color: var(--soft); }
+  .sg-sponsor { justify-self: start; min-height: 48px; text-align: center; }
+  .sg-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
+  #sg-back { margin-right: auto; }
+  .sg-trap { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
+  @media (prefers-reduced-motion: no-preference) {
+    .sg[open] { animation: sg-in .16s ease-out; }
+    @keyframes sg-in { from { opacity: 0; transform: translateY(8px); } }
+  }
+  :global(html:has(dialog.sg[open])) { overflow: hidden; }
+</style>

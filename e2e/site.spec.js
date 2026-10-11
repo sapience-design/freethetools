@@ -62,7 +62,7 @@ test("search finds tools and offers requests for misses", async ({ page }) => {
   await expect(page.locator("#search-results").getByRole("link", { name: /Compress PDF/ })).toBeVisible();
   await page.fill("#find", "zzzz nothing");
   await expect(page.locator("#results-title")).toContainText("Nothing found");
-  await expect(page.locator("#results-empty")).toContainText("ask us to build it");
+  await expect(page.locator("#results-empty")).toContainText("Try simpler words");
 });
 
 test("the heart adds a favourite, shows it at home and on /saved/, and counts one like", async ({ page }) => {
