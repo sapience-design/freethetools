@@ -46,7 +46,7 @@ import { REPO } from "../data/catalogue";
 
     <section aria-labelledby="count-h">
       <h2 class="h2" id="count-h">What is counted anonymously</h2>
-      <p>We count visits and how often each tool is used. We also count likes and “I want this” votes, plus the country, device type and referring site of a visit. We never count what you put into a tool.</p>
+      <p>We count visits and how often each tool is used. We also count likes and “I want this” votes, plus the country, device type and referring site of a visit. When no referrer is sent, we read the site name from a <code>utm_source</code> link tag, as ChatGPT adds. When a search on the home page finds no tool, we may count the short phrase you typed, but only plain words: never a phrase with a digit, an email, a link or a file name. A phrase is shown on the stats page only after 5 searches on 3 different days. We never count what you put into a tool.</p>
       <p>The counts are daily totals. They link to no person. The site honours Global Privacy Control and Do Not Track: if your browser sends either, nothing is counted except the likes from favourites you add yourself and the “I want this” votes you press yourself. <a href="/stats/">See the full list on the stats page</a>, or <a href="/how-it-works/">check it yourself</a>.</p>
     </section>
 
