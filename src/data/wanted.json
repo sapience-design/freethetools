@@ -143,24 +143,6 @@
     }
   },
   {
-    "name": "Colour Converter",
-    "category": "everyday",
-    "section": "Convert",
-    "blurb": "HEX, RGB, HSL and names, back and forth.",
-    "slug": "colour-converter",
-    "issue": 71,
-    "task": "Convert a colour between formats",
-    "concept": {
-      "in": "A colour as HEX, RGB, HSL or a name.",
-      "out": "The same colour in every format, with a swatch and a contrast ratio against black and white.",
-      "options": [
-        "HEX, RGB, HSL and colour names",
-        "Swatch",
-        "Contrast against black and white"
-      ]
-    }
-  },
-  {
     "name": "IBAN and Phone Number Checker",
     "category": "developer",
     "section": "Encode",
