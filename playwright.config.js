@@ -6,6 +6,8 @@ export default defineConfig({
   testDir: "e2e",
   timeout: 90_000,
   fullyParallel: true,
+  // GitHub's Linux runners have 4 cores; Playwright would use 2.
+  workers: process.env.CI ? 4 : undefined,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL: process.env.BASE_URL ?? "http://localhost:8788" },
   projects: [
