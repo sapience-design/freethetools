@@ -945,7 +945,7 @@ test.describe("home search status", () => {
     const row = page.locator("#search-results > li").nth(1);
     const name = await row.getAttribute("data-name");
     const group = await page.locator(`.chip[data-cat="${await row.getAttribute("data-g")}"]`).getAttribute("data-label");
-    const total = await page.locator("#search-results a").count();
+    const total = await page.locator("#search-results a.row").count();
     await expect(status).toHaveText(`${name}, ${group}, 2 of ${total}`);
     // A new search says the hint again.
     await page.fill("#find", "");

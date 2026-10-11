@@ -51,7 +51,7 @@
       "report": "Report a problem"
     },
     "toolNote": "The buttons in this tool are still in English.",
-    "row": { "new": "New", "notBuilt": "Not built yet" },
+    "row": { "new": "New", "notBuilt": "Requested" },
     "home": {
       "title": "Free the Tools – everyday tools that never leave your device",
       "description": "Open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No accounts, no ads. A Sapience Design initiative.",

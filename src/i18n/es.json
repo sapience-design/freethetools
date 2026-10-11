@@ -51,7 +51,7 @@
       "report": "Informar de un problema"
     },
     "toolNote": "Los botones de esta herramienta siguen en inglés.",
-    "row": { "new": "Nueva", "notBuilt": "Aún no existe" },
+    "row": { "new": "Nueva", "notBuilt": "Solicitada" },
     "home": {
       "title": "Free the Tools – herramientas de uso diario que nunca salen de tu dispositivo",
       "description": "Herramientas de código abierto que funcionan en tu navegador. Comprime PDF y mucho más sin subir nada. Sin cuentas ni anuncios. Una iniciativa de Sapience Design.",

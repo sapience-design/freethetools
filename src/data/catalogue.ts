@@ -10,6 +10,8 @@ export const SITE_NAME = "Free the Tools";
 export const REQUEST_URL = `${REPO}/issues/new?template=tool_request.yml`;
 // Suggestions and problem reports go through our own form, which emails the maintainers.
 export const SUGGEST_URL = "/suggest/";
+/** Where "Sponsor this tool" goes, on a wanted page and on its row in a list. */
+export const SPONSOR_URL = "/support/#company-h";
 
 export type ToolTexts = CollectionEntry<"toolTexts">["data"];
 export type Tool = CollectionEntry<"tools"> & { category: Category; slug: string; url: string; number: string; icon: string; isNew: boolean; texts: Record<string, ToolTexts> };
