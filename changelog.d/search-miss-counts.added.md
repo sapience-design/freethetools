@@ -1,1 +1,0 @@
-- The stats page lists searches that found nothing, so the most-wanted missing tools are visible to everyone. Only short words, no numbers or emails, and only after 5 searches on 3 days.

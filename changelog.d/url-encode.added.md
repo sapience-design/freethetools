@@ -1,1 +1,0 @@
-- URL Encode and Decode (Developer, Encode): make text safe for a web address, read an encoded one, or split an address into its parts and query parameters, in the browser.

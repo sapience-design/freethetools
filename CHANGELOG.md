@@ -8,6 +8,36 @@ major version.
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-10-11
+
+### Added
+
+- Colour Converter: type a colour as HEX, RGB, HSL or a CSS name, or pick one, then copy it in every form, find the nearest CSS name and check its WCAG contrast against white and black.
+- The stats page lists searches that found nothing, so the most-wanted missing tools are visible to everyone. Only short words, no numbers or emails, and only after 5 searches on 3 days.
+- Suggest a tool in three short steps, from any page or straight from a search with no results.
+- The support page says what a card gift shows on your statement, and that a monthly gift can be stopped at any time.
+- A terms of use page, linked from the footer: free tools with no warranty or liability, voluntary tips and refunds for mistaken ones, copyright, and the name.
+- Unix Timestamp Converter (Everyday, Time): turn a Unix timestamp in seconds, milliseconds or microseconds into a date in UTC and your time zone, or a date into a timestamp, in the browser.
+- URL Encode and Decode (Developer, Encode): make text safe for a web address, read an encoded one, or split an address into its parts and query parameters, in the browser.
+
+### Changed
+
+- Clearer wording: "Your files stay on your device" instead of "Nothing is uploaded", and share images no longer count the tools, since more keep coming.
+- Time Zone Converter: the chosen day in words, buttons to step by an hour or a day, a Now button, and a 24-hour strip per city with working hours shaded. Press an hour on a strip to pick it.
+- Merge, Split, Rotate and Fill PDF Form show pictures of the pages. Rotate turns them as you choose a direction; Split marks the pages you typed. The finished PDF shows its first page beside Download.
+- Compress, Resize and Convert Images and the File Converter: a Compare button slides between the original and the result. Converted sound files get a player.
+- Unit Converter: the answer is rounded to four digits, with the exact value underneath. The swap button stays on phones.
+- Results that change as you type (times, units, counts, passwords, hashes) flash briefly, so the change is seen.
+- Tool pages: the Favourite button sits beside the tool's name, so the first control is higher on the page.
+
+### Fixed
+
+- Privacy page: names the company and its country, not a city.
+
+### Security
+
+- Browsers now always use HTTPS for freethetools.com: the site sends a Strict-Transport-Security header, valid for one year, so a typed `http://` address can't be intercepted before the redirect.
+
 ## [1.5.0] - 2026-10-11
 
 ### Added
@@ -230,7 +260,8 @@ The first release since launch: 27 new tools (28 in all), a new design, tools fo
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/sapience-design/freethetools/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/sapience-design/freethetools/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sapience-design/freethetools/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/sapience-design/freethetools/compare/v1.2.0...v1.3.0
