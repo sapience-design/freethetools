@@ -17,7 +17,7 @@ The one piece of server code is a small Worker (`worker/`) for anonymous usage t
 1. **Content Security Policy.** `astro.config.mjs` puts a CSP on every page: `default-src 'self'` and `connect-src 'self'`. The browser refuses any request to another origin (fetch, image, script, font, form), so even a buggy or malicious tool can't send data out. Astro adds hashes for its own inline scripts, so no `unsafe-inline` is needed; style attributes are not allowed either, so pages set dynamic styles through CSS variables from script.
 2. **Workers too.** Workers take their policy from their own HTTP response, so `public/_headers` gives files under `/_astro/` the same policy plus `wasm-unsafe-eval` for WebAssembly.
 3. **Vendored runtime files.** Libraries that fetch files at runtime are copied into the site at build time ([how-to](../how-to/vendor-a-library.md)), so nothing needs another origin.
-4. **Tests.** `tests/site.test.js` fails if a page references another origin, lacks the policy, or repeats an element id. The browser tests in `e2e/` record every request and every CSP violation while using the tools, and fail on either.
+4. **Tests.** `tests/site.test.js` fails if a page references another origin, lacks the policy, or repeats an element id. The browser tests in `e2e/` record every request and every CSP violation while using the tools, and fail on either. `tests/tool-safety.test.js` fails if any tool builds code from text or writes raw HTML without a stated reason, or if `core.js` or `agent.js` uses the network, Node built-ins or `process`. Pull requests also run dependency review.
 5. **Verifiable builds.** The build writes `dist/integrity.json`, the SHA-256 of every deployed file. The [/verify/](https://freethetools.com/verify/) page re-downloads each file and compares it, and anyone can rebuild the same commit and compare the hashes. This shows that the served files equal a build of the repository. It does not show that Cloudflare's network is honest. See [ADR 0012](../adr/0012-verifiable-builds.md).
 
 See [ADR 0003](../adr/0003-csp-enforces-no-uploads.md).
@@ -42,6 +42,13 @@ A service worker (`/sw.js`, built by `scripts/build-sw.mjs`) keeps the home page
 | `/stats/` | Anonymous usage totals, and exactly what is and isn't counted |
 | `/about/`, `/licenses/` | The pledge and the third-party credits |
 | `/how-it-works/` | What comes in, what stays on the device and what goes out (a diagram in HTML, so it reflows and reads aloud), exactly what is sent, six checks anyone can do, and a live list of what the site stores in this browser, with Clear buttons |
+| `/terms/`, `/privacy/` | The terms of use (free, as is, tips are voluntary, copyright and the name), and what the site keeps, counts and never sends |
+| `/support/` | Donate, or sponsor a tool |
+| `/suggest/` | A form to ask for a tool or report a problem, with no account. The Worker emails it (ADR 0013) |
+| `/verify/` | Re-downloads every file of the site and compares it with the build's fingerprints |
+| `/ai/`, `/ai.md` | How to use the tools from an AI assistant: prompts and setup for each assistant |
+| `/changelog/` | "What's new": every release, newest first, with an RSS feed at `/changelog.xml` |
+| `/nb/`, `/es/`, `/ru/` | The home page, group pages and tool pages in Norwegian, Spanish and Russian (`src/pages/[lang]/[...rest].astro`, [ADR 0014](../adr/0014-languages.md)). The other pages stay English |
 | `/api/tools.json`, `/llms.txt`, `/sitemap.xml`, `/robots.txt` | Endpoints in `src/pages/` |
 
 ## Tools for AI agents
@@ -80,7 +87,9 @@ Search runs in the browser with [MiniSearch](https://github.com/lucaong/minisear
 `worker/index.js` answers `/api/stats/*` and nothing else. Cloudflare D1 (`freethetools-stats`) holds only daily totals:
 
 - per tool: views, uses, results downloaded or copied, errors, and likes
-- per site visit, one per browser session: separate counts of referring site (a name, never a link), country and device type
+- per site visit, one per browser session: separate counts of referring site (a name, never a link), country and device type. A visit without a referrer uses the link's `utm_source` when it looks like a site name.
+- searches on the home page that find no tool: a short phrase of plain words, stored as a daily total in the `dims` table. `/stats/` shows a phrase only after 5 searches on 3 different days, and never one with digits, emails or links ([ADR 0007](../adr/0007-visits-and-outcomes.md))
+- "I want this" votes for requested tools, in the `wants` table ([ADR 0013](../adr/0013-feedback-without-github.md))
 
 The Worker writes only for requests from the site's own origin and for known tool ids. It never stores IP addresses, cookies or user agents. The browser sends nothing, apart from likes pressed by hand, when it has Global Privacy Control or Do Not Track set. Branch previews have no database binding, so they never touch the real numbers. The data model is in `migrations/`, and the reasoning is in [ADR 0006](../adr/0006-anonymous-usage-totals.md) and [ADR 0007](../adr/0007-visits-and-outcomes.md).
 
@@ -91,7 +100,7 @@ Design round 4 ("v4"), from the Claude Design project *Free the Tools v4*. The d
 Layout:
 
 - One 1280 px container (`--content`) shared by the top bar, the page and the footer, with fluid gutters; running text stops at 65 characters (`--measure`). Tool pages put a 340 px side column beside the tool, stacking below 960 px.
-- A sticky top bar: the mark and name, About, Library, and Favourites (on the home page) or All tools (elsewhere). On phones the button shows its icon only.
+- A sticky top bar: the mark and name, Library, Favourites (on the home page) or All tools (elsewhere), GitHub and Donate. On phones these show an icon only.
 - Home: one headline, a search box ("What do you need to do?"), group filter chips, a sort control, "Most people come for", then one card per group with its top three tools.
 - Tools are named by the job they do ("Make a PDF smaller"); the product name ("Compress PDF") sits in a tag above. Both come from `tool.json` (`task`, `name`).
 - Each tool page is a column of numbered steps (`src/components/Step.astro`): choose, pick options, save. File tools run when you press the button; text tools work as you type. A side column holds the privacy note, the questions and the tool's details and credits.
@@ -99,7 +108,7 @@ Layout:
 - Chosen files are rows with a thumbnail and the details that matter for the tool (`fileRow`, `photoRow`, `typeThumb`, `videoThumb` in `src/lib/files.ts`; PDF pages and paper size from `src/lib/pdfinfo.ts`).
 - See it before you save it: PDF tools draw page pictures with pdf.js (`src/lib/pdfthumb.ts`: a thumbnail per file, a strip of numbered page tiles that Rotate turns and Split marks, and the finished PDF's first page beside Download). Image tools add a Compare button that slides between the original and the result, and converted sound or video gets a player (`src/lib/preview.ts`). Previews keep the picture's own shape and orientation.
 - Results that change as you type (times, units, counts, passwords, hashes) flash briefly (`src/lib/live.ts`, the `.changed` animation), never on first paint, and not at all under reduced motion.
-- Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages as "Not built yet", linking to the request.
+- Raised things have an ink outline and a 3px drop shadow. Requested tools that aren't built yet are listed on group pages with a "Requested" badge, an "I want this" button and "Sponsor this tool". Each links to its own page, which says "Not built yet".
 
 Type:
 

@@ -24,13 +24,13 @@ We checked Astro's built-in i18n routing. It needs the locale list in `astro.con
 
 **Pages with a translation.** Home, group pages, tool pages (the shell: heading, task, tagline, FAQ, side column), wanted-tool pages and the 404 page. A tool page exists in a language only when the tool has a text file for it. The tool's own working area stays English for now, so a translated tool page shows one note: "The buttons in this tool are still in English."
 
-**Pages that stay English.** About, Privacy, How it works, Support, AI, What's new, Verify, Stats, Suggest, Library and Favourites. Translated pages link to them normally.
+**Pages that stay English.** About, Privacy, Terms, How it works, Support, AI, What's new, Verify, Stats, Suggest, Library and Favourites. Translated pages link to them normally.
 
 **Every page.** It has `<html lang>` and `dir`, a self canonical, `hreflang` links for every language that has this page plus `x-default` (English), and `og:locale`. Breadcrumbs use the translated names and addresses. The share image is the English one.
 
 **Language switcher.** A list of plain links in the footer. Each language is written in its own name. A link goes to the same page in that language when it exists, and otherwise to that language's home. The current language has `aria-current="true"`.
 
-**Review status is tracked, not shown.** `meta.reviewed` is `false` until a person approves the language. Pages carry no note about it: a note on every page read as clutter, so it was removed on 2026-10-11. The owner reviews `nb`. A client reviews `uk` and `ru`. `scripts/translation-sheet.mjs <lang> <file>` writes a two-column table (English, translation) for the reviewer.
+**Review status is tracked, not shown.** `meta.reviewed` is `false` until a person approves the language. Pages carry no note about it: a note on every page read as clutter, so it was removed on 2026-10-11. Norwegian is reviewed. Spanish and Russian are live and not yet reviewed. Ukrainian is planned. `scripts/translation-sheet.mjs <lang> <file>` writes a two-column table (English, translation) for the reviewer.
 
 **Search.** On a translated home page, the index holds the translated name and task, plus the English name, task, keywords and synonyms, so English words still work. A language file may add its own synonym groups and filler words under `search`.
 

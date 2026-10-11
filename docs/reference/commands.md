@@ -11,8 +11,8 @@
 | `npm run test:package` | Builds the `freethetools` npm package and runs its tests (installs its dependencies first if they are missing). Kept out of `npm test` so production deploys never depend on it. |
 | `npm run build:package` | Builds the `freethetools` npm package into `packages/freethetools/dist/` |
 | `npm run setup:package` | Installs the package's own dependencies (`npm ci` in `packages/freethetools/`) |
-| `npm run test:site` | Checks the built site (titles, descriptions, canonical links, CSP, unique ids, sitemap), plus search and stats-rule unit tests |
-| `npm run test:e2e` | Browser tests on desktop and phone, against the local Worker with a local database (started automatically). Run `npx playwright install chromium` once first. |
+| `npm run test:site` | Runs every `tests/*.test.js`: the built-site checks (titles, descriptions, canonical links, CSP, unique ids, sitemap) and the search, stats, i18n, integrity, changelog, link and tool-safety tests |
+| `npm run test:e2e` | Browser tests on desktop and phone, against the local Worker with a local database (started automatically). Run `npx playwright install chromium` once first. In CI pull requests, the accessibility and narrow-screen tests cover every English page plus a fixed sample per language (`e2e/pages.js`). `FTT_ALL_PAGES=1` runs every page, and a daily workflow does that. |
 | `npx wrangler d1 migrations apply DB --remote` | Owner only: apply new files in `migrations/` to the production stats database, before merging the code that needs them |
 | `npm run check:live [url]` | Read-only check of the live site (default https://freethetools.com): every page in the sitemap on desktop and phone. Also runs daily in CI and after each production deploy. |
 | `npm run check` | Build, then unit, site and browser tests |

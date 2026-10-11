@@ -28,6 +28,7 @@ We'll keep you updated along the way. If we can't meet a target, we'll tell you 
 ## In scope
 
 - The site at freethetools.com and its preview deployments
+- The latest version of the `freethetools` npm package, and the Claude Code plugin and Gemini extension that carry its version. They run on people's computers
 - Any tool that sends data off the device, loads code from another origin, or bypasses the Content Security Policy
 - Cross-site scripting, injection through file contents, or a crafted file that runs code in a tool
 - The build and release pipeline: GitHub Actions workflows and dependencies
@@ -51,4 +52,4 @@ We won't pursue legal action against research done in good faith that follows th
 
 ## Supported versions
 
-Only the current site (the `main` branch) is supported. There are no older releases to patch.
+The current site (the `main` branch) is supported. So are the latest version of the `freethetools` npm package and the Claude Code plugin and Gemini extension that carry its version, because they run on people's computers. Older versions get no patches. Update to the latest.

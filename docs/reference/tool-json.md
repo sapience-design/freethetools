@@ -18,7 +18,7 @@ The URL comes from the folder: `tools/pdf/compress/` is served at `/pdf/compress
 | `authors` | yes | At least 1 `{ "name", "github"? }` | Credits on the page and in structured data |
 | `status` | no | `live` or `beta`, default `live` | Beta tools are labelled |
 | `added` | yes | `YYYY-MM-DD` | Spec table, sitemap `lastmod` |
-| `offline` | no | Boolean, default `true` | "Nothing is uploaded" wording |
+| `offline` | no | Boolean, default `true` | "Your files stay on your device" wording |
 | `specs` | no | `{ "Label": "Value" }` | Extra rows in the spec table |
 | `faq` | no | `[{ "q", "a" }]` | Questions beside the tool and FAQ structured data for search engines. Start with whether anything is uploaded. |
 | `vendor` | no | `[{ "from", "to" }]` | Runtime files copied from `node_modules`; optional `"extract"` names a build-time extractor in `scripts/sync-tool-assets.mjs`; see [vendoring](../how-to/vendor-a-library.md) |

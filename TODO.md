@@ -1,7 +1,7 @@
 # Free the Tools — what is left
 
-*Single list. Update it as things move; delete what ships. Live state (2026-09-28): 25 tools, themes,
-search, sorting, anonymous usage totals, visit breakdowns and likes, all on freethetools.com.*
+*Single list. Update it as things move; delete what ships. Live state (2026-10-11): 33 tools in four languages (English, Norwegian, Spanish and Russian), 25 of them in the
+npm package for AI assistants, with themes, search, sorting, anonymous usage totals, visit breakdowns and likes, all on freethetools.com.*
 
 ## Build (Claude sessions or contributors)
 
@@ -13,13 +13,22 @@ search, sorting, anonymous usage totals, visit breakdowns and likes, all on free
 | B12 | Fill PDF Form: drawn signatures | The v4 help text mentions them as "coming later"; the port does not promise them | Idea |
 | B13 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
 | B14 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
-| B15 | A way to turn off the "/" search shortcut (WCAG 2.1.4) | Found in the accessibility pass. The styled "Skip to content" link shipped with the v4 design | Ready |
-| B16 | Rewrite the tutorial around a tool that doesn't exist yet | `docs/tutorial/first-tool.md` builds Word Counter, which now exists, so its scaffold step fails | Ready |
 
 ## Done recently
 
+Older entries are in [CHANGELOG.md](CHANGELOG.md).
+
 | What | PR | Date |
 |---|---|---|
+| Release 1.5.0 | — | 2026-10-11 |
+| Three new tools: Colour Converter, URL Encode and Decode, Unix Timestamp Converter | — | 2026-10-11 |
+| A terms of use page at `/terms/` | — | 2026-10-11 |
+| A three-step suggest dialog, also opened from a search with no results | — | 2026-10-11 |
+| "I want this" and "Sponsor this tool" on the rows of requested tools | — | 2026-10-11 |
+| Anonymous counts of searches that find nothing, shown on `/stats/` (ADR 0007) | — | 2026-10-11 |
+| Security checks for every tool (`tests/tool-safety.test.js`) and dependency review on pull requests | — | 2026-10-11 |
+| Faster CI: a sample of pages per language on each push, and a daily run of every page | — | 2026-10-11 |
+| The npm package `freethetools` 0.1.1 | — | 2026-10-11 |
 | HEIC to JPG, with libheif as WebAssembly that the security policy allows | #85 | 2026-10-10 |
 | Cloudflare Web Analytics injection and client-side script monitoring switched off; live check green from a US runner (no errors, no warnings) | — | 2026-09-29 |
 | Accessibility and speed audit: Lighthouse 99–100 on mobile; axe (WCAG 2.2 AA) on every page, both themes, desktop and phone, now in CI; contrast, label-in-name and landmark fixes | #40 | 2026-09-28 |
