@@ -37,7 +37,7 @@ const blurb: Record<string, string> = {
 <script>
   import { FORMATS, renameTo, qualityFor } from "./core.js";
   import { decode, encode, canEncode, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   import { compareButton } from "../../../src/lib/preview";
   const $ = (id: string) => document.getElementById(id)!;
@@ -86,16 +86,16 @@ const blurb: Record<string, string> = {
     let done = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
-      const li = fileRow({ name: f.name, meta: "Converting…", thumb: imageThumb(f) });
+      const li = fileRow({ name: f.name, meta: "Converting…", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
         const bmp = await decode(f);
         const blob = await encode(bmp, bmp.width, bmp.height, type, qualityFor(type));
         m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
-        li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
         const out = renameTo(f.name, fmt.ext);
-        act.append(compareButton(li, f, blob, { beforeLabel: (f.type.split("/")[1] || "Original").toUpperCase(), afterLabel: fmt.label }), downloadLink(blob, out, type));
+        li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
+        act.append(compareButton(li, f, blob, { beforeLabel: (f.type.split("/")[1] || "Original").toUpperCase(), afterLabel: fmt.label, name: f.name }), downloadLink(blob, out, type));
         outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }

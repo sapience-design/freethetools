@@ -31,7 +31,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { PRESETS, outputType, worthIt, saving } from "./core.js";
   import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   import { compareButton } from "../../../src/lib/preview";
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
@@ -74,7 +74,7 @@ import Icon from "../../../src/components/Icon.astro";
     let done = 0, failed = 0, before = 0, after = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
-      const li = fileRow({ name: f.name, meta: "Compressing…", thumb: imageThumb(f) });
+      const li = fileRow({ name: f.name, meta: "Compressing…", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
@@ -87,9 +87,9 @@ import Icon from "../../../src/components/Icon.astro";
         if (worthIt(f.size, blob.size)) {
           after += blob.size;
           m.textContent = `${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${saving(f.size, blob.size)}% smaller`;
-          li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
           const out = `${baseName(f.name)}_small.${EXT[type]}`;
-          act.append(compareButton(li, f, blob, { beforeLabel: "Original", afterLabel: "Smaller" }), downloadLink(blob, out, type));
+          li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
+          act.append(compareButton(li, f, blob, { beforeLabel: "Original", afterLabel: "Smaller", name: f.name }), downloadLink(blob, out, type));
           outs.push({ name: out, blob });
         } else {
           after += f.size;

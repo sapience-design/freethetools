@@ -1,0 +1,1 @@
+- Every preview opens full screen: PDF pages with page by page browsing and zoom, photos, Compare and video. Page pictures are larger, and long PDFs show all their pages behind "Show all". Compress PDF, PDF to Images and Unlock PDF now show page pictures too.

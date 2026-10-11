@@ -32,8 +32,10 @@ import Step from "../../../src/components/Step.astro";
   import { removedSentence, unlockPdf } from "./core.js";
   import { qpdf } from "../../../src/agent/qpdf.js";
   import { baseName, downloadLink, fmtBytes, showError, wireDrop, fileRow, pdfThumb, compactDrop } from "../../../src/lib/files";
+  import { usePdfWorker, pdfPreview, pdfPages, pageStrip } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
 
+  usePdfWorker("pdf/unlock");
   const root = document.getElementById("unlk-tool")!;
   const list = document.getElementById("unlk-list")!;
   const status = document.getElementById("unlk-status")!;
@@ -110,6 +112,18 @@ import Step from "../../../src/components/Step.astro";
     row.input?.focus();
   }
 
+  /** The unlocked file's pages, so a person can see it opened before saving it. */
+  async function showPages(row: Row, bytes: Uint8Array, name: string) {
+    const blob = new Blob([bytes as BlobPart], { type: "application/pdf" });
+    const total = await pdfPages(blob);
+    if (!total || !row.li.isConnected) return;
+    const box = row.li.querySelector<HTMLElement>(".fthumb");
+    if (box) pdfPreview(box, blob, name, total);
+    const strip = pageStrip(blob, total, { name, max: 8 });
+    strip.el.classList.add("fwide");
+    row.li.append(strip.el);
+  }
+
   /** Try to unlock one file. `fromPerson` is true after they press Unlock, so focus follows them. */
   async function attempt(row: Row, password: string, fromPerson = false) {
     let r;
@@ -133,6 +147,7 @@ import Step from "../../../src/components/Step.astro";
         const a = downloadLink(r.bytes, out, "application/pdf");
         a.setAttribute("aria-label", `Download ${out}`);
         row.act.replaceChildren(a);
+        showPages(row, r.bytes, out);
         row.bytes = null;
         announce(`${row.file.name}: ${sentence} ${out} is ready to download.`);
         if (fromPerson) a.focus();

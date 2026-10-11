@@ -32,9 +32,11 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { reportFailure, fmtBytes, compactDrop, compareBars, iconButton, showBusy, showDone, showProblem, showWait, wireDrop, fileRow, pdfThumb } from "../../../src/lib/files";
+  import { usePdfWorker, pdfPreview, pdfBeforeAfter } from "../../../src/lib/pdfthumb";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
   import { buildArgs } from "./core.js";
+  usePdfWorker("pdf/compress");
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = $("#pdfc-tool"), picked = $("#pdfc-picked"), results = $("#pdfc-results"), status = $("#pdfc-status");
   const go = $<HTMLButtonElement>("#pdfc-go"), goLabel = $("#pdfc-go-label"), again = $("#pdfc-again");
@@ -68,7 +70,7 @@ import Icon from "../../../src/components/Icon.astro";
       const warn = document.createElement("ul");
       warn.className = "ffacts";
       warn.hidden = true;
-      const li = fileRow({ name: f.name, meta: fmtBytes(f.size), thumb: pdfThumb(), extra: [warn], actions: [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })] });
+      const li = fileRow({ name: f.name, meta: fmtBytes(f.size), thumb: pdfPreview(pdfThumb(), f, f.name), extra: [warn], actions: [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })] });
       pdfFacts(f).then((facts) => {
         li.querySelector(".fmeta")!.textContent = pdfMeta(facts, f.size);
         if (facts?.locked) {
@@ -117,9 +119,12 @@ import Icon from "../../../src/components/Icon.astro";
     const a = document.createElement("a");
     a.className = "btn";
     a.textContent = "Download";
-    a.href = URL.createObjectURL(new Blob([data.out], { type: "application/pdf" }));
+    const small = new Blob([data.out], { type: "application/pdf" });
+    a.href = URL.createObjectURL(small);
     a.download = `${file.name.replace(/\.pdf$/i, "")}${firstPage ? "_p1" : ""}_small.pdf`;
     row.querySelector(".fact")!.replaceChildren(a);
+    // The first page before and after, to judge the quality before downloading.
+    row.append(pdfBeforeAfter(file, small, { beforeName: file.name, afterName: a.download, afterLabel: "Compressed" }));
     batch.done++;
     batch.before += file.size;
     batch.after += size;

@@ -62,6 +62,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
   import { GIFEncoder, quantize, applyPalette } from "gifenc";
   import { clampOptions, rangeNote, frameTimes, outputSize, estimateBytes, isLarge, gifName, frameDelay } from "./core.js";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, showBusy, showDone, showError, showWait, videoThumb } from "../../../src/lib/files";
+  import { viewable, viewLabel } from "../../../src/lib/expand";
   import { stepTo } from "../../../src/lib/steps";
 
   const $ = (id: string) => document.getElementById(id)!;
@@ -155,7 +156,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
     url = next; video = v; file = f; duration = v.duration;
     $("v2g-name").textContent = f.name;
     $("v2g-meta").textContent = `${duration.toFixed(1)} seconds · ${v.videoWidth} × ${v.videoHeight} · ${fmtBytes(f.size)}`;
-    $("v2g-thumb").replaceWith(Object.assign(videoThumb(f, "Video"), { id: "v2g-thumb" }));
+    $("v2g-thumb").replaceWith(Object.assign(viewable(videoThumb(f, "Video"), viewLabel("video"), () => ({ kind: "media", blob: f, name: f.name })), { id: "v2g-thumb" }));
     $("v2g-picked").hidden = false;
     startIn.max = endIn.max = String(duration);
     startIn.value = "0";
@@ -216,7 +217,7 @@ const speed: Record<number, string> = { 5: "Smallest", 10: "Smooth enough", 15: 
       img.src = gifUrl; img.width = size.width; img.height = size.height;
       img.alt = "Preview of your GIF";
       const name = gifName(file.name);
-      out.replaceChildren(img, downloadLink(blob, name, "image/gif", `Download ${name} (${fmtBytes(blob.size)})`));
+      out.replaceChildren(viewable(img, viewLabel("photo"), () => ({ kind: "image", blob, name })), downloadLink(blob, name, "image/gif", `Download ${name} (${fmtBytes(blob.size)})`));
       out.hidden = false; again.hidden = false;
       showDone(result, `Done. Your GIF has ${times.length} ${times.length === 1 ? "frame" : "frames"} and is ${fmtBytes(blob.size)}.`);
       stepTo(root, 4);

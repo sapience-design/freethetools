@@ -2,6 +2,7 @@
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
 import SuggestDialog from "../components/SuggestDialog.astro";
+import ViewerDialog from "../components/ViewerDialog.astro";
 import { loadCatalogue, groupIn, toolIn, REPO, SUGGEST_URL } from "../data/catalogue";
 import { LANGS, langOf, t, slots, jsStrings, localePath, splitPath } from "../i18n/index";
 import originTrials from "../data/origin-trials.json";
@@ -180,6 +181,7 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
   </footer>
 
   {suggestDialog && <SuggestDialog lang={lang} />}
+  <ViewerDialog lang={lang} />
 
   {/* Words the scripts need, in this page's language (src/lib/ui.ts reads them). */}
   <script type="application/json" id="ftt-ui" set:html={uiJson} />
