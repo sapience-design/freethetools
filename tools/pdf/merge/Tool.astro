@@ -30,7 +30,9 @@ import Icon from "../../../src/components/Icon.astro";
   import { mergePdfs, pageCount } from "./core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, fileRow, pdfThumb } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { usePdfWorker, drawInto, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
+  usePdfWorker("pdf/merge");
 
   type Item = { file: File; bytes: ArrayBuffer; pages: number };
   const items: Item[] = [];
@@ -48,7 +50,7 @@ import Icon from "../../../src/components/Icon.astro";
     goLabel.textContent = items.length < 2 ? "Add at least two PDFs" : `Combine ${items.length} PDFs into one`;
     compactDrop("pdfm", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
-      const li = fileRow({ name: it.file.name, meta: `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`, thumb: pdfThumb() });
+      const li = fileRow({ name: it.file.name, meta: `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`, thumb: drawInto(pdfThumb(), it.file) });
       pdfFacts(it.file).then((facts) => { if (facts) li.querySelector(".fmeta")!.textContent = pdfMeta(facts, it.file.size); });
       li.querySelector(".fact")!.append(
         iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),
@@ -88,7 +90,7 @@ import Icon from "../../../src/components/Icon.astro";
       const dl = downloadLink(out, "merged.pdf", "application/pdf", "Download PDF");
       dl.classList.add("run");
       showDone(result, `Done. ${items.length} files are now one PDF.`, `merged.pdf · ${pages} pages · ${fmtBytes(out.byteLength)}, in the order you chose`);
-      result.append(dl);
+      result.append(outputRow(out, dl));
       stepTo(root, 4);
     } catch (e) {
       showError(result, (e as Error).message);

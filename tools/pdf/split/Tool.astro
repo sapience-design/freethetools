@@ -27,6 +27,10 @@ import Icon from "../../../src/components/Icon.astro";
       <input type="text" id="pdfs-range" placeholder="1-3, 5, 8-" autocomplete="off">
       <small>Use a dash for a range and commas between pages, like 1-3, 7.</small>
     </label>
+    <div class="field" id="pdfs-preview" hidden>
+      <span class="field-label" id="pdfs-preview-label">The pages you'll get</span>
+      <div id="pdfs-pages"></div>
+    </div>
     <button class="btn run" id="pdfs-go" type="button" disabled><Icon name="scissors" /><span>Split PDF</span></button>
   </Step>
 
@@ -38,18 +42,39 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { parseRanges, everyPage, splitPdf } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, showError, showBusy, showDone, showWait, compactDrop, baseName, paint, progress, working } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, downloadAllButton, showError, showBusy, showDone, showWait, compactDrop, baseName, paint, progress, working, fileRow, pdfThumb } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { usePdfWorker, drawInto, pageStrip, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
+  import { pagesFromRanges } from "../rotate/core.js";
+  usePdfWorker("pdf/split");
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
+  let tiles: PageTile[] = [];
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("pdfs-tool"), rangeField = $("pdfs-range-field"), result = $("pdfs-result"), files = $("pdfs-files");
   const go = $("pdfs-go") as HTMLButtonElement, picked = $("pdfs-picked");
   const WAIT = "Your new files will appear here.";
+  const modeChosen = () => (document.querySelector('input[name="pdfs-mode"]:checked') as HTMLInputElement).value;
+
+  // The page pictures show which pages the split will take: all of them, or the ones typed.
+  function preview() {
+    if (!tiles.length) return;
+    let chosen: Set<number> | null = null;
+    if (modeChosen() === "ranges") {
+      try { chosen = new Set(pagesFromRanges(parseRanges(($("pdfs-range") as HTMLInputElement).value, total))); } catch { chosen = new Set(); }
+    }
+    for (const t of tiles) {
+      const on = !chosen || chosen.has(t.n);
+      t.tile.classList.toggle("pick", on);
+      t.tile.classList.toggle("dim", !on);
+    }
+    $("pdfs-preview-label").textContent = chosen ? (chosen.size ? `The ${chosen.size === 1 ? "page" : "pages"} you'll get` : "Type the pages you want") : "Every page becomes its own file";
+  }
 
   document.querySelectorAll<HTMLInputElement>('input[name="pdfs-mode"]').forEach((r) =>
-    r.addEventListener("change", () => { rangeField.hidden = r.value !== "ranges" || !r.checked; if (!rangeField.hidden) ($("pdfs-range") as HTMLInputElement).focus(); }));
+    r.addEventListener("change", () => { rangeField.hidden = r.value !== "ranges" || !r.checked; if (!rangeField.hidden) ($("pdfs-range") as HTMLInputElement).focus(); preview(); }));
+  $("pdfs-range").addEventListener("input", preview);
 
   $("pdfs-change").addEventListener("click", () => $("pdfs-file").click());
 
@@ -77,6 +102,12 @@ import Icon from "../../../src/components/Icon.astro";
       total = facts.pages;
       file = f;
       $("pdfs-meta").textContent = pdfMeta(facts, f.size);
+      drawInto($("pdfs-thumb"), f);
+      const strip = pageStrip(f, total);
+      tiles = strip.tiles;
+      $("pdfs-pages").replaceChildren(strip.el);
+      $("pdfs-preview").hidden = false;
+      preview();
       go.disabled = false;
       stepTo(root, 2);
     } catch (e) {
@@ -102,12 +133,10 @@ import Icon from "../../../src/components/Icon.astro";
       for (const p of parts) {
         const label = p.range[0] === p.range[1] ? `page ${p.range[0]}` : `pages ${p.range[0]}-${p.range[1]}`;
         const fname = `${baseName(file.name)}_${label.replace(/\s/g, "-")}.pdf`;
-        const li = document.createElement("li");
-        const n = document.createElement("span"); n.className = "fname"; n.textContent = fname;
-        const m = document.createElement("span"); m.className = "fmeta"; m.textContent = `${label} · ${fmtBytes(p.bytes.byteLength)}`;
-        const a = document.createElement("span"); a.className = "fact"; a.append(downloadLink(p.bytes, fname, "application/pdf"));
-        li.append(n, m, a); rows.push(li);
-        made.push({ name: fname, blob: new Blob([p.bytes], { type: "application/pdf" }) });
+        const blob = new Blob([p.bytes], { type: "application/pdf" });
+        const li = fileRow({ name: fname, meta: `${label} · ${fmtBytes(p.bytes.byteLength)}`, thumb: drawInto(pdfThumb(), blob), actions: [downloadLink(p.bytes, fname, "application/pdf")] });
+        rows.push(li);
+        made.push({ name: fname, blob });
       }
       const all = downloadAllButton(() => made, `${baseName(file.name)}-pages.zip`);
       showDone(result, `Done. ${parts.length} new ${parts.length === 1 ? "PDF" : "PDFs"}.`, ...(all ? [all] : []));

@@ -35,3 +35,16 @@ export function convert(value, category, from, to) {
 
 /** Round to a sensible number of significant digits for display. */
 export const pretty = (n) => (n === 0 ? "0" : Math.abs(n) >= 1e15 || Math.abs(n) < 1e-6 ? n.toExponential(6) : String(+n.toPrecision(10)));
+
+/**
+ * A result as a person would say it: four significant digits, no float noise, whole numbers kept
+ * whole. "70.87", "1800", "0.0018", "1.609". The exact value is shown beside it by the page.
+ */
+export function nice(n) {
+  if (!Number.isFinite(n)) return String(n);
+  if (n === 0) return "0";
+  if (Math.abs(n) >= 1e15 || Math.abs(n) < 1e-6) return n.toExponential(3);
+  if (Number.isInteger(n)) return String(n);
+  const r = +n.toPrecision(4);
+  return Number.isInteger(r) && Math.abs(r) >= 1000 ? String(Math.round(n)) : String(r);
+}

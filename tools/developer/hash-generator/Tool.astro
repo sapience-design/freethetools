@@ -20,6 +20,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { ALGORITHMS, hash } from "./core.js";
   import { fmtBytes } from "../../../src/lib/files";
+  import { flash } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
   const input = $("hg-in") as HTMLTextAreaElement, list = $("hg-list"), check = $("hg-check") as HTMLInputElement;
   let current: Record<string, string> = {};
@@ -39,6 +40,7 @@ import Icon from "../../../src/components/Icon.astro";
       b.onclick = async () => { try { await navigator.clipboard.writeText(h); b.textContent = "Copied"; } catch { b.textContent = "Select"; } setTimeout(() => (b.textContent = "Copy"), 1400); };
       li.append(n, m, b); return li;
     }));
+    flash(list);
     verdict();
   }
   function verdict() {

@@ -1,5 +1,8 @@
 ---
+// Time Zone Converter: pick a day and a time, see the same moment in other cities, each with a
+// 24-hour strip so a good meeting time can be found by eye.
 import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
 const CITIES = [
   ["Europe/Oslo", "Oslo"], ["Europe/London", "London"], ["America/New_York", "New York"], ["America/Los_Angeles", "Los Angeles"],
   ["Asia/Kolkata", "Mumbai"], ["Asia/Singapore", "Singapore"], ["Asia/Tokyo", "Tokyo"], ["Australia/Sydney", "Sydney"],
@@ -8,23 +11,43 @@ const CITIES = [
 ---
 <section class="tool" id="tz-tool" aria-label="Time zone converter">
   <Step n={1} title="Pick a time">
-    <div class="tz-row">
-      <label class="field"><span>Date and time</span><input type="datetime-local" id="tz-when" class="input"></label>
+    <p class="tz-lead" id="tz-lead"></p>
+    <div class="tz-pick">
+      <div class="field">
+        <label class="field-label" for="tz-date">Day</label>
+        <div class="tz-ctl">
+          <button class="icon-btn" id="tz-day-prev" type="button" aria-label="The day before"><Icon name="caret-left" /></button>
+          <input type="date" id="tz-date" required>
+          <button class="icon-btn" id="tz-day-next" type="button" aria-label="The day after"><Icon name="caret-right" /></button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label" for="tz-time">Time</label>
+        <div class="tz-ctl">
+          <button class="icon-btn" id="tz-hour-prev" type="button" aria-label="An hour earlier"><Icon name="caret-left" /></button>
+          <input type="time" id="tz-time" step="300" required>
+          <button class="icon-btn" id="tz-hour-next" type="button" aria-label="An hour later"><Icon name="caret-right" /></button>
+        </div>
+      </div>
       <label class="field"><span>In</span><select id="tz-from">{CITIES.map(([z, n]) => <option value={z}>{n}</option>)}</select></label>
+      <div class="field tz-now-f"><span class="sr-only">Shortcut</span><button class="btn quiet" id="tz-now" type="button"><Icon name="clock" />Now</button></div>
     </div>
     <p class="hint tz-note" id="tz-note" role="status"></p>
   </Step>
   <Step n={2} title="The same moment elsewhere">
-    <ul class="file-list" id="tz-list" aria-live="polite"></ul>
+    <ul class="tz-list" id="tz-list" aria-live="polite"></ul>
+    <p class="hint tz-key"><span class="tz-key-work"></span> Working hours, 08:00 to 18:00 <span class="tz-key-now"></span> The time you picked. Press an hour to pick it.</p>
     <label class="field"><span>Add a city or zone</span><select id="tz-add"><option value="">Choose…</option></select></label>
   </Step>
 </section>
 
 <script>
-  import { zonedToInstant, clockChange, inZone, workingHour } from "./core.js";
+  import { zonedToInstant, clockChange, inZone, workingHour, localParts, dayStrip } from "./core.js";
   import { iconButton } from "../../../src/lib/files";
+  import { flash, setLive } from "../../../src/lib/live";
   const $ = (id: string) => document.getElementById(id)!;
-  const when = $("tz-when") as HTMLInputElement, from = $("tz-from") as HTMLSelectElement, add = $("tz-add") as HTMLSelectElement;
+  const dateIn = $("tz-date") as HTMLInputElement, timeIn = $("tz-time") as HTMLInputElement;
+  const from = $("tz-from") as HTMLSelectElement, add = $("tz-add") as HTMLSelectElement, list = $("tz-list");
   const KEY = "ftt:tz";
   const local = Intl.DateTimeFormat().resolvedOptions().timeZone;
   let zones: string[] = [];
@@ -32,21 +55,61 @@ const CITIES = [
   if (!zones.length) zones = ["Europe/London", "America/New_York", "Asia/Tokyo", "Asia/Kolkata"];
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(zones)); } catch {} };
   const label = (z: string) => z === "UTC" ? "UTC" : z.split("/").pop()!.replace(/_/g, " ");
+  const when = () => `${dateIn.value}T${timeIn.value}`;
+  const set = (p: { date: string; time: string }) => { dateIn.value = p.date; timeIn.value = p.time; };
+  const two = (n: number) => String(n).padStart(2, "0");
 
   if (![...from.options].some((o) => o.value === local)) from.prepend(new Option(label(local), local));
   from.value = local;
-  const now = new Date(); now.setMinutes(0, 0, 0); now.setHours(now.getHours() + 1);
-  when.value = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  const next = new Date(); next.setMinutes(0, 0, 0); next.setHours(next.getHours() + 1);
+  set(localParts(next, local));
   const all = (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.("timeZone") ?? [];
   add.append(...all.map((z) => new Option(z.replace(/_/g, " "), z)));
 
+  // One row per city, kept between renders so a changed time can be seen to change.
+  type Row = { li: HTMLLIElement; time: HTMLElement; meta: HTMLElement; shift: HTMLElement; off: HTMLElement; strip: HTMLElement; days: HTMLElement };
+  const rows = new Map<string, Row>();
+  function row(z: string, ref: boolean): Row {
+    const li = document.createElement("li");
+    li.className = "tz-city" + (ref ? " tz-ref" : "");
+    li.dataset.zone = z;
+    const top = document.createElement("div"); top.className = "tz-top";
+    const time = document.createElement("span"); time.className = "tz-time";
+    const info = document.createElement("span"); info.className = "tz-info";
+    const name = document.createElement("span"); name.className = "tz-name"; name.textContent = ref ? `${label(z)} · the time you picked` : label(z);
+    const meta = document.createElement("span"); meta.className = "tz-meta";
+    const shift = document.createElement("span"); shift.className = "badge tz-shift"; shift.hidden = true;
+    const off = document.createElement("span"); off.className = "badge tz-offb"; off.textContent = "Outside working hours"; off.hidden = true;
+    const badges = document.createElement("span"); badges.className = "tz-badges"; badges.append(shift, off);
+    info.append(name, meta, badges);
+    const act = document.createElement("span"); act.className = "fact";
+    if (!ref) act.append(iconButton("remove", `Remove ${label(z)}`, () => { zones = zones.filter((x) => x !== z); save(); render(); }));
+    top.append(time, info, act);
+    const strip = document.createElement("div"); strip.className = "tz-strip"; strip.setAttribute("aria-hidden", "true");
+    // The date labels sit in their own row under the cells, so they take the row's colours, not a cell's.
+    const days = document.createElement("div"); days.className = "tz-days"; days.setAttribute("aria-hidden", "true");
+    for (let i = 0; i < 24; i++) {
+      const b = document.createElement("button"); b.type = "button"; b.className = "tz-h"; b.tabIndex = -1;
+      b.append(document.createElement("i"));
+      b.addEventListener("click", () => {
+        const [date, time] = b.dataset.pick!.split("T");
+        set({ date, time: `${time.slice(0, 2)}:${timeIn.value.slice(3, 5) || "00"}` });
+        render();
+      });
+      strip.append(b);
+      days.append(document.createElement("span"));
+    }
+    li.append(top, strip, days);
+    return { li, time, meta, shift, off, strip, days };
+  }
+
   function render() {
     let t: Date;
-    try { t = zonedToInstant(when.value, from.value); } catch { $("tz-list").replaceChildren(); return; }
-    const note = $("tz-note"), change = clockChange(when.value, from.value);
+    try { t = zonedToInstant(when(), from.value); } catch { list.replaceChildren(); rows.clear(); $("tz-lead").textContent = "Pick a day and a time."; return; }
+    const note = $("tz-note"), change = clockChange(when(), from.value);
     if (!change) note.textContent = "";
     if (change) {
-      const [d, hm] = when.value.split("T");
+      const [d, hm] = when().split("T");
       const day = new Date(d + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "UTC" });
       const shown = inZone(t, from.value).time;
       const hh = (x: string) => String(+x.slice(0, 2)) + x.slice(2);
@@ -54,20 +117,61 @@ const CITIES = [
         ? `${hh(hm)} does not exist on ${day} in ${label(from.value)}, because the clocks go forward. Showing ${hh(shown)}.`
         : `${hh(hm)} happens twice on ${day} in ${label(from.value)}, because the clocks go back. Showing the first time.`;
     }
-    $("tz-list").replaceChildren(...zones.filter((z) => z !== from.value).map((z, i) => {
-      const r = inZone(t, z, from.value);
-      const li = document.createElement("li");
-      const n = document.createElement("span"); n.className = "fname";
-      n.textContent = `${r.time}  ${label(z)}`;
-      const m = document.createElement("span"); m.className = "fmeta";
-      m.textContent = `${r.date}${r.dayShift ? (r.dayShift > 0 ? " · next day" : " · previous day") : ""} · ${r.offset}${workingHour(r.hour) ? "" : " · outside working hours"}`;
-      if (!workingHour(r.hour)) li.classList.add("tz-off");
-      const act = document.createElement("span"); act.className = "fact";
-      const b = iconButton("remove", `Remove ${label(z)}`, () => { zones = zones.filter((x) => x !== z); save(); render(); });
-      act.append(b); li.append(n, m, act); return li;
-    }));
+    const fmt = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-GB", { timeZone: from.value, ...o }).format(t);
+    setLive($("tz-lead"), `${fmt({ weekday: "long" })} ${fmt({ day: "numeric", month: "long", year: "numeric" })}, ${inZone(t, from.value).time} in ${label(from.value)}`);
+
+    const order = [from.value, ...zones.filter((z) => z !== from.value)];
+    // Rebuild the rows only when the cities change; otherwise update them in place.
+    const same = order.length === list.children.length && order.every((z, i) => (list.children[i] as HTMLElement).dataset.zone === z);
+    if (!same) {
+      rows.clear();
+      list.replaceChildren(...order.map((z, i) => { const r = row(z, i === 0); rows.set(z, r); return r.li; }));
+    }
+    for (const z of order) {
+      const r = rows.get(z)!;
+      const v = inZone(t, z, from.value);
+      const changed = setLive(r.time, v.time);
+      r.meta.textContent = `${v.date} · ${v.offset}`;
+      r.shift.hidden = !v.dayShift;
+      r.shift.textContent = v.dayShift > 0 ? "Next day" : "Previous day";
+      const off = !workingHour(v.hour);
+      r.off.hidden = !off;
+      r.li.classList.toggle("tz-off", off);
+      if (changed) flash(r.li);
+      const cells = dayStrip(t, from.value, z);
+      // Two date labels within a few cells of each other would overlap: the later one wins.
+      if (cells.slice(1, 5).some((c) => c.dayStart)) cells[0].dayStart = null;
+      cells.forEach((c, i) => {
+        const b = r.strip.children[i] as HTMLButtonElement;
+        b.classList.toggle("work", c.working);
+        b.classList.toggle("now", c.now);
+        b.classList.toggle("day", !!c.dayStart && i > 0);
+        b.dataset.pick = c.pick;
+        (b.firstChild as HTMLElement).textContent = String(c.hour);
+        (r.days.children[i] as HTMLElement).textContent = c.dayStart ?? "";
+        b.title = `${two(c.hour)}:00 in ${label(z)}`;
+      });
+    }
   }
-  [when, from].forEach((el) => el.addEventListener("input", render));
+
+  // Move the picked time by whole hours or days, in the chosen city's own calendar.
+  const shift = (hours: number, days = 0) => {
+    let t: Date;
+    try { t = zonedToInstant(when(), from.value); } catch { return; }
+    const p = localParts(t, from.value);
+    const total = p.hour + hours;
+    const h = ((total % 24) + 24) % 24;
+    const d = new Date(`${p.date}T12:00:00Z`);
+    d.setUTCDate(d.getUTCDate() + days + Math.floor(total / 24));
+    set({ date: d.toISOString().slice(0, 10), time: `${two(h)}:${two(p.minute)}` });
+    render();
+  };
+  $("tz-day-prev").addEventListener("click", () => shift(0, -1));
+  $("tz-day-next").addEventListener("click", () => shift(0, 1));
+  $("tz-hour-prev").addEventListener("click", () => shift(-1));
+  $("tz-hour-next").addEventListener("click", () => shift(1));
+  $("tz-now").addEventListener("click", () => { set(localParts(new Date(), from.value)); render(); });
+  [dateIn, timeIn, from].forEach((el) => el.addEventListener("input", render));
   add.addEventListener("change", () => { if (add.value && !zones.includes(add.value)) { zones.push(add.value); save(); } add.value = ""; render(); });
   render();
 </script>
@@ -75,7 +179,52 @@ const CITIES = [
 <style>
   /* The clock-change note stays in the page so screen readers announce it; when empty it takes no space. */
   .tz-note:empty { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
-  .tz-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
-  #tz-list :global(.fname) { font-family: var(--display); font-weight: 700; font-size: 20px; line-height: 1.3; white-space: pre; font-variant-numeric: tabular-nums; }
-  #tz-list :global(.tz-off .fname) { color: var(--muted); }
+  .tz-lead { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -0.01em; border-radius: var(--r-sm); }
+  .tz-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; align-items: end; }
+  @media (min-width: 760px) {
+    .tz-pick { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1.15fr) minmax(0, 1fr) auto; }
+    .tz-now-f :global(.btn) { width: auto; padding: 0 18px; }
+  }
+  .tz-ctl { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px; align-items: stretch; }
+  .tz-ctl :global(.icon-btn) { height: 52px; min-width: 44px; border-color: var(--edge); font-size: 18px; }
+  .tz-ctl input { min-width: 0; }
+  .tz-now-f :global(.btn) { min-height: 52px; width: 100%; border-color: var(--edge); }
+
+  .tz-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .tz-list :global(.tz-city) { display: grid; gap: 8px; padding: 10px 10px 10px 14px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); }
+  .tz-list :global(.tz-city.tz-ref) { border-color: var(--edge); background: var(--pick); }
+  .tz-list :global(.tz-top) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 2px 14px; align-items: center; min-height: 44px; }
+  .tz-list :global(.tz-time) { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; border-radius: var(--r-sm); padding: 0 4px; margin-left: -4px; }
+  .tz-list :global(.tz-off .tz-time) { color: var(--muted); }
+  .tz-list :global(.tz-info) { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; min-width: 0; }
+  .tz-list :global(.tz-name) { font-weight: 650; }
+  .tz-list :global(.tz-meta) { font-size: 14px; color: var(--muted); }
+  .tz-list :global(.tz-badges) { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+  .tz-list :global(.tz-shift) { background: var(--hl); color: var(--hl-ink); border: 1px solid var(--edge); }
+  /* On the card, not the well: inside the highlighted row the well stays dark in dark mode. */
+  .tz-list :global(.tz-offb) { background: var(--card); color: var(--soft); border: 1px solid var(--hair); }
+
+  /* 24 hours of the chosen day, lined up across cities; working hours tinted, the chosen hour marked. */
+  .tz-list :global(.tz-strip) { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; }
+  .tz-list :global(.tz-h) { position: relative; display: grid; align-content: center; justify-items: center; min-width: 0; height: 34px; padding: 0; border: 0; border-radius: 5px; background: var(--well); color: var(--muted); font: 600 12px/1 var(--sans); font-variant-numeric: tabular-nums; cursor: pointer; }
+  .tz-list :global(.tz-h i) { font-style: normal; white-space: nowrap; }
+  .tz-list :global(.tz-days) { display: grid; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: 2px; height: 12px; margin-top: -4px; }
+  .tz-list :global(.tz-days span) { font-size: 11px; line-height: 1; color: var(--soft); white-space: nowrap; overflow: visible; }
+  /* A label near the right edge runs leftwards, so it never spills out of the row. */
+  .tz-list :global(.tz-days span:nth-last-child(-n + 4)) { direction: rtl; text-align: right; }
+  .tz-list :global(.tz-ref .tz-h) { background: var(--card); }
+  .tz-list :global(.tz-h.work) { background: var(--ok-t); color: var(--ok); }
+  .tz-list :global(.tz-h.day) { border-left: 2px solid var(--edge); border-radius: 0 5px 5px 0; }
+  .tz-list :global(.tz-h.now) { background: var(--accent); box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--edge); z-index: 1; }
+  /* On the number itself: the dark-mode island rule re-inks the cell, and this must win over it. */
+  .tz-list :global(.tz-h.now i) { color: var(--on-accent); }
+  .tz-list :global(.tz-h:hover) { outline: 2px solid var(--edge); outline-offset: -2px; }
+  .tz-key { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+  .tz-key-work, .tz-key-now { display: inline-block; width: 16px; height: 12px; border-radius: 3px; background: var(--ok-t); border: 1px solid var(--ok); }
+  .tz-key-now { background: var(--accent); border-color: var(--edge); margin-left: 8px; }
+  @media (max-width: 640px) {
+    .tz-list :global(.tz-h) { height: 30px; font-size: 10px; overflow: visible; }
+    .tz-list :global(.tz-h:not(:nth-child(6n + 1)):not(.now) i) { display: none; }
+    .tz-list :global(.tz-days) { display: none; }
+  }
 </style>

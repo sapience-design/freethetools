@@ -35,6 +35,10 @@ import Icon from "../../../src/components/Icon.astro";
       <input type="text" id="pdfr-range" placeholder="2, 5-7" autocomplete="off">
       <small>Use a dash for a range and commas between pages, like 2, 5-7.</small>
     </label>
+    <div class="field" id="pdfr-preview" hidden>
+      <span class="field-label">How the pages will look</span>
+      <div id="pdfr-pages"></div>
+    </div>
     <button class="btn run" id="pdfr-go" type="button" disabled><Icon name="arrow-clockwise" /><span>Turn pages</span></button>
   </Step>
 
@@ -49,15 +53,36 @@ import Icon from "../../../src/components/Icon.astro";
   import { pageCount } from "../merge/core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { usePdfWorker, drawInto, pageStrip, outputRow, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
+  usePdfWorker("pdf/rotate");
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
+  let tiles: PageTile[] = [];
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("pdfr-tool"), result = $("pdfr-result"), go = $("pdfr-go") as HTMLButtonElement;
   const WAIT = "Your fixed PDF will appear here.";
+  const turnChosen = () => +(document.querySelector('input[name="pdfr-turn"]:checked') as HTMLInputElement).value as 90 | 180 | 270;
+
+  // The page pictures turn as the choice changes, and pages left out go faint.
+  function preview() {
+    if (!tiles.length) return;
+    const some = ($("pdfr-some") as HTMLInputElement).checked;
+    let chosen: Set<number> | null = null;
+    if (some) {
+      try { chosen = new Set(pagesFromRanges(parseRanges(($("pdfr-range") as HTMLInputElement).value, total))); } catch { chosen = new Set(); }
+    }
+    const turn = turnChosen();
+    for (const t of tiles) {
+      const on = !chosen || chosen.has(t.n);
+      t.tile.classList.toggle("dim", !on);
+      for (const k of [90, 180, 270]) t.tile.classList.toggle(`t${k}`, on && turn === k);
+    }
+  }
 
   document.querySelectorAll<HTMLInputElement>('input[name="pdfr-which"]').forEach((r) =>
-    r.addEventListener("change", () => { $("pdfr-range-field").hidden = !($("pdfr-some") as HTMLInputElement).checked; }));
+    r.addEventListener("change", () => { $("pdfr-range-field").hidden = !($("pdfr-some") as HTMLInputElement).checked; preview(); }));
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", preview);
 
   $("pdfr-change").addEventListener("click", () => $("pdfr-file").click());
 
@@ -72,6 +97,12 @@ import Icon from "../../../src/components/Icon.astro";
       $("pdfr-name").textContent = f.name;
       $("pdfr-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
       $("pdfr-picked").hidden = false;
+      drawInto($("pdfr-thumb"), f);
+      const strip = pageStrip(f, total);
+      tiles = strip.tiles;
+      $("pdfr-pages").replaceChildren(strip.el);
+      $("pdfr-preview").hidden = false;
+      preview();
       compactDrop("pdfr", true);
       go.disabled = false;
       stepTo(root, 2);
@@ -80,7 +111,7 @@ import Icon from "../../../src/components/Icon.astro";
 
   go.addEventListener("click", async () => {
     if (!bytes || !file) return;
-    const turn = +(document.querySelector('input[name="pdfr-turn"]:checked') as HTMLInputElement).value as 90 | 180 | 270;
+    const turn = turnChosen();
     go.disabled = true;
     stepTo(root, 3);
     await showBusy(result);
@@ -93,7 +124,7 @@ import Icon from "../../../src/components/Icon.astro";
       const dl = downloadLink(out, fname, "application/pdf", "Download PDF");
       dl.classList.add("run");
       showDone(result, `Done. ${n} ${n === 1 ? "page" : "pages"} turned.`, `${fname} · ${fmtBytes(out.byteLength)}`);
-      result.append(dl);
+      result.append(outputRow(out, dl));
       stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
     go.disabled = false;
