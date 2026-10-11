@@ -1,0 +1,78 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+---
+<Base
+  title="Terms of use | Free the Tools"
+  description="The terms that come with Free the Tools: free tools provided as is with no warranty or liability, voluntary tips, copyright and the name."
+  jsonLd={{ "@type": "WebPage", name: "Terms of use", url: "https://freethetools.com/terms/" }}
+>
+  <div class="page narrow terms">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Terms of use</h1>
+      <p class="lede">Free the Tools is free to use. These are the terms that come with it.</p>
+    </div>
+
+    <section aria-labelledby="who-h">
+      <h2 class="h2" id="who-h">Who runs it</h2>
+      <p>Sapience AS, a company in Norway, maintains Free the Tools. Write to <a href="mailto:hello@freethetools.com">hello@freethetools.com</a> with any question.</p>
+    </section>
+
+    <section aria-labelledby="use-h">
+      <h2 class="h2" id="use-h">Using the tools</h2>
+      <ul>
+        <li>Every tool is free, with no account and no limits. We never sell the tools, a paid version of them or your data.</li>
+        <li>The tools run on your own device. Your files stay with you, and so does the responsibility for them and for what you do with the results.</li>
+        <li>Do not use the site to break the law or to harm other people.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="warranty-h">
+      <h2 class="h2" id="warranty-h">No warranty and no liability</h2>
+      <ul>
+        <li>The tools and the site are provided as they are, with no warranty of any kind. We do not promise that they are free of errors, that their results are correct or complete, or that the site is always available.</li>
+        <li>As far as the law allows, Sapience AS is not liable for any loss that comes from using the tools or the site. This includes wrong or incomplete results, lost or damaged files, lost data, lost income and any indirect loss.</li>
+        <li>Keep a copy of your original files, and check important results before you rely on them.</li>
+        <li>The AGPL-3.0 licence of the code says the same: no warranty and no liability.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="gifts-h">
+      <h2 class="h2" id="gifts-h">Tips and sponsorship</h2>
+      <ul>
+        <li>A tip is a voluntary gift. It buys no feature, priority, support or service, and every tool stays free either way.</li>
+        <li>Ko-fi, GitHub Sponsors and Stripe handle the payments under their own terms. A card tip through Ko-fi shows as FREETHETOOLS.COM on your statement.</li>
+        <li>You can stop a monthly tip at any time where you started it.</li>
+        <li>If you sent a tip by mistake, write to <a href="mailto:hello@freethetools.com">hello@freethetools.com</a> within 30 days and we refund it.</li>
+        <li>A company that sponsors a tool gets an invoice with VAT from Sapience AS, and the tool page credits it by name. See <a href="/support/">Donate or sponsor a tool</a>.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="code-h">
+      <h2 class="h2" id="code-h">Copyright, licence and the name</h2>
+      <ul>
+        <li>The code is copyright Sapience Design and its contributors. It is published under the <a href={`${REPO}/blob/main/LICENSE`}>AGPL-3.0 licence</a>.</li>
+        <li>That licence lets anyone use, change and share the code, also in their own products, as long as they publish their changes under the same licence.</li>
+        <li>The Free the Tools and Sapience names and logos are trademarks and are not covered by that licence. Nobody may use them, or present a copy of the site as ours, without our permission. See the <a href={`${REPO}/blob/main/TRADEMARKS.md`}>trademark policy</a>.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="law-h">
+      <h2 class="h2" id="law-h">Changes and law</h2>
+      <p>If these terms change, this page shows the new date. Norwegian law applies.</p>
+      <p class="updated">Last updated 11 October 2026.</p>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .terms { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 12px; }
+  section { display: grid; gap: 10px; padding-top: 8px; }
+  section p, section ul { color: var(--soft); margin: 0; }
+  section ul { padding-left: 22px; display: grid; gap: 4px; }
+  section a { color: var(--ink); }
+  .updated { color: var(--soft); margin: 0; }
+</style>
