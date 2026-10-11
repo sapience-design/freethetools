@@ -75,19 +75,25 @@ export function startAgentPage(work, toolId) {
   let current = null;
   let lastInputs = [];
   const seenHref = new WeakMap();
+  /** When each download link was first drawn, whether or not it had its file yet. */
+  const drawnAt = new WeakMap();
   const consider = (a) => {
     if (!(a instanceof HTMLAnchorElement) || !a.hasAttribute("download")) return;
+    if (!drawnAt.has(a)) drawnAt.set(a, performance.now());
     const href = a.getAttribute("href") || "";
     if (!href.startsWith("blob:") || seenHref.get(a) === href) return;
     const blob = blobsByUrl.get(href);
     if (!blob) return;
     seenHref.set(a, href);
-    const now = performance.now();
-    if (!current || current.recorded || now - current.t > 300) {
+    // Links are grouped by when they were drawn, not by when their file arrived: "Download all
+    // (ZIP)" is drawn with the file links but builds its ZIP only when pressed, seconds later, and
+    // it still belongs to the same job. A slow machine drawing thumbnails must not split a job either.
+    const drawn = drawnAt.get(a);
+    if (!current || current.recorded || drawn - current.t > 300) {
       if (fresh.length) { lastInputs = fresh; fresh = []; }
-      current = { t: now, links: new Map(), settings: snapshotSettings(controlsOf()), inputs: lastInputs, recorded: false };
+      current = { t: drawn, links: new Map(), settings: snapshotSettings(controlsOf()), inputs: lastInputs, recorded: false };
     }
-    current.t = now;
+    current.t = Math.max(current.t, drawn);
     current.settings = snapshotSettings(controlsOf()); // the settings of the latest draw
     current.links.set(a, { name: a.getAttribute("download") || "download", blob });
     jobOf.set(a, current);
