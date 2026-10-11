@@ -298,3 +298,17 @@ test("parseLog cleans every line, so one bad record can't break the library page
   assert.deepEqual(a.outputs, [{ name: "x.pdf", size: 0, type: "" }, { name: "y.pdf", size: 0, type: "", path: "files/a/y.pdf" }]);
   assert.deepEqual(c.outputs.map((o) => o.path), [undefined, undefined]);
 });
+
+test("PDF tools tell an agent to run unlock_pdf first when a PDF is locked", async () => {
+  const locked = pdf("locked.pdf", withPassword);
+  for (const [name, args] of [
+    ["merge_pdfs", { files: [pdf(), locked] }],
+    ["split_pdf", { file: locked }],
+    ["rotate_pdf", { file: locked, degrees: 90 }],
+    ["list_pdf_form_fields", { file: locked }],
+    ["fill_pdf_form", { file: locked, values: {} }],
+  ]) {
+    assert.ok(byName[name], `${name} exists`);
+    await assert.rejects(call(name, args), /run unlock_pdf on it first/i, name);
+  }
+});

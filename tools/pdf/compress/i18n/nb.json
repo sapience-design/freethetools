@@ -33,7 +33,7 @@
     },
     {
       "q": "Kan den åpne passordbeskyttede PDF-er?",
-      "a": "Ikke ennå. Fjern passordet i PDF-leseren din først."
+      "a": "Ja. Verktøyet ber om passordet og låser opp filen på enheten din. Passordet lagres ikke og sendes ikke noe sted."
     },
     {
       "q": "Kan jeg kjøre den fra et skript eller en KI-assistent?",

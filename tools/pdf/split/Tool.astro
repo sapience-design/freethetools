@@ -47,6 +47,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { usePdfWorker, pdfPreview, pageStrip, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   import { pagesFromRanges } from "../rotate/core.js";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
   usePdfWorker("pdf/split");
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
@@ -79,8 +80,12 @@ import Icon from "../../../src/components/Icon.astro";
   $("pdfs-change").addEventListener("click", () => $("pdfs-file").click());
 
   wireDrop("pdfs", async (picks) => {
-    const f = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
-    if (!f) return;
+    const picked0 = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!picked0) return;
+    await withUnlocked(picked0, $("pdfs-drop"), use);
+  });
+
+  async function use(f: File) {
     showWait(result, WAIT);
     files.replaceChildren();
     // Show the file straight away, with a spinner, and let the page draw it before reading:
@@ -97,7 +102,7 @@ import Icon from "../../../src/components/Icon.astro";
       // One read gives the page count and the details line.
       const facts = await pdfFacts(f);
       if (!facts) throw new Error("This file isn't a readable PDF.");
-      if (facts.locked) throw new Error("This PDF is password-protected. Take the lock off first, for example with Unlock PDF.");
+      if (facts.locked) throw new Error("This PDF is password-protected. Open Unlock PDF to take the lock off first.");
       bytes = await f.arrayBuffer();
       total = facts.pages;
       file = f;
@@ -114,7 +119,7 @@ import Icon from "../../../src/components/Icon.astro";
       $("pdfs-meta").textContent = fmtBytes(f.size);
       showError(result, (e as Error).message);
     }
-  });
+  }
 
   go.addEventListener("click", async () => {
     if (!bytes || !file) return;

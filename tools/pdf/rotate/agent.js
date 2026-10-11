@@ -1,4 +1,4 @@
-import { baseName, defineTools, expectType, file } from "../../../src/agent/contract.js";
+import { baseName, defineTools, expectType, file, withUnlockHint } from "../../../src/agent/contract.js";
 import { pageCount } from "../merge/core.js";
 import { parseRanges } from "../split/core.js";
 import { pagesFromRanges, rotatePdf } from "./core.js";
@@ -19,7 +19,7 @@ export default defineTools({
     required: ["file", "degrees"],
     additionalProperties: false,
   },
-  run: async ({ file: f, degrees, pages }) => {
+  run: withUnlockHint(async ({ file: f, degrees, pages }) => {
     expectType(f, ["application/pdf"], "a PDF");
     const total = await pageCount(f.bytes);
     const chosen = pages ? pagesFromRanges(parseRanges(pages, total)) : null;
@@ -29,5 +29,5 @@ export default defineTools({
       data: { pages: chosen ?? "all", total },
       files: [{ name: `${baseName(f.name)}_rotated.pdf`, type: "application/pdf", bytes: out }],
     };
-  },
+  }),
 });

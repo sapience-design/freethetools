@@ -1,7 +1,8 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "./Icon.astro";
-import { loadCatalogue, groupIn, toolIn, toolUrl, REPO } from "../data/catalogue";
+import ToolRow from "./ToolRow.astro";
+import { loadCatalogue, groupIn, toolIn, toolUrl, relatedFor, REPO } from "../data/catalogue";
 import { t as ui, slots, localePath } from "../i18n/index";
 
 // A tool page, in English at /<group>/<tool>/ and in every language that has a text file for it at
@@ -13,6 +14,7 @@ const { tools } = await loadCatalogue();
 const tool = tools.find((t) => t.id === `${category}/${slug}`)!;
 const d = { ...tool.data, ...toolIn(tool, lang) };
 const groupText = groupIn(tool.category, lang);
+const related = relatedFor(tools, tool);
 const agentText = slots(T("agentText")).map((x) => (typeof x === "string" ? x : { href: "/library/", text: T("agentLibrary") }));
 const uis = import.meta.glob<{ default: any }>("../../tools/*/*/Tool.astro", { eager: true });
 const UI = uis[`../../tools/${tool.id}/Tool.astro`]?.default;
@@ -92,6 +94,12 @@ const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("s
         </section>
       )}
       {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
+      <nav class="related" aria-labelledby="related-h">
+        <h2 class="h3" id="related-h">{T("related")}</h2>
+        <ul class="rows card">
+          {related.map((x) => <ToolRow lang={lang} href={toolUrl(x, lang)} task={toolIn(x, lang).task} sub={toolIn(x, lang).name} group={x.category.slug} icon={x.icon} />)}
+        </ul>
+      </nav>
     </div>
 
     <aside class="tp-side" aria-label={T("sideLabel")}>
@@ -199,6 +207,7 @@ const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("s
   .facts { display: grid; gap: 8px; padding: 16px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
   .facts .specs { font-size: 14px; }
   .facts .specs tr:last-child th, .facts .specs tr:last-child td { border-bottom: 0; }
+  .related { display: grid; gap: 10px; }
   .report { font-size: 14px; }
   .report a { color: var(--soft); }
   @media (max-width: 960px) {
