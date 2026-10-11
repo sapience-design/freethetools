@@ -25,7 +25,7 @@ npm run build
 
 ## Serve it
 
-**Any static host** (Netlify, GitHub Pages, Vercel, an S3 bucket, a shared web host): upload `dist/`. Hosts that read a `_headers` file (Cloudflare, Netlify) apply the security headers for you.
+**Any static host** (Netlify, GitHub Pages, Vercel, an S3 bucket, a shared web host): upload `dist/`. Hosts that read a `_headers` file (Cloudflare, Netlify) apply the security headers for you. One of them, `Strict-Transport-Security`, makes browsers use HTTPS for your address for a year: delete that line from `dist/_headers` if your copy is not always served over HTTPS.
 
 **Cloudflare Workers, with the stats Worker:** follow [How to deploy](deploy.md). You need your own `wrangler.jsonc` values: remove the `routes` and `d1_databases` entries, or point them at your own domain and database, and run the files in `migrations/` against that database.
 
@@ -35,6 +35,7 @@ npm run build
 add_header X-Content-Type-Options nosniff;
 add_header X-Frame-Options DENY;
 add_header Referrer-Policy strict-origin-when-cross-origin;
+add_header Strict-Transport-Security "max-age=31536000";  # only if served over HTTPS
 location /_astro/ { add_header Cache-Control "public, max-age=31536000, immutable"; }
 ```
 

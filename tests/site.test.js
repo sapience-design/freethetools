@@ -71,6 +71,13 @@ for (const t of tools) {
   });
 }
 
+// One year, this host only. includeSubDomains and preload are hard to undo, so they stay off.
+test("every page tells browsers to use HTTPS (HSTS)", () => {
+  const block = html("_headers").split(/\n(?=\S)/).find((b) => b.startsWith("/*"));
+  assert.match(block, /^\s+Strict-Transport-Security: max-age=31536000$/m);
+  assert.doesNotMatch(block, /includeSubDomains|preload/);
+});
+
 test("robots.txt points at the sitemap", () => {
   assert.match(html("robots.txt"), /Sitemap: https:\/\/freethetools\.com\/sitemap\.xml/);
 });
