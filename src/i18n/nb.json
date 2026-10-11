@@ -365,16 +365,6 @@
         "options": ["Setning med vanlige ord", "Neste kjøretider"]
       }
     },
-    "everyday/colour-converter": {
-      "name": "Fargekonverterer",
-      "task": "Konverter en farge mellom formater",
-      "blurb": "HEX, RGB, HSL og navn, fram og tilbake.",
-      "concept": {
-        "in": "En farge som HEX, RGB, HSL eller et navn.",
-        "out": "Samme farge i alle formater, med en fargeprøve og kontrastforhold mot svart og hvitt.",
-        "options": ["HEX, RGB, HSL og fargenavn", "Fargeprøve", "Kontrast mot svart og hvitt"]
-      }
-    },
     "developer/iban-phone-check": {
       "name": "IBAN- og telefonnummersjekk",
       "task": "Kontroller et IBAN-nummer eller telefonnummer",
