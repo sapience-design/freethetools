@@ -35,6 +35,7 @@ const description = DONATIONS
         {GIVE.map((g, i) => <a class={i === 0 ? "btn" : "btn line"} href={g.href} rel="noopener">{g.icon && <Icon name={g.icon} />}{g.label}</a>)}
       </div>
       <p class="muted">{GIVE.length > 1 ? "Both are plain links" : "It is a plain link"} to {GIVE.length > 1 ? "those sites" : "that site"}. This page loads nothing from {GIVE.length > 1 ? "them" : "it"} and sends {GIVE.length > 1 ? "them" : "it"} nothing about you.</p>
+      <p class="muted">A card gift through Ko-fi shows as FREETHETOOLS.COM on your statement. You can give once or every month, and stop a monthly gift on Ko-fi at any time. See the <a href="/terms/">terms</a>.</p>
     </section>)}
 
     <section aria-labelledby="build-h">
