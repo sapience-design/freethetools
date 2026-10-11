@@ -1,0 +1,36 @@
+{
+  "name": "Unir PDF",
+  "task": "Combinar PDF en uno solo",
+  "tagline": "Junta varios PDF en un solo archivo, en el orden que elijas.",
+  "seoTitle": "Unir archivos PDF sin subirlos",
+  "description": "Combina archivos PDF en uno, gratis y directamente en tu navegador. Ponlos en el orden que quieras. No se sube nada, sin registro y sin marca de agua.",
+  "keywords": [
+    "unir pdf",
+    "combinar pdf",
+    "juntar pdf",
+    "fusionar pdf",
+    "unir archivos pdf",
+    "pdf",
+    "un solo archivo",
+    "concatenar"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Límites": "Tantos archivos como permita la memoria de tu dispositivo",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. Los PDF se leen y se combinan dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Conserva los enlaces y los marcadores?",
+      "a": "Se conservan el contenido de las páginas, los enlaces de la página y los campos de formulario. El archivo combinado todavía no incluye el índice de marcadores de cada archivo."
+    },
+    {
+      "q": "¿Puedo unir PDF protegidos con contraseña?",
+      "a": "Todavía no. Quita antes la contraseña en tu lector de PDF y luego únelos."
+    }
+  ]
+}

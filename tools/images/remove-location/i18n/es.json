@@ -1,0 +1,38 @@
+{
+  "name": "Quitar la ubicación de las fotos",
+  "task": "Quitar la ubicación de las fotos",
+  "tagline": "Elimina dónde y cuándo se hizo una foto antes de compartirla.",
+  "seoTitle": "Quitar la ubicación GPS y los datos EXIF de las fotos",
+  "description": "Elimina la ubicación GPS y los datos de cámara y fecha de fotos JPG, PNG y WebP, sin perder calidad. Gratis, y las fotos no salen de tu dispositivo.",
+  "keywords": [
+    "quitar exif",
+    "eliminar exif",
+    "gps",
+    "ubicación",
+    "metadatos",
+    "privacidad",
+    "borrar datos de foto",
+    "foto",
+    "geoetiqueta"
+  ],
+  "specs": {
+    "Motor": "JavaScript puro, sin volver a codificar",
+    "Elimina": "EXIF (GPS, cámara, fechas), XMP, IPTC y comentarios",
+    "Calidad": "Sin pérdida: los datos de la imagen se copian byte a byte",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Por qué quitar la ubicación de las fotos?",
+      "a": "Los teléfonos registran dónde se hizo cada foto. Cualquiera a quien envíes el archivo original puede verlo, y eso puede revelar tu casa, tu colegio o tus rutinas."
+    },
+    {
+      "q": "¿Se suben mis fotos para hacerlo?",
+      "a": "No. Funciona dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio. Para eso es una herramienta de privacidad."
+    },
+    {
+      "q": "¿Perderá calidad la foto?",
+      "a": "No. Solo se eliminan las secciones de metadatos; la imagen se copia tal cual. Puede perderse la rotación de la cámara, así que revisa las fotos que salgan de lado."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "name": "Comprimir PDF",
+  "task": "Reducir el tamaño de un PDF",
+  "tagline": "Reduce un PDF para que quepa en un correo o en un límite de subida.",
+  "seoTitle": "Comprimir PDF sin subirlo",
+  "description": "Reduce el tamaño de un PDF gratis, directamente en tu navegador. Los archivos no se suben. Elige la calidad o conserva solo la primera página. Sin registro.",
+  "keywords": [
+    "comprimir pdf",
+    "reducir pdf",
+    "reducir tamaño de pdf",
+    "achicar pdf",
+    "pdf más pequeño",
+    "peso del archivo",
+    "optimizar pdf",
+    "primera página",
+    "ghostscript"
+  ],
+  "specs": {
+    "Motor": "Ghostscript 9.56, compilado a WebAssembly",
+    "Primera carga": "16 MB, y luego queda en la caché de tu navegador",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos a algún sitio?",
+      "a": "No. El compresor es Ghostscript compilado a WebAssembly, servido desde este sitio y ejecutado dentro de la pestaña de tu navegador. La política de seguridad de la página impide que envíe datos a ningún sitio. Después de abrir esta herramienta una vez en este dispositivo, sigue funcionando sin conexión."
+    },
+    {
+      "q": "¿Qué calidad debo elegir?",
+      "a": "Equilibrada sirve para el correo y para compartir. Más pequeña sirve para leer en pantalla. Impresión mantiene las imágenes lo bastante nítidas para el papel. Preimpresión conserva los perfiles de color para la impresión profesional."
+    },
+    {
+      "q": "¿Por qué mi archivo ha crecido?",
+      "a": "Los PDF hechos sobre todo de texto y dibujos vectoriales ya suelen ser compactos. Ghostscript reescribe todo el archivo, así que el resultado puede salir algo más grande. En ese caso, quédate con el original."
+    },
+    {
+      "q": "¿Puede abrir PDF protegidos con contraseña?",
+      "a": "Todavía no. Quita antes la contraseña en tu lector de PDF."
+    },
+    {
+      "q": "¿Puedo usarlo desde un script o un asistente de IA?",
+      "a": "Sí. El paquete npm freethetools ejecuta el mismo compresor en tu ordenador, para scripts y asistentes de IA: npx -y freethetools run compress_pdf '{\"file\":\"report.pdf\"}'. No se sube nada."
+    }
+  ]
+}

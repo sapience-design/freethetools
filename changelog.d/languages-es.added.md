@@ -1,0 +1,1 @@
+- Spanish (Español): the home page, groups, tool pages and the "not built yet" pages are now in Spanish at /es/. The tools themselves are still in English, and the Spanish text is a machine draft that has not been checked yet.

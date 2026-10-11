@@ -1,0 +1,46 @@
+{
+  "name": "Desbloquear PDF",
+  "task": "Quitar el bloqueo de un PDF",
+  "tagline": "Quita la contraseña de un PDF, o sus límites de impresión y copia, en un archivo que sea tuyo.",
+  "seoTitle": "Desbloquear PDF sin subirlo",
+  "description": "Quita la contraseña de un PDF, o sus límites de impresión y copia, gratis en tu navegador. Los archivos no se suben. Las páginas y los formularios quedan igual.",
+  "keywords": [
+    "desbloquear pdf",
+    "quitar contraseña pdf",
+    "descifrar",
+    "desproteger pdf",
+    "restricciones",
+    "protección contra copia",
+    "protección de impresión",
+    "cifrado",
+    "qpdf"
+  ],
+  "specs": {
+    "Motor": "qpdf 11, compilado a WebAssembly",
+    "Sin pérdida": "Solo se quita el bloqueo. Las páginas, los formularios y los marcadores quedan como estaban.",
+    "Primera carga": "1,3 MB, y luego queda en la caché de tu navegador",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Puede desbloquear un PDF sin la contraseña?",
+      "a": "Puede quitar los límites de impresión, copia y edición de un PDF que se abre sin contraseña. No puede abrir un PDF cuya contraseña no conoces. Desbloquea solo los PDF que tengas derecho a desbloquear."
+    },
+    {
+      "q": "¿Se envía mi contraseña a algún sitio?",
+      "a": "No. La contraseña se queda en esta pestaña del navegador. Llega al motor de desbloqueo de esta página y a ningún otro sitio. La política de seguridad de la página impide que envíe datos a ningún sitio, y la página nunca guarda ni registra la contraseña. El campo se borra en cuanto lo usas."
+    },
+    {
+      "q": "¿Desbloquear cambia mi PDF?",
+      "a": "No. Solo se quita el bloqueo. Las páginas, el texto, las imágenes, los formularios y los marcadores salen igual, y tu archivo original no se toca."
+    },
+    {
+      "q": "¿Por qué mi PDF dice que no está bloqueado?",
+      "a": "Algunos PDF solo lo parecen. Si esta página dice que no hay bloqueo, el archivo no tiene contraseña ni límites, así que puedes usarlo tal cual."
+    },
+    {
+      "q": "¿Qué bloqueos quita?",
+      "a": "Los dos tipos: la contraseña que abre un PDF y los límites del propietario sobre imprimir, copiar y editar. Funciona con el cifrado de los PDF habituales, desde los antiguos de 40 bits hasta AES de 256 bits."
+    }
+  ]
+}

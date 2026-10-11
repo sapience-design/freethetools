@@ -1,0 +1,32 @@
+{
+  "name": "Formateador de JSON",
+  "task": "Ordenar y comprobar JSON",
+  "tagline": "Haz que el JSON se lea bien o encuentra la línea que lo rompe.",
+  "seoTitle": "Formateador y validador de JSON",
+  "description": "Formatea, valida y minifica JSON gratis en tu navegador, con errores que indican línea y columna. También ordena claves. Tus datos no salen de la página.",
+  "keywords": [
+    "formatear json",
+    "validar json",
+    "json",
+    "embellecer json",
+    "minificar json",
+    "json online",
+    "ordenar claves",
+    "pretty print"
+  ],
+  "specs": {
+    "Motor": "El analizador de JSON de tu propio navegador",
+    "Opciones": "2 o 4 espacios, tabulaciones, minificado; ordenar claves",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se envía mi JSON a algún sitio?",
+      "a": "No. Se analiza en esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio. Por eso es seguro para claves de API y datos de clientes."
+    },
+    {
+      "q": "¿Por qué dice que mi JSON no es válido?",
+      "a": "Las causas más comunes son una coma final, comillas simples en lugar de dobles o un corchete de cierre que falta. El error indica la línea y la columna que debes mirar."
+    }
+  ]
+}

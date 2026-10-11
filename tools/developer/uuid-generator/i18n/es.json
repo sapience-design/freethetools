@@ -1,0 +1,36 @@
+{
+  "name": "Generador de UUID",
+  "task": "Crear identificadores únicos",
+  "tagline": "UUID v4 aleatorios o v7 ordenados por tiempo.",
+  "seoTitle": "Generador de UUID (v4 y v7)",
+  "description": "Genera UUID v4 o v7 ordenables por tiempo en grandes cantidades, en mayúsculas o minúsculas, con o sin guiones. Gratis, creados en tu dispositivo con aleatoriedad segura.",
+  "keywords": [
+    "generador de uuid",
+    "uuid",
+    "guid",
+    "v4",
+    "v7",
+    "id único",
+    "id aleatorio",
+    "en masa"
+  ],
+  "specs": {
+    "Motor": "crypto.getRandomValues (aleatoriedad segura)",
+    "Estándar": "RFC 9562: v4 aleatorio, v7 ordenado por tiempo",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿v4 o v7?",
+      "a": "v4 es totalmente aleatorio. v7 empieza con el momento en que se creó, así que los ID se ordenan por creación, lo que mantiene rápidos los índices de las bases de datos."
+    },
+    {
+      "q": "¿Se generan en un servidor?",
+      "a": "No. Se crean en esta pestaña con el generador de números aleatorios seguro de tu dispositivo."
+    },
+    {
+      "q": "¿Cuántos puedo crear de una vez?",
+      "a": "Hasta 1000 a la vez. Escribe un número del 1 al 1000 en el cuadro Cuántos; si es mayor, se reduce a 1000."
+    }
+  ]
+}
