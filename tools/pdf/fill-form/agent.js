@@ -1,4 +1,4 @@
-import { baseName, defineTools, expectType, file } from "../../../src/agent/contract.js";
+import { baseName, defineTools, expectType, file, withUnlockHint } from "../../../src/agent/contract.js";
 import { fillForm, listFields } from "./core.js";
 
 const PDF = ["application/pdf"];
@@ -15,11 +15,11 @@ export default defineTools(
       required: ["file"],
       additionalProperties: false,
     },
-    run: async ({ file: f }) => {
+    run: withUnlockHint(async ({ file: f }) => {
       expectType(f, PDF, "a PDF");
       const fields = await listFields(f.bytes);
       return { summary: fields.length ? `${fields.length} fillable field${fields.length > 1 ? "s" : ""}.` : "This PDF has no fillable fields.", data: { fields } };
-    },
+    }),
   },
   {
     name: "fill_pdf_form",
@@ -41,7 +41,7 @@ export default defineTools(
       required: ["file", "values"],
       additionalProperties: false,
     },
-    run: async ({ file: f, values, flatten = false }) => {
+    run: withUnlockHint(async ({ file: f, values, flatten = false }) => {
       expectType(f, PDF, "a PDF");
       const fields = new Map((await listFields(f.bytes)).map((x) => [x.name, x]));
       const filled = [], skipped = [];
@@ -60,6 +60,6 @@ export default defineTools(
         data: { filled, skipped },
         files: [{ name: `${baseName(f.name)}_filled.pdf`, type: "application/pdf", bytes: out }],
       };
-    },
+    }),
   },
 );

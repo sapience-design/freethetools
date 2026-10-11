@@ -36,6 +36,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { stepTo } from "../../../src/lib/steps";
   import { buildArgs } from "./core.js";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
   usePdfWorker("pdf/compress");
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = $("#pdfc-tool"), picked = $("#pdfc-picked"), results = $("#pdfc-results"), status = $("#pdfc-status");
@@ -73,13 +74,6 @@ import Icon from "../../../src/components/Icon.astro";
       const li = fileRow({ name: f.name, meta: fmtBytes(f.size), thumb: pdfPreview(pdfThumb(), f, f.name), extra: [warn], actions: [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })] });
       pdfFacts(f).then((facts) => {
         li.querySelector(".fmeta")!.textContent = pdfMeta(facts, f.size);
-        if (facts?.locked) {
-          const w = document.createElement("li");
-          w.className = "warn";
-          w.textContent = "Locked with a password. Remove the password in your PDF reader first, or this one won't compress.";
-          warn.replaceChildren(w);
-          warn.hidden = false;
-        }
       });
       return li;
     }));
@@ -90,8 +84,11 @@ import Icon from "../../../src/components/Icon.astro";
     else if (!batch.total) stepTo(root, 1);
   }
 
-  wireDrop("pdfc", (files) => {
-    pending.push(...files.filter((f) => /\.pdf$/i.test(f.name) || f.type === "application/pdf"));
+  // A locked PDF asks for its password in its own row and joins the list once it is open.
+  wireDrop("pdfc", async (files) => {
+    for (const f of files.filter((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf")) {
+      await withUnlocked(f, $("#pdfc-drop"), (open) => { pending.push(open); renderPicked(); }, { many: true });
+    }
     renderPicked();
   });
 
@@ -106,7 +103,7 @@ import Icon from "../../../src/components/Icon.astro";
       setMeta(row, "");
       const err = document.createElement("span");
       err.className = "err";
-      err.textContent = `Could not compress: ${data.error}. The PDF may be password-protected or damaged.`;
+      err.textContent = `Could not compress: ${data.error}. The PDF may be damaged.`;
       row.querySelector(".fmeta")!.append(err);
       batch.failed++;
       finish();

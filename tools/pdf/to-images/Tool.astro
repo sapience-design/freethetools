@@ -53,6 +53,7 @@ import { RESOLUTIONS } from "./core.js";
   import { viewable, viewLabel, type ViewItem } from "../../../src/lib/expand";
   import { paperName } from "../../../src/lib/paper.js";
   import { stepTo } from "../../../src/lib/steps";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
 
   // The worker is served from this site (see "vendor" in tool.json), never from a CDN.
   pdfjs.GlobalWorkerOptions.workerSrc = "/pdf/to-images/vendor/pdf.worker.min.mjs";
@@ -65,8 +66,12 @@ import { RESOLUTIONS } from "./core.js";
   $("p2i-change").addEventListener("click", () => $("p2i-file").click());
 
   wireDrop("p2i", async (picks) => {
-    const f = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
-    if (!f) return;
+    const picked0 = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!picked0) return;
+    await withUnlocked(picked0, $("p2i-drop"), use);
+  });
+
+  async function use(f: File) {
     showWait(result, WAIT);
     files.replaceChildren();
     try {
@@ -83,10 +88,10 @@ import { RESOLUTIONS } from "./core.js";
       go.disabled = false;
       stepTo(root, 2);
     } catch (e) {
-      const msg = /password/i.test(String((e as Error).message)) ? "This PDF is password-protected. Remove the password in your PDF reader first." : "This file isn't a readable PDF.";
+      const msg = /password/i.test(String((e as Error).message)) ? "This PDF is password-protected. Open Unlock PDF to remove it first." : "This file isn't a readable PDF.";
       showError(result, msg);
     }
-  });
+  }
 
   go.addEventListener("click", async () => {
     if (!doc || !file) return;

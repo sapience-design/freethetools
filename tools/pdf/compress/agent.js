@@ -25,7 +25,7 @@ export default defineTools({
     if (!ctx.ghostscript) throw new Error("The PDF compressor isn't available here.");
     let out;
     try { out = await ctx.ghostscript(buildArgs({ preset: QUALITY[quality], firstPage: firstPageOnly }), f.bytes); }
-    catch { throw new Error(`Could not compress ${f.name}. It may be password-protected or damaged.`); }
+    catch { throw new Error(`Could not compress ${f.name}. It may be damaged or locked. If it is locked, run unlock_pdf on it first.`); }
     const before = f.bytes.length, after = out.length;
     const pct = Math.round(100 * (1 - after / before));
     return {

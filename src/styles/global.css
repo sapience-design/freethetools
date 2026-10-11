@@ -319,6 +319,21 @@ fieldset.field legend { padding: 0; margin-bottom: 6px; }
   .file-list .fact { grid-row: auto; grid-column: 1; justify-content: flex-start; padding-top: 6px; }
 }
 
+/* A locked PDF in a PDF tool: the password or limits prompt in the file's own row (src/lib/pdfpassword.ts) */
+.pwx-list { margin-top: 12px; }
+.pwx-list > li { align-items: start; }
+.pwx-list .pwx-say { margin: 4px 0 0; font-size: 15px; color: var(--soft); }
+.pwx-list .finfo { min-width: 0; }
+.pwx-list .pwx { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-top: 8px; }
+.pwx-list .pwx label { font-size: 14px; font-weight: 650; color: var(--soft); overflow-wrap: anywhere; }
+.pwx-list .pwx-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.pwx-list .pwx .pwx-row { margin-top: 0; }
+.pwx-list .pwx .input { flex: 1 1 160px; box-sizing: border-box; width: auto; min-width: 0; min-height: 48px; padding: 8px 14px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--bg); color: var(--ink); font-size: 17px; }
+.pwx-list .pwx-row .btn { min-height: 48px; }
+.pwx-list .pwx-msg:empty { display: none; }
+.pwx-list .pwx-msg { margin-top: 8px; }
+.pwx-list .pwx-link { margin: 8px 0 0; font-size: 15px; color: var(--soft); }
+
 /* Results: waiting, working, done, a problem */
 .result { display: grid; gap: 12px; }
 .res-wait { padding: 16px; border-radius: var(--r-lg); border: 2px dashed var(--hair); color: var(--muted); }

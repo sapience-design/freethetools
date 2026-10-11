@@ -35,7 +35,7 @@
     },
     {
       "q": "¿Puede abrir PDF protegidos con contraseña?",
-      "a": "Todavía no. Quita antes la contraseña en tu lector de PDF."
+      "a": "Sí. La herramienta pide la contraseña y desbloquea el archivo en tu dispositivo. La contraseña no se guarda ni se envía a ningún sitio."
     },
     {
       "q": "¿Puedo usarlo desde un script o un asistente de IA?",

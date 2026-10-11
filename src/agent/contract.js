@@ -225,3 +225,18 @@ export function textOrFile({ text, file: f }, what) {
   if (text !== undefined) return { text, file: null };
   throw new Error(`Give some ${what} text, or a file.`);
 }
+
+/**
+ * Wrap a PDF tool's `run` so a locked PDF gets a message an agent can act on: run unlock_pdf first.
+ * The password itself is never asked for here; unlock_pdf takes it.
+ */
+export const withUnlockHint = (run) => async (...args) => {
+  try {
+    return await run(...args);
+  } catch (e) {
+    if (/password-protected|encrypted/i.test(String(e?.message))) {
+      throw new Error("This PDF is locked. Run unlock_pdf on it first, then use the unlocked copy it returns.");
+    }
+    throw e;
+  }
+};

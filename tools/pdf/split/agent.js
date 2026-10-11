@@ -1,4 +1,4 @@
-import { baseName, defineTools, expectType, file } from "../../../src/agent/contract.js";
+import { baseName, defineTools, expectType, file, withUnlockHint } from "../../../src/agent/contract.js";
 import { pageCount } from "../merge/core.js";
 import { everyPage, parseRanges, splitPdf } from "./core.js";
 
@@ -17,7 +17,7 @@ export default defineTools({
     required: ["file"],
     additionalProperties: false,
   },
-  run: async ({ file: f, ranges }) => {
+  run: withUnlockHint(async ({ file: f, ranges }) => {
     expectType(f, ["application/pdf"], "a PDF");
     const total = await pageCount(f.bytes);
     const parts = await splitPdf(f.bytes, ranges ? parseRanges(ranges, total) : everyPage(total));
@@ -31,5 +31,5 @@ export default defineTools({
         bytes: p.bytes,
       })),
     };
-  },
+  }),
 });
