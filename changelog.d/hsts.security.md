@@ -1,0 +1,1 @@
+- Browsers now always use HTTPS for freethetools.com: the site sends a Strict-Transport-Security header, valid for one year, so a typed `http://` address can't be intercepted before the redirect.
