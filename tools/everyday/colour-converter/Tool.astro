@@ -1,0 +1,119 @@
+---
+// Colour Converter.
+import Step from "../../../src/components/Step.astro";
+const rows = [
+  ["hex", "HEX"],
+  ["rgb", "RGB"],
+  ["hsl", "HSL"],
+  ["name", "Nearest CSS name"],
+];
+---
+<section class="tool" id="cc-tool" aria-label="Colour converter">
+  <Step n={1} title="Type or pick a colour">
+    <div class="cc-in">
+      <label class="field cc-text"><span>Colour</span><input type="text" id="cc-in" value="rebeccapurple" autocomplete="off" spellcheck="false" aria-describedby="cc-hint"></label>
+      <label class="field cc-pick"><span>Picker</span><input type="color" id="cc-pick" value="#663399"></label>
+    </div>
+    <small class="hint" id="cc-hint">Use HEX (#f80, #ff8800), rgb(255 136 0), hsl(32 100% 50%) or a CSS colour name.</small>
+    <p class="tool-error" id="cc-err" role="alert" hidden></p>
+  </Step>
+  <div id="cc-results">
+    <Step n={2} title="Copy it in any form">
+      <div class="cc-grid">
+        <div class="cc-swatch" role="img" aria-label="The colour"><span class="cc-fill" id="cc-fill"></span></div>
+        <ul class="cc-list">
+          {rows.map(([id, label]) => (
+            <li>
+              <span class="cc-label">{label}</span>
+              <output class="cc-value" id={`cc-${id}`}></output>
+              <button class="btn line small" id={`cc-copy-${id}`} type="button" aria-label={`Copy ${label}`}>Copy</button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Step>
+    <Step n={3} title="Check the contrast">
+      <ul class="cc-contrast">
+        <li><span class="cc-label">With white</span><span class="cc-ratio" id="cc-r-white"></span><span id="cc-n-white"></span><span id="cc-l-white"></span></li>
+        <li><span class="cc-label">With black</span><span class="cc-ratio" id="cc-r-black"></span><span id="cc-n-black"></span><span id="cc-l-black"></span></li>
+      </ul>
+      <small class="hint">Normal text needs 4.5:1 and large text needs 3:1 (WCAG 2). A see-through colour is laid over white or black first.</small>
+    </Step>
+  </div>
+</section>
+
+<script>
+  import { parseColour, convertColour, toHex } from "./core.js";
+  const $ = (id: string) => document.getElementById(id)!;
+  const input = $("cc-in") as HTMLInputElement;
+  const picker = $("cc-pick") as HTMLInputElement;
+  const err = $("cc-err");
+
+  function verdict(el: HTMLElement, label: string, pass: boolean) {
+    el.textContent = `${label}: ${pass ? "pass" : "fail"}`;
+    el.className = pass ? "cc-pass" : "cc-fail";
+  }
+
+  function update() {
+    try {
+      const r = convertColour(input.value);
+      $("cc-hex").textContent = r.hex;
+      $("cc-rgb").textContent = r.rgb;
+      $("cc-hsl").textContent = r.hsl;
+      $("cc-name").textContent = r.nameIsExact ? r.name : `${r.name} (nearest, ${r.nameHex})`;
+      // The policy blocks style attributes in markup, but setting a property from script is allowed.
+      $("cc-fill").style.setProperty("--cc-colour", r.rgb);
+      for (const [key, c] of [["white", r.contrastWithWhite], ["black", r.contrastWithBlack]] as const) {
+        $(`cc-r-${key}`).textContent = `${c.ratio}:1`;
+        verdict($(`cc-n-${key}`), "Normal text", c.normalText);
+        verdict($(`cc-l-${key}`), "Large text", c.largeText);
+      }
+      picker.value = toHex({ ...parseColour(input.value), a: 1 });
+      err.hidden = true;
+      $("cc-results").hidden = false;
+    } catch (e) {
+      // role="alert" speaks whenever its text is written, so write only when it changes.
+      if (err.textContent !== (e as Error).message) err.textContent = (e as Error).message;
+      err.hidden = false;
+      $("cc-results").hidden = true;
+    }
+  }
+
+  input.addEventListener("input", update);
+  picker.addEventListener("input", () => { input.value = picker.value; update(); });
+
+  for (const id of ["hex", "rgb", "hsl", "name"]) {
+    const btn = $(`cc-copy-${id}`);
+    btn.addEventListener("click", async () => {
+      // The name row copies just the name, without the "nearest" note.
+      let text = $(`cc-${id}`).textContent ?? "";
+      if (id === "name") text = text.split(" ")[0];
+      try { await navigator.clipboard.writeText(text); btn.textContent = "Copied"; } catch { btn.textContent = "Select"; }
+      setTimeout(() => (btn.textContent = "Copy"), 1400);
+    });
+  }
+  update(); // show a working example on first load
+</script>
+
+<style>
+  .cc-in { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: end; }
+  .cc-pick input { width: 72px; height: 52px; padding: 4px; cursor: pointer; }
+  .cc-grid { display: grid; grid-template-columns: minmax(120px, 200px) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+  .cc-swatch { min-height: 160px; border-radius: var(--r-lg); border: 1.5px solid var(--edge); overflow: hidden; background-color: #fff; background-image: conic-gradient(#d9d9d9 25%, transparent 0 50%, #d9d9d9 0 75%, transparent 0); background-size: 20px 20px; }
+  .cc-fill { display: block; width: 100%; height: 100%; background: var(--cc-colour, transparent); }
+  .cc-list, .cc-contrast { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .cc-list li { display: grid; grid-template-columns: 7.5em minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 52px; padding: 6px 12px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); }
+  .cc-label { font-weight: 600; }
+  .cc-value { font-family: var(--mono, ui-monospace, monospace); overflow-wrap: anywhere; }
+  .cc-contrast li { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: baseline; padding: 10px 12px; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); }
+  .cc-contrast .cc-label { min-width: 6em; }
+  .cc-ratio { font-family: var(--display); font-weight: 700; font-size: 22px; min-width: 5em; }
+  .cc-pass { color: var(--ok); font-weight: 600; }
+  .cc-fail { color: var(--bad); font-weight: 600; }
+  @media (max-width: 640px) {
+    .cc-grid { grid-template-columns: 1fr; }
+    .cc-swatch { min-height: 96px; }
+    .cc-list li { grid-template-columns: 1fr auto; }
+    .cc-list .cc-label { grid-column: 1 / -1; }
+  }
+</style>

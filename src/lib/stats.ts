@@ -3,9 +3,10 @@
 // all if your browser asks sites not to track (Global Privacy Control or Do Not Track).
 
 import { txtN } from "./ui";
+import { normalizeSearch } from "../../worker/logic.js";
 
 export type ToolStats = { views: number; uses: number; likes: number; uses30: number; successes: number; errors: number };
-export type SiteStats = { visits30: number; countries: [string, number][]; referrers: [string, number][]; devices: [string, number][] };
+export type SiteStats = { visits30: number; countries: [string, number][]; referrers: [string, number][]; devices: [string, number][]; searches?: [string, number][] };
 export type Summary = { tools: Record<string, ToolStats>; wants?: Record<string, number>; site: SiteStats; sample?: { visits: number; events: number } };
 
 const optedOut = () =>
@@ -61,10 +62,29 @@ export function trackVisit() {
       const host = new URL(document.referrer).hostname;
       if (host === location.hostname) return; // came from another page on this site
       ref = host;
+    } else {
+      // Some assistants (ChatGPT) hide the referrer but add ?utm_source=chatgpt.com. Use it only
+      // when it looks like a host name; the Worker checks it again and keeps only the name.
+      const p = new URLSearchParams(location.search);
+      const src = (p.get("utm_source") || p.get("ref") || "").trim().toLowerCase();
+      if (/^[a-z0-9.-]{1,64}$/.test(src) && src.includes(".") && src !== location.hostname) ref = src;
     }
   } catch {}
   try { if (sessionStorage.getItem("ftt:visit")) return; sessionStorage.setItem("ftt:visit", "1"); } catch { return; }
   sendSampled("/api/stats/visit", { ref, device: deviceType() }, "visits").catch(() => {});
+}
+
+const missed = new Set<string>();
+/**
+ * Count a site search that found nothing: the normalized term (short plain words only, no digits,
+ * "@", "/" or ".") once per term per page load. The Worker applies the same rules and decides.
+ */
+export function trackSearchMiss(raw: string) {
+  if (optedOut()) return;
+  const term = normalizeSearch(raw);
+  if (!term || missed.has(term)) return;
+  missed.add(term);
+  sendSampled("/api/stats/search", { term }, "events").catch(() => {});
 }
 
 /** Count a view of this tool, once per browser session. */

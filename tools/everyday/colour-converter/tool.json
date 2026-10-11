@@ -1,0 +1,28 @@
+{
+  "name": "Colour Converter",
+  "task": "Convert a colour between formats",
+  "icon": "palette",
+  "short": "Colour converter",
+  "tagline": "Type a colour as HEX, RGB, HSL or a name and get it in every form, with a contrast check.",
+  "seoTitle": "Colour converter: HEX, RGB, HSL and CSS names",
+  "description": "Convert a colour between HEX, RGB, HSL and CSS names, pick one, and check its contrast against white and black. Free, nothing is uploaded.",
+  "section": "Convert",
+  "keywords": ["colour converter", "color converter", "hex to rgb", "rgb to hex", "hex to hsl", "hsl to rgb", "css color names", "color picker", "contrast checker", "wcag contrast"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-11",
+  "offline": true,
+  "specs": {
+    "Reads": "HEX (3, 4, 6 or 8 digits), rgb() and rgba(), hsl() and hsla(), and all 148 CSS colour names",
+    "Writes": "HEX, RGB, HSL and the nearest CSS colour name",
+    "Contrast": "WCAG 2 ratio against white and black: 4.5:1 for normal text, 3:1 for large text",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Which colour forms can I type?", "a": "HEX such as #f80, #ff8800 or #ff880080, rgb() or rgba() such as rgb(255 136 0 / 50%), hsl() or hsla() such as hsl(32 100% 50%), or a CSS colour name such as rebeccapurple. You can also use the colour picker." },
+    { "q": "How is the nearest CSS name chosen?", "a": "The tool compares your colour with all 148 CSS colour names and picks the closest one by eye, using a weighted distance in RGB. It says when the match is exact." },
+    { "q": "What do pass and fail mean for contrast?", "a": "They follow WCAG 2. Normal text needs a ratio of at least 4.5:1 and large text (about 24 px, or 19 px bold) needs at least 3:1. The ratio is cut to two decimals, never rounded up. A see-through colour is first laid over white or black." },
+    { "q": "Is my data uploaded anywhere?", "a": "No. Everything runs in your browser tab, and the page's security policy blocks it from sending data anywhere." }
+  ],
+  "vendor": []
+}

@@ -1,0 +1,24 @@
+{
+  "name": "URL Encode and Decode",
+  "task": "Encode or decode a web address",
+  "icon": "link",
+  "short": "URL encode",
+  "tagline": "Make text safe for a web address, read an encoded one, or take an address apart.",
+  "seoTitle": "URL encode and decode online",
+  "description": "Percent-encode or decode text for web addresses, or split a URL into its parts and query parameters. Free, and nothing leaves your browser.",
+  "section": "Encode",
+  "keywords": ["url encode", "url decode", "percent encoding", "encodeURIComponent", "encodeURI", "query string", "urlencode", "%20", "parse url"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-11",
+  "offline": true,
+  "specs": { "Engine": "Your browser's built-in encodeURIComponent and encodeURI", "Text": "UTF-8, so accents and emoji work", "Works offline": "Yes, once the page has loaded" },
+  "faq": [
+    { "q": "What is the difference between a part and a whole address?", "a": "Choose \"one part\" for a single value, like a search word. It also changes / ? & = # and : so they cannot break the address. Choose \"a whole address\" to keep those characters as they are." },
+    { "q": "Why does my text have %20 in it?", "a": "A % followed by two hex digits stands for one byte. %20 is a space, and %C3%A9 is the letter é. Decode the text to read it." },
+    { "q": "Is + a space or a plus?", "a": "In a query string or form, + often means a space. Everywhere else it is a plus sign. Tick \"Read + as a space\" when you decode form data." },
+    { "q": "Why does decoding fail?", "a": "A % must be followed by two hex digits, like %20. A lone % or a cut-off code such as %E0%A4 cannot be read. Write a real % sign as %25." },
+    { "q": "Is my data sent anywhere?", "a": "No. Everything happens in this tab, and the page's security policy blocks it from sending data anywhere." }
+  ],
+  "vendor": []
+}

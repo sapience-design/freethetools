@@ -355,20 +355,6 @@
         ]
       }
     },
-    "developer/url-encode": {
-      "name": "Codificar y decodificar URL",
-      "task": "Codificar o decodificar una dirección web",
-      "blurb": "Prepara texto para usarlo en un enlace o lee uno codificado.",
-      "concept": {
-        "in": "Texto o una dirección web.",
-        "out": "La forma con codificación porcentual o el texto decodificado.",
-        "options": [
-          "Codificar una dirección entera o solo una parte",
-          "Decodificar",
-          "Un mensaje claro si una secuencia % está rota"
-        ]
-      }
-    },
     "developer/cron-explainer": {
       "name": "Explicador de expresiones cron",
       "task": "Explicar una programación cron",
@@ -379,20 +365,6 @@
         "options": [
           "Frase con palabras sencillas",
           "Próximas horas de ejecución"
-        ]
-      }
-    },
-    "everyday/colour-converter": {
-      "name": "Conversor de color",
-      "task": "Convertir un color entre formatos",
-      "blurb": "HEX, RGB, HSL y nombres, de ida y vuelta.",
-      "concept": {
-        "in": "Un color en HEX, RGB, HSL o por su nombre.",
-        "out": "El mismo color en todos los formatos, con una muestra y la relación de contraste con el negro y el blanco.",
-        "options": [
-          "HEX, RGB, HSL y nombres de color",
-          "Muestra de color",
-          "Contraste con el negro y el blanco"
         ]
       }
     },
