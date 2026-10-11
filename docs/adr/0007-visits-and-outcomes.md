@@ -44,3 +44,5 @@ Global Privacy Control and Do Not Track still stop everything except likes press
 **Sources without a referrer.** Some AI assistants (ChatGPT adds `utm_source=chatgpt.com`) hide the referrer. When `document.referrer` is empty, `trackVisit` uses `utm_source`, or `ref`, if it looks like a host name. The Worker's `normalizeRef` validates it again and keeps only the source name. The source list now names ChatGPT (including chat.openai.com), Perplexity, Claude, Gemini and Copilot.
 
 Consequence: the stats page shows what people look for and do not find. The privacy page and the "what we count" list on `/stats/` say so.
+
+The thresholds stop one-off and personal text, not someone who searches the same phrase on purpose over several days. `HIDDEN_SEARCHES` in `worker/logic.js` removes any such phrase from the public list at the next deploy.

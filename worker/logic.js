@@ -19,6 +19,12 @@ export const SEARCH_MIN_TOTAL = 5;
 export const SEARCH_MIN_DAYS = 3;
 /** Most terms in the public list. */
 export const SEARCH_LIST_MAX = 20;
+/**
+ * Phrases never shown on /stats/, even past the thresholds. The thresholds stop one-off and personal
+ * text, not someone who searches the same phrase on purpose over several days: add any such phrase
+ * here, normalized (lowercase, single spaces), and it disappears at the next deploy.
+ */
+export const HIDDEN_SEARCHES = new Set([]);
 /** Largest sampling weight the Worker accepts. */
 export const MAX_WEIGHT = 20;
 /** Fetch the tool list again at most this often (milliseconds), when an unknown id arrives. */
@@ -161,7 +167,7 @@ export function summarize(rows, dimRows = [], visits7 = 0, wantRows = [], search
   for (const list of Object.values(lists)) list.sort((a, b) => b[1] - a[1]);
   // Searches that found nothing: shown only when often enough and on enough different days.
   const searches = searchRows
-    .filter((r) => r.n >= SEARCH_MIN_TOTAL && r.days >= SEARCH_MIN_DAYS && normalizeSearch(r.key) === r.key)
+    .filter((r) => r.n >= SEARCH_MIN_TOTAL && r.days >= SEARCH_MIN_DAYS && normalizeSearch(r.key) === r.key && !HIDDEN_SEARCHES.has(r.key))
     .sort((a, b) => b.n - a.n || (a.key < b.key ? -1 : 1))
     .slice(0, SEARCH_LIST_MAX)
     .map((r) => [r.key, r.n]);

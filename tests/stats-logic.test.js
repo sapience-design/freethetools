@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry } from "../worker/logic.js";
+import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry, HIDDEN_SEARCHES } from "../worker/logic.js";
 
 const tools = new Set(["pdf/compress", "text/word-counter"]);
 
@@ -272,4 +272,14 @@ test("AI assistants get names; an empty referrer stays Direct", () => {
   assert.equal(normalizeRef("www.google.com"), "Google");
   assert.equal(normalizeRef("copilot.microsoft.com"), "Copilot");
   assert.equal(normalizeRef("https://chatgpt.com/x"), null);
+});
+
+test("a phrase on the hide list never reaches the public list", () => {
+  HIDDEN_SEARCHES.add("planted phrase");
+  try {
+    const s = summarize([], [], 0, [], [{ key: "planted phrase", n: 50, days: 5 }, { key: "heic to pdf", n: 9, days: 4 }]);
+    assert.deepEqual(s.site.searches, [["heic to pdf", 9]]);
+  } finally {
+    HIDDEN_SEARCHES.delete("planted phrase");
+  }
 });
