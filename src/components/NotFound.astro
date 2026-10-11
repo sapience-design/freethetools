@@ -1,0 +1,27 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { SUGGEST_URL } from "../data/catalogue";
+import { t, localePath } from "../i18n/index";
+
+// The 404 page, in English at /404.html and in every other language at /<lang>/404.html. The Worker
+// serves the one for the language of the address that was missing.
+interface Props { lang?: string }
+const { lang = "en" } = Astro.props;
+const N = (key: string) => t(lang, `notFound.${key}`);
+---
+<Base lang={lang} title={N("title")} description={N("description")} noindex>
+  <div class="page narrow lost">
+    <span class="tag">404</span>
+    <h1 class="h1" set:html={N("h1")} />
+    <p class="lede">{N("lede")}</p>
+    <div class="actions">
+      <a class="btn" href={`${localePath(lang, "/")}#find`}><Icon name="magnifying-glass" />{N("search")}</a>
+      <a class="btn line" href={SUGGEST_URL}>{N("suggest")}</a>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .lost { display: grid; gap: 16px; justify-items: start; padding-top: 48px; }
+</style>

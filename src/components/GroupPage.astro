@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "./Icon.astro";
+import ToolRow from "./ToolRow.astro";
+import { loadCatalogue, groupIn, sectionIn, toolIn, toolUrl, wantedIn, wantedUrl, SUGGEST_URL } from "../data/catalogue";
+import { artFor } from "../data/art";
+import { t, slots, localePath } from "../i18n/index";
+
+// A group page, in English at /<group>/ and in every other language at /<lang>/<group>/.
+interface Props { category: string; lang?: string }
+const { category, lang = "en" } = Astro.props;
+const { aisles } = await loadCatalogue();
+const a = aisles.find((x) => x.slug === category)!;
+const g = groupIn(a, lang);
+const shot = artFor(a.shot, a.slug, `grp${a.slug}`);
+const secId = (name: string) => `sec-${name.replace(/\W+/g, "-")}`;
+const more = slots(t(lang, "group.more")).map((x) => (typeof x === "string" ? x : x.slot === "suggest" ? { href: SUGGEST_URL, text: t(lang, "group.moreSuggest") } : { href: "/support/#company-h", text: t(lang, "group.moreSponsor") }));
+---
+<Base
+  category={a.slug}
+  lang={lang}
+  title={t(lang, "group.title", { title: g.title })}
+  description={t(lang, "group.description", { blurb: g.blurb })}
+  jsonLd={{
+    "@type": "CollectionPage",
+    name: g.title,
+    inLanguage: lang,
+    description: g.blurb,
+    hasPart: a.live.map((x) => ({ "@type": "WebApplication", name: toolIn(x, lang).name, url: new URL(toolUrl(x, lang), Astro.site).href })),
+  }}
+>
+  <div class="page group" data-g={a.slug}>
+    <a class="back" href={localePath(lang, "/")}><Icon name="caret-left" />{t(lang, "group.back")}</a>
+    <div class="banner">
+      <div class="banner-text">
+        <span class="tag on-tint"><span class="tag-ic"><Icon name={a.mark} /></span>{g.label}</span>
+        <h1 class="h1">{g.blurb}</h1>
+        <p>{g.sub}</p>
+      </div>
+      <span class="banner-shot" aria-hidden="true" set:html={shot} />
+    </div>
+
+    {a.sectionsUsed.map((s) => (
+      <section class="sec" aria-labelledby={secId(s.name)}>
+        <h2 class="label-caps" id={secId(s.name)}>{sectionIn(lang, s.name)}</h2>
+        <ul class="rows card">
+          {s.live.map((x) => <ToolRow lang={lang} href={toolUrl(x, lang)} task={toolIn(x, lang).task} sub={toolIn(x, lang).tagline} group={a.slug} icon={x.icon} tool={x.id} added={x.data.added} isNew={x.isNew} />)}
+          {s.wanted.map((w) => <ToolRow lang={lang} href={wantedUrl(w, lang)} task={wantedIn(w, lang).name} wantId={w.id} sub={wantedIn(w, lang).blurb} group={a.slug} icon={a.mark} want />)}
+        </ul>
+      </section>
+    ))}
+
+    <p class="more">{more.map((x) => (typeof x === "string" ? x : <a href={x.href}>{x.text}</a>))}</p>
+  </div>
+</Base>
+
+<script>
+  import { showWants } from "../lib/stats";
+  showWants();
+</script>
+
+<style>
+  .group { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(24px, 3vw, 32px); }
+  .banner { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 440px); gap: clamp(16px, 2.5vw, 28px); align-items: center; padding: clamp(18px, 2.5vw, 28px); border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--tint); box-shadow: var(--shadow); }
+  .banner-text { display: grid; gap: 14px; justify-items: start; }
+  .banner-text p { color: var(--soft); }
+  .banner-shot { display: block; aspect-ratio: 16 / 10; border-radius: 12px; overflow: hidden; border: 1.5px solid var(--edge); }
+  .banner-shot :global(svg) { display: block; width: 100%; height: 100%; }
+  .sec { display: grid; gap: 10px; }
+  .sec .row { min-height: 68px; }
+  .sec .row-sub { font-size: 15px; }
+  .more { color: var(--soft); }
+  .more a { color: var(--ink); font-weight: 650; }
+  @media (max-width: 760px) {
+    .banner { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

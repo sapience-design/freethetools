@@ -4,6 +4,7 @@ import MiniSearch from "minisearch";
 
 /**
  * @param {{ n: string, t?: string, c: string, g?: string, u: string, k: string, w?: 1 }[]} items
+ * @param {string[]} [extraStop] words to ignore in this language (the filler words of a sentence)
  *   n name, t task ("Make a PDF smaller"), c group, g group slug, u url, k keywords, w planned
  * @returns {(query: string) => { n: string, t?: string, c: string, g?: string, u: string, w?: 1 }[]}
  */
@@ -11,12 +12,12 @@ import MiniSearch from "minisearch";
 // and would make any query match everything.
 const STOP = new Set("a an and are as at be by for from in into is it its of on or the this to with your you nothing never never leave leaves uploaded upload free browser device files file page make my i want need".split(" "));
 
-export function makeSearch(items) {
+export function makeSearch(items, extraStop = []) {
   const ms = new MiniSearch({
     fields: ["n", "t", "k", "c"],
     processTerm: (term) => {
       const t = term.toLowerCase();
-      return STOP.has(t) ? null : t;
+      return STOP.has(t) || extraStop.includes(t) ? null : t;
     },
     storeFields: ["n", "t", "c", "g", "u", "w"],
     // Typos: none for 1-3 letters, up to two edits (a swapped pair counts as two) for 4-6, 30% beyond.

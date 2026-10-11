@@ -1,0 +1,529 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import ToolRow from "../components/ToolRow.astro";
+import { loadCatalogue, groupIn, toolIn, toolUrl, wantedIn, wantedUrl, popularIn, SUGGEST_URL } from "../data/catalogue";
+import { POPULAR } from "../data/popular";
+import { artFor } from "../data/art";
+import { t as ui, tn, slots, jsStrings, localePath } from "../i18n/index";
+import { langFile } from "../i18n/index";
+
+// The home page, in English at / and in every other language at /<lang>/ (src/pages/[lang]/[...rest].astro).
+interface Props { lang?: string }
+const { lang = "en" } = Astro.props;
+const h = (key: string, vars: Record<string, string | number> = {}) => ui(lang, `home.${key}`, vars);
+const { tools, aisles, searchIndexFor } = await loadCatalogue();
+const searchIndex = searchIndexFor(lang);
+const stop = langFile(lang).search?.stop ?? [];
+const popular = POPULAR.map(([id, when]) => {
+  const t = tools.find((x) => x.id === id);
+  if (!t) throw new Error(`src/data/popular.ts: no tool "${id}"`);
+  return { t, when: popularIn(lang, id, when) };
+});
+const sorts = [["used", h("sortUsed")], ["new", h("sortNew")], ["liked", h("sortLiked")], ["az", h("sortAz")]];
+const homeUrl = localePath(lang, "/");
+const link = (href: string, text: string) => ({ href, text });
+const emptyParts = slots(h("empty")).map((x) => (typeof x === "string" ? x : x.slot === "ask" ? link(SUGGEST_URL, h("emptyAsk")) : link("/support/#company-h", h("emptySponsor"))));
+const whyEnd = slots(h("whyEnd"));
+const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
+---
+<Base
+  page="home"
+  lang={lang}
+  title={h("title")}
+  description={h("description")}
+  jsonLd={{
+    "@type": "WebSite",
+    name: "Free the Tools",
+    url: `https://freethetools.com${homeUrl}`,
+    inLanguage: lang,
+    description: h("schemaDescription"),
+    potentialAction: { "@type": "SearchAction", target: `https://freethetools.com${homeUrl}?q={search_term_string}`, "query-input": "required name=search_term_string" },
+  }}
+>
+  <div class="page home">
+    <section class="hero">
+      <h1>{h("h1a")} <mark>{h("h1b")}</mark></h1>
+      <ul class="trust">
+        <li><Icon name="check-circle" />{h("trustNoAds")}</li>
+        <li><Icon name="check-circle" />{h("trustNoSignup")}</li>
+        <li><Icon name="check-circle" />{h("trustFiles")}</li>
+        <li><Icon name="check-circle" />{h("trustOpen")}</li>
+      </ul>
+      <p class="sr-only" id="find-status" role="status"></p>
+      <form class="find" role="search" action={homeUrl} method="get">
+        <label class="find-box">
+          <Icon name="magnifying-glass" />
+          <span class="sr-only">{h("findLabel")}</span>
+          <input id="find" name="q" type="search" placeholder={h("findPlaceholder")} autocomplete="off" enterkeyhint="go">
+          <kbd id="find-key" aria-hidden="true">/</kbd>
+        </label>
+      </form>
+      <div class="chips" role="group" aria-label={h("chipsLabel")}>
+        <button type="button" class="chip" data-cat="all" aria-pressed="true"><span class="chip-ic all"><Icon name="sparkle" /></span>{h("chipAll")}<span class="chip-n">{tools.length}</span></button>
+        {aisles.map((a) => (
+          <button type="button" class="chip" data-cat={a.slug} data-g={a.slug} data-label={groupIn(a, lang).label} aria-pressed="false"><span class="chip-ic"><Icon name={a.mark} /></span>{groupIn(a, lang).name}<span class="chip-n">{a.live.length}</span></button>
+        ))}
+      </div>
+      <p class="sr-only" id="sort-status" role="status"></p>
+    </section>
+
+    <section class="results" id="results" aria-labelledby="results-title" hidden>
+      <div class="results-head">
+        <h2 class="h2" id="results-title"></h2>
+        <span class="count-pill" id="results-count"></span>
+        <a class="results-group" id="results-group" href={homeUrl} hidden><span></span><Icon name="arrow-right" /></a>
+      </div>
+      <ul class="rows card" id="search-results"></ul>
+      <p class="results-empty" id="results-empty" hidden>{emptyParts.map((x) => (typeof x === "string" ? x : <a href={x.href}>{x.text}</a>))}</p>
+      <button type="button" class="btn quiet small" id="results-clear"><Icon name="x" />{h("clear")}</button>
+    </section>
+
+    <div id="default" class="default">
+      {/* Filled in the browser from the favourites kept in this browser (ftt:saved); hidden when there are none. */}
+      <section class="fav" id="fav" aria-labelledby="fav-h" hidden>
+        <div class="fav-head">
+          <h2 class="h2" id="fav-h">{h("favourites")}</h2>
+          <a class="fav-manage" href="/saved/">{h("manage")}</a>
+        </div>
+        <ul class="rows card" id="fav-list"></ul>
+      </section>
+
+      <section class="popular" aria-labelledby="popular-h">
+        <div class="pop-head">
+          <h2 class="h2" id="popular-h">{h("popular")}</h2>
+          {/* Four at a time; swipe, or use these, for the rest. Shown only when there is more. */}
+          <div class="pop-nav" id="pop-nav" hidden>
+            <button type="button" class="icon-btn" id="pop-prev" aria-controls="pops" aria-label={h("prevTools")}><Icon name="caret-left" /></button>
+            <button type="button" class="icon-btn" id="pop-next" aria-controls="pops" aria-label={h("nextTools")}><Icon name="caret-right" /></button>
+          </div>
+        </div>
+        <ul class="pops" id="pops">
+          {popular.map(({ t, when }) => (
+            <li>
+              <a class="pop" href={toolUrl(t, lang)} data-g={t.category.slug}>
+                <span class="pop-shot" set:html={artFor(t.id, t.category.slug, `pop${t.id.replace(/\W/g, "")}`, t.data.name)} />
+                <span class="pop-task">{toolIn(t, lang).task}</span>
+                <span class="pop-sub">{when}</span>
+                <span class="pop-go"><Icon name="arrow-right" /></span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="all" aria-labelledby="all-h">
+        <div class="all-head">
+          <h2 class="h2" id="all-h">{h("allTools")}</h2>
+          <span class="all-sub" id="all-sub">{ui(lang, "js.home.subAz")}</span>
+          {/* The sort control sits with the list it sorts; a group filter moves it to the results header. */}
+          <div class="sortbox" id="sortbox">
+            <fieldset class="sortrow" id="sortrow">
+              <legend>{h("sortBy")}</legend>
+              <div class="segmented">
+                {sorts.map(([v, label], i) => (<><input type="radio" name="sort" id={`sort-${v}`} value={v} checked={i === 0} /><label for={`sort-${v}`}>{label}</label></>))}
+              </div>
+            </fieldset>
+          </div>
+        </div>
+        <div class="gcards">
+          {aisles.map((a) => (
+            <section class="gcard" data-g={a.slug} aria-labelledby={`g-${a.slug}`}>
+              <a class="gcard-head" href={localePath(lang, `/${a.slug}/`)}>
+                <span class="gcard-ic"><Icon name={a.mark} /></span>
+                <h3 class="h3" id={`g-${a.slug}`}>{groupIn(a, lang).name}</h3>
+                <span class="gcard-n"><span class="long">{tn(lang, "home.seeAll", a.live.length)}</span><span class="short">{tn(lang, "home.countShort", a.live.length)}</span><Icon name="arrow-right" /></span>
+              </a>
+              <ul class="rows" data-sortable>
+                {a.live.map((t) => <ToolRow lang={lang} href={toolUrl(t, lang)} task={toolIn(t, lang).task} sub={toolIn(t, lang).name} group={a.slug} icon={t.icon} tool={t.id} added={t.data.added} isNew={t.isNew} />)}
+                {a.wanted.map((w) => <ToolRow lang={lang} href={wantedUrl(w, lang)} task={wantedIn(w, lang).name} wantId={w.id} sub={wantedIn(w, lang).blurb} group={a.slug} icon={a.mark} want />)}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </section>
+
+      <section class="ai-note card" aria-labelledby="ai-note-h">
+        <span class="ai-ic" aria-hidden="true"><Icon name="robot" /></span>
+        <div>
+          <h2 class="h3" id="ai-note-h">{h("aiTitle")}</h2>
+          <p>{h("aiText")}</p>
+        </div>
+        <a class="btn line small" href="/ai/">{h("aiLink")}<Icon name="arrow-right" /></a>
+      </section>
+
+      <section class="why" aria-labelledby="why-h">
+        <h2 class="why-h" id="why-h">{h("whyTitle")}</h2>
+        <div class="why-lines">
+          <p>{h("why1")}</p>
+          <p>{h("why2")}</p>
+          <p>{h("why3")}</p>
+          <p>{h("why4")}</p>
+        </div>
+        <p class="why-end">{whyEnd.map((x) => (typeof x === "string" ? x : <mark>{h("whyEndMark")}</mark>))}</p>
+        <a class="btn line small" href="/about/">{h("aboutLink")}<Icon name="arrow-right" /></a>
+      </section>
+    </div>
+  </div>
+  <script type="application/json" id="search-index" data-stop={stop.join(",")} set:html={JSON.stringify(searchIndex)} />
+  <script type="application/json" id="ftt-home" set:html={homeJs} />
+</Base>
+
+<style>
+  /* Spacing: 20px inside the hero, 20px from a heading to its content, 24px between cards, and
+     a wide fluid gap between sections, so each band of the page reads as one thing. */
+  .home { display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(48px, 6vw, 80px); }
+  .hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; justify-items: center; text-align: center; padding: clamp(16px, 3vw, 40px) 0 0; }
+  .hero h1 { font-family: var(--display); font-weight: 700; font-size: clamp(36px, 1.2rem + 3.4vw, 60px); line-height: 1.04; letter-spacing: -0.025em; max-width: 16ch; }
+  .hero mark, .why-end mark { background: linear-gradient(transparent 58%, var(--hl) 58%, var(--hl) 92%, transparent 92%); color: inherit; }
+  /* At night the highlighter is a solid block, so its words stay readable on the dark page. */
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .hero mark, :global(:root:not([data-theme="light"])) .why-end mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  }
+  :global(:root[data-theme="dark"]) .hero mark, :global(:root[data-theme="dark"]) .why-end mark { background: var(--hl); color: var(--hl-ink); border-radius: 6px; padding: 0 .12em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; color: var(--soft); font-size: 15px; }
+  .trust li { display: inline-flex; gap: 7px; align-items: center; }
+  .trust :global(.ic) { color: var(--ok); font-size: 18px; }
+  .find { width: min(640px, 100%); margin-top: 8px; }
+  .find-box { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px 0 18px; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); box-shadow: var(--shadow); text-align: left; cursor: text; }
+  .find-box:focus-within { box-shadow: var(--shadow), 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }
+  .find-box > :global(.ic) { font-size: 24px; color: var(--soft); }
+  .find-box input { flex: 1; min-width: 0; border: 0; background: transparent; font-size: 16px; padding: 0; min-height: 52px; }
+  .find-box input:focus { outline: none; }
+  .find-box input::placeholder { color: var(--muted); opacity: 1; }
+  .find-box input::-webkit-search-cancel-button { cursor: pointer; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: min(1000px, 100%); padding-bottom: 2px; }
+  .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px 0 8px; border: 1.5px solid var(--hair); border-radius: 999px; background: var(--card); color: var(--ink); font-weight: 650; font-size: 15px; cursor: pointer; white-space: nowrap; }
+  .chip:hover { border-color: var(--edge); }
+  .chip[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .chip-ic { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--tint); color: var(--ink); font-size: 16px; }
+  .chip-ic.all { background: #ffe27a; color: #1d1b16; }
+  .chip-n { font-family: var(--mono); font-size: 13px; font-weight: 400; opacity: .8; }
+  .sortbox { margin-left: auto; align-self: center; display: grid; justify-items: end; gap: 4px; min-width: 0; }
+  .sortrow { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px 10px; border: 0; margin: 0; padding: 0; min-width: 0; }
+  .sortrow legend { float: left; padding: 0; margin-right: 10px; font-size: 14px; color: var(--soft); line-height: 44px; }
+  .segmented { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; border-radius: 12px; background: var(--well); }
+  .segmented input { position: absolute; opacity: 0; pointer-events: none; }
+  .segmented label { display: inline-flex; align-items: center; min-height: 38px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .segmented label:hover { color: var(--ink); }
+  .segmented input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .segmented input:focus-visible + label { outline: 2.5px solid var(--ink); outline-offset: 2px; }
+
+  .results { display: grid; gap: 12px; }
+  .results-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .results-group { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 650; text-underline-offset: 3px; white-space: nowrap; }
+  .results-head .sortbox + .results-group { margin-left: 0; }
+  .results-empty { color: var(--soft); }
+  /* Nothing found: centred under the centred search box. */
+  .results.is-empty { justify-items: center; text-align: center; }
+  .results.is-empty .results-head { justify-content: center; }
+  .results.is-empty #results-clear { justify-self: center; }
+  #results-clear { justify-self: start; }
+  .results :global(.rows a.sel) { background: var(--row-hover); box-shadow: inset 4px 0 0 var(--edge); }
+
+  .default { display: grid; gap: clamp(56px, 7vw, 96px); }
+  .pop-head, .all-head, .fav-head { margin-bottom: 20px; }
+  .fav[hidden] { display: none; }
+  .fav-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .fav-manage { display: inline-flex; align-items: center; min-height: 44px; font-weight: 650; text-underline-offset: 3px; }
+  .pop-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .pop-nav { display: flex; gap: 8px; }
+  /* Four cards at a time (two on tablets, one and a peek on phones); the rest scroll sideways.
+     The padding keeps the cards' hard shadow and hover lift inside the scrolling box. */
+  .pops {
+    list-style: none; display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 3 * 24px) / 4); gap: 24px;
+    overflow-x: auto; scroll-snap-type: x mandatory; overscroll-behavior-x: contain; scrollbar-width: none;
+    margin: -4px -4px -8px; padding: 4px 4px 8px; scroll-padding-inline: 4px;
+  }
+  .pops::-webkit-scrollbar { display: none; }
+  .pops li { min-width: 0; scroll-snap-align: start; }
+  .pop {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; align-content: start; height: 100%; padding: 10px 16px 16px 10px;
+    border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--card); box-shadow: var(--shadow); text-decoration: none; transition: transform .08s, box-shadow .08s;
+  }
+  .pop:hover { transform: translateY(-1px); box-shadow: 0 4px 0 var(--press); }
+  .pop:active { transform: translateY(3px); box-shadow: none; }
+  .pop-shot { grid-column: 1 / span 2; display: block; aspect-ratio: 2 / 1; border-radius: var(--r-sm); overflow: hidden; background: var(--tint); margin-bottom: 10px; }
+  .pop-shot :global(svg) { display: block; width: 100%; height: 100%; }
+  .pop-shot :global(.obj) { transition: transform .6s cubic-bezier(.2, .7, .2, 1); }
+  .pop:hover .pop-shot :global(.obj) { transform: translateY(-5px); }
+  .pop-task { grid-column: 1; font-weight: 650; font-size: 17px; line-height: 1.3; }
+  .pop-sub { grid-column: 1; font-size: 14px; color: var(--soft); line-height: 1.4; }
+  .pop-go { grid-column: 2; grid-row: 2 / span 2; align-self: center; font-size: 18px; color: var(--soft); display: grid; }
+
+  .all-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .all-sub { font-size: 14px; color: var(--muted); }
+  .gcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 24px; align-items: start; }
+  .gcard { min-width: 0; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); overflow: hidden; box-shadow: var(--shadow); container-type: inline-size; }
+  .gcard-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--tint); border-bottom: 1.5px solid var(--edge); text-decoration: none; }
+  .gcard-ic { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--card); border: 1.5px solid var(--edge); font-size: 22px; }
+  /* The one way into the group: "See all 7 tools →", or "7 tools →" when the card is narrow. */
+  .gcard-n { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px 0 12px; border-radius: 999px; background: var(--card); border: 1.5px solid var(--edge); font-size: 14px; font-weight: 700; white-space: nowrap; transition: background .12s, color .12s; }
+  .gcard-n :global(.ic) { font-size: 16px; }
+  .gcard-n .short { display: none; }
+  .gcard-head:hover .gcard-n { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  @container (max-width: 400px) {
+    .gcard-n .long { display: none; }
+    .gcard-n .short { display: inline; }
+  }
+  .gcard .rows > :global(li:nth-child(n + 4)), .gcard .rows > :global(li.want) { display: none; }
+
+  /* Using an AI assistant? One quiet row: icon, two lines, a link. */
+  .ai-note { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 18px; padding: 18px 20px; }
+  .ai-note .h3 { margin: 0 0 2px; }
+  .ai-note p { margin: 0; color: var(--soft); }
+  .ai-ic { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--well); font-size: 22px; }
+  @media (max-width: 640px) { .ai-note { grid-template-columns: auto minmax(0, 1fr); } .ai-note .btn { grid-column: 1 / -1; justify-self: start; } }
+
+  /* Why this exists: the belief behind the site, set apart by space rather than a box. */
+  .why { display: grid; justify-items: center; gap: 20px; text-align: center; padding: clamp(32px, 5vw, 64px) 0 clamp(8px, 2vw, 24px); border-top: 1px solid var(--hair); }
+  .why-h { font-size: 15px; font-weight: 650; color: var(--muted); }
+  .why-lines { display: grid; gap: 4px; }
+  .why-lines p, .why-end { margin: 0; font-family: var(--display); font-size: clamp(22px, 1rem + 1.2vw, 30px); line-height: 1.25; letter-spacing: -0.01em; }
+  .why-lines p { color: var(--soft); }
+  .why-end { font-weight: 700; }
+
+  @media (max-width: 960px) {
+    .pops { grid-auto-columns: calc((100% - 24px) / 2); }
+  }
+
+  @media (max-width: 640px) {
+    .hero { justify-items: stretch; text-align: left; padding: 0; }
+    .trust, .sortrow { justify-content: flex-start; }
+    .sortbox { margin-left: 0; justify-items: start; width: 100%; }
+    .results.is-empty { justify-items: stretch; text-align: left; }
+    .results.is-empty .results-head { justify-content: flex-start; }
+    .results.is-empty #results-clear { justify-self: start; }
+    .chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; width: 100%; margin: 0 calc(var(--gutter) * -1); padding: 2px var(--gutter) 6px; width: calc(100% + 2 * var(--gutter)); }
+    /* One card and a peek of the next, running to the screen's edges like the chips. */
+    .pops { grid-auto-columns: 80%; gap: 16px; margin: -4px calc(var(--gutter) * -1) -8px; padding: 4px var(--gutter) 8px; scroll-padding-inline: var(--gutter); }
+  }
+</style>
+
+<script>
+  import { makeSearch } from "../lib/search.js";
+  import { summary, showWants, fmtCount, type ToolStats } from "../lib/stats";
+  import { txt, txtN, pageLang } from "../lib/ui";
+
+  // Words for this page's language come from the #ftt-home block; the English here is the fallback.
+  const lang = pageLang();
+  const prefix = lang === "en" ? "" : `/${lang}`;
+  const h = (key: string, fallback: string, vars: Record<string, string | number> = {}) => txt(key, fallback, vars, "ftt-home");
+  const hn = (key: string, n: number, fallback: { one: string; other: string }, vars: Record<string, string | number> = {}) => txtN(key, n, fallback, vars, "ftt-home");
+  const nTools = (n: number) => hn("tools", n, { one: "{n} tool", other: "{n} tools" });
+
+  type Item = { n: string; t?: string; c: string; g?: string; u: string; k: string; w?: 1 };
+  const indexEl = document.getElementById("search-index")!;
+  const index: Item[] = JSON.parse(indexEl.textContent!);
+  const find = makeSearch(index, (indexEl.dataset.stop ?? "").split(",").filter(Boolean));
+  const REQUEST = "https://github.com/sapience-design/freethetools/issues/new?template=tool_request.yml";
+
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const input = $<HTMLInputElement>("find"), key = $("find-key");
+  const results = $("results"), list = $("search-results"), title = $("results-title"), count = $("results-count");
+  const empty = $("results-empty"), groupLink = $<HTMLAnchorElement>("results-group"), def = $("default");
+  const sortbox = $("sortbox"), allHead = sortbox.parentElement!, resultsHead = groupLink.parentElement!;
+  const chips = [...document.querySelectorAll<HTMLButtonElement>(".chip")];
+  const radios = [...document.querySelectorAll<HTMLInputElement>('input[name="sort"]')];
+  const pools = [...document.querySelectorAll<HTMLElement>("[data-sortable]")];
+  const rowFor = (u: string) => document.querySelector<HTMLElement>(`[data-sortable] > li[data-u="${CSS.escape(u)}"]`);
+
+  let cat = "all";
+  // Write to a live region only when the words change, so a screen reader isn't interrupted by the
+  // same message on every keystroke. The arrow-key hint is spoken once per search.
+  const findStatus = $("find-status");
+  const say = (text: string) => { if (findStatus.textContent !== text) findStatus.textContent = text; };
+  let hinted = false;
+  let stats: Record<string, ToolStats> | null = null;
+  const sortBy = () => radios.find((r) => r.checked)?.value ?? "az";
+
+  // ---- Sorting: each group card keeps its rows in the chosen order; planned tools stay last ----
+  const dateFmt = new Intl.DateTimeFormat(lang === "en" ? "en-GB" : lang, { day: "numeric", month: "short", year: "numeric" });
+  function value(li: HTMLElement, by: string): number | string {
+    const s = stats?.[li.dataset.tool ?? ""];
+    if (by === "used") return s?.uses ?? 0;
+    if (by === "liked") return s?.likes ?? 0;
+    if (by === "new") return li.dataset.added ?? "";
+    return li.dataset.name ?? "";
+  }
+  function compare(a: HTMLElement, b: HTMLElement, by: string) {
+    const wa = a.classList.contains("want"), wb = b.classList.contains("want");
+    if (wa !== wb) return wa ? 1 : -1;
+    const az = (a.dataset.name ?? "").localeCompare(b.dataset.name ?? "");
+    if (by === "az" || wa) return az;
+    const va = value(a, by), vb = value(b, by);
+    return va < vb ? 1 : va > vb ? -1 : az;
+  }
+  function statText(li: HTMLElement, by: string) {
+    const s = stats?.[li.dataset.tool ?? ""];
+    if (by === "used" && s?.uses) return ` · ${hn("uses", s.uses, { one: "{n} use", other: "{n} uses" }, { n: fmtCount(s.uses) })}`;
+    if (by === "liked" && s?.likes) return ` · ${hn("likes", s.likes, { one: "{n} like", other: "{n} likes" }, { n: fmtCount(s.likes) })}`;
+    if (by === "new" && li.dataset.added) return ` · ${h("added", "Added {date}", { date: dateFmt.format(new Date(`${li.dataset.added}T12:00:00`)) })}`;
+    return "";
+  }
+  const SUBS: Record<string, string> = {
+    used: h("subUsed", "Most used first in each group"), new: h("subNew", "Newest first in each group"),
+    liked: h("subLiked", "Most liked first in each group"), az: h("subAz", "A to Z in each group"),
+  };
+  function sort() {
+    const by = sortBy();
+    for (const ul of pools) {
+      const rows = [...ul.children] as HTMLElement[];
+      rows.sort((a, b) => compare(a, b, by));
+      ul.append(...rows);
+      for (const li of rows) { const el = li.querySelector("[data-stat]"); if (el) el.textContent = statText(li, by); }
+    }
+    const missing = !stats && (by === "used" || by === "liked");
+    $("all-sub").textContent = missing ? SUBS.az : SUBS[by];
+    if (!results.hidden) render();
+  }
+
+  // ---- Search and group filter ----
+  // The sort control sits with the list it sorts: beside "All tools", or in a group's results
+  // header. A text search lists best matches first, so the control hides. It moves only when its
+  // place changes, so a focused option never loses focus.
+  function placeSort(q: string, show: boolean) {
+    sortbox.hidden = !!q;
+    const home = show ? resultsHead : allHead;
+    if (sortbox.parentElement === home) return;
+    if (show) resultsHead.insertBefore(sortbox, groupLink);
+    else allHead.append(sortbox);
+  }
+  function cloneRow(u: string) {
+    const li = rowFor(u)?.cloneNode(true) as HTMLElement | undefined;
+    return li ?? null;
+  }
+  function render() {
+    const q = input.value.trim();
+    const show = !!q || cat !== "all";
+    results.hidden = !show;
+    def.hidden = show;
+    placeSort(q, show);
+    if (!q) hinted = false;
+    if (!show) { say(""); return; }
+    const cname = cat !== "all" ? chips.find((c) => c.dataset.cat === cat)?.dataset.label ?? "" : "";
+    let urls: string[];
+    if (q) urls = find(q).filter((h) => cat === "all" || h.g === cat).map((h) => h.u);
+    else urls = ([...document.querySelectorAll<HTMLElement>(`[data-sortable] > li[data-g="${cat}"]:not(.want)`)]).map((li) => li.dataset.u!);
+    const rows = urls.map(cloneRow).filter((x): x is HTMLElement => !!x).slice(0, q ? 12 : 50);
+    rows.forEach((li, i) => li.querySelector("a")?.classList.toggle("sel", !!q && i === 0));
+    list.replaceChildren(...rows);
+    list.hidden = !rows.length;
+    empty.hidden = rows.length > 0;
+    results.classList.toggle("is-empty", !rows.length);
+    title.textContent = q ? `${rows.length ? h("best", "Best matches for") : h("none", "Nothing found for")} “${q}”${cname ? h("inGroup", " in {group}", { group: cname }) : ""}` : cname;
+    count.textContent = nTools(rows.length);
+    count.hidden = !rows.length;
+    groupLink.hidden = cat === "all";
+    if (cat !== "all") { groupLink.href = `${prefix}/${cat}/`; groupLink.querySelector("span")!.textContent = h("openGroup", "Open the {group} page", { group: cname }); }
+    const n = nTools(rows.length);
+    if (!q) say(h("showing", "Showing {group}: {count}.", { group: cname, count: n }));
+    else if (!rows.length) say(h("noMatch", "No tool matches yet. Press Enter to ask for it."));
+    else { say(hinted ? h("count", "{count}.", { count: n }) : h("countHint", "{count}. Use the up and down arrow keys, then Enter.", { count: n })); hinted = true; }
+  }
+
+  input.addEventListener("input", render);
+  input.addEventListener("focus", () => (key.hidden = true));
+  input.addEventListener("blur", () => (key.hidden = !!input.value));
+  // Arrow keys move through results; Enter opens the highlighted one, or asks for the tool if nothing matches.
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { input.value = ""; render(); return; }
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+    const links = [...list.querySelectorAll("a")];
+    if (!links.length) return;
+    e.preventDefault();
+    const at = links.findIndex((l) => l.classList.contains("sel"));
+    const next = (at + (e.key === "ArrowDown" ? 1 : -1) + links.length) % links.length;
+    links.forEach((l, i) => l.classList.toggle("sel", i === next));
+    links[next].scrollIntoView({ block: "nearest" });
+    // The highlight is visual only, so say which result is selected.
+    const li = links[next].closest<HTMLElement>("li")!;
+    const group = chips.find((c) => c.dataset.cat === li.dataset.g)?.dataset.label ?? "";
+    say(group ? h("selected", "{name}, {group}, {i} of {n}", { name: li.dataset.name ?? "", group, i: next + 1, n: links.length }) : h("selectedNoGroup", "{name}, {i} of {n}", { name: li.dataset.name ?? "", i: next + 1, n: links.length }));
+  });
+  input.form!.addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (!input.value.trim()) return;
+    const first = (list.querySelector("a.sel") ?? list.querySelector("a")) as HTMLAnchorElement | null;
+    location.href = first ? first.href : REQUEST;
+  });
+
+  chips.forEach((c) => c.addEventListener("focus", () => c.scrollIntoView({ block: "nearest", inline: "nearest" })));
+  chips.forEach((c) => c.addEventListener("click", () => {
+    cat = c.dataset.cat!;
+    chips.forEach((x) => x.setAttribute("aria-pressed", String(x === c)));
+    render();
+  }));
+  $("results-clear").addEventListener("click", () => {
+    input.value = "";
+    cat = "all";
+    chips.forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.cat === "all")));
+    render();
+    input.focus();
+  });
+
+  const KEY = "ftt:sort";
+  radios.forEach((r) => r.addEventListener("change", () => {
+    sort();
+    $("sort-status").textContent = h("sorted", "Sorted by {label}.", { label: r.nextElementSibling!.textContent ?? "" });
+    try { localStorage.setItem(KEY, r.value); } catch {}
+  }));
+  let saved = "used";
+  try { saved = localStorage.getItem(KEY) || "used"; } catch {}
+  (radios.find((r) => r.value === saved) ?? radios[0]).checked = true;
+
+  // All four options always show. Without usage numbers (a preview, offline, blocked), the two
+  // usage sorts fall back to A to Z, and the label beside "All tools" says so.
+  summary().then((s) => {
+    stats = s;
+    sort();
+  });
+  showWants();
+
+  // ---- Most people come for: four at a time; swipe or the arrows show the rest ----
+  const pops = $("pops"), popNav = $("pop-nav");
+  const prev = $<HTMLButtonElement>("pop-prev"), next = $<HTMLButtonElement>("pop-next");
+  function popState() {
+    const max = pops.scrollWidth - pops.clientWidth;
+    popNav.hidden = max <= 1;
+    prev.disabled = pops.scrollLeft <= 1;
+    next.disabled = pops.scrollLeft >= max - 1;
+    // A button that just became disabled can't keep focus; hand it to the other one.
+    if (document.activeElement === next && next.disabled) prev.focus();
+    if (document.activeElement === prev && prev.disabled) next.focus();
+  }
+  const slide = (dir: number) => pops.scrollBy({ left: dir * pops.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  prev.addEventListener("click", () => slide(-1));
+  next.addEventListener("click", () => slide(1));
+  pops.addEventListener("scroll", popState, { passive: true });
+  // A card that is only peeking counts as visible, so the browser won't scroll to it on Tab.
+  pops.addEventListener("focusin", (e) => (e.target as HTMLElement).closest("li")?.scrollIntoView({ block: "nearest", inline: "nearest" }));
+  // Also after a search hides and shows the section again, which changes its size.
+  new ResizeObserver(popState).observe(pops);
+
+  // ---- Your favourites: the tools kept in this browser, looked up in the rows already on the page ----
+  const fav = $("fav"), favList = $("fav-list");
+  type Kept = Record<string, { name: string; href: string }>;
+  function showFavourites(kept: Kept) {
+    const rows = Object.entries(kept).map(([id, k]) => {
+      const li = (document.querySelector(`[data-sortable] > li[data-tool="${CSS.escape(id)}"]`) ?? rowFor(k.href))?.cloneNode(true) as HTMLElement | undefined;
+      if (li) { li.querySelector("[data-stat]")?.replaceChildren(); return li; }
+      // A tool that is no longer listed keeps the name it was saved with.
+      const row = document.createElement("li");
+      row.innerHTML = '<a class="row"><span class="row-ic"></span><span class="row-title"><b></b></span></a>';
+      row.querySelector("a")!.href = k.href;
+      row.querySelector("b")!.textContent = k.name;
+      return row;
+    });
+    fav.hidden = rows.length === 0;
+    favList.replaceChildren(...rows);
+  }
+  const keptNow = (): Kept => { try { return JSON.parse(localStorage.getItem("ftt:saved") || "{}") || {}; } catch { return {}; } };
+  document.addEventListener("saved-change", (e) => showFavourites((e as CustomEvent).detail));
+  showFavourites(keptNow());
+
+  const q = new URLSearchParams(location.search).get("q");
+  if (q) { input.value = q; key.hidden = true; }
+  render();
+  if (location.hash === "#find") input.focus();
+</script>

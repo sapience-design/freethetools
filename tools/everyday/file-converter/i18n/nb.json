@@ -1,0 +1,53 @@
+{
+  "name": "Filkonverterer",
+  "task": "Konverter en hvilken som helst fil",
+  "tagline": "Slipp filer her. Den finner ut hva hver fil er og hva den kan bli.",
+  "seoTitle": "Gratis filkonverterer: bilder, lyd, CSV, Markdown",
+  "description": "Konverter bilder, lyd, CSV, JSON, Markdown og HTML i nettleseren, én fil eller mange. Den kjenner igjen typen selv. Ingenting lastes opp.",
+  "keywords": [
+    "filkonverterer",
+    "konverter filer",
+    "png til bmp",
+    "png til ico",
+    "svg til png",
+    "webp til jpg",
+    "csv til json",
+    "lyd til wav",
+    "mp3 til wav",
+    "markdown til html"
+  ],
+  "specs": {
+    "Bilder": "PNG, JPEG, WebP, GIF (første bilde), BMP, ICO, SVG og AVIF (der nettleseren kan åpne den) til PNG, JPEG, WebP, BMP eller ICO",
+    "Lyd": "Alt nettleseren kan spille, til 16-bits WAV på 44,1 kHz",
+    "Data": "CSV, TSV og JSON (en liste med objekter) til hverandre",
+    "Dokumenter": "Markdown til HTML, HTML til Markdown, og begge til ren tekst",
+    "Gjenkjenning": "Etter filens første byte, deretter navnet",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. Hver fil konverteres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Hvordan vet den hva en fil er?",
+      "a": "Den leser de første bytene i filen, der de fleste formater signerer seg selv, og ser først etter det på navnet. En PNG som er omdøpt til .txt blir fortsatt behandlet som PNG."
+    },
+    {
+      "q": "Hvorfor kan den ikke konvertere filen min?",
+      "a": "Foreløpig støtter den bilder, lyd, CSV, JSON, Markdown og HTML. PDF-, Word- og Excel-filer, video og HEIC-bilder støttes ikke ennå. Be om konverteringen du trenger, så havner den på lista."
+    },
+    {
+      "q": "Hvorfor fikk den gjennomsiktige PNG-en min hvit bakgrunn?",
+      "a": "JPEG og BMP kan ikke lagre gjennomsiktighet, så de områdene fylles med hvitt. Velg PNG, WebP eller ICO for å beholde den."
+    },
+    {
+      "q": "Hva inneholder ICO-filen?",
+      "a": "Bildet ditt i de vanlige ikonstørrelsene som passer, fra 16 til 256 piksler, tilpasset kvadrater uten å strekkes. Windows og nettlesere velger størrelsen de trenger."
+    },
+    {
+      "q": "Hvorfor er WAV-filen så stor?",
+      "a": "WAV er ukomprimert 16-bits lyd. Den kan åpnes i de fleste programmer og passer til redigering, men er omtrent ti ganger så stor som en MP3."
+    }
+  ]
+}

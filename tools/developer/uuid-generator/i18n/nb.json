@@ -1,0 +1,35 @@
+{
+  "name": "UUID-generator",
+  "task": "Lag unike ID-er",
+  "tagline": "Tilfeldige v4- eller tidsordnede v7-UUID-er.",
+  "seoTitle": "UUID-generator (v4 og v7)",
+  "description": "Lag UUID v4 eller tidssorterbare v7-ID-er i mengde, med store eller små bokstaver, med eller uten bindestrek. Gratis, laget på enheten med sikker tilfeldighet.",
+  "keywords": [
+    "uuid",
+    "guid",
+    "v4",
+    "v7",
+    "unik id",
+    "tilfeldig id",
+    "mange"
+  ],
+  "specs": {
+    "Motor": "crypto.getRandomValues (sikker tilfeldighet)",
+    "Standard": "RFC 9562: v4 tilfeldig, v7 tidsordnet",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "v4 eller v7?",
+      "a": "v4 er helt tilfeldig. v7 begynner med tidspunktet den ble laget, så ID-ene sorteres i rekkefølgen de ble laget. Det holder databaseindekser raske."
+    },
+    {
+      "q": "Lages disse på en tjener?",
+      "a": "Nei. De lages i denne fanen med enhetens sikre tilfeldighetsgenerator."
+    },
+    {
+      "q": "Hvor mange kan jeg lage om gangen?",
+      "a": "Opptil 1000 om gangen. Skriv et tall fra 1 til 1000 i feltet Hvor mange. Et større tall kuttes til 1000."
+    }
+  ]
+}

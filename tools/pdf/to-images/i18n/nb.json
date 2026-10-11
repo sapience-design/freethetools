@@ -1,0 +1,30 @@
+{
+  "name": "PDF til bilder",
+  "task": "Lagre PDF-sider som bilder",
+  "tagline": "Hver side, eller bare noen, som JPG eller PNG.",
+  "seoTitle": "PDF til JPG og PNG uten å laste opp",
+  "description": "Gjør PDF-sider om til PNG- eller JPG-bilder, gratis i nettleseren, med 72, 150 eller 300 dpi. Velg sidene. Ingenting lastes opp.",
+  "keywords": [
+    "pdf til jpg",
+    "pdf til png",
+    "pdf til bilde",
+    "trekk ut sider",
+    "konverter pdf",
+    "skjermbilde av pdf"
+  ],
+  "specs": {
+    "Motor": "pdf.js 6.3 (Apache-2.0), i nettleseren",
+    "Oppløsning": "72, 150 eller 300 dpi, begrenset til 8000 piksler per side",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. Sidene tegnes inni denne nettleserfanen av pdf.js, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "PNG eller JPG?",
+      "a": "PNG er skarp og tapsfri, best for tekst og diagrammer. JPG er mye mindre, best for bilder og skanninger."
+    }
+  ]
+}

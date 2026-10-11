@@ -1,33 +1,38 @@
 ---
 import Base from "../layouts/Base.astro";
 import Icon from "./Icon.astro";
-import { loadCatalogue, REPO } from "../data/catalogue";
+import { loadCatalogue, groupIn, toolIn, toolUrl, REPO } from "../data/catalogue";
+import { t as ui, slots, localePath } from "../i18n/index";
 
-interface Props { category: string; slug: string }
-const { category, slug } = Astro.props;
+// A tool page, in English at /<group>/<tool>/ and in every language that has a text file for it at
+// /<lang>/<group>/<tool>/. Only the page around the tool is translated; the tool itself is English.
+interface Props { category: string; slug: string; lang?: string }
+const { category, slug, lang = "en" } = Astro.props;
+const T = (key: string, vars: Record<string, string | number> = {}) => ui(lang, `tool.${key}`, vars);
 const { tools } = await loadCatalogue();
 const tool = tools.find((t) => t.id === `${category}/${slug}`)!;
-const d = tool.data;
+const d = { ...tool.data, ...toolIn(tool, lang) };
+const groupText = groupIn(tool.category, lang);
+const agentText = slots(T("agentText")).map((x) => (typeof x === "string" ? x : { href: "/library/", text: T("agentLibrary") }));
 const uis = import.meta.glob<{ default: any }>("../../tools/*/*/Tool.astro", { eager: true });
 const UI = uis[`../../tools/${tool.id}/Tool.astro`]?.default;
 if (!UI) throw new Error(`tools/${tool.id}/Tool.astro is missing`);
 const hasAgent = `../../tools/${tool.id}/agent.js` in import.meta.glob("../../tools/*/*/agent.js");
-const url = new URL(tool.url, Astro.site).href;
+const url = new URL(toolUrl(tool, lang), Astro.site).href;
 const specs: [string, string][] = [
-  ["Runs", d.offline ? "In your browser. Nothing is uploaded." : "In your browser"],
+  [T("specRuns"), d.offline ? T("specRunsOffline") : T("specRunsOnline")],
   ...Object.entries(d.specs),
-  ["Licence", "AGPL-3.0"],
-  ["Added", new Date(d.added).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })],
+  [T("specLicence"), "AGPL-3.0"],
+  [T("specAdded"), new Date(d.added).toLocaleDateString(lang === "en" ? "en-GB" : lang, { day: "numeric", month: "long", year: "numeric" })],
 ];
 const files = category === "pdf" || category === "images";
-const safe = files
-  ? ["Your files stay on this device.", "They are never uploaded, not even to us."]
-  : ["This all happens on your device.", "Nothing you type or add is sent anywhere."];
+const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("safeOtherB")];
 ---
 <Base
   category={category}
   tool={slug}
-  title={`${d.seoTitle} | Free the Tools`}
+  lang={lang}
+  title={T("titleSuffix", { title: d.seoTitle })}
   description={d.description}
   jsonLd={{
     "@graph": [
@@ -36,6 +41,7 @@ const safe = files
         name: d.name,
         url,
         description: d.description,
+        inLanguage: lang,
         applicationCategory: "UtilitiesApplication",
         operatingSystem: "Any (web browser)",
         isAccessibleForFree: true,
@@ -57,52 +63,53 @@ const safe = files
   </script>
   <div class="page tool-page" data-g={category}>
     <div class="tp-main">
-      <a class="back" href={`/${category}/`}><Icon name="caret-left" />{tool.category.label}</a>
+      <a class="back" href={localePath(lang, `/${category}/`)}><Icon name="caret-left" />{groupText.label}</a>
       <header class="tp-head">
         <span class="tag"><span class="tag-ic"><Icon name={tool.category.mark} /></span>{d.name}</span>
         <h1 class="h1">{d.task}</h1>
         <p class="lede">{d.tagline}</p>
         <div class="tp-actions">
           {/* One heart: it keeps the tool in Favourites (see Base.astro) and counts one public like. */}
-          <button class="pillbtn like" type="button" id="tool-like" data-save={tool.id} data-name={d.name} data-href={tool.url} aria-pressed="false">
+          <button class="pillbtn like" type="button" id="tool-like" data-save={tool.id} data-name={tool.data.name} data-href={tool.url} aria-pressed="false">
             <span class="off"><Icon name="heart" /></span><span class="on"><Icon name="heart" weight="fill" /></span>
-            <span class="off">Add to favourites</span><span class="on">In favourites</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
+            <span class="off">{T("favAdd")}</span><span class="on">{T("favOn")}</span><span class="sr-only"> {d.name}</span><span class="count" id="tool-like-count"></span>
           </button>
           <span class="usage" id="tool-usage" hidden></span>
         </div>
       </header>
-      <div class="work" id="tool-work" data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => `/${tool.id}/vendor/${v.to}`))}>
+      {lang !== "en" && <p class="tool-note">{ui(lang, "toolNote")}</p>}
+      <div class="work" id="tool-work" lang={lang !== "en" ? "en" : undefined} data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => `/${tool.id}/vendor/${v.to}`))}>
         <UI />
       </div>
       {hasAgent && (
         <section class="agent-activity" id="agent-activity" aria-labelledby="agent-activity-h" hidden>
-          <h2 class="h3" id="agent-activity-h">AI agent activity</h2>
-          <p>An AI agent used this tool on this page. The files stay on this device and are saved in your <a href="/library/">library</a>.</p>
+          <h2 class="h3" id="agent-activity-h">{T("agentTitle")}</h2>
+          <p>{agentText.map((x) => (typeof x === "string" ? x : <a href={x.href}>{x.text}</a>))}</p>
           <ul class="agent-log" id="agent-log"></ul>
         </section>
       )}
       {hasAgent && <p class="sr-only" id="agent-status" role="status"></p>}
     </div>
 
-    <aside class="tp-side" aria-label="Help and details">
-      <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]} <a href="/how-it-works/">Check it yourself</a></span></p>
-      {d.offline && <p class="safe offline-note" data-offline-note hidden><Icon name="wifi-slash" /><span><b>Works offline:</b> you can turn off Wi-Fi and this tool still runs.</span></p>}
+    <aside class="tp-side" aria-label={T("sideLabel")}>
+      <p class="safe"><Icon name="shield-check" /><span><b>{safe[0]}</b> {safe[1]} <a href="/how-it-works/">{T("check")}</a></span></p>
+      {d.offline && <p class="safe offline-note" data-offline-note hidden><Icon name="wifi-slash" /><span><b>{T("offlineBold")}</b> {T("offlineText")}</span></p>}
       {d.faq.length > 0 && (
         <section class="help" aria-labelledby="faq">
-          <h2 class="sr-only" id="faq">Questions</h2>
+          <h2 class="sr-only" id="faq">{T("questions")}</h2>
           {d.faq.map((f) => <details class="qa"><summary>{f.q}<Icon name="plus" /></summary><p>{f.a}</p></details>)}
         </section>
       )}
       <section class="facts" aria-labelledby="facts-h">
-        <h2 class="h3" id="facts-h">About this tool</h2>
+        <h2 class="h3" id="facts-h">{T("about")}</h2>
         <table class="specs">
           <tbody>
             {specs.map(([k, v]) => <tr><th scope="row">{k}</th><td>{v}</td></tr>)}
-            <tr><th scope="row">Built by</th><td>{d.authors.map((a, i) => <>{i > 0 && ", "}{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}</>)}</td></tr>
-            <tr><th scope="row">Source</th><td><a href={`${REPO}/tree/main/tools/${tool.id}`}>tools/{tool.id}</a></td></tr>
+            <tr><th scope="row">{T("specBuilt")}</th><td>{d.authors.map((a, i) => <>{i > 0 && ", "}{a.github ? <a href={`https://github.com/${a.github}`}>{a.name}</a> : a.name}</>)}</td></tr>
+            <tr><th scope="row">{T("specSource")}</th><td><a href={`${REPO}/tree/main/tools/${tool.id}`}>tools/{tool.id}</a></td></tr>
           </tbody>
         </table>
-        <p class="report"><a href={`/suggest/?tool=${encodeURIComponent(tool.id)}&kind=problem`}>Report a problem</a></p>
+        <p class="report"><a href={`/suggest/?tool=${encodeURIComponent(tool.id)}&kind=problem`}>{T("report")}</a></p>
       </section>
     </aside>
   </div>
@@ -110,6 +117,7 @@ const safe = files
 
 <script>
   import { trackView, watchUse, watchOutcomes, summary, fmtCount } from "../lib/stats";
+  import { txtN } from "../lib/ui";
   const work = document.getElementById("tool-work")!;
   const tool = work.dataset.tool!;
   const like = document.getElementById("tool-like") as HTMLButtonElement;
@@ -150,7 +158,7 @@ const safe = files
     const t = s?.[tool];
     if (!t) return;
     count.textContent = t.likes ? fmtCount(t.likes) : "";
-    if (t.uses) { usage.textContent = `Used ${fmtCount(t.uses)} ${t.uses === 1 ? "time" : "times"}`; usage.hidden = false; }
+    if (t.uses) { usage.textContent = txtN("used", t.uses, { one: "Used {n} time", other: "Used {n} times" }, { n: fmtCount(t.uses) }); usage.hidden = false; }
   });
   // Base.astro handles the press (favourite and like together, once) and the pressed state. Here
   // we only show the new public count when it arrives.
@@ -177,6 +185,7 @@ const safe = files
   .like[aria-pressed="true"] { border-color: var(--edge); background: var(--bad-t); }
   .like[aria-pressed="true"] :global(.ic) { color: var(--bad); }
   .usage { font-size: 14px; color: var(--muted); }
+  .tool-note { margin: 0; padding: 10px 14px; border-radius: var(--r); background: var(--well); font-size: 15px; }
 
   .tp-side { min-width: 0; display: grid; gap: 18px; position: sticky; top: 90px; }
   .safe { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: var(--r); background: var(--ok-t); }

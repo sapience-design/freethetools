@@ -1,0 +1,46 @@
+{
+  "name": "Lås opp PDF",
+  "task": "Ta låsen av en PDF",
+  "tagline": "Fjern passordet på en PDF, eller grensene for utskrift og kopiering, på en fil du eier.",
+  "seoTitle": "Lås opp PDF uten å laste opp",
+  "description": "Fjern passordet på en PDF, eller grensene for utskrift og kopiering, gratis i nettleseren. Filer lastes aldri opp. Sider og skjemaer forblir like.",
+  "keywords": [
+    "lås opp",
+    "fjern passord",
+    "dekrypter",
+    "fjern beskyttelse",
+    "begrensninger",
+    "kopibeskyttelse",
+    "utskriftsbeskyttelse",
+    "kryptert",
+    "qpdf"
+  ],
+  "specs": {
+    "Motor": "qpdf 11, kompilert til WebAssembly",
+    "Tapsfritt": "Bare låsen fjernes. Sider, skjemaer og bokmerker forblir som de var.",
+    "Første gang": "1,3 MB, deretter lagret av nettleseren din",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Kan den låse opp en PDF uten passordet?",
+      "a": "Den kan fjerne grenser for utskrift, kopiering og redigering fra en PDF som åpnes uten passord. Den kan ikke åpne en PDF der du ikke kjenner passordet. Lås bare opp PDF-er du har rett til å låse opp."
+    },
+    {
+      "q": "Sendes passordet mitt noe sted?",
+      "a": "Nei. Passordet blir i denne nettleserfanen. Det går til opplåsingsmotoren på denne siden og ingen andre steder. Sidens sikkerhetspolicy hindrer at data sendes ut, og siden lagrer eller logger aldri passordet. Feltet tømmes så snart du har brukt det."
+    },
+    {
+      "q": "Endrer opplåsing PDF-en min?",
+      "a": "Nei. Bare låsen fjernes. Sidene, teksten, bildene, skjemaene og bokmerkene kommer ut like, og originalfilen din røres ikke."
+    },
+    {
+      "q": "Hvorfor sier siden at PDF-en min ikke er låst?",
+      "a": "Noen PDF-er ser bare beskyttet ut. Hvis siden sier at det ikke er noen lås, har filen verken passord eller grenser, og du kan bruke den som den er."
+    },
+    {
+      "q": "Hvilke låser fjerner den?",
+      "a": "Begge typer: passordet som åpner en PDF, og eiergrensene for utskrift, kopiering og redigering. Den virker med krypteringen i vanlige PDF-filer, fra gamle 40-bits filer til 256-bits AES."
+    }
+  ]
+}

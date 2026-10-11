@@ -3,6 +3,7 @@
 import { zipAll } from "./zip.js";
 import type { ZipEntry } from "./zip.js";
 import { shareButton, canShareFile } from "./share";
+import { txt } from "./ui";
 
 export { zipAll };
 
@@ -230,16 +231,16 @@ function donateLine(): HTMLElement | null {
   } catch { return null; }
   const card = document.createElement("aside");
   card.className = "donate-card";
-  card.setAttribute("aria-label", "Donate");
+  card.setAttribute("aria-label", txt("donateLabel", "Donate"));
   const ic = document.createElement("span");
   ic.className = "donate-ic";
   ic.innerHTML = HAND_HEART;
   const text = document.createElement("div");
   text.className = "donate-text";
   const head = document.createElement("b");
-  head.textContent = "Saved you some time?";
+  head.textContent = txt("donateTitle", "Saved you some time?");
   const body = document.createElement("span");
-  body.textContent = "This tool is free and ran in your browser. A small donation helps keep it that way.";
+  body.textContent = txt("donateBody", "This tool is free and ran in your browser. A small donation helps keep it that way.");
   text.append(head, body);
   const actions = document.createElement("div");
   actions.className = "donate-actions";
@@ -247,11 +248,11 @@ function donateLine(): HTMLElement | null {
   a.className = "donate-btn";
   a.href = "https://ko-fi.com/freethetools";
   a.innerHTML = HAND_HEART;
-  a.append("Donate");
+  a.append(txt("donateButton", "Donate"));
   const later = document.createElement("button");
   later.type = "button";
   later.className = "btn quiet small";
-  later.textContent = "Next time";
+  later.textContent = txt("donateLater", "Next time");
   later.addEventListener("click", () => card.remove());
   actions.append(a, later);
   card.append(ic, text, actions);

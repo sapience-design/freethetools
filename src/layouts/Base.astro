@@ -1,7 +1,8 @@
 ---
 import "../styles/global.css";
 import Icon from "../components/Icon.astro";
-import { loadCatalogue, REPO, SUGGEST_URL } from "../data/catalogue";
+import { loadCatalogue, groupIn, toolIn, REPO, SUGGEST_URL } from "../data/catalogue";
+import { LANGS, langOf, t, slots, jsStrings, localePath, splitPath } from "../i18n/index";
 import originTrials from "../data/origin-trials.json";
 import { version } from "../../package.json";
 
@@ -15,30 +16,43 @@ interface Props {
   /** Last breadcrumb for a page under a group that is not a built tool, such as a wanted tool. */
   crumb?: string;
   page?: "home" | "about" | "how" | "ai" | "licenses" | "saved" | "library" | "stats";
+  /** The language of the page. English unless a translated page says otherwise. */
+  lang?: string;
 }
-const { title, description, jsonLd, noindex = false, category, tool, crumb, page } = Astro.props;
+const { title, description, jsonLd, noindex = false, category, tool, crumb, page, lang = "en" } = Astro.props;
+const L = langOf(lang);
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const publisher = { "@type": "Organization", name: "Sapience Design", url: "https://sapience.design" };
-const { aisles, tools } = await loadCatalogue();
+const { aisles, tools, hasPage } = await loadCatalogue();
+// The English address of this page, to find its twins in the other languages. A 404 page has none.
+const is404 = /\/404\/?$/.test(Astro.url.pathname);
+const enPath = is404 ? "/" : splitPath(Astro.url.pathname, LANGS.map((l) => l.code)).path;
+const homeHref = localePath(lang, "/");
+const alternates = is404 ? [] : LANGS.filter((l) => hasPage(l.code, enPath));
 // Breadcrumbs for search engines: Free the Tools › group › tool, or Free the Tools › this page.
-const home = new URL("/", Astro.site).href;
+const home = new URL(homeHref, Astro.site).href;
 const group = category ? aisles.find((a) => a.slug === category) : undefined;
+const groupText = group ? groupIn(group, lang) : undefined;
 const toolEntry = category && tool ? tools.find((x) => x.id === `${category}/${tool}`) : undefined;
-const crumbs = page === "home" || Astro.url.pathname === "/" ? [] : [
+const crumbs = page === "home" || enPath === "/" ? [] : [
   { name: "Free the Tools", url: home },
-  ...(group ? [{ name: group.label, url: new URL(`/${group.slug}/`, Astro.site).href }] : []),
-  ...(toolEntry ? [{ name: toolEntry.data.name, url: canonical }] : crumb ? [{ name: crumb, url: canonical }] : group ? [] : [{ name: title.split(" | ")[0], url: canonical }]),
+  ...(group ? [{ name: groupText!.label, url: new URL(localePath(lang, `/${group.slug}/`), Astro.site).href }] : []),
+  ...(toolEntry ? [{ name: toolIn(toolEntry, lang).name, url: canonical }] : crumb ? [{ name: crumb, url: canonical }] : group ? [] : [{ name: title.split(" | ")[0], url: canonical }]),
 ];
 const breadcrumbs = crumbs.length > 1 ? { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, name: c.name, item: c.url })) } : null;
-// Share image, drawn at build time by src/pages/og/[...slug].png.ts. Groups with no tools yet use the site's.
+// Share image, drawn at build time by src/pages/og/[...slug].png.ts (in English). Groups with no tools yet use the site's.
 const ogPath = category && tool ? `/og/${category}/${tool}.png`
   : category && aisles.some((a) => a.slug === category && a.live.length) ? `/og/${category}.png`
   : "/og/site.png";
 const ogImage = new URL(ogPath, Astro.site).href;
-const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["dark", "moon", "Dark"]];
+const themes = [["system", "monitor", t(lang, "foot.system")], ["light", "sun", t(lang, "foot.light")], ["dark", "moon", t(lang, "foot.dark")]];
+const abs = (p: string) => new URL(p, Astro.site).href;
+const hrefFor = (code: string) => localePath(code, hasPage(code, enPath) ? enPath : "/");
+const uiJson = JSON.stringify(jsStrings(lang, "common")).replace(/</g, "\\u003c");
+const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang} dir={L.dir}>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -49,10 +63,14 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <title>{title}</title>
   <meta name="description" content={description}>
   <link rel="canonical" href={canonical}>
+  {alternates.length > 1 && alternates.map((l) => <link rel="alternate" hreflang={l.code} href={abs(localePath(l.code, enPath))}>)}
+  {alternates.length > 1 && <link rel="alternate" hreflang="x-default" href={abs(enPath)}>}
   {noindex && <meta name="robots" content="noindex">}
   <meta name="author" content="Sapience Design">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Free the Tools">
+  <meta property="og:locale" content={L.locale}>
+  {alternates.length > 1 && alternates.filter((l) => l.code !== lang).map((l) => <meta property="og:locale:alternate" content={l.locale}>)}
   <meta property="og:title" content={title}>
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonical}>
@@ -74,20 +92,26 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   {breadcrumbs && <script type="application/ld+json" set:html={JSON.stringify(breadcrumbs)} />}
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main">{t(lang, "skip")}</a>
   <header class="bar">
     <div class="bar-in">
-    <a class="brand" href="/"><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
-    <nav class="bar-nav" aria-label="Site">
-      <a class="navlink with-ic" href="/library/" aria-current={page === "library" ? "page" : undefined}><Icon name="books" /><span class="bar-label">Library</span></a>
+    <a class="brand" href={homeHref}><span class="logo" aria-hidden="true"><Icon name="sparkle" /></span><span class="brand-name">Free the Tools</span></a>
+    <nav class="bar-nav" aria-label={t(lang, "bar.nav")}>
+      <a class="navlink with-ic" href="/library/" aria-current={page === "library" ? "page" : undefined}><Icon name="books" /><span class="bar-label">{t(lang, "bar.library")}</span></a>
       {page === "home"
-        ? <a class="navlink with-ic" href="/saved/"><Icon name="heart" /><span class="bar-label">Favourites</span><span class="count-pill" data-saved-count hidden>0</span></a>
-        : <a class="navlink with-ic" href="/#find"><Icon name="magnifying-glass" /><span class="bar-label">All tools</span></a>}
-      <a class="navlink gh" href={REPO} aria-label="Source code on GitHub" title="Source code on GitHub"><Icon name="github-logo" /></a>
-      <a class="donate-btn" href="https://ko-fi.com/freethetools"><Icon name="hand-heart" /><span class="donate-label">Donate</span></a>
+        ? <a class="navlink with-ic" href="/saved/"><Icon name="heart" /><span class="bar-label">{t(lang, "bar.favourites")}</span><span class="count-pill" data-saved-count hidden>0</span></a>
+        : <a class="navlink with-ic" href={`${homeHref}#find`}><Icon name="magnifying-glass" /><span class="bar-label">{t(lang, "bar.allTools")}</span></a>}
+      <a class="navlink gh" href={REPO} aria-label={t(lang, "bar.github")} title={t(lang, "bar.github")}><Icon name="github-logo" /></a>
+      <a class="donate-btn" href="https://ko-fi.com/freethetools"><Icon name="hand-heart" /><span class="donate-label">{t(lang, "bar.donate")}</span></a>
     </nav>
     </div>
   </header>
+
+  {!L.reviewed && (
+    <div class="review-note" role="note">
+      <p>{t(lang, "review.note")} <a href="/suggest/?kind=problem">{t(lang, "review.report")}</a></p>
+    </div>
+  )}
 
   <main id="main" tabindex="-1">
     <slot />
@@ -96,62 +120,75 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   <footer class="foot">
     <div class="foot-in">
       <div class="colophon">
-        <p class="foot-big">Useful tools that stay on your device.</p>
-        <a class="initiative" href="https://sapience.design"><img src="/brand/sapience-wordmark.webp" alt="Sapience Design" width="86" height="16"><span>A Sapience Design initiative</span></a>
-        <div class="theme" role="group" aria-label="Theme">
+        <p class="foot-big">{t(lang, "foot.tagline")}</p>
+        <a class="initiative" href="https://sapience.design"><img src="/brand/sapience-wordmark.webp" alt="Sapience Design" width="86" height="16"><span>{t(lang, "foot.initiative")}</span></a>
+        <div class="theme" role="group" aria-label={t(lang, "foot.theme")}>
           {themes.map(([v, ic, label], i) => (
             <button type="button" data-theme-set={v} aria-pressed={i === 0 ? "true" : "false"}><Icon name={ic} />{label}</button>
           ))}
         </div>
-        <label class="slash-opt"><input type="checkbox" id="slash-key" checked> Press <kbd>/</kbd> to jump to search</label>
+        {LANGS.length > 1 && (
+          <nav class="langs" aria-label={t(lang, "lang.label")}>
+            <ul>
+              {LANGS.map((l) => (
+                <li><a href={hrefFor(l.code)} lang={l.code} hreflang={l.code} aria-current={l.code === lang ? "true" : undefined}>{l.name}</a></li>
+              ))}
+            </ul>
+          </nav>
+        )}
+        <label class="slash-opt"><input type="checkbox" id="slash-key" checked> <span>{slashParts.map((p) => (typeof p === "string" ? p : <kbd>/</kbd>))}</span></label>
       </div>
       <div class="col">
-        <p class="col-h">Groups</p>
-        <ul>{aisles.map((a) => <li><a href={`/${a.slug}/`}>{a.label}</a></li>)}</ul>
+        <p class="col-h">{t(lang, "foot.groups")}</p>
+        <ul>{aisles.map((a) => <li><a href={localePath(lang, `/${a.slug}/`)}>{groupIn(a, lang).label}</a></li>)}</ul>
       </div>
       <div class="col">
-        <p class="col-h">Project</p>
+        <p class="col-h">{t(lang, "foot.project")}</p>
         <ul>
-          <li><a href="/about/">About</a></li>
-          <li><a href="/changelog/">What's new</a></li>
-          <li><a href="/saved/">Favourites</a></li>
-          <li><a href="/library/">Library</a></li>
-          <li><a href={SUGGEST_URL}>Suggest a tool</a></li>
-          <li><a href="https://ko-fi.com/freethetools">Donate</a></li>
-          <li><a href="/support/#company-h">Sponsor a tool</a></li>
+          <li><a href="/about/">{t(lang, "foot.about")}</a></li>
+          <li><a href="/changelog/">{t(lang, "foot.changelog")}</a></li>
+          <li><a href="/saved/">{t(lang, "foot.favourites")}</a></li>
+          <li><a href="/library/">{t(lang, "foot.library")}</a></li>
+          <li><a href={SUGGEST_URL}>{t(lang, "foot.suggest")}</a></li>
+          <li><a href="https://ko-fi.com/freethetools">{t(lang, "foot.donate")}</a></li>
+          <li><a href="/support/#company-h">{t(lang, "foot.sponsor")}</a></li>
         </ul>
       </div>
       <div class="col">
-        <p class="col-h">Trust</p>
+        <p class="col-h">{t(lang, "foot.trust")}</p>
         <ul>
-          <li><a href="/how-it-works/">How it works</a></li>
-          <li><a href="/verify/">Verify this site</a></li>
-          <li><a href="/stats/">Usage stats</a></li>
-          <li><a href="/privacy/">Privacy</a></li>
+          <li><a href="/how-it-works/">{t(lang, "foot.howItWorks")}</a></li>
+          <li><a href="/verify/">{t(lang, "foot.verify")}</a></li>
+          <li><a href="/stats/">{t(lang, "foot.stats")}</a></li>
+          <li><a href="/privacy/">{t(lang, "foot.privacy")}</a></li>
         </ul>
       </div>
       <div class="col">
-        <p class="col-h">Developers</p>
+        <p class="col-h">{t(lang, "foot.developers")}</p>
         <ul>
-          <li><a href="/ai/">AI assistants</a></li>
-          <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>Build a tool</a></li>
-          <li><a href={REPO}>Source code</a></li>
-          <li><a href="/api/tools.json">API</a></li>
-          <li><a href="/llms.txt">llms.txt</a></li>
-          <li><a href={`${REPO}/blob/main/openapi.yaml`}>OpenAPI</a></li>
+          <li><a href="/ai/">{t(lang, "foot.ai")}</a></li>
+          <li><a href={`${REPO}/blob/main/CONTRIBUTING.md`}>{t(lang, "foot.build")}</a></li>
+          <li><a href={REPO}>{t(lang, "foot.source")}</a></li>
+          <li><a href="/api/tools.json">{t(lang, "foot.api")}</a></li>
+          <li><a href="/llms.txt">{t(lang, "foot.llms")}</a></li>
+          <li><a href={`${REPO}/blob/main/openapi.yaml`}>{t(lang, "foot.openapi")}</a></li>
         </ul>
       </div>
       <div class="legal">
-        <span>© {new Date().getFullYear()} Sapience Design and contributors</span>
-        <span><a href="/licenses/">Licences</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>Trademarks</a><a href={`${REPO}/security/policy`}>Security</a><a href={`/changelog/#v${version.replaceAll(".", "-")}`} id="site-version">Version {version}</a></span>
+        <span>{t(lang, "foot.copyright", { year: new Date().getFullYear() })}</span>
+        <span><a href="/licenses/">{t(lang, "foot.licences")}</a><a href={`${REPO}/blob/main/TRADEMARKS.md`}>{t(lang, "foot.trademarks")}</a><a href={`${REPO}/security/policy`}>{t(lang, "foot.security")}</a><a href={`/changelog/#v${version.replaceAll(".", "-")}`} id="site-version">{t(lang, "foot.version", { version })}</a></span>
       </div>
     </div>
   </footer>
+
+  {/* Words the scripts need, in this page's language (src/lib/ui.ts reads them). */}
+  <script type="application/json" id="ftt-ui" set:html={uiJson} />
 
   <script>
     import { trackVisit, isLiked, setLiked } from "../lib/stats";
     import { registerServiceWorker } from "../lib/offline";
     import { watchExternalLinks } from "../lib/external-links.js";
+    import { txt } from "../lib/ui";
     trackVisit();
     registerServiceWorker();
     watchExternalLinks();
@@ -201,7 +238,7 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
       if (!slashOn || e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable) return;
       const find = document.getElementById("find") as HTMLInputElement | null;
       e.preventDefault();
-      if (find) find.focus(); else location.href = "/#find";
+      if (find) find.focus(); else location.href = `${document.querySelector(".brand")?.getAttribute("href") ?? "/"}#find`;
     });
 
     // Favourites live in this browser only (localStorage). The page works without it.
@@ -239,12 +276,12 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
     if (reading && heads.length >= 3) {
       const nav = document.createElement("nav");
       nav.className = "toc-rail";
-      nav.setAttribute("aria-label", "On this page");
+      nav.setAttribute("aria-label", txt("toc", "On this page"));
       const inner = document.createElement("div");
       inner.className = "toc";
       const title = document.createElement("p");
       title.className = "toc-h";
-      title.textContent = "On this page";
+      title.textContent = txt("toc", "On this page");
       const list = document.createElement("ul");
       const links = heads.map((h) => {
         const a = document.createElement("a");
@@ -336,6 +373,12 @@ const themes = [["system", "monitor", "System"], ["light", "sun", "Light"], ["da
   .theme button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
   .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }
   .legal span:last-child { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+  .review-note { padding: 8px var(--gutter); background: var(--well); border-bottom: 1px solid var(--hair); font-size: 14px; }
+  .review-note p { max-width: var(--content); margin: 0 auto; color: var(--ink); }
+  .review-note a { color: var(--ink); font-weight: 650; text-underline-offset: 3px; }
+  .foot .langs ul { display: flex; flex-wrap: wrap; gap: 2px 16px; }
+  .foot .langs a { min-height: 24px; }
+  .foot .langs a[aria-current="true"] { color: var(--ink); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
   @media (max-width: 860px) {
     .foot-in { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .colophon { grid-column: 1 / -1; }

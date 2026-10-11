@@ -1,0 +1,34 @@
+{
+  "name": "Slå sammen PDF-er",
+  "task": "Slå sammen PDF-er til én",
+  "tagline": "Legg flere PDF-er i én fil, i den rekkefølgen du velger.",
+  "seoTitle": "Slå sammen PDF-filer uten å laste opp",
+  "description": "Slå sammen PDF-filer til én, gratis og rett i nettleseren. Sett dem i hvilken som helst rekkefølge. Ingenting lastes opp, ingen registrering, ingen vannmerker.",
+  "keywords": [
+    "slå sammen",
+    "kombiner",
+    "sett sammen",
+    "legg til",
+    "pdf",
+    "én fil"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
+    "Grenser": "Så mange filer som minnet på enheten din tillater",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. PDF-ene leses og settes sammen inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Beholder den lenker og bokmerker?",
+      "a": "Sideinnhold, lenker på siden og skjemafelt beholdes. Den sammensatte filen tar ikke med bokmerkeoversikten fra hver fil ennå."
+    },
+    {
+      "q": "Kan jeg slå sammen passordbeskyttede PDF-er?",
+      "a": "Ikke ennå. Fjern passordet i PDF-leseren din først, og slå dem så sammen."
+    }
+  ]
+}

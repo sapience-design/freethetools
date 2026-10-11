@@ -31,4 +31,26 @@ const tools = defineCollection({
   }),
 });
 
-export const collections = { tools };
+// One entry per tools/<category>/<tool>/i18n/<lang>.json: the same words as tool.json, in another
+// language (docs/adr/0014-languages.md). The entry id is "<category>/<tool>/<lang>". The limits are
+// a little wider than tool.json's, because some languages need more letters. The build also checks
+// that the FAQ and the spec table have the same number of entries as the English ones.
+const toolTexts = defineCollection({
+  loader: glob({
+    pattern: "[!_]*/[!_]*/i18n/*.json",
+    base: "./tools",
+    generateId: ({ entry }) => entry.replace(/\/i18n\/([a-z]+)\.json$/, "/$1"),
+  }),
+  schema: z.object({
+    name: z.string().min(2).max(48),
+    task: z.string().min(4).max(60),
+    tagline: z.string().min(10).max(130),
+    seoTitle: z.string().min(10).max(70),
+    description: z.string().min(50).max(180),
+    keywords: z.array(z.string()).default([]),
+    specs: z.record(z.string(), z.string()).optional(),
+    faq: z.array(z.object({ q: z.string(), a: z.string() })).optional(),
+  }),
+});
+
+export const collections = { tools, toolTexts };

@@ -2,11 +2,13 @@
 import { defineConfig } from "astro/config";
 import { fileURLToPath } from "node:url";
 import { buildServiceWorker } from "./scripts/build-sw.mjs";
+import { languageNotFoundPages } from "./scripts/lang-404.mjs";
 
-// Writes dist/sw.js once the pages are built, because it lists their hashed CSS and JS files.
+// Once the pages are built: turns each language's 404 page into a file, and writes dist/sw.js, which lists the
+// hashed CSS and JS files of the pages.
 const serviceWorker = {
   name: "service-worker",
-  hooks: { "astro:build:done": ({ dir }) => { buildServiceWorker(fileURLToPath(dir)); } },
+  hooks: { "astro:build:done": ({ dir }) => { languageNotFoundPages(fileURLToPath(dir)); buildServiceWorker(fileURLToPath(dir)); } },
 };
 
 export default defineConfig({

@@ -1,0 +1,29 @@
+---
+// Every page that has a translation: /<lang>/, /<lang>/<group>/, /<lang>/<group>/<tool>/. A language
+// is any src/i18n/<lang>.json other than English; a tool page exists once the tool has a text file for
+// it. The pages are the same components as the English ones (docs/adr/0014-languages.md).
+import HomePage from "../../components/HomePage.astro";
+import GroupPage from "../../components/GroupPage.astro";
+import ToolPage from "../../components/ToolPage.astro";
+import WantedTool from "../../components/WantedTool.astro";
+import { loadCatalogue, hasWantedIn } from "../../data/catalogue";
+import { OTHER_LANGS } from "../../i18n/index";
+
+export async function getStaticPaths() {
+  const { aisles, tools } = await loadCatalogue();
+  return OTHER_LANGS.flatMap((l) => [
+    { params: { lang: l.code, rest: undefined }, props: { kind: "home" } },
+    ...aisles.map((a) => ({ params: { lang: l.code, rest: a.slug }, props: { kind: "group" } })),
+    ...tools.filter((t) => t.texts[l.code]).map((t) => ({ params: { lang: l.code, rest: t.id }, props: { kind: "tool" } })),
+    ...aisles.flatMap((a) => a.wanted.filter((w) => hasWantedIn(l.code, w.id)).map((w) => ({ params: { lang: l.code, rest: w.id }, props: { kind: "wanted" } }))),
+  ]);
+}
+
+const { lang, rest } = Astro.params;
+const { kind } = Astro.props;
+const [category, slug] = (rest ?? "").split("/");
+---
+{kind === "home" && <HomePage lang={lang} />}
+{kind === "group" && <GroupPage category={category} lang={lang} />}
+{kind === "tool" && <ToolPage category={category} slug={slug} lang={lang} />}
+{kind === "wanted" && <WantedTool category={category} slug={slug} lang={lang} />}
