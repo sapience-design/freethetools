@@ -65,3 +65,24 @@ test("jobs are grouped by day and named by task, with pictures, plain settings, 
   await page.click('label[for="lib-who-you"]');
   await expect(recs).toHaveCount(2);
 });
+
+// "Download all" makes its ZIP only when clicked, usually seconds after the result appears.
+// The ZIP still belongs to the job it was drawn with, so the library keeps every file.
+test("Download all, clicked a while after the result, records the whole job", async ({ page }) => {
+  await page.addInitScript(() => { delete document.modelContext; });
+  await page.goto("/pdf/split/");
+  await page.setInputFiles("#pdfs-file", PDF);
+  await page.click("#pdfs-go");
+  const all = page.getByRole("link", { name: /^Download all/ });
+  await all.waitFor();
+  await page.waitForTimeout(1500);
+  await download(page, () => all.click());
+  await page.waitForTimeout(700);
+
+  await page.goto("/library/");
+  const recs = page.locator("#lib-list li.rec");
+  await expect(recs).toHaveCount(1);
+  for (const name of ["sample_page-1.pdf", "sample_page-2.pdf", "sample_page-3.pdf", "sample-pages.zip"]) {
+    await expect(recs).toContainText(name);
+  }
+});
