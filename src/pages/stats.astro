@@ -27,6 +27,8 @@ const breakdowns = [
       <li><b>Results:</b> a result was downloaded or copied, or a tool couldn't process something. Only the count, never the file or the error.</li>
       <li><b>Likes:</b> a like is counted when someone adds a tool to their favourites, and taken back when they remove it. One per browser.</li>
       <li><b>Wants:</b> a planned tool has a page with an “I want this” button. Each press adds one to that day’s total for the tool, like a like. One per browser.</li>
+      <li><b>Searches with no result:</b> when a search on the home page finds no tool, the short phrase may be counted, so we can see which tools people want. Only plain words: a phrase with a number, an email, a link or a file name is dropped and never sent. Your browser's privacy signal stops it too.</li>
+      <li><b>Sources without a referrer:</b> some AI assistants hide where you came from but add <code>?utm_source=chatgpt.com</code> to the link. If there is no referrer, the site reads that name instead. Only a host name is kept.</li>
       <li><b>Limits:</b> each daily count has a ceiling, so no one can inflate a tool's numbers without limit.</li>
       <li><b>Sampling:</b> above a certain traffic level, we count a sample of visits and views and multiply it. Totals stay accurate and hosting stays free.</li>
     </ul></div>
@@ -45,6 +47,12 @@ const breakdowns = [
         <div class="bd card"><h3>{b.title}</h3><ol class="bars" id={`st-${b.id}`}></ol></div>
       ))}
     </div>
+  </section>
+
+  <section class="site" id="st-search" hidden>
+    <h2 class="h2">Searches that found nothing</h2>
+    <p class="muted note">Only searches with no result are counted, never ones with numbers, emails or links. A phrase shows here after 5 searches on 3 different days in the last 30 days.</p>
+    <div class="bd card"><ol class="bars" id="st-searches"></ol></div>
   </section>
 
   <h2 class="h2">Tools</h2>
@@ -137,6 +145,31 @@ const breakdowns = [
       bars("countries", s.site.countries);
       bars("devices", s.site.devices);
       document.getElementById("st-site")!.hidden = false;
+    }
+    {
+      // Terms come from visitors: shown as text only.
+      const ol = document.getElementById("st-searches")!;
+      const list = s.site?.searches ?? [];
+      if (!list.length) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "No phrase has reached the threshold yet.";
+        ol.replaceChildren(li);
+      } else {
+        const max = Math.max(...list.map(([, n]) => n));
+        ol.replaceChildren(...list.map(([k, n]) => {
+          const li = document.createElement("li");
+          const name = document.createElement("span");
+          name.textContent = k;
+          const num = document.createElement("span");
+          num.className = "n";
+          num.textContent = nf.format(n);
+          li.append(name, num);
+          li.style.setProperty("--w", `${(100 * n) / max}%`);
+          return li;
+        }));
+      }
+      document.getElementById("st-search")!.hidden = false;
     }
     const tbody = document.querySelector("#st-table tbody")!;
     const trs = [...tbody.querySelectorAll<HTMLTableRowElement>("tr")];

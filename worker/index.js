@@ -4,10 +4,10 @@
 //
 // Stored: per tool, per UTC day, counts of views, uses, successes, errors and likes; and per
 // UTC day, site-wide counts of visits (one per browser session), countries, referring sites
-// and device types; and per planned tool per UTC day, the count of "I want this" votes. Each breakdown is a separate counter, never linked to another or to a tool. Not stored: IP addresses, cookies,
+// and device types; and per UTC day, short plain-word searches that found nothing; and per planned tool per UTC day, the count of "I want this" votes. Each breakdown is a separate counter, never linked to another or to a tool. Not stored: IP addresses, cookies,
 // user agents, full referrer links, or anything that could identify a person. See /stats/.
 import { EmailMessage } from "cloudflare:email";
-import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, WANT_LIMIT, buildEmail, canRefetchTools, dayKey, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
+import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, SEARCH_LIMIT, SEARCH_MIN_DAYS, SEARCH_MIN_TOTAL, WANT_LIMIT, buildEmail, canRefetchTools, dayKey, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
 
 // The only address the site writes to. Mail comes from a name on the same domain, which Email Routing sends from.
 const FEEDBACK_FROM = "forms@freethetools.com";
@@ -68,15 +68,16 @@ async function stats(request, env, ctx, url) {
     if (cached) return cached;
     const since = dayKey(new Date(Date.now() - 30 * 86400000));
     const since7 = dayKey(new Date(Date.now() - 7 * 86400000));
-    const [counts, dims, recent, wants] = await env.DB.batch([
+    const [counts, dims, recent, wants, searches] = await env.DB.batch([
       env.DB.prepare(
         "SELECT tool, SUM(views) AS views, SUM(uses) AS uses, SUM(likes) AS likes, SUM(successes) AS successes, SUM(errors) AS errors, SUM(CASE WHEN day >= ? THEN uses ELSE 0 END) AS uses30 FROM counts GROUP BY tool",
       ).bind(since),
-      env.DB.prepare("SELECT dim, key, SUM(n) AS n FROM dims WHERE day >= ? GROUP BY dim, key").bind(since),
+      env.DB.prepare("SELECT dim, key, SUM(n) AS n FROM dims WHERE day >= ? AND dim != 'search' GROUP BY dim, key").bind(since),
       env.DB.prepare("SELECT SUM(n) AS n FROM dims WHERE dim = 'visit' AND day >= ?").bind(since7),
       env.DB.prepare("SELECT tool, SUM(n) AS n FROM wants GROUP BY tool"),
+      env.DB.prepare(`SELECT key, SUM(n) AS n, COUNT(DISTINCT day) AS days FROM dims WHERE dim = 'search' AND day >= ? GROUP BY key HAVING SUM(n) >= ${SEARCH_MIN_TOTAL} AND COUNT(DISTINCT day) >= ${SEARCH_MIN_DAYS} ORDER BY n DESC LIMIT 100`).bind(since),
     ]);
-    const body = summarize(counts.results, dims.results, recent.results[0]?.n ?? 0, wants.results);
+    const body = summarize(counts.results, dims.results, recent.results[0]?.n ?? 0, wants.results, searches.results);
     const res = new Response(JSON.stringify(body), { headers: { ...JSON_HEADERS, "Cache-Control": "public, max-age=60" } });
     ctx.waitUntil(cache.put(request, res.clone()));
     return res;
@@ -87,6 +88,14 @@ async function stats(request, env, ctx, url) {
 
   try {
     const body = await readBody(request);
+    if (path === "/api/stats/search") {
+      // A search that found nothing. Only a short, plain-word term is stored, under its own counter,
+      // with a daily ceiling per term. It is published only once it is common (see summarize).
+      const { term, weight } = parseBody(body, null, "search", await currentRate(env));
+      await env.DB.prepare(`INSERT INTO dims (day, dim, key, n) VALUES (?, 'search', ?, ?) ON CONFLICT(day, dim, key) DO UPDATE SET n = MIN(${SEARCH_LIMIT}, n + excluded.n)`)
+        .bind(dayKey(), term, weight).run();
+      return new Response(null, { status: 204 });
+    }
     const known = await tools(env, url, body?.tool);
     if (path === "/api/stats/event") {
       const { tool, kind, weight } = parseBody(body, known, "event", await currentRate(env));
