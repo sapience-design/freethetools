@@ -9,7 +9,7 @@
     {
       "name": "freethetools",
       "source": "./plugins/freethetools",
-      "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer. Nothing is uploaded."
+      "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer, so your files stay with you."
     }
   ]
 }

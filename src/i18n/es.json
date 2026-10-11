@@ -51,8 +51,8 @@
     "row": { "new": "Nueva", "notBuilt": "Solicitada" },
     "home": {
       "title": "Free the Tools – herramientas de uso diario que nunca salen de tu dispositivo",
-      "description": "Herramientas de código abierto que funcionan en tu navegador. Comprime PDF y mucho más sin subir nada. Sin cuentas ni anuncios. Una iniciativa de Sapience Design.",
-      "schemaDescription": "Herramientas de código abierto que funcionan en tu navegador. No se sube nada.",
+      "description": "Herramientas gratuitas y de código abierto para PDF, imágenes, texto y más, en tu navegador. Tus archivos se quedan en tu dispositivo. Sin cuentas ni anuncios.",
+      "schemaDescription": "Herramientas gratuitas y de código abierto que funcionan en tu navegador. Tus archivos se quedan en tu dispositivo.",
       "h1a": "Las herramientas de uso diario",
       "h1b": "deberían ser gratis.",
       "trustNoAds": "Sin anuncios",
@@ -93,7 +93,7 @@
     "group": {
       "back": "Todas las herramientas",
       "title": "{title} que funcionan en tu navegador | Free the Tools",
-      "description": "{blurb} Código abierto, sin cuentas y sin subir nada.",
+      "description": "{blurb} Gratis y de código abierto, sin cuenta. Tus archivos se quedan en tu dispositivo.",
       "more": "¿Echas algo en falta? {suggest}, o {sponsor} para que se cree antes.",
       "moreSuggest": "Sugiere una herramienta",
       "moreSponsor": "patrocina una"
@@ -115,7 +115,7 @@
       "questions": "Preguntas",
       "about": "Acerca de esta herramienta",
       "specRuns": "Se ejecuta",
-      "specRunsOffline": "En tu navegador. No se sube nada.",
+      "specRunsOffline": "En tu navegador. Tus archivos se quedan en tu dispositivo.",
       "specRunsOnline": "En tu navegador",
       "specLicence": "Licencia",
       "specAdded": "Añadida",

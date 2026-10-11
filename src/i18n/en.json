@@ -51,8 +51,8 @@
     "row": { "new": "New", "notBuilt": "Requested" },
     "home": {
       "title": "Free the Tools – everyday tools that never leave your device",
-      "description": "Open-source tools that run in your browser. Compress PDFs and more without uploading a thing. No accounts, no ads. A Sapience Design initiative.",
-      "schemaDescription": "Open-source tools that run in your browser. Nothing is uploaded.",
+      "description": "Free, open-source tools for PDFs, images, text and more, right in your browser. Your files stay on your device. No accounts, no ads.",
+      "schemaDescription": "Free, open-source tools that run in your browser. Your files stay on your device.",
       "h1a": "Everyday tools",
       "h1b": "should be free.",
       "trustNoAds": "No ads",
@@ -93,7 +93,7 @@
     "group": {
       "back": "All tools",
       "title": "{title} that run in your browser | Free the Tools",
-      "description": "{blurb} Open source, no accounts, and nothing is uploaded.",
+      "description": "{blurb} Free and open source, with no account. Your files stay on your device.",
       "more": "Missing something? {suggest}, or {sponsor} so it is built sooner.",
       "moreSuggest": "Suggest a tool",
       "moreSponsor": "sponsor one"
@@ -115,7 +115,7 @@
       "questions": "Questions",
       "about": "About this tool",
       "specRuns": "Runs",
-      "specRunsOffline": "In your browser. Nothing is uploaded.",
+      "specRunsOffline": "In your browser. Your files stay on your device.",
       "specRunsOnline": "In your browser",
       "specLicence": "Licence",
       "specAdded": "Added",

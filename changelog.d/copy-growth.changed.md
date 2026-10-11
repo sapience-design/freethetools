@@ -1,0 +1,1 @@
+- Clearer wording: "Your files stay on your device" instead of "Nothing is uploaded", and share images no longer count the tools, since more keep coming.

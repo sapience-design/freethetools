@@ -12,7 +12,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   const site: Card = {
     eyebrow: "A Sapience Design initiative",
     title: "Everyday tools should be free.",
-    text: `${tools.length} free, open-source tools that work inside your browser.`,
+    text: "Open-source tools for PDFs, images, text and more. New ones keep coming.",
     art: artFor("pdf/compress", "pdf", "ogsite"),
     group: "",
   };
@@ -20,7 +20,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
     { params: { slug: "site" }, props: site },
     ...aisles.filter((a) => a.live.length).map((a) => ({
       params: { slug: a.slug },
-      props: { eyebrow: `${a.live.length} free tools`, title: a.label, text: a.blurb, art: artFor(a.shot, a.slug, `og${a.slug}`), group: a.slug },
+      props: { eyebrow: "Free and open source", title: a.label, text: a.blurb, art: artFor(a.shot, a.slug, `og${a.slug}`), group: a.slug },
     })),
     ...tools.map((t) => ({
       params: { slug: t.id },
