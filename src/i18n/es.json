@@ -206,7 +206,20 @@
         "viewSound": "Abrir el reproductor a pantalla completa",
         "viewCompare": "Ver la comparación a pantalla completa",
         "showAll": "Mostrar las {n} páginas",
-        "showFewer": "Mostrar menos páginas"
+        "showFewer": "Mostrar menos páginas",
+        "layout": "Vista de páginas",
+        "layoutOne": "Una página",
+        "layoutTwo": "Dos páginas",
+        "layoutGrid": "Cuadrícula",
+        "layoutScroll": "Desplazar",
+        "twoNeedsWide": "Necesita una ventana más ancha",
+        "zoomLevel": "Nivel de zoom",
+        "fitPage": "Ajustar página",
+        "fitWidth": "Ajustar ancho",
+        "pagesOf": "Páginas {from}–{to} de {total}",
+        "imagesOf": "Imágenes {from}–{to} de {total}",
+        "openPage": "Abrir página {n}",
+        "openImage": "Abrir imagen {n}"
       },
       "suggest": {
         "title": "Sugerir una herramienta",

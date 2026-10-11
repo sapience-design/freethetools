@@ -206,7 +206,20 @@
         "viewSound": "Åpne spilleren i fullskjerm",
         "viewCompare": "Vis sammenligningen i fullskjerm",
         "showAll": "Vis alle {n} sidene",
-        "showFewer": "Vis færre sider"
+        "showFewer": "Vis færre sider",
+        "layout": "Sidevisning",
+        "layoutOne": "Én side",
+        "layoutTwo": "To sider",
+        "layoutGrid": "Rutenett",
+        "layoutScroll": "Rull",
+        "twoNeedsWide": "Trenger et bredere vindu",
+        "zoomLevel": "Zoomnivå",
+        "fitPage": "Tilpass side",
+        "fitWidth": "Tilpass bredde",
+        "pagesOf": "Side {from}–{to} av {total}",
+        "imagesOf": "Bilde {from}–{to} av {total}",
+        "openPage": "Åpne side {n}",
+        "openImage": "Åpne bilde {n}"
       },
       "suggest": {
         "title": "Foreslå et verktøy",

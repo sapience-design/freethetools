@@ -1,0 +1,1 @@
+- In the full-screen viewer, PDFs can be read one page at a time, two side by side, four at a time or as one continuous scroll, with a zoom menu.
