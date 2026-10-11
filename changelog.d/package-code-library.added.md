@@ -1,0 +1,1 @@
+- The `freethetools` npm package also works as a code library: `import { compressPdf } from "freethetools"` runs a tool from your own JavaScript or TypeScript, on your own computer. Files go in as paths or bytes and come back as bytes; nothing is written to disk or sent anywhere. Every tool has its own function, with types. It ships with the next package version.
