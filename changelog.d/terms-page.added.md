@@ -1,1 +1,0 @@
-- A terms of use page, linked from the footer: free tools with no warranty or liability, voluntary tips and refunds for mistaken ones, copyright, and the name.

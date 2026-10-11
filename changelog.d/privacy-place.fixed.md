@@ -1,1 +1,0 @@
-- Privacy page: names the company and its country, not a city.

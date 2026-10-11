@@ -1,6 +1,6 @@
 {
   "name": "freethetools",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Compress, merge, split and rotate PDFs, convert CSV and JSON, hash files and more, on your own computer, so your files stay with you.",
   "mcpServers": {
     "freethetools": {

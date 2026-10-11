@@ -1,6 +1,0 @@
-- Time Zone Converter: the chosen day in words, buttons to step by an hour or a day, a Now button, and a 24-hour strip per city with working hours shaded. Press an hour on a strip to pick it.
-- Merge, Split, Rotate and Fill PDF Form show pictures of the pages. Rotate turns them as you choose a direction; Split marks the pages you typed. The finished PDF shows its first page beside Download.
-- Compress, Resize and Convert Images and the File Converter: a Compare button slides between the original and the result. Converted sound files get a player.
-- Unit Converter: the answer is rounded to four digits, with the exact value underneath. The swap button stays on phones.
-- Results that change as you type (times, units, counts, passwords, hashes) flash briefly, so the change is seen.
-- Tool pages: the Favourite button sits beside the tool's name, so the first control is higher on the page.

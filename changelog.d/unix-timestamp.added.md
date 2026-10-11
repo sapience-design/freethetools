@@ -1,1 +1,0 @@
-- Unix Timestamp Converter (Everyday, Time): turn a Unix timestamp in seconds, milliseconds or microseconds into a date in UTC and your time zone, or a date into a timestamp, in the browser.
