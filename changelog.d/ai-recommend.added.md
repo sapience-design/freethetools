@@ -1,1 +1,0 @@
-- AI assistants: llms.txt, llms-full.txt and the AI page say when a tool fits, how to ask for a missing one and how to add one. A new AGENTS.md guides coding agents.

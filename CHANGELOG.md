@@ -8,6 +8,27 @@ major version.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-10-11
+
+### Added
+
+- AI assistants: llms.txt, llms-full.txt and the AI page say when a tool fits, how to ask for a missing one and how to add one. A new AGENTS.md guides coding agents.
+- Requested tools: vote for one or sponsor it straight from the list. The badge now says "Requested".
+
+### Changed
+
+- Library: result files sit in compact rows with Download and Share side by side.
+- The freethetools package for AI assistants is version 0.1.1: Time Zone Converter handles clock changes, Hash Generator and Unit Converter list the valid choices in their errors, and the MCP Registry entry has the logo.
+- Russian: shorter tool names and buttons, using the words Russian tool sites use.
+
+### Removed
+
+- Translated pages no longer show a "translated by machine" note at the top.
+
+### Fixed
+
+- The sitemap now lists the usage stats page, and gives each tool page the date it last changed.
+
 ## [1.4.0] - 2026-10-11
 
 ### Added
@@ -209,7 +230,8 @@ The first release since launch: 27 new tools (28 in all), a new design, tools fo
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.5.0...HEAD
+[1.5.0]: https://github.com/sapience-design/freethetools/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/sapience-design/freethetools/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/sapience-design/freethetools/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sapience-design/freethetools/compare/v1.1.0...v1.2.0

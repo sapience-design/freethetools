@@ -1,1 +1,0 @@
-- Translated pages no longer show a "translated by machine" note at the top.
