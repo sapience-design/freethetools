@@ -1,1 +1,0 @@
-- One-step installs for AI assistants: a Claude Code plugin, a Gemini CLI extension, and "Add to Cursor" and "Add to VS Code" buttons, plus the OpenAI Codex setting, on the AI assistants page.

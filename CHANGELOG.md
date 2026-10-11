@@ -8,6 +8,19 @@ major version.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-10-11
+
+### Added
+
+- Norwegian bokmål (Norsk bokmål): the home page, groups, tool pages and the "not built yet" pages are now in Norwegian at /nb/, with a language switcher in the footer. The tools themselves are still in English.
+- Spanish (Español): the home page, groups, tool pages and the "not built yet" pages are now in Spanish at /es/. The tools themselves are still in English, and the Spanish text is a machine draft that has not been checked yet.
+- Russian (Русский): the home page, groups, tool pages and the "not built yet" pages are now in Russian at /ru/. The tools themselves are still in English, and the Russian text is a machine draft that has not been checked yet.
+- One-step installs for AI assistants: a Claude Code plugin, a Gemini CLI extension, and "Add to Cursor" and "Add to VS Code" buttons, plus the OpenAI Codex setting, on the AI assistants page.
+
+### Fixed
+
+- Video to GIF: a clip is never shorter than 1 second. When the end is before the start, the end moves to 2 seconds after it, and a line under the times says what changed. Before, it silently made a 0.1-second GIF.
+
 ## [1.3.0] - 2026-10-10
 
 ### Added
@@ -196,7 +209,8 @@ The first release since launch: 27 new tools (28 in all), a new design, tools fo
 - Tests: tool unit tests, built-site checks, browser tests on desktop and phone, Python CLI tests.
 - Open-source project files: contributor guide with DCO sign-off, Contributor Covenant 2.1, security policy, governance, trademarks, issue and pull-request templates, CI, CodeQL, OpenSSF Scorecard and Dependabot.
 
-[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/sapience-design/freethetools/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/sapience-design/freethetools/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/sapience-design/freethetools/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/sapience-design/freethetools/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/sapience-design/freethetools/compare/v1.0.0...v1.1.0
