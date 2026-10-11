@@ -5,6 +5,11 @@
   "license": "AGPL-3.0-only",
   "author": "Sapience Design (https://sapience.design)",
   "homepage": "https://freethetools.com",
+  "funding": [
+    { "type": "github", "url": "https://github.com/sapience-design/freethetools?sponsor=1" },
+    { "type": "individual", "url": "https://freethetools.com/support/" },
+    { "type": "ko-fi", "url": "https://ko-fi.com/freethetools" }
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/sapience-design/freethetools.git",
