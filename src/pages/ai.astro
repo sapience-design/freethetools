@@ -2,7 +2,7 @@
 import Base from "../layouts/Base.astro";
 import Icon from "../components/Icon.astro";
 import { REPO } from "../data/catalogue";
-import { agentRows, CLAUDE_CODE_CMD, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY } from "../data/ai";
+import { agentRows, CLAUDE_CODE_CMD, CODEX_TOML, CURSOR_LINK, GEMINI_CMD, ONE_STEP_NOTE, PLUGIN_CMDS, VSCODE_INSIDERS_LINK, VSCODE_LINK, WEB_ASSISTANTS_NOTE, CLAUDE_CODE_USER_CMD, CLI_LIST, CLI_RUN, MCP_JSON, NPM_URL, PROMPT, REGISTRY_NAME, REGISTRY_URL, SAFETY } from "../data/ai";
 
 const rows = await agentRows();
 ---
@@ -32,6 +32,34 @@ const rows = await agentRows();
     <section aria-labelledby="setup-h">
       <h2 class="h2" id="setup-h">Set it up</h2>
       <p>You need <a href="https://nodejs.org">Node.js</a> 22 or later. Pick your assistant.</p>
+
+      <h3 class="h3">Claude Code plugin</h3>
+      <p>In Claude Code, run these two commands:</p>
+      <pre class="box" id="ai-plugin">{PLUGIN_CMDS}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-plugin"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+
+      <h3 class="h3">Cursor and VS Code</h3>
+      <div class="row">
+        <a class="btn" href={CURSOR_LINK}>Add to Cursor</a>
+        <a class="btn" href={VSCODE_LINK}>Add to VS Code</a>
+      </div>
+      <p><a href={VSCODE_INSIDERS_LINK}>Add to VS Code Insiders</a></p>
+      <p>{ONE_STEP_NOTE}</p>
+
+      <h3 class="h3">Gemini CLI</h3>
+      <p>Open a terminal and run:</p>
+      <pre class="box" id="ai-gemini">{GEMINI_CMD}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-gemini"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+
+      <h3 class="h3">OpenAI Codex</h3>
+      <p>Add this block to <code class="mono">~/.codex/config.toml</code>, then restart Codex:</p>
+      <pre class="box" id="ai-codex">{CODEX_TOML}</pre>
+      <div class="row"><button class="btn line small" type="button" data-copy="ai-codex"><Icon name="copy" /><span>Copy</span></button><span class="status" role="status" aria-live="polite"></span></div>
+
+      <h3 class="h3">ChatGPT, Gemini and Claude on the web</h3>
+      <p>{WEB_ASSISTANTS_NOTE}</p>
+
+      <h2 class="h2" id="hand-h">Set it up by hand</h2>
 
       <h3 class="h3">Claude Code</h3>
       <p>Open a terminal and run:</p>
