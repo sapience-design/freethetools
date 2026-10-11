@@ -32,7 +32,7 @@ test("home lists the live tools, and groups list wanted ones", async ({ page }) 
   const wanted = await page.locator("li.want").first().getAttribute("data-g");
   await page.goto(`/${wanted}/`);
   await expect(page.locator("li.want a").first()).toBeVisible();
-  await expect(page.locator("li.want a").first()).toContainText("Not built yet");
+  await expect(page.locator("li.want a").first()).toContainText("Requested");
   await page.goto("/");
   if (process.env.SHOTS) await page.screenshot({ path: `${process.env.SHOTS}/home-${test.info().project.name}.png`, fullPage: true });
 });

@@ -55,8 +55,9 @@ const more = slots(t(lang, "group.more")).map((x) => (typeof x === "string" ? x 
 </Base>
 
 <script>
-  import { showWants } from "../lib/stats";
+  import { showWants, wireRowVotes } from "../lib/stats";
   showWants();
+  wireRowVotes();
 </script>
 
 <style>

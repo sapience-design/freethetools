@@ -302,7 +302,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
 
 <script>
   import { makeSearch } from "../lib/search.js";
-  import { summary, showWants, fmtCount, type ToolStats } from "../lib/stats";
+  import { summary, showWants, wireRowVotes, fmtCount, type ToolStats } from "../lib/stats";
   import { txt, txtN, pageLang } from "../lib/ui";
 
   // Words for this page's language come from the #ftt-home block; the English here is the fallback.
@@ -429,7 +429,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   input.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { input.value = ""; render(); return; }
     if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-    const links = [...list.querySelectorAll("a")];
+    const links = [...list.querySelectorAll("a.row")];
     if (!links.length) return;
     e.preventDefault();
     const at = links.findIndex((l) => l.classList.contains("sel"));
@@ -444,7 +444,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   input.form!.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!input.value.trim()) return;
-    const first = (list.querySelector("a.sel") ?? list.querySelector("a")) as HTMLAnchorElement | null;
+    const first = (list.querySelector("a.sel") ?? list.querySelector("a.row")) as HTMLAnchorElement | null;
     location.href = first ? first.href : REQUEST;
   });
 
@@ -479,6 +479,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     sort();
   });
   showWants();
+  wireRowVotes();
 
   // ---- Most people come for: four at a time; swipe or the arrows show the rest ----
   const pops = $("pops"), popNav = $("pop-nav");

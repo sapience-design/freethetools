@@ -5,7 +5,7 @@
 // and this address becomes the tool.
 import Base from "../layouts/Base.astro";
 import Icon from "./Icon.astro";
-import { loadCatalogue, groupIn, wantedIn, SUGGEST_URL } from "../data/catalogue";
+import { loadCatalogue, groupIn, wantedIn, SUGGEST_URL, SPONSOR_URL } from "../data/catalogue";
 import { t as ui, jsStrings, localePath } from "../i18n/index";
 
 interface Props { category: string; slug: string; lang?: string }
@@ -54,7 +54,7 @@ const wantedJs = JSON.stringify(jsStrings(lang, "wanted")).replace(/</g, "\\u003
       <div class="actions">
         <button class="btn" type="button" id="want-btn"><Icon name="thumbs-up" />{T("want")}</button>
         <a class="btn line" href={ask}><Icon name="chat-circle-text" />{T("tell")}</a>
-        <a class="btn line" href="/support/#company-h"><Icon name="hand-heart" />{T("sponsor")}</a>
+        <a class="btn line" href={SPONSOR_URL}><Icon name="hand-heart" />{T("sponsor")}</a>
       </div>
       <p class="privacy">{T("privacy")}</p>
     </section>
@@ -65,7 +65,7 @@ const wantedJs = JSON.stringify(jsStrings(lang, "wanted")).replace(/</g, "\\u003
 </Base>
 
 <script>
-  import { fullSummary, hasWanted, wantThis, fmtCount } from "../lib/stats";
+  import { fullSummary, bindWant, fmtCount } from "../lib/stats";
   import { txt, txtN } from "../lib/ui";
   const w = (key: string, fallback: string) => txt(key, fallback, {}, "ftt-wanted");
   const box = document.getElementById("want-count")!;
@@ -80,21 +80,12 @@ const wantedJs = JSON.stringify(jsStrings(lang, "wanted")).replace(/</g, "\\u003
   };
   const done = () => { btn.setAttribute("aria-pressed", "true"); btn.disabled = true; label.textContent = w("done", "You want this"); };
 
-  if (hasWanted(id)) done();
   fullSummary().then((s) => { if (s) { total = s.wants?.[id] ?? 0; show(); } });
 
-  btn.addEventListener("click", async () => {
-    if (btn.disabled) return;
-    btn.disabled = true;
-    const n = await wantThis(id);
-    if (n === null) {
-      btn.disabled = false;
-      box.textContent = w("failed", "We could not count that just now. Please try again later.");
-      return;
-    }
-    total = n;
-    done();
-    show();
+  bindWant(btn, id, {
+    done,
+    counted: (n) => { total = n; show(); },
+    failed: () => { box.textContent = w("failed", "We could not count that just now. Please try again later."); },
   });
 </script>
 
