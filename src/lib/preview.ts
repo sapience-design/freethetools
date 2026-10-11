@@ -2,6 +2,7 @@
 // slider for pictures, and a player for sound and video. Everything is a blob: URL made here;
 // nothing leaves the page.
 import { fmtBytes } from "./files";
+import { viewTextButton, viewLabel } from "./expand";
 
 /** A slider that reveals the "after" picture over the "before" one. Both are drawn to the same box. */
 export function compareSlider(before: Blob, after: Blob, o: { beforeLabel?: string; afterLabel?: string } = {}): HTMLElement {
@@ -58,7 +59,7 @@ export function compareSlider(before: Blob, after: Blob, o: { beforeLabel?: stri
  * A "Compare" button for a result row. Pressing it opens the slider under the row; pressing it
  * again closes it. The slider is built on first use only.
  */
-export function compareButton(row: HTMLElement, before: Blob, after: Blob, labels?: { beforeLabel?: string; afterLabel?: string }) {
+export function compareButton(row: HTMLElement, before: Blob, after: Blob, labels?: { beforeLabel?: string; afterLabel?: string; name?: string }) {
   const b = document.createElement("button");
   b.type = "button";
   b.className = "btn quiet small";
@@ -78,14 +79,19 @@ export function compareButton(row: HTMLElement, before: Blob, after: Blob, label
     b.textContent = open ? "Hide" : "Compare";
     b.setAttribute("aria-expanded", String(open));
   });
-  return b;
+  // The same slider at full size, in the full-screen viewer.
+  const full = viewTextButton(viewLabel("comparison"), () => ({ kind: "compare", before, after, name: labels?.name ?? "Comparison", beforeLabel: labels?.beforeLabel, afterLabel: labels?.afterLabel }));
+  const pair = document.createElement("span");
+  pair.className = "btn-pair";
+  pair.append(b, full);
+  return pair;
 }
 
 /** Is this a file a player can show: sound or video? */
 export const isMedia = (type: string) => type.startsWith("audio/") || type.startsWith("video/");
 
 /** A sound or video player for a blob, under a result row. Null for other types. */
-export function mediaPlayer(blob: Blob, label: string): HTMLElement | null {
+export function mediaPlayer(blob: Blob, label: string, name = label): HTMLElement | null {
   if (!isMedia(blob.type)) return null;
   const el = document.createElement(blob.type.startsWith("video/") ? "video" : "audio");
   el.controls = true;
@@ -96,6 +102,6 @@ export function mediaPlayer(blob: Blob, label: string): HTMLElement | null {
   if (el instanceof HTMLVideoElement) el.playsInline = true;
   const wrap = document.createElement("div");
   wrap.className = "fwide";
-  wrap.append(el);
+  wrap.append(el, viewTextButton(viewLabel(el instanceof HTMLVideoElement ? "video" : "sound"), () => ({ kind: "media", blob, name })));
   return wrap;
 }

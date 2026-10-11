@@ -30,7 +30,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { mergePdfs, pageCount } from "./core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, fileRow, pdfThumb } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
-  import { usePdfWorker, drawInto, outputRow } from "../../../src/lib/pdfthumb";
+  import { usePdfWorker, pdfPreview, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   usePdfWorker("pdf/merge");
 
@@ -50,7 +50,7 @@ import Icon from "../../../src/components/Icon.astro";
     goLabel.textContent = items.length < 2 ? "Add at least two PDFs" : `Combine ${items.length} PDFs into one`;
     compactDrop("pdfm", items.length > 0);
     list.replaceChildren(...items.map((it, i) => {
-      const li = fileRow({ name: it.file.name, meta: `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`, thumb: drawInto(pdfThumb(), it.file) });
+      const li = fileRow({ name: it.file.name, meta: `${it.pages} ${it.pages === 1 ? "page" : "pages"} · ${fmtBytes(it.file.size)}`, thumb: pdfPreview(pdfThumb(), it.file, it.file.name, it.pages) });
       pdfFacts(it.file).then((facts) => { if (facts) li.querySelector(".fmeta")!.textContent = pdfMeta(facts, it.file.size); });
       li.querySelector(".fact")!.append(
         iconButton("up", `Move up ${it.file.name}`, () => { [items[i - 1], items[i]] = [items[i], items[i - 1]]; changed(); refocus(list, i - 1, "up"); }, i === 0),

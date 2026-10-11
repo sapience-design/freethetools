@@ -41,7 +41,7 @@ const qualities = [
 <script>
   import { FORMATS, outputName, canvasQuality } from "./core.js";
   import { encode, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("heic-tool"), picked = $("heic-picked"), list = $("heic-list"), status = $("heic-status");
@@ -123,7 +123,7 @@ const qualities = [
     await showBusy(status, files.length > 1 ? `Changing ${files.length} photos to ${fmt.label}. Please keep this page open.` : undefined);
     let done = 0;
     for (const f of files) {
-      const li = fileRow({ name: f.name, meta: "Converting…" });
+      const li = fileRow({ name: f.name, meta: "Converting…", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
@@ -131,8 +131,9 @@ const qualities = [
         const blob = await encode(bmp, bmp.width, bmp.height, type, quality);
         bmp.close();
         m.textContent = `HEIC → ${fmt.label} · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)}`;
-        li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
-        act.append(downloadLink(blob, outputName(f.name, fmt.ext), type));
+        const out = outputName(f.name, fmt.ext);
+        li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
+        act.append(downloadLink(blob, out, type));
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
     }

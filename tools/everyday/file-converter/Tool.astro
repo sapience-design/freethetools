@@ -26,8 +26,9 @@ import Step from "../../../src/components/Step.astro";
     decodeText, delimiterName, estimateAudio, longAudioWarning,
   } from "./core.js";
   import { decode, encode, type Format } from "../../../src/lib/images";
-  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, imageThumb, typeThumb, videoThumb, compactDrop } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, reportFailure, baseName, fileRow, viewableImage, typeThumb, videoThumb, compactDrop } from "../../../src/lib/files";
   import { compareButton, mediaPlayer } from "../../../src/lib/preview";
+  import { viewable, viewLabel } from "../../../src/lib/expand";
 
   const list = document.getElementById("fc-list")!;
   type Det = ReturnType<typeof detectType>;
@@ -152,8 +153,10 @@ import Step from "../../../src/components/Step.astro";
   async function addRow(file: File, before: ChildNode | null) {
     // Photos show a thumbnail, videos a frame, and every other file a tile naming its kind.
     const ext = file.name.includes(".") ? file.name.split(".").pop()!.toUpperCase() : "File";
-    const thumb = file.type.startsWith("image/") && file.type !== "image/svg+xml" ? imageThumb(file) : file.type.startsWith("video/") ? videoThumb(file, ext) : typeThumb(ext);
-    const li = fileRow({ name: file.name, meta: "Reading…", thumb });
+    const isPhoto = file.type.startsWith("image/") && file.type !== "image/svg+xml", isVideo = file.type.startsWith("video/");
+    const thumb = isVideo ? videoThumb(file, ext) : typeThumb(ext);
+    const shown = isPhoto ? viewableImage(file, file.name) : isVideo ? viewable(thumb, viewLabel("video"), () => ({ kind: "media", blob: file, name: file.name })) : thumb;
+    const li = fileRow({ name: file.name, meta: "Reading…", thumb: shown });
     const meta = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!, info = li.querySelector<HTMLElement>(".finfo")!;
     list.insertBefore(li, before);
 
@@ -238,10 +241,10 @@ import Step from "../../../src/components/Step.astro";
         download.setAttribute("aria-label", `Download ${newName}`);
         // See it before saving it: a slider for pictures, a player for sound (and video, when it comes).
         if (det.kind === "image" && /^image\/(png|jpeg|webp|avif|gif|bmp)$/.test(blob.type)) {
-          preview = compareButton(li, file, blob, { beforeLabel: det.label.replace(/ image$/, ""), afterLabel: out.label });
+          preview = compareButton(li, file, blob, { beforeLabel: det.label.replace(/ image$/, ""), afterLabel: out.label, name: newName });
           act.append(preview);
         } else {
-          preview = mediaPlayer(blob, `Play ${newName}`);
+          preview = mediaPlayer(blob, `Play ${newName}`, newName);
           if (preview) li.append(preview);
         }
         act.append(download);

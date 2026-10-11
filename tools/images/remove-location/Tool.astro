@@ -26,7 +26,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { stripMetadata, readMetadata } from "./core.js";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("rml-tool"), picked = $("rml-picked"), list = $("rml-list"), status = $("rml-status");
@@ -103,7 +103,7 @@ import Icon from "../../../src/components/Icon.astro";
     let done = 0, gps = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
-      const li = fileRow({ name: f.name, meta: "", thumb: imageThumb(f) });
+      const li = fileRow({ name: f.name, meta: "", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {

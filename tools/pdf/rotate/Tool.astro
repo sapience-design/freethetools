@@ -53,7 +53,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { pageCount } from "../merge/core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
-  import { usePdfWorker, drawInto, pageStrip, outputRow, type PageTile } from "../../../src/lib/pdfthumb";
+  import { usePdfWorker, pdfPreview, pageStrip, outputRow, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   usePdfWorker("pdf/rotate");
 
@@ -97,7 +97,7 @@ import Icon from "../../../src/components/Icon.astro";
       $("pdfr-name").textContent = f.name;
       $("pdfr-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
       $("pdfr-picked").hidden = false;
-      drawInto($("pdfr-thumb"), f);
+      pdfPreview($("pdfr-thumb"), f, f.name, total);
       const strip = pageStrip(f, total);
       tiles = strip.tiles;
       $("pdfr-pages").replaceChildren(strip.el);

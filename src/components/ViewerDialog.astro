@@ -1,0 +1,113 @@
+---
+// The full-screen viewer for previews, in a native <dialog>. Base.astro puts it on every page, once.
+// Any preview opens it through its expand button (src/lib/expand.ts); the logic is src/lib/viewer.ts
+// and loads only then. This file also holds the look of those buttons and of the larger previews.
+import Icon from "./Icon.astro";
+import { t, jsStrings } from "../i18n/index";
+
+interface Props { lang?: string }
+const { lang = "en" } = Astro.props;
+const S = (key: string) => t(lang, `js.viewer.${key}`);
+const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
+---
+<dialog id="fv" class="fv" aria-label={S("dialog")}>
+  <div class="fv-bar">
+    <p class="fv-name" id="fv-name"></p>
+    <div class="fv-tools" role="toolbar" aria-label={S("tools")}>
+      <span class="fv-zoom" id="fv-zoom" role="group" aria-label={S("zoom")}>
+        <button type="button" class="fv-btn" id="fv-out" aria-label={S("zoomOut")} aria-keyshortcuts="-"><Icon name="minus" /></button>
+        <button type="button" class="fv-btn fv-fit" id="fv-fit" aria-label={S("fitScreen")} aria-keyshortcuts="0">{S("fit")}</button>
+        <button type="button" class="fv-btn" id="fv-in" aria-label={S("zoomIn")} aria-keyshortcuts="+"><Icon name="plus" /></button>
+      </span>
+      <button type="button" class="fv-btn fv-wide" id="fv-full" hidden><Icon name="arrows-out" />{S("fullscreen")}</button>
+      <button type="button" class="fv-btn fv-wide" id="fv-close"><Icon name="x" />{S("close")}</button>
+    </div>
+  </div>
+  <div class="fv-stage" id="fv-stage" role="group" aria-label={S("area")} tabindex="0"></div>
+  <div class="fv-nav" id="fv-nav" hidden>
+    <button type="button" class="fv-btn fv-wide" id="fv-prev"><Icon name="caret-left" />{S("prev")}</button>
+    <span class="fv-pos" id="fv-pos"></span>
+    <button type="button" class="fv-btn fv-wide" id="fv-next">{S("next")}<Icon name="caret-right" /></button>
+  </div>
+  <p class="sr-only" id="fv-live" role="status" aria-live="polite"></p>
+</dialog>
+<script type="application/json" id="ftt-viewer" set:html={json} />
+
+<style is:global>
+  /* ---- The viewer ---- */
+  dialog.fv { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100vh; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
+  dialog.fv[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+  dialog.fv::backdrop { background: var(--bg); }
+  html:has(dialog.fv[open]) { overflow: hidden; }
+  .fv [hidden] { display: none !important; }
+  .fv-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 12px; border-bottom: 1px solid var(--hair); background: var(--card); }
+  .fv-name { flex: 1 1 200px; min-width: 0; margin: 0; font-weight: 650; overflow-wrap: anywhere; }
+  .fv-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .fv-zoom { display: inline-flex; gap: 4px; }
+  .fv-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px; border: 1px solid var(--hair); border-radius: var(--r); background: var(--card); color: var(--ink); font: inherit; font-weight: 650; cursor: pointer; }
+  .fv-btn:hover:not(:disabled) { border-color: var(--edge); }
+  .fv-btn:disabled { opacity: .45; cursor: default; }
+  .fv-btn:focus-visible, .fv-stage:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .fv-fit { min-width: 64px; font-variant-numeric: tabular-nums; }
+  .fv-stage { display: flex; min-height: 0; padding: 12px; overflow: auto; background: var(--well); overscroll-behavior: contain; touch-action: pan-x pan-y pinch-zoom; }
+  .fv-fig { margin: auto; max-width: none; }
+  .fv-pic { display: block; max-width: none; background: #fff; box-shadow: 0 1px 4px rgba(0, 0, 0, .3); }
+  .fv-fig.k-image .fv-pic { background: transparent; box-shadow: none; }
+  .fv-msg { margin: 0; padding: 24px; color: var(--soft); text-align: center; }
+  .fv-media { display: block; max-width: 100%; max-height: calc(100dvh - 190px); }
+  audio.fv-media { width: min(560px, 100%); }
+  video.fv-media { background: #000; border-radius: var(--r-sm); }
+  .fv .fv-cmp { width: 100%; max-width: none !important; margin: auto; }
+  .fv .cmp-stage { max-height: none; }
+  .fv-nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 12px; border-top: 1px solid var(--hair); background: var(--card); }
+  .fv-pos { flex: 1; min-width: 0; text-align: center; font-weight: 650; font-variant-numeric: tabular-nums; }
+  @media (max-width: 420px) { .fv-btn.fv-wide { padding: 0 10px; } .fv-bar, .fv-nav { padding-inline: 8px; } }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.fv[open] { animation: fv-in .14s ease-out; }
+    @keyframes fv-in { from { opacity: 0; } }
+  }
+
+  /* ---- The expand button on a preview: round, 44 px to press, shown on hover and focus, and always on touch screens ---- */
+  .pv { position: relative; display: inline-grid; vertical-align: top; max-width: 100%; }
+  .fv-open { position: absolute; right: 0; bottom: 0; z-index: 2; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; background: none; color: var(--ink); font-size: 16px; cursor: pointer; opacity: 0; transition: opacity .12s; }
+  .fv-open::before { content: ""; position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--card); border: 1.5px solid var(--edge); box-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+  .fv-open[hidden] { display: none; }
+  .fv-open .ic { position: relative; }
+  .pv:hover > .fv-open, .pv:focus-within > .fv-open, .fv-open:focus-visible { opacity: 1; }
+  .fv-open:focus-visible { outline: 3px solid var(--ink); outline-offset: -3px; border-radius: 50%; }
+  @media (hover: none) { .fv-open { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .fv-open { transition: none; } }
+
+  /* Compress PDF: first page before and after */
+  .pdf-compare { display: flex; flex-wrap: wrap; gap: 16px; }
+  .pdf-side { flex: 1 1 140px; max-width: 260px; margin: 0; display: grid; gap: 6px; }
+  .pdf-side .pv { display: grid; width: 100%; }
+  .pdf-side .fthumb { width: 100%; height: auto; aspect-ratio: 3 / 4; }
+  .pdf-side figcaption { font-size: 14px; font-weight: 650; color: var(--soft); }
+  .fthumb.fcontain img { object-fit: contain; background: #fff; }
+  .btn-pair { display: contents; }
+  .fv-text .ic { font-size: 16px; }
+  .fwide > .fv-text { margin-top: 8px; }
+
+  /* ---- Larger previews ---- */
+  /* File rows: the picture is 88 px, up from 56. */
+  .file-list.file-list > li.has-thumb, ol.file-list.file-list > li.has-thumb { grid-template-columns: 88px minmax(0, 1fr) auto; }
+  .file-list .fthumb { width: 88px; height: 88px; font-size: 32px; }
+  @media (max-width: 520px) { .file-list.file-list > li.has-thumb, ol.file-list.file-list > li.has-thumb { grid-template-columns: 88px minmax(0, 1fr); } }
+  .file-list .pv { width: 88px; height: 88px; }
+  /* The finished PDF's first page: 168 x 216, up from 96 x 120. */
+  .out-row .pv .fthumb { width: 168px; height: 216px; }
+  .out-row .pv { max-width: 100%; }
+  /* Page pictures: a grid that fills the width, tiles about 170 to 230 px wide; two or three per row on phones. */
+  .pages-box { display: grid; gap: 12px; }
+  .pages-box > .pages { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 14px; align-items: start; }
+  @media (max-width: 700px) { .pages-box > .pages { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; } }
+  @media (max-width: 480px) { .pages-box > .pages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  .pages .page-tile { min-width: 0; width: 100%; }
+  .pages .page-tile[hidden] { display: none; }
+  .pages .page-frame { display: block; width: 100%; }
+  .pages .page-pic { position: relative; display: block; width: 100%; height: 0; padding-top: 100%; }
+  .pages .page-pic canvas { position: absolute; inset: 0; margin: auto; width: auto; height: auto; max-width: 100%; max-height: 100%; }
+  .pages-box > .page-more { margin: 0; }
+  .page-more .btn { min-height: 44px; }
+</style>

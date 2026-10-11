@@ -4,6 +4,7 @@ import { zipAll } from "./zip.js";
 import type { ZipEntry } from "./zip.js";
 import { shareButton, canShareFile } from "./share";
 import { txt } from "./ui";
+import { viewable, viewLabel } from "./expand";
 
 export { zipAll };
 
@@ -369,6 +370,19 @@ export function imageThumb(file: Blob, onSize?: (width: number, height: number) 
   return t.box;
 }
 
+/**
+ * A photo thumbnail that opens the picture full screen. The expand button waits until the browser
+ * has shown the picture (a HEIC photo most browsers can't draw gets none). `onSize` as in imageThumb.
+ */
+export function viewableImage(file: Blob, name: string, onSize?: (width: number, height: number) => void) {
+  let btn: HTMLButtonElement | null = null;
+  const box = imageThumb(file, (w, h) => { if (btn) btn.hidden = false; onSize?.(w, h); });
+  const v = viewable(box, viewLabel("photo"), () => ({ kind: "image", blob: file, name }));
+  btn = v.button;
+  btn.hidden = !thumbs.get(file)?.w;
+  return v;
+}
+
 /** A tile that names the kind of file, for files with no picture of their own: "CSV", "JSON", "MP3". */
 export function typeThumb(label: string) {
   const box = document.createElement("span");
@@ -392,7 +406,7 @@ export function videoThumb(file: Blob, label = "Video") {
   v.addEventListener("seeked", () => {
     try {
       const c = document.createElement("canvas");
-      const s = 112 / Math.max(v.videoWidth, v.videoHeight);
+      const s = 176 / Math.max(v.videoWidth, v.videoHeight);
       c.width = Math.round(v.videoWidth * s); c.height = Math.round(v.videoHeight * s);
       c.getContext("2d")!.drawImage(v, 0, 0, c.width, c.height);
       box.textContent = "";
@@ -439,6 +453,6 @@ export function photoRow(file: File, actions: Node[] = [], extra: Node[] = []) {
   const li = fileRow({ name: file.name, meta: photoMeta(file), actions, extra });
   const meta = li.querySelector(".fmeta")!;
   li.classList.add("has-thumb");
-  li.prepend(imageThumb(file, (w, h) => (meta.textContent = photoMeta(file, w, h))));
+  li.prepend(viewableImage(file, file.name, (w, h) => (meta.textContent = photoMeta(file, w, h))));
   return li;
 }

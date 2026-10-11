@@ -38,7 +38,7 @@ import Icon from "../../../src/components/Icon.astro";
 <script>
   import { targetSize, checkSize } from "./core.js";
   import { decode, encode, EXT, type Format } from "../../../src/lib/images";
-  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, imageThumb } from "../../../src/lib/files";
+  import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   import { compareButton } from "../../../src/lib/preview";
   const $ = (id: string) => document.getElementById(id)!;
@@ -88,7 +88,7 @@ import Icon from "../../../src/components/Icon.astro";
     let done = 0;
     const outs: { name: string; blob: Blob }[] = [];
     for (const f of files) {
-      const li = fileRow({ name: f.name, meta: "Resizing…", thumb: imageThumb(f) });
+      const li = fileRow({ name: f.name, meta: "Resizing…", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
@@ -99,9 +99,9 @@ import Icon from "../../../src/components/Icon.astro";
         const type: Format = f.type === "image/png" || f.type === "image/webp" ? (f.type as Format) : "image/jpeg";
         const blob = await encode(bmp, size.width, size.height, type, 0.9);
         m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
-        li.querySelector(".fthumb")?.replaceWith(imageThumb(blob));
         const out = `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`;
-        act.append(compareButton(li, f, blob, { beforeLabel: `Original · ${bmp.width}×${bmp.height}`, afterLabel: `Resized · ${size.width}×${size.height}` }), downloadLink(blob, out, type));
+        li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
+        act.append(compareButton(li, f, blob, { beforeLabel: `Original · ${bmp.width}×${bmp.height}`, afterLabel: `Resized · ${size.width}×${size.height}`, name: f.name }), downloadLink(blob, out, type));
         outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
