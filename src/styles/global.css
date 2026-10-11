@@ -406,3 +406,13 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
 .donate-text span { color: var(--soft); font-size: 14px; }
 .donate-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 640px) { .donate-card { grid-template-columns: auto minmax(0, 1fr); } .donate-actions { grid-column: 1 / -1; } }
+
+/* Long words (Russian, German, Ukrainian and others) must never push a page sideways on a small
+   screen. Text may break inside a word when the word does not fit the line, and gets a hyphen where
+   the browser knows the language. Buttons and links keep their own no-wrap rules. */
+:where(h1, h2, h3, h4, p, li, dt, dd, legend, summary, figcaption, td, th, .tag, .lede, .h1, .h2, .h3) {
+  overflow-wrap: anywhere;
+}
+:where(h1, h2, h3, h4, p, li, dd, .lede, .h1, .h2, .h3):not(:lang(en)) {
+  hyphens: auto;
+}
