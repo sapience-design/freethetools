@@ -285,3 +285,11 @@ test("the sitemap lists every indexable page, and only built, indexable pages", 
   }
   for (const path of inMap) assert.ok(built.has(path), `${path} is in the sitemap but no page was built`);
 });
+
+test("README.md links every tool page", () => {
+  const readme = readFileSync("README.md", "utf8");
+  for (const tool of tools) {
+    const url = tool.url;
+    assert.ok(readme.includes(url), `README.md is missing ${url}; run npm run build`);
+  }
+});
