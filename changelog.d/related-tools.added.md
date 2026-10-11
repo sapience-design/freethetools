@@ -1,0 +1,1 @@
+- Every tool page suggests related tools, such as Merge PDF after Compress PDF.

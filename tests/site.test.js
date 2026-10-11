@@ -293,3 +293,39 @@ test("README.md links every tool page", () => {
     assert.ok(readme.includes(url), `README.md is missing ${url}; run npm run build`);
   }
 });
+
+// Related tools: every tool page, in every language it has, links at least 3 other live tool pages
+// (the same language where that tool has one, else English). Never itself, never a missing page.
+{
+  const ids = new Set(tools.map((t) => t.id));
+  const toolPages = pages.filter((p) => /index\.html$/.test(p)).flatMap((p) => {
+    const parts = p.split("/").slice(0, -1);
+    if (LANGS.includes(parts[0])) parts.shift();
+    return parts.length === 2 && ids.has(parts.join("/")) ? [{ page: p, id: parts.join("/") }] : [];
+  });
+  test("every live tool has an English page for the related-tools check", () => {
+    for (const t of tools) assert.ok(toolPages.some((x) => x.page === `${t.id}/index.html`), t.id);
+  });
+  for (const { page, id } of toolPages) {
+    test(`${page}: links at least 3 other live tool pages, none to itself`, () => {
+      const nav = /<nav\b[^>]*aria-labelledby="related-h"[^>]*>([\s\S]*?)<\/nav>/.exec(html(page));
+      assert.ok(nav, "no Related tools block");
+      assert.match(nav[1], /<h2\b[^>]*id="related-h"[^>]*>[^<]+<\/h2>/);
+      const hrefs = [...nav[1].matchAll(/<a\b[^>]*\shref="([^"]+)"/g)].map((m) => m[1]);
+      const lang = LANGS.find((l) => page.startsWith(`${l}/`));
+      const targets = hrefs.map((h) => {
+        const parts = h.split("/").filter(Boolean);
+        if (LANGS.includes(parts[0])) parts.shift();
+        return parts.join("/");
+      });
+      assert.ok(hrefs.length >= 3, `only ${hrefs.length} links`);
+      assert.equal(new Set(hrefs).size, hrefs.length, "duplicate links");
+      for (const [n, h] of hrefs.entries()) {
+        assert.ok(ids.has(targets[n]), `${h} is not a live tool`);
+        assert.notEqual(targets[n], id, "links to itself");
+        assert.ok(existsSync(join(DIST, h, "index.html")), `${h} has no page`);
+        if (lang && existsSync(join(DIST, lang, targets[n], "index.html"))) assert.ok(h.startsWith(`/${lang}/`), `${h} should be the ${lang} page`);
+      }
+    });
+  }
+}

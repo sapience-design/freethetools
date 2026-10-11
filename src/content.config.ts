@@ -28,6 +28,7 @@ const tools = defineCollection({
     specs: z.record(z.string(), z.string()).default({}),
     faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     vendor: z.array(z.object({ from: z.string(), to: z.string() })).default([]),
+    related: z.array(z.string().regex(/^[a-z0-9-]+\/[a-z0-9-]+$/)).max(6).optional(),
   }),
 });
 

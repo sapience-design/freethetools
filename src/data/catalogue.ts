@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from "astro:content";
 import { CATEGORIES, CATEGORY_SLUGS, type Category } from "./categories";
 import wanted from "./wanted.json";
+import { NEXT_STEP } from "./related";
 import { SYNONYMS, expand } from "./synonyms.js";
 import { DEFAULT_LANG, LANGS, OTHER_LANGS, langFile, missingKeys, localePath } from "../i18n/index";
 
@@ -85,6 +86,20 @@ export async function loadCatalogue() {
     if (e.data.faq && e.data.faq.length !== tool.data.faq.length) throw new Error(`tools/${tool.id}/i18n/${lang}.json: faq has ${e.data.faq.length} entries, tool.json has ${tool.data.faq.length}.`);
     if (e.data.specs && Object.keys(e.data.specs).length !== Object.keys(tool.data.specs).length) throw new Error(`tools/${tool.id}/i18n/${lang}.json: specs has ${Object.keys(e.data.specs).length} entries, tool.json has ${Object.keys(tool.data.specs).length}.`);
     tool.texts[lang] = e.data;
+  }
+
+  // Related tools: every id, in tool.json or in the next-step map, must be another live tool.
+  const live = new Set(tools.map((t) => t.id));
+  const checkRelated = (where: string, id: string, list: string[]) => {
+    for (const r of list) {
+      if (r === id) throw new Error(`${where}: "${r}" lists itself as a related tool.`);
+      if (!live.has(r)) throw new Error(`${where}: related tool "${r}" is not a live tool. Requested tools cannot be related tools.`);
+    }
+  };
+  for (const t of tools) checkRelated(`tools/${t.id}/tool.json`, t.id, t.data.related ?? []);
+  for (const [id, list] of Object.entries(NEXT_STEP)) {
+    if (!live.has(id)) throw new Error(`src/data/related.ts: "${id}" is not a live tool.`);
+    checkRelated("src/data/related.ts", id, list);
   }
 
   // A wanted tool has the address it will have once built. If a real tool already has it, the
@@ -185,6 +200,24 @@ export async function loadCatalogue() {
   };
 
   return { tools, aisles, searchIndex, searchIndexFor, hasPage };
+}
+
+/**
+ * The related tools of a tool, up to `max`: its own `related` list from tool.json, else the
+ * next-step map in related.ts, then topped up from the same section and group. Never the tool itself.
+ */
+export function relatedFor(tools: Tool[], tool: Tool, max = 4): Tool[] {
+  const byId = new Map(tools.map((t) => [t.id, t]));
+  const byName = (a: Tool, b: Tool) => a.data.task.localeCompare(b.data.task);
+  const wantedIds = tool.data.related ?? NEXT_STEP[tool.id] ?? [];
+  const out: Tool[] = [];
+  const add = (t?: Tool) => { if (t && t.id !== tool.id && !out.includes(t) && out.length < max) out.push(t); };
+  wantedIds.forEach((id) => add(byId.get(id)));
+  const sameGroup = tools.filter((t) => t.category.slug === tool.category.slug).sort(byName);
+  sameGroup.filter((t) => t.data.section === tool.data.section).forEach(add);
+  sameGroup.forEach(add);
+  [...tools].sort(byName).forEach(add);
+  return out;
 }
 
 /** The address of a tool's page in a language: its own, or the English one where it has no text yet. */
