@@ -78,6 +78,7 @@ import { EXAMPLE_MARKDOWN } from "./core.js";
       }
       out.textContent = result;
       // The preview is always cleaned, and never loads images from other sites.
+      // safe-html: sanitizeHtml (DOMPurify, in core.js) cleans the HTML first.
       preview.innerHTML = sanitizeHtml(html, { preview: true });
       // Headings in the preview are styled text, so they never compete with the page's own headings.
       preview.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) => {
