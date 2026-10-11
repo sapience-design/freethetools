@@ -21,7 +21,7 @@
     { "q": "Are my files uploaded anywhere?", "a": "No. The compressor is Ghostscript compiled to WebAssembly, served from this site and run inside your browser tab. The page's security policy blocks it from sending data anywhere. After you have opened this tool once on this device, it keeps working without a connection." },
     { "q": "Which quality should I pick?", "a": "Balanced suits email and sharing. Smallest suits reading on screen. Print keeps images sharp enough for paper. Prepress keeps colour profiles for professional printing." },
     { "q": "Why did my file get bigger?", "a": "PDFs made mostly of text and vector drawings are often already compact. Ghostscript rewrites the whole file, so the result can come out slightly larger. Keep the original in that case." },
-    { "q": "Can it open password-protected PDFs?", "a": "Not yet. Remove the password in your PDF reader first." },
+    { "q": "Can it open password-protected PDFs?", "a": "Yes. The tool asks for the password and unlocks the file on your device. The password is not saved or sent anywhere." },
     { "q": "Can I run it from a script or an AI assistant?", "a": "Yes. The freethetools npm package runs the same compressor on your computer, for scripts and AI assistants: npx -y freethetools run compress_pdf '{\"file\":\"report.pdf\"}'. Nothing is uploaded." }
   ],
   "vendor": [

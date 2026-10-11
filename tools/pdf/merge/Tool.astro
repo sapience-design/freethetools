@@ -32,6 +32,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { usePdfWorker, pdfPreview, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
   usePdfWorker("pdf/merge");
 
   type Item = { file: File; bytes: ArrayBuffer; pages: number };
@@ -66,14 +67,19 @@ import Icon from "../../../src/components/Icon.astro";
 
   wireDrop("pdfm", async (files) => {
     showWait(result, WAIT);
-    for (const file of files) {
-      if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") continue;
+    // A locked PDF asks for its password in its own row and joins the list once it is open.
+    const add = async (file: File) => {
       const bytes = await file.arrayBuffer();
       try {
         items.push({ file, bytes, pages: await pageCount(bytes.slice(0)) });
       } catch (e) {
         showError(result, `${file.name}: ${(e as Error).message}`, "We can't open this PDF");
       }
+      render();
+    };
+    for (const file of files) {
+      if (!/\.pdf$/i.test(file.name) && file.type !== "application/pdf") continue;
+      await withUnlocked(file, $("pdfm-drop"), add, { many: true });
     }
     render();
   });

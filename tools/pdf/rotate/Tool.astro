@@ -55,6 +55,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { usePdfWorker, pdfPreview, pageStrip, outputRow, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
   usePdfWorker("pdf/rotate");
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
@@ -87,8 +88,12 @@ import Icon from "../../../src/components/Icon.astro";
   $("pdfr-change").addEventListener("click", () => $("pdfr-file").click());
 
   wireDrop("pdfr", async (files) => {
-    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
-    if (!f) return;
+    const picked0 = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!picked0) return;
+    await withUnlocked(picked0, $("pdfr-drop"), use);
+  });
+
+  async function use(f: File) {
     showWait(result, WAIT);
     try {
       bytes = await f.arrayBuffer();
@@ -107,7 +112,7 @@ import Icon from "../../../src/components/Icon.astro";
       go.disabled = false;
       stepTo(root, 2);
     } catch (e) { showError(result, (e as Error).message); }
-  });
+  }
 
   go.addEventListener("click", async () => {
     if (!bytes || !file) return;

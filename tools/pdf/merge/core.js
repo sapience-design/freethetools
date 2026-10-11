@@ -26,7 +26,7 @@ async function load(bytes) {
   try {
     return await PDFDocument.load(bytes);
   } catch (e) {
-    if (/encrypted/i.test(String(e?.message))) throw new Error("This PDF is password-protected. Remove the password in your PDF reader first.");
+    if (/encrypted/i.test(String(e?.message))) throw new Error("This PDF is password-protected. Open Unlock PDF to remove it first.");
     throw new Error("This file isn't a readable PDF.");
   }
 }

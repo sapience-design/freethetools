@@ -28,7 +28,7 @@
     },
     {
       "q": "Kan jeg slå sammen passordbeskyttede PDF-er?",
-      "a": "Ikke ennå. Fjern passordet i PDF-leseren din først, og slå dem så sammen."
+      "a": "Ja. Trenger en PDF passord for å åpnes, ber verktøyet om det og låser opp filen på enheten din. Passordet lagres ikke og sendes ikke noe sted."
     }
   ]
 }

@@ -1,0 +1,1 @@
+- PDF tools ask for the password of a locked PDF, or offer to lift copy and print limits, instead of refusing the file.

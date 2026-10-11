@@ -30,7 +30,7 @@
     },
     {
       "q": "¿Puedo unir PDF protegidos con contraseña?",
-      "a": "Todavía no. Quita antes la contraseña en tu lector de PDF y luego únelos."
+      "a": "Sí. Si un PDF necesita contraseña para abrirse, la herramienta la pide y desbloquea el archivo en tu dispositivo. La contraseña no se guarda ni se envía a ningún sitio."
     }
   ]
 }
