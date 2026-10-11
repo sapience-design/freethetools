@@ -4,6 +4,10 @@
   "title": "Free the Tools",
   "description": "Local PDF, image, data and text tools for AI assistants. Files stay on your computer.",
   "websiteUrl": "https://freethetools.com",
+  "icons": [
+    { "src": "https://freethetools.com/icon-512.png", "mimeType": "image/png", "sizes": ["512x512"] },
+    { "src": "https://freethetools.com/icon.svg", "mimeType": "image/svg+xml", "sizes": ["any"] }
+  ],
   "repository": {
     "url": "https://github.com/sapience-design/freethetools",
     "source": "github",

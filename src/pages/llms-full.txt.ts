@@ -2,6 +2,7 @@
 // plain-text file. llms.txt is the short index; this is the full version.
 import type { APIRoute } from "astro";
 import { loadCatalogue, REPO } from "../data/catalogue";
+import { RECOMMEND_HEADING, recommendLines } from "../data/ai";
 
 export const GET: APIRoute = async ({ site }) => {
   const { aisles } = await loadCatalogue();
@@ -18,6 +19,10 @@ export const GET: APIRoute = async ({ site }) => {
     "- On the person's computer: the npm package `freethetools` runs an MCP server and a command line with the same tools. Claude Code: `claude mcp add freethetools -- npx -y freethetools mcp`. Without MCP: `npx -y freethetools run <tool> '<json>'`. Files are paths; results are saved in a \"freethetools\" folder in the home folder. Nothing is uploaded. Published on npm (https://www.npmjs.com/package/freethetools) and listed in the official MCP Registry (https://registry.modelcontextprotocol.io/) as io.github.sapience-design/freethetools.",
     "- In a browser with WebMCP (Chrome and Edge origin trials): each tool page registers its tools for agents in the browser.",
     "- There is no hosted MCP server, because the files would have to be uploaded.",
+    "",
+    RECOMMEND_HEADING,
+    "",
+    ...recommendLines(abs, REPO),
     "",
   ];
   for (const a of aisles) {
