@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeRef, normalizeCountry } from "../worker/logic.js";
+import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry } from "../worker/logic.js";
 
 const tools = new Set(["pdf/compress", "text/word-counter"]);
 
@@ -219,4 +219,57 @@ test("non-ASCII text survives in the body and in the subject", () => {
   assert.match(decoded, /Æøå ø fungerer ikke: 日本語 \u{1F600}/u);
   assert.match(decoded, /What went wrong\?/);
   assert.equal(/What do you use today/.test(decoded), false);
+});
+
+test("search terms: short plain words only", () => {
+  assert.equal(normalizeSearch("heic to pdf"), "heic to pdf");
+  assert.equal(normalizeSearch("сжать фото"), "сжать фото");
+  assert.equal(normalizeSearch("pdf beskjæring"), "pdf beskjæring");
+  assert.equal(normalizeSearch("  PDF   Beskjæring "), "pdf beskjæring");
+  assert.equal(normalizeSearch("don't c++ & rock-n-roll"), "don't c++ & rock-n-roll");
+  for (const bad of ["john@example.com", "call 12345678", "invoice.pdf", "https://x.y", "a", " a ", "", "a/b", "a\b", "x:y", "emoji 😀", "+&", "x".repeat(41), "one two three four five six seven"]) {
+    assert.equal(normalizeSearch(bad), null, bad);
+  }
+  assert.equal(normalizeSearch("one two three four five six"), "one two three four five six");
+  assert.equal(normalizeSearch("x".repeat(40)), "x".repeat(40));
+  assert.equal(normalizeSearch(42), null);
+  assert.equal(normalizeSearch(undefined), null);
+});
+
+test("search bodies keep only the term and the sampling weight", () => {
+  assert.deepEqual(parseBody({ term: "Heic To PDF" }, null, "search"), { term: "heic to pdf", weight: 1 });
+  assert.deepEqual(parseBody({ term: "heic", weight: 5 }, null, "search", 5), { term: "heic", weight: 5 });
+  assert.throws(() => parseBody({ term: "a@b.c" }, null, "search"), /bad term/);
+  assert.throws(() => parseBody({}, null, "search"), /bad term/);
+});
+
+test("a search term is public only with 5 searches on 3 different days", () => {
+  const rows = [
+    { key: "heic to pdf", n: 9, days: 3 },
+    { key: "few days", n: 50, days: 2 },
+    { key: "too few", n: 4, days: 4 },
+    { key: "exactly", n: 5, days: 3 },
+    { key: "a@b.c", n: 99, days: 9 },
+    { key: "fax 12", n: 99, days: 9 },
+  ];
+  const { searches } = summarize([], [], 0, [], rows).site;
+  assert.deepEqual(searches, [["heic to pdf", 9], ["exactly", 5]]);
+  const many = Array.from({ length: 30 }, (_, i) => ({ key: `word${"abcdefghijklmnopqrstuvwxyzabcd"[i]}`.replace(/\d/g, ""), n: 10 + i, days: 5 }));
+  assert.equal(summarize([], [], 0, [], many).site.searches.length, 20);
+  assert.deepEqual(summarize([], []).site.searches, []);
+});
+
+test("the daily cap for one term is 200", () => {
+  assert.equal(SEARCH_LIMIT, 200);
+});
+
+test("AI assistants get names; an empty referrer stays Direct", () => {
+  assert.equal(normalizeRef("chatgpt.com"), "ChatGPT");
+  assert.equal(normalizeRef("chat.openai.com"), "ChatGPT");
+  assert.equal(normalizeRef("www.perplexity.ai"), "Perplexity");
+  assert.equal(normalizeRef("claude.ai"), "Claude");
+  assert.equal(normalizeRef("gemini.google.com"), "Gemini");
+  assert.equal(normalizeRef("www.google.com"), "Google");
+  assert.equal(normalizeRef("copilot.microsoft.com"), "Copilot");
+  assert.equal(normalizeRef("https://chatgpt.com/x"), null);
 });

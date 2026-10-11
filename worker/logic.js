@@ -11,6 +11,14 @@ export const LIKE_LIMIT = 500;
 export const WANT_LIMIT = 1000;
 /** Per tool per day, each event counter stops counting here. */
 export const EVENT_CEILING = 100000;
+/** A search term's count for one UTC day stops here, so one person cannot inflate a term. */
+export const SEARCH_LIMIT = 200;
+/** A term is published only with at least this many searches in 30 days... */
+export const SEARCH_MIN_TOTAL = 5;
+/** ...seen on at least this many different days. */
+export const SEARCH_MIN_DAYS = 3;
+/** Most terms in the public list. */
+export const SEARCH_LIST_MAX = 20;
 /** Largest sampling weight the Worker accepts. */
 export const MAX_WEIGHT = 20;
 /** Fetch the tool list again at most this often (milliseconds), when an unknown id arrives. */
@@ -21,15 +29,17 @@ export const dayKey = (date = new Date()) => date.toISOString().slice(0, 10);
 
 // Well-known sources get a readable name; everything else is shown as its bare domain.
 const SOURCES = [
+  [/(^|\.)gemini\.google\.com$/, "Gemini"],
   [/(^|\.)google\.[a-z.]+$/, "Google"],
   [/(^|\.)bing\.com$/, "Bing"],
   [/(^|\.)duckduckgo\.com$/, "DuckDuckGo"],
   [/(^|\.)yahoo\.[a-z.]+$/, "Yahoo"],
   [/(^|\.)ecosia\.org$/, "Ecosia"],
   [/(^|\.)kagi\.com$/, "Kagi"],
-  [/(^|\.)(chatgpt\.com|openai\.com)$/, "ChatGPT"],
+  [/(^|\.)(chatgpt\.com|chat\.openai\.com|openai\.com)$/, "ChatGPT"],
   [/(^|\.)perplexity\.ai$/, "Perplexity"],
   [/(^|\.)claude\.ai$/, "Claude"],
+  [/(^|\.)copilot\.microsoft\.com$/, "Copilot"],
   [/(^|\.)news\.ycombinator\.com$/, "Hacker News"],
   [/(^|\.)reddit\.com$/, "Reddit"],
   [/(^|\.)(t\.co|x\.com|twitter\.com)$/, "X"],
@@ -50,6 +60,20 @@ export function normalizeRef(host) {
   if (h.length > 64 || !/^[a-z0-9.-]+\.[a-z]{2,}$/.test(h)) return null;
   for (const [re, name] of SOURCES) if (re.test(h)) return name;
   return h;
+}
+
+/**
+ * A search term the site may count, or null. Trim, lowercase, collapse spaces; 2 to 40 characters,
+ * at most 6 words; only letters of any script, spaces, hyphens, apostrophes, "+" and "&". A digit,
+ * "@", "/", "\\", ":" or "." (or anything else) drops the whole term, which keeps out emails,
+ * phone numbers, links, file names and IDs. The browser applies the same rules; this one decides.
+ * @param {unknown} term
+ */
+export function normalizeSearch(term) {
+  if (typeof term !== "string" || term.length > 200) return null;
+  const t = term.normalize("NFC").trim().toLowerCase().replace(/\s+/g, " ");
+  if (t.length < 2 || t.length > 40 || t.split(" ").length > 6) return null;
+  return /^[\p{L}\p{M} '’&+-]+$/u.test(t) && /\p{L}/u.test(t) ? t : null;
 }
 
 /** Two-letter country code from Cloudflare's network, or "XX" when unknown. */
@@ -85,12 +109,17 @@ export const canRefetchTools = (now, lastFetch) => now - lastFetch >= TOOL_REFRE
  * Validate an event, like or visit body. Returns a clean object, or throws with a short reason.
  * @param {unknown} body
  * @param {Set<string>} tools known tool ids (for "want": the ids of planned tools)
- * @param {"event" | "like" | "visit" | "want"} type
+ * @param {"event" | "like" | "visit" | "want" | "search"} type
  * @param {number} [rate] current sampling rate for this kind of request (1 means no sampling)
  */
 export function parseBody(body, tools, type, rate = 1) {
   if (!body || typeof body !== "object") throw new Error("bad body");
   if (Object.keys(body).length > MAX_KEYS) throw new Error("too many keys");
+  if (type === "search") {
+    const term = normalizeSearch(body.term);
+    if (!term) throw new Error("bad term");
+    return { term, weight: cleanWeight(body.weight, rate) };
+  }
   if (type === "visit") {
     return { ref: normalizeRef(body.ref ?? ""), device: DEVICES.includes(body.device) ? body.device : null, weight: cleanWeight(body.weight, rate) };
   }
@@ -112,7 +141,7 @@ export function sameOrigin(request) {
 }
 
 /** Shape database rows into the public summary. */
-export function summarize(rows, dimRows = [], visits7 = 0, wantRows = []) {
+export function summarize(rows, dimRows = [], visits7 = 0, wantRows = [], searchRows = []) {
   const tools = {};
   for (const r of rows) {
     tools[r.tool] = {
@@ -130,7 +159,13 @@ export function summarize(rows, dimRows = [], visits7 = 0, wantRows = []) {
     else if (key[d.dim]) lists[key[d.dim]].push([d.key, d.n]);
   }
   for (const list of Object.values(lists)) list.sort((a, b) => b[1] - a[1]);
-  const site = { visits30, countries: lists.countries.slice(0, 20), referrers: lists.referrers.slice(0, 20), devices: lists.devices };
+  // Searches that found nothing: shown only when often enough and on enough different days.
+  const searches = searchRows
+    .filter((r) => r.n >= SEARCH_MIN_TOTAL && r.days >= SEARCH_MIN_DAYS && normalizeSearch(r.key) === r.key)
+    .sort((a, b) => b.n - a.n || (a.key < b.key ? -1 : 1))
+    .slice(0, SEARCH_LIST_MAX)
+    .map((r) => [r.key, r.n]);
+  const site = { visits30, countries: lists.countries.slice(0, 20), referrers: lists.referrers.slice(0, 20), devices: lists.devices, searches };
   const rate = sampleRateFor(visits7 / 7);
   return { tools, wants, site, sample: { visits: rate, events: rate }, generated: new Date().toISOString() };
 }

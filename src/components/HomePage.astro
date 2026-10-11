@@ -305,7 +305,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
 
 <script>
   import { makeSearch } from "../lib/search.js";
-  import { summary, showWants, wireRowVotes, fmtCount, type ToolStats } from "../lib/stats";
+  import { summary, trackSearchMiss, showWants, wireRowVotes, fmtCount, type ToolStats } from "../lib/stats";
   import { txt, txtN, pageLang } from "../lib/ui";
 
   // Words for this page's language come from the #ftt-home block; the English here is the fallback.
@@ -395,8 +395,14 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     const li = rowFor(u)?.cloneNode(true) as HTMLElement | undefined;
     return li ?? null;
   }
+  // A search with no results is counted (see trackSearchMiss) once the query has stayed the same
+  // for 1.5 seconds, or when the person presses Enter or "Suggest it" on the empty state.
+  let missTimer = 0;
+  // Only a search across all tools counts: inside one group, a miss may have matches elsewhere.
+  const countMiss = (q: string) => { clearTimeout(missTimer); if (cat === "all") trackSearchMiss(q); };
   function render() {
     const q = input.value.trim();
+    clearTimeout(missTimer);
     const show = !!q || cat !== "all";
     results.hidden = !show;
     def.hidden = show;
@@ -416,6 +422,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     none.hidden = !(q && !rows.length);
     if (!none.hidden) {
       suggestBtn.dataset.term = q;
+      missTimer = window.setTimeout(() => countMiss(q), 1500);
     }
     results.classList.toggle("is-empty", !rows.length);
     title.textContent = q ? `${rows.length ? h("best", "Best matches for") : h("none", "Nothing found for")} “${q}”${cname ? h("inGroup", " in {group}", { group: cname }) : ""}` : cname;
@@ -452,9 +459,10 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
     e.preventDefault();
     if (!input.value.trim()) return;
     const first = (list.querySelector("a.sel") ?? list.querySelector("a.row")) as HTMLAnchorElement | null;
-    if (first) location.href = first.href; else suggestBtn.click();
+    if (first) location.href = first.href; else { countMiss(input.value.trim()); suggestBtn.click(); }
   });
 
+  suggestBtn.addEventListener("click", () => { if (!none.hidden) countMiss(input.value.trim()); });
   chips.forEach((c) => c.addEventListener("focus", () => c.scrollIntoView({ block: "nearest", inline: "nearest" })));
   chips.forEach((c) => c.addEventListener("click", () => {
     cat = c.dataset.cat!;
