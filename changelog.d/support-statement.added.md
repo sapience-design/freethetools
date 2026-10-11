@@ -1,0 +1,1 @@
+- The support page says what a card gift shows on your statement, and that a monthly gift can be stopped at any time.
