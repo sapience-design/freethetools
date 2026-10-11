@@ -1,0 +1,29 @@
+{
+  "name": "Unix Timestamp Converter",
+  "task": "Convert a Unix timestamp to a date",
+  "icon": "clock-clockwise",
+  "short": "Unix timestamp",
+  "tagline": "Turn a Unix timestamp into a date and time, or a date into a timestamp.",
+  "seoTitle": "Unix timestamp converter: epoch to date and back",
+  "description": "Convert a Unix timestamp in seconds, milliseconds or microseconds to a date in UTC and your time zone, or a date to a timestamp. Free, nothing is uploaded.",
+  "section": "Time",
+  "keywords": ["unix timestamp", "epoch converter", "epoch time", "timestamp to date", "date to timestamp", "milliseconds to date", "unix time", "iso 8601", "utc"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-11",
+  "offline": true,
+  "specs": {
+    "Units": "Seconds, milliseconds and microseconds, guessed from the length of the number",
+    "Range": "Years 1 to 9999, including dates before 1970",
+    "Engine": "Your browser's Date and Intl, with its time zone database",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "What is a Unix timestamp?", "a": "The number of seconds since 1 January 1970 at 00:00:00 UTC, not counting leap seconds. Many programs, logs and databases store time this way. A date before 1970 is a negative number." },
+    { "q": "How does it know if my number is seconds or milliseconds?", "a": "By its length. Up to 11 digits is read as seconds, 12 to 14 digits as milliseconds, and longer as microseconds. The page says which it assumed, and you can switch the unit yourself if it guessed wrong." },
+    { "q": "Why does 2147483647 matter?", "a": "It is the largest number a signed 32-bit integer can hold. As a timestamp it is 19 January 2038 at 03:14:07 UTC. Systems that store time in 32 bits stop working correctly after that moment." },
+    { "q": "What happens with a time the clocks skip or repeat?", "a": "When the clocks go forward, a time in the skipped hour does not exist, so it moves forward by the gap. When they go back, a time in the repeated hour happens twice, so the first one is used. The page tells you when this happens." },
+    { "q": "Is my data uploaded anywhere?", "a": "No. Everything runs in your browser tab, and the page's security policy blocks it from sending data anywhere." }
+  ],
+  "vendor": []
+}

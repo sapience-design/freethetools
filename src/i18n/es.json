@@ -369,20 +369,6 @@
         ]
       }
     },
-    "everyday/unix-timestamp": {
-      "name": "Conversor de marca de tiempo Unix",
-      "task": "Convertir una marca de tiempo Unix en una fecha",
-      "blurb": "Convierte una marca de tiempo en fecha y hora, y al revés.",
-      "concept": {
-        "in": "Una marca de tiempo Unix en segundos o milisegundos, o una fecha.",
-        "out": "La fecha en UTC y en la zona horaria que elijas, o la marca de tiempo.",
-        "options": [
-          "Detecta si son segundos o milisegundos e indica cuál",
-          "Elige una zona horaria",
-          "De fecha a marca de tiempo"
-        ]
-      }
-    },
     "developer/cron-explainer": {
       "name": "Explicador de expresiones cron",
       "task": "Explicar una programación cron",

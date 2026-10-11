@@ -1,0 +1,46 @@
+{
+  "name": "Conversor de marca de tiempo Unix",
+  "task": "Convertir una marca de tiempo Unix en una fecha",
+  "tagline": "Convierte una marca de tiempo Unix en fecha y hora, o una fecha en marca de tiempo.",
+  "seoTitle": "Conversor de marca de tiempo Unix: epoch a fecha y al revés",
+  "description": "Convierte una marca de tiempo Unix en segundos, milisegundos o microsegundos a fecha en UTC y en tu zona horaria, o una fecha a marca de tiempo. Gratis, no se sube nada.",
+  "keywords": [
+    "marca de tiempo unix",
+    "conversor epoch",
+    "tiempo epoch",
+    "timestamp a fecha",
+    "fecha a timestamp",
+    "milisegundos a fecha",
+    "tiempo unix",
+    "iso 8601",
+    "utc"
+  ],
+  "specs": {
+    "Unidades": "Segundos, milisegundos y microsegundos, según la longitud del número",
+    "Rango": "Años 1 a 9999, incluidas fechas anteriores a 1970",
+    "Motor": "Date e Intl de tu navegador, con su base de datos de zonas horarias",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Qué es una marca de tiempo Unix?",
+      "a": "Los segundos transcurridos desde el 1 de enero de 1970 a las 00:00:00 UTC, sin contar los segundos intercalares. Muchos programas, registros y bases de datos guardan así la hora. Una fecha anterior a 1970 es un número negativo."
+    },
+    {
+      "q": "¿Cómo sabe si mi número son segundos o milisegundos?",
+      "a": "Por su longitud. Hasta 11 cifras se leen como segundos, de 12 a 14 como milisegundos y más como microsegundos. La página indica lo que ha supuesto, y puedes cambiar la unidad si se equivoca."
+    },
+    {
+      "q": "¿Por qué importa 2147483647?",
+      "a": "Es el mayor número que cabe en un entero de 32 bits con signo. Como marca de tiempo es el 19 de enero de 2038 a las 03:14:07 UTC. Los sistemas que guardan la hora en 32 bits dejan de funcionar bien después de ese momento."
+    },
+    {
+      "q": "¿Qué pasa con una hora que el reloj se salta o repite?",
+      "a": "Cuando el reloj se adelanta, una hora de la franja saltada no existe, así que se mueve hacia delante lo que dura el salto. Cuando se atrasa, una hora de la franja repetida ocurre dos veces, así que se usa la primera. La página te avisa cuando pasa."
+    },
+    {
+      "q": "¿Se sube mi información a algún sitio?",
+      "a": "No. Todo se ejecuta en la pestaña de tu navegador, y la política de seguridad de la página le impide enviar datos a ningún sitio."
+    }
+  ]
+}

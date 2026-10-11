@@ -108,24 +108,6 @@
     }
   },
   {
-    "name": "Unix Timestamp Converter",
-    "category": "everyday",
-    "section": "Time",
-    "blurb": "Turn a timestamp into a date and time, and back.",
-    "slug": "unix-timestamp",
-    "issue": 69,
-    "task": "Convert a Unix timestamp to a date",
-    "concept": {
-      "in": "A Unix timestamp in seconds or milliseconds, or a date.",
-      "out": "The date in UTC and in a time zone you choose, or the timestamp.",
-      "options": [
-        "Guesses seconds or milliseconds, and says which",
-        "Choose a time zone",
-        "Date to timestamp"
-      ]
-    }
-  },
-  {
     "name": "Cron Expression Explainer",
     "category": "developer",
     "section": "Generate",
