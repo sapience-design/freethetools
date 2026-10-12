@@ -9,6 +9,12 @@ import { deflateSync, crc32 } from "node:zlib";
 const PDF = "tools/pdf/compress/tests/fixtures/sample.pdf"; // 3 pages
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
+// PDFs open in Scroll until a person picks a layout. Most tests here page through One page, so they
+// start with that choice already made; "the default layout" below starts with none.
+const ORIGIN = new URL(process.env.BASE_URL ?? "http://localhost:8788").origin;
+const withLayout = (value) => ({ cookies: [], origins: value ? [{ origin: ORIGIN, localStorage: [{ name: "ftt:viewer-layout", value }] }] : [] });
+test.use({ storageState: withLayout("one") });
+
 // Every test fails on a page error, a request to another origin, or a CSP violation.
 test.beforeEach(async ({ page }) => {
   const problems = [];
@@ -208,6 +214,29 @@ async function openLong(page, n) {
 }
 const layoutRadio = (page, name) => page.getByRole("radio", { name });
 const pos = (page) => page.locator("#fv-pos");
+
+test.describe("the default layout", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+  test.use({ storageState: withLayout(null) });
+
+  test("a PDF opens in Scroll until a layout is picked; zooming alone does not save one", async ({ page }) => {
+    const open = await mergeWithViewer(page);
+    await open.click();
+    await expect(layoutRadio(page, "Scroll")).toBeChecked();
+    await expect(page.locator("#fv-stage canvas.fv-pic")).toHaveCount(3);
+    await page.locator("#fv-in").click();
+    await page.keyboard.press("Escape");
+    expect(await page.evaluate(() => localStorage.getItem("ftt:viewer-layout"))).toBeNull();
+    await open.click();
+    await expect(layoutRadio(page, "Scroll")).toBeChecked();
+    // A picked layout is remembered.
+    await page.getByText("One page", { exact: true }).click();
+    await page.keyboard.press("Escape");
+    await open.click();
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+    expect(await page.evaluate(() => localStorage.getItem("ftt:viewer-layout"))).toBe("one");
+  });
+});
 
 test.describe("viewer page layouts", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");

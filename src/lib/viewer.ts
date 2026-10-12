@@ -30,7 +30,7 @@ const $ = <E extends HTMLElement>(id: string) => document.getElementById(id) as 
 
 let dlg: HTMLDialogElement, stage: HTMLElement, fig: HTMLElement;
 let items: ViewItem[] = [], idx = 0, page = 1;
-let pref: Layout = "one";       // the layout the person chose; remembered in this browser
+let chosen: Layout | null = null; // the layout the person chose; remembered in this browser
 let forced: Layout | null = null; // a Grid tile opens its page in One page without changing the choice
 let zoom: Zoom = "page";
 let opener: HTMLElement | null = null;
@@ -72,7 +72,8 @@ const narrow = () => dlg.clientWidth < NARROW;
 const hasLayouts = () => multi() && pages() > 1;
 const eff = (): Layout => {
   if (!multi()) return "one";
-  const l = forced ?? pref;
+  // Until the person picks one, PDFs scroll and sets of pictures show one at a time.
+  const l = forced ?? chosen ?? (isPdf(cur()) ? "scroll" : "one");
   return l === "two" && narrow() ? "one" : l;
 };
 /** First page of the group on screen (the pairs are 1-2, 3-4 and so on; the grid's fours likewise). */
@@ -85,17 +86,18 @@ const here = () => (multi() ? (eff() === "scroll" ? page : groupStart()) : pos()
 function readView() {
   try {
     const l = localStorage.getItem(LAYOUT_KEY);
-    if (l === "one" || l === "two" || l === "grid" || l === "scroll") pref = l;
+    if (l === "one" || l === "two" || l === "grid" || l === "scroll") chosen = l;
   } catch { /* storage may be blocked */ }
   try {
     const v = JSON.parse(sessionStorage.getItem(KEY) || "null");
-    if (v && ["one", "two", "grid", "scroll"].includes(v.l) && pref === "one") pref = v.l;
+    if (v && ["one", "two", "grid", "scroll"].includes(v.l) && !chosen) chosen = v.l;
     if (v && (v.z === "page" || v.z === "width" || (typeof v.z === "number" && v.z >= MIN_PCT && v.z <= MAX_PCT))) zoom = v.z;
   } catch { /* storage may be blocked */ }
 }
 function saveView() {
-  try { sessionStorage.setItem(KEY, JSON.stringify({ l: pref, z: zoom })); } catch { /* ignore */ }
-  try { localStorage.setItem(LAYOUT_KEY, pref); } catch { /* ignore */ }
+  try { sessionStorage.setItem(KEY, JSON.stringify({ l: chosen, z: zoom })); } catch { /* ignore */ }
+  // Only a layout the person picked is remembered; zooming alone does not fix the default.
+  try { if (chosen) localStorage.setItem(LAYOUT_KEY, chosen); } catch { /* ignore */ }
 }
 
 function init() {
@@ -593,7 +595,7 @@ function setLayout(l: Layout) {
   if (l === "two" && narrow()) return;
   const keep = page;
   forced = null;
-  pref = l;
+  chosen = l;
   saveView();
   page = keep;
   build();
