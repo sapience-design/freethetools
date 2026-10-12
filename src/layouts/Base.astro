@@ -136,6 +136,7 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
         )}
         <label class="slash-opt"><input type="checkbox" id="slash-key" checked> <span>{slashParts.map((p) => (typeof p === "string" ? p : <kbd>/</kbd>))}</span></label>
         <button type="button" class="install-app" id="install-app" hidden><Icon name="download-simple" />{t(lang, "foot.install")}</button>
+        <p class="install-hint" id="install-hint" hidden data-ios={t(lang, "foot.installIos")} data-ios-more={t(lang, "foot.installIosMore")} data-mac={t(lang, "foot.installMac")}></p>
       </div>
       <div class="col">
         <p class="col-h">{t(lang, "foot.groups")}</p>
@@ -245,18 +246,48 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
       if (find) find.focus(); else location.href = `${document.querySelector(".brand")?.getAttribute("href") ?? "/"}#find`;
     });
 
-    // "Install the app" shows only where the browser offers a one-step install (Chrome, Edge,
-    // Samsung Internet on Android). Elsewhere the browser's own menu installs the site, and the
-    // button stays hidden. Nothing is counted or stored.
+    // "Install the app" shows where the browser offers a one-step install (Chrome and Edge on
+    // computers and Android, Samsung Internet), and opens the browser's prompt. Apple offers no such
+    // step and no way for a page to open its menu, so on iPhone, iPad and Safari on a Mac the button
+    // opens the steps instead. Elsewhere it stays hidden. Nothing is counted or stored.
     type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<unknown> };
     const installBtn = document.getElementById("install-app") as HTMLButtonElement | null;
+    const installHint = document.getElementById("install-hint");
     let installPrompt: InstallPrompt | null = null;
+    let installSteps = false;
     addEventListener("beforeinstallprompt", (e) => {
       e.preventDefault(); // our button instead of the browser's own pop-up
       installPrompt = e as InstallPrompt;
-      if (installBtn) installBtn.hidden = false;
+      installSteps = false;
+      if (installHint) installHint.hidden = true;
+      if (installBtn) { installBtn.removeAttribute("aria-expanded"); installBtn.hidden = false; }
     });
+    if (installBtn && installHint) {
+      const ua = navigator.userAgent;
+      const installed = matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
+      // An iPad asking for desktop sites says "Macintosh" but has a touch screen.
+      const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+      // Apps that open links in their own browser have no Share or Add to Home Screen.
+      const inApp = /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|musical_ly|BytedanceWebview|Line\//.test(ua);
+      const safari = /Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|FxiOS|Firefox|OPR/.test(ua) ? Number(/Version\/(\d+)/.exec(ua)?.[1] ?? 0) : 0;
+      // Safari 26 moved Share into the More (⋯) menu on iPhone and iPad. On a Mac, Add to Dock
+      // needs macOS 14; Safari 26 runs only there, so an older Safari gets no line.
+      const key = installed || inApp ? "" : ios ? (safari >= 26 ? "iosMore" : "ios") : /Macintosh/.test(ua) && safari >= 26 ? "mac" : "";
+      if (key && installHint.dataset[key]) {
+        installSteps = true;
+        installHint.textContent = installHint.dataset[key]!;
+        installBtn.setAttribute("aria-controls", "install-hint");
+        installBtn.setAttribute("aria-expanded", "false");
+        installBtn.hidden = false;
+      }
+    }
     installBtn?.addEventListener("click", async () => {
+      if (installSteps && installHint) {
+        const open = installHint.hidden;
+        installHint.hidden = !open;
+        installBtn.setAttribute("aria-expanded", String(open));
+        return;
+      }
       const p = installPrompt;
       if (!p) return;
       installPrompt = null; // a prompt can be shown once
@@ -396,6 +427,8 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
   .install-app { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--edge); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; width: max-content; max-width: 100%; }
   .install-app[hidden] { display: none; }
   .install-app:hover { background: var(--hover); }
+  .install-hint { margin: -6px 0 0; max-width: 34ch; font-size: 14px; line-height: 1.45; color: var(--soft); }
+  .install-hint[hidden] { display: none; }
   .theme button:hover { color: var(--ink); }
   .theme button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
   .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }
