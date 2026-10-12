@@ -162,6 +162,9 @@ test.describe("the whole site offline", () => {
     await expect(note).toContainText("A new version is ready.", { timeout: 20_000 });
     await expect(note.getByRole("button", { name: "Later" })).toBeVisible();
     expect(await page.evaluate(() => navigator.serviceWorker.controller.scriptURL)).not.toContain("?next");
+    // After the reload the page would register "/sw.js" again: to the browser, a third version, and
+    // a new note. Real visits always use "/sw.js", so the reloaded page here skips registering.
+    await page.addInitScript(() => { navigator.serviceWorker.register = () => navigator.serviceWorker.ready; });
     await Promise.all([page.waitForEvent("load"), note.getByRole("button", { name: "Reload" }).click()]);
     await expect(note).toBeEmpty();
     await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL)).toContain("/sw.js?next");
