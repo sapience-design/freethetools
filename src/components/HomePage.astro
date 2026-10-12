@@ -5,7 +5,7 @@ import ToolRow from "../components/ToolRow.astro";
 import { loadCatalogue, groupIn, toolIn, toolUrl, wantedIn, wantedUrl, popularIn, SUGGEST_URL } from "../data/catalogue";
 import { POPULAR } from "../data/popular";
 import { artFor } from "../data/art";
-import { t as ui, tn, slots, jsStrings, localePath } from "../i18n/index";
+import { t as ui, tn, slots, emphasis, jsStrings, localePath } from "../i18n/index";
 import { langFile } from "../i18n/index";
 
 // The home page, in English at / and in every other language at /<lang>/ (src/pages/[lang]/[...rest].astro).
@@ -156,10 +156,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
       <section class="why" aria-labelledby="why-h">
         <h2 class="why-h" id="why-h">{h("whyTitle")}</h2>
         <div class="why-lines">
-          <p>{h("why1")}</p>
-          <p>{h("why2")}</p>
-          <p>{h("why3")}</p>
-          <p>{h("why4")}</p>
+          {["why1", "why2", "why3", "why4"].map((k) => <p>{emphasis(h(k)).map((x) => (typeof x === "string" ? x : <em>{x.em}</em>))}</p>)}
         </div>
         <p class="why-end">{whyEnd.map((x) => (typeof x === "string" ? x : <mark>{h("whyEndMark")}</mark>))}</p>
         <a class="btn line small" href="/about/">{h("aboutLink")}<Icon name="arrow-right" /></a>
@@ -284,6 +281,8 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   .why-lines { display: grid; gap: 4px; }
   .why-lines p, .why-end { margin: 0; font-family: var(--display); font-size: clamp(22px, 1rem + 1.2vw, 30px); line-height: 1.25; letter-spacing: -0.01em; }
   .why-lines p { color: var(--soft); }
+  /* The display font has no italic, so the browser slants it; a hair of space keeps the slant off the next word. */
+  .why-lines em { margin-inline-end: .08em; }
   .why-end { font-weight: 700; }
 
   @media (max-width: 960px) {
