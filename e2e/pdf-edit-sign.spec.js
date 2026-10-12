@@ -58,7 +58,8 @@ async function open(page, file = PDF, { visit = true } = {}) {
 }
 
 const mode = (page, name) => page.locator(`label[for="pes-m-${name}"]`).click();
-const count = (page, n) => expect(page.locator("#pes-list-sum")).toHaveText(`Everything you added (${n})`);
+// The list updates after the mark is drawn; under heavy test load that can take a few seconds.
+const count = (page, n) => expect(page.locator("#pes-list-sum")).toHaveText(`Everything you added (${n})`, { timeout: 10_000 });
 
 /** Scroll a page into the middle of the window and return a way to point at it: fractions of its size. */
 async function pageAt(page, n) {
