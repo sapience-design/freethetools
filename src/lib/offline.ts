@@ -51,11 +51,31 @@ function afterRegister(reg: ServiceWorkerRegistration) {
   addEventListener("online", finish);
 }
 
-// ---- A new version: a note in the bottom right corner offers to reload ----
+// ---- A new release: a note in the bottom right corner offers to reload ----
+// Every deploy builds a new worker, but only a new release (a new version number) is announced.
+// Other builds wait quietly and take over once every tab of the site is closed.
 const HOUR = 60 * 60 * 1000;
 
+/** The release a worker says it is, or "" when it does not answer (a worker from before releases were named). */
+function releaseOf(worker: ServiceWorker | null): Promise<string> {
+  return new Promise((resolve) => {
+    if (!worker) return resolve("");
+    const channel = new MessageChannel();
+    const timer = setTimeout(() => resolve(""), 1500);
+    channel.port1.onmessage = (e) => { clearTimeout(timer); resolve(String(e.data ?? "")); };
+    try { worker.postMessage({ type: "release" }, [channel.port2]); } catch { clearTimeout(timer); resolve(""); }
+  });
+}
+
 function watchForUpdates(reg: ServiceWorkerRegistration) {
-  const offer = () => { if (reg.waiting && navigator.serviceWorker.controller) showUpdate(reg.waiting); };
+  const offer = async () => {
+    const next = reg.waiting;
+    if (!next || !navigator.serviceWorker.controller) return;
+    const [now, coming] = await Promise.all([releaseOf(reg.active), releaseOf(next)]);
+    // Same release on both sides: a deploy, not a release. Unknown on either side: say it.
+    if (now && coming && now === coming) return;
+    if (reg.waiting === next) showUpdate(next);
+  };
   offer();
   reg.addEventListener("updatefound", () => {
     const next = reg.installing;

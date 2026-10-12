@@ -1,0 +1,2 @@
+- "Install the app" stays at the bottom of every page. Where the browser has no one-step install (Firefox, or a browser where the app is already installed), it says where to find Install instead of disappearing.
+- The "A new version is ready" note now shows only for a new release (a new version number). Smaller updates arrive quietly, the next time you open the site.

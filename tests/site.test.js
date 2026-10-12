@@ -149,7 +149,8 @@ test("the verify page and its footer link exist", () => {
 test("the service worker is built, same-origin only, and registered from the pages", () => {
   assert.ok(existsSync(join(DIST, "sw.js")), "dist/sw.js is missing");
   const sw = html("sw.js");
-  assert.doesNotMatch(sw, /__VERSION__|__SHELL__/, "the template was not filled in");
+  assert.doesNotMatch(sw, /__VERSION__|__RELEASE__|__SHELL__/, "the template was not filled in");
+  assert.match(sw, new RegExp(`const RELEASE = "${JSON.parse(readFileSync("package.json", "utf8")).version.replaceAll(".", "\\.")}"`), "the worker carries the release");
   assert.doesNotMatch(sw, /https?:\/\/(?!freethetools\.com)/, "the worker must not name another origin");
   const shell = JSON.parse(sw.match(/const SHELL = (\[[\s\S]*?\]);/)[1]);
   assert.ok(shell.includes("/") && shell.includes("/offline/"));

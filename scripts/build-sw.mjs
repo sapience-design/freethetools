@@ -130,7 +130,9 @@ export function buildServiceWorker(dist = join(root, "dist")) {
   writeFileSync(join(dist, OFFLINE_LIST), JSON.stringify(list));
 
   const template = readFileSync(join(root, "src/sw/sw.template.js"), "utf8");
-  const out = template.replace("__VERSION__", version).replace("__SHELL__", JSON.stringify(shell, null, 2));
+  // The release (package.json version, as in the footer) decides whether the page announces an update.
+  const release = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+  const out = template.replace("__VERSION__", version).replace("__RELEASE__", release).replace("__SHELL__", JSON.stringify(shell, null, 2));
   writeFileSync(join(dist, "sw.js"), out);
   const size = (set) => {
     const all = new Set(set);

@@ -152,13 +152,32 @@ test.describe("the whole site offline", () => {
     await expect(page.locator("#ol-state")).toContainText("with the Compress PDF engine", { timeout: 30_000 });
   });
 
-  test("a new version shows a note with Reload in the corner, and Reload switches to it", async ({ page }) => {
+  // The same worker under a new address stands in for a new deploy: the browser installs it as an
+  // update, and it waits. It carries the same release, so it stands for a deploy within a release.
+  const deploy = (page) => page.evaluate(() => navigator.serviceWorker.register("/sw.js?next", { scope: "/" }));
+  const waiting = (page) => page.evaluate(async () => !!(await navigator.serviceWorker.getRegistration()).waiting);
+
+  test("a deploy within the same release updates quietly, with no note", async ({ page }) => {
+    await controlled(page, "/pdf/merge/");
+    await deploy(page);
+    await expect.poll(() => waiting(page), { timeout: 20_000 }).toBe(true);
+    await page.waitForTimeout(2000);
+    await expect(page.locator("#update-note")).toBeEmpty();
+  });
+
+  test("a new release shows a note with Reload in the corner, and Reload switches to it", async ({ page }) => {
     await controlled(page, "/pdf/merge/");
     const note = page.locator("#update-note");
     await expect(note).toBeEmpty();
-    // The same worker under a new address stands in for a new deploy: the browser installs it as
-    // an update, and it waits for the visitor.
-    await page.evaluate(() => navigator.serviceWorker.register("/sw.js?next", { scope: "/" }));
+    // The waiting worker answers with another release number, as the next version would.
+    await page.evaluate(() => {
+      const post = ServiceWorker.prototype.postMessage;
+      ServiceWorker.prototype.postMessage = function (msg, transfer) {
+        if (msg?.type === "release" && this.scriptURL.includes("?next")) return transfer[0].postMessage("99.0.0");
+        return post.call(this, msg, transfer);
+      };
+    });
+    await deploy(page);
     await expect(note).toContainText("A new version is ready.", { timeout: 20_000 });
     await expect(note.getByRole("button", { name: "Later" })).toBeVisible();
     expect(await page.evaluate(() => navigator.serviceWorker.controller.scriptURL)).not.toContain("?next");
