@@ -101,7 +101,9 @@ test("the form sends the right JSON and then says thanks", async ({ page }) => {
   await page.getByLabel("Your email, if you want a reply").fill("ada@example.org");
   await page.getByRole("button", { name: "Send" }).click();
   await expect(page.locator("#fb-status")).toHaveText("Thanks. We read every message.");
-  expect(sent).toEqual([{ kind: "suggestion", message: "Join two pictures side by side.", use: "Paint", tool: "images/crop", email: "ada@example.org", website: "" }]);
+  expect(sent).toEqual([{ kind: "suggestion", message: "Join two pictures side by side.", use: "Paint", tool: "images/crop", email: "ada@example.org", website: "", page: "" }]);
+  // Opened directly, there is no page to send, and the form says nothing about one.
+  await expect(page.locator("#fb-context")).toBeHidden();
 });
 
 test("the hidden field cannot be reached by keyboard or screen reader", async ({ page }) => {
@@ -152,13 +154,21 @@ test("a network error gives the same email fallback", async ({ page }) => {
   await expect(page.locator("#fb-status a")).toHaveAttribute("href", /^mailto:hello@freethetools\.com\?subject=Suggestion%3A%20new%20tool&body=/);
 });
 
-test("Report a problem on a tool page opens the form with that tool filled in", async ({ page }) => {
+test("Report a problem on a tool page opens the form with that tool filled in, and sends that page", async ({ page }) => {
+  let body;
+  await page.route("**/api/feedback", (route) => { body = route.request().postDataJSON(); return route.fulfill({ status: 204 }); });
   await page.goto("/pdf/merge/");
   await page.getByRole("link", { name: "Report a problem" }).click();
   await expect(page).toHaveURL(/\/suggest\/\?tool=pdf%2Fmerge&kind=problem$/);
   await expect(page.getByLabel("Which tool?")).toHaveValue("pdf/merge");
   await expect(page.getByLabel("Report a problem")).toBeChecked();
   await expect(page.getByLabel("What went wrong?")).toBeVisible();
+  // The page it came from goes with the report, and the form says so first.
+  await expect(page.locator("#fb-context")).toHaveText("We also send the page you came from: /pdf/merge/");
+  await page.getByLabel("What went wrong?").fill("The merged file lost its bookmarks.");
+  await page.getByRole("button", { name: "Send" }).click();
+  await expect(page.locator("#fb-status")).toHaveText("Thanks. We read every message.");
+  expect(body).toMatchObject({ kind: "problem", tool: "pdf/merge", page: "/pdf/merge/" });
 });
 
 test("the real Worker answers the form: 204 with the mail binding, 400 for a bad body", async ({ request, baseURL }) => {

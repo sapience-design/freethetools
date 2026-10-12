@@ -66,6 +66,7 @@ const { aisles } = await loadCatalogue();
         <input type="text" id="fb-website" name="website" tabindex="-1" autocomplete="off">
       </div>
 
+      <p class="hint" id="fb-context" hidden></p>
       <p class="tool-error" id="fb-error" role="alert" hidden></p>
       <div class="send">
         <button class="btn" type="submit" id="fb-send"><Icon name="paper-plane-tilt" />Send</button>
@@ -116,6 +117,18 @@ const { aisles } = await loadCatalogue();
   if (params.get("kind") === "problem") $<HTMLInputElement>("kind-problem").checked = true;
   applyKind();
 
+  // The page the visitor came from, when it is on this site, goes with the message. The form says so.
+  const from = (() => {
+    try {
+      const u = new URL(document.referrer);
+      return u.origin === location.origin && !/^\/suggest\/?$/.test(u.pathname) ? u.pathname.slice(0, 200) : "";
+    } catch { return ""; }
+  })();
+  if (from) {
+    $("fb-context").textContent = `We also send the page you came from: ${from}`;
+    $("fb-context").hidden = false;
+  }
+
   const EMAIL = /^[^\s@<>()[\],;:"\\]+@[^\s@<>()[\],;:"\\]+\.[^\s@<>()[\],;:"\\]{2,}$/;
   function problemWith(): string {
     const text = message.value.trim();
@@ -127,7 +140,7 @@ const { aisles } = await loadCatalogue();
 
   function body() {
     const kind = kindOf();
-    return { kind, message: message.value.trim(), use: kind === "suggestion" ? use.value.trim() : "", tool: tool.value.trim(), email: email.value.trim(), website: website.value };
+    return { kind, message: message.value.trim(), use: kind === "suggestion" ? use.value.trim() : "", tool: tool.value.trim(), email: email.value.trim(), website: website.value, page: from };
   }
 
   // When the message cannot be sent from here, offer an email with everything filled in.

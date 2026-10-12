@@ -1,0 +1,1 @@
+- Suggestions: Next and Back move straight to the next field. The dialog lists what is sent with a message (the page, your search words and the site language) before you send it.
