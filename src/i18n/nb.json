@@ -15,8 +15,8 @@
       "initiative": "Et initiativ fra Sapience Design",
       "theme": "Tema",
       "system": "System",
-      "light": "Lys",
-      "dark": "Mørk",
+      "light": "Lyst",
+      "dark": "Mørkt",
       "slash": "Trykk på {key} for å gå til søkefeltet",
       "install": "Installer appen",
       "installIos": "Trykk på Del, og så på Legg til på Hjem-skjerm.",
@@ -26,8 +26,8 @@
       "project": "Prosjekt",
       "trust": "Tillit",
       "developers": "Utviklere",
-      "about": "Om prosjektet",
-      "changelog": "Nytt",
+      "about": "Om",
+      "changelog": "Nyheter",
       "favourites": "Favoritter",
       "library": "Bibliotek",
       "suggest": "Foreslå et verktøy",
@@ -79,7 +79,7 @@
       "sortBy": "Sorter etter",
       "sortUsed": "Mest brukt",
       "sortNew": "Nyeste",
-      "sortLiked": "Flest favoritter",
+      "sortLiked": "Mest likt",
       "sortAz": "A–Å",
       "seeAll": { "one": "Se alle {n} verktøy", "other": "Se alle {n} verktøy" },
       "countShort": { "one": "{n} verktøy", "other": "{n} verktøy" },
@@ -101,7 +101,7 @@
       "description": "{blurb} Gratis og åpen kildekode, uten konto. Filene dine blir på enheten din.",
       "more": "Savner du et verktøy? {suggest} eller {sponsor} for å få det laget raskere.",
       "moreSuggest": "Foreslå et verktøy",
-      "moreSponsor": "spons et"
+      "moreSponsor": "spons ett"
     },
     "tool": {
       "favAdd": "Legg til i favoritter",
@@ -320,10 +320,10 @@
     "Privacy": "Personvern",
     "Count & Compare": "Tell og sammenlign",
     "Transform": "Endre",
-    "Format": "Formater",
+    "Format": "Format",
     "Encode": "Kode",
     "Inspect": "Undersøk",
-    "Generate": "Lag",
+    "Generate": "Generer",
     "Time": "Tid"
   },
   "popular": {
