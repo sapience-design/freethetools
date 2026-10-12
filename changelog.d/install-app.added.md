@@ -1,0 +1,1 @@
+- An "Install the app" button in the footer, where the browser can install the site in one step (Chrome, Edge and Samsung Internet on Android). The installed app opens in its own window and keeps working offline. Elsewhere the button stays hidden; the browser's own menu still installs the site.

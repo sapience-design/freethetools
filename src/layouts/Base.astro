@@ -135,6 +135,7 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
           </nav>
         )}
         <label class="slash-opt"><input type="checkbox" id="slash-key" checked> <span>{slashParts.map((p) => (typeof p === "string" ? p : <kbd>/</kbd>))}</span></label>
+        <button type="button" class="install-app" id="install-app" hidden><Icon name="download-simple" />{t(lang, "foot.install")}</button>
       </div>
       <div class="col">
         <p class="col-h">{t(lang, "foot.groups")}</p>
@@ -242,6 +243,26 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
       e.preventDefault();
       if (find) find.focus(); else location.href = `${document.querySelector(".brand")?.getAttribute("href") ?? "/"}#find`;
     });
+
+    // "Install the app" shows only where the browser offers a one-step install (Chrome, Edge,
+    // Samsung Internet on Android). Elsewhere the browser's own menu installs the site, and the
+    // button stays hidden. Nothing is counted or stored.
+    type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<unknown> };
+    const installBtn = document.getElementById("install-app") as HTMLButtonElement | null;
+    let installPrompt: InstallPrompt | null = null;
+    addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault(); // our button instead of the browser's own pop-up
+      installPrompt = e as InstallPrompt;
+      if (installBtn) installBtn.hidden = false;
+    });
+    installBtn?.addEventListener("click", async () => {
+      const p = installPrompt;
+      if (!p) return;
+      installPrompt = null; // a prompt can be shown once
+      installBtn.hidden = true;
+      try { await p.prompt(); await p.userChoice; } catch {}
+    });
+    addEventListener("appinstalled", () => { installPrompt = null; if (installBtn) installBtn.hidden = true; });
 
     // Favourites live in this browser only (localStorage). The page works without it.
     const KEY = "ftt:saved";
@@ -371,6 +392,9 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
   .slash-opt { display: flex; align-items: center; gap: 10px; margin-top: 14px; min-height: 40px; font-size: 14px; cursor: pointer; }
   .slash-opt input { width: 20px; height: 20px; accent-color: var(--ink); }
   .slash-opt kbd { font: inherit; font-weight: 700; padding: 0 6px; border: 1px solid var(--hair); border-radius: 5px; background: var(--well); }
+  .install-app { display: inline-flex; align-items: center; gap: 8px; margin-top: 10px; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--edge); border-radius: 12px; background: var(--card); color: var(--ink); font: inherit; font-size: 14px; font-weight: 650; cursor: pointer; width: max-content; max-width: 100%; }
+  .install-app[hidden] { display: none; }
+  .install-app:hover { background: var(--hover); }
   .theme button:hover { color: var(--ink); }
   .theme button[aria-pressed="true"] { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
   .legal { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; padding-top: 20px; border-top: 1px solid var(--hair); font-size: 14px; }
