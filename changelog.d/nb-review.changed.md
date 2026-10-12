@@ -1,0 +1,1 @@
+- Norwegian: clearer menu and sort labels after a review, such as "Nyheter" for What's new and "Lyst" and "Mørkt" for the themes.
