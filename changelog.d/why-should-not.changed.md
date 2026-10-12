@@ -1,0 +1,1 @@
+- "Why this exists" on the home page, the About page and the README now says "should *not*", with *not* in italics, instead of "shouldn't". Norwegian, Spanish and Russian stress their own word for "not" the same way.

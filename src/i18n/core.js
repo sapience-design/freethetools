@@ -28,6 +28,15 @@ export function slots(text) {
   return text.split(/(\{\w+\})/).filter(Boolean).map((p) => (/^\{\w+\}$/.test(p) ? { slot: p.slice(1, -1) } : p));
 }
 
+/**
+ * Split a string at *emphasis*: "Tools should *not* cost money." gives
+ * ["Tools should ", { em: "not" }, " cost money."]. The translator marks the stressed word inside
+ * the sentence, wherever the language puts it ("bør *ikke*", "*no* deberían", "*не* должны").
+ */
+export function emphasis(text) {
+  return text.split(/(\*[^*\s][^*]*\*)/).filter(Boolean).map((p) => (/^\*[^*\s][^*]*\*$/.test(p) ? { em: p.slice(1, -1) } : p));
+}
+
 /** The plural form for a count in a language: "one", "few", "many", "other"... */
 export function pluralForm(lang, n) {
   try { return new Intl.PluralRules(lang).select(n); } catch { return n === 1 ? "one" : "other"; }

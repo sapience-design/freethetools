@@ -3,7 +3,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { compareKeys, fill, flatten, localePath, lookupPlural, slots, splitPath } from "../src/i18n/core.js";
+import { compareKeys, emphasis, fill, flatten, localePath, lookupPlural, slots, splitPath } from "../src/i18n/core.js";
 
 const DIST = "dist";
 const html = (p) => readFileSync(join(DIST, p), "utf8");
@@ -24,6 +24,9 @@ const decode = (s) => s.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/
 test("the helpers fill, split, count and address as documented", () => {
   assert.equal(fill("Hei {name}, {n}", { name: "Ola" }), "Hei Ola, {n}");
   assert.deepEqual(slots("Press {key} to go"), ["Press ", { slot: "key" }, " to go"]);
+  assert.deepEqual(emphasis("Tools should *not* cost money."), ["Tools should ", { em: "not" }, " cost money."]);
+  assert.deepEqual(emphasis("*No* deberían traer anuncios."), [{ em: "No" }, " deberían traer anuncios."]);
+  assert.deepEqual(emphasis("2 * 3 = 6, and no stress"), ["2 * 3 = 6, and no stress"]); // a lone or spaced asterisk is just text
   assert.equal(localePath("en", "/pdf/"), "/pdf/");
   assert.equal(localePath("nb", "/pdf/"), "/nb/pdf/");
   assert.equal(localePath("nb", "/"), "/nb/");
@@ -66,6 +69,9 @@ for (const l of langs) {
       if (base === undefined) continue;
       const ph = (s) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
       assert.equal(ph(ft[k]), ph(base), k);
+      // A stressed *word* in English is stressed in every language too, once per marked word.
+      const stress = (s) => emphasis(s).filter((x) => typeof x !== "string").length;
+      assert.equal(stress(ft[k]), stress(base), `${k}: mark the stressed word with *asterisks*, as in English`);
     }
   });
 

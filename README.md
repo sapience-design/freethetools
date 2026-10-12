@@ -34,10 +34,10 @@
   </picture>
 </a>
 
-Everyday tools shouldn't cost money.<br>
-They shouldn't come with ads.<br>
-They shouldn't put your files at risk.<br>
-They shouldn't be hard to find.<br>
+Everyday tools should *not* cost money.<br>
+They should *not* come with ads.<br>
+They should *not* put your files at risk.<br>
+They should *not* be hard to find.<br>
 So here they are: one place, every tool, free for everyone. Help us build the next one.
 
 Free the Tools is a [Sapience Design](https://sapience.design) initiative, built in the open with anyone who wants to help.

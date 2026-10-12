@@ -1,7 +1,7 @@
 // The site's languages and interface strings, for pages at build time. The pure helpers are in
 // ./core.js. A language exists when src/i18n/<code>.json exists (docs/adr/0014-languages.md).
 import { DEFAULT_LANG, LANG_CODE, compareKeys, fill, flatten, localePath, lookup, lookupPlural, sortLangs } from "./core.js";
-export { DEFAULT_LANG, localePath, slots, splitPath, fill } from "./core.js";
+export { DEFAULT_LANG, emphasis, localePath, slots, splitPath, fill } from "./core.js";
 
 type Meta = { name: string; dir: "ltr" | "rtl"; locale: string; reviewed: boolean };
 type LangFile = {
