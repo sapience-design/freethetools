@@ -53,12 +53,15 @@ import Icon from "../../../src/components/Icon.astro";
   // safe-html: only sizes, percentages and fixed labels go in, never a file name.
   const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".fmeta") as HTMLElement).innerHTML = html);
 
-  const LOAD_ERROR = '<span class="err">The compressor could not load. Reload the page and try again.</span>';
+  // safe-html: fixed text only. Offline, the engine is missing unless it was downloaded for offline use.
+  const loadError = () => navigator.onLine
+    ? '<span class="err">The compressor could not load. Reload the page and try again.</span>'
+    : '<span class="err">Compress PDF needs a one-time download of its engine. Connect to the internet once, or add it on the <a href="/offline-use/">Offline use</a> page.</span>';
   let broken = false; // the worker failed to start; files added later must not wait forever
   worker.onerror = () => {
     broken = true;
-    reportFailure();
-    for (const { row } of jobs.values()) setMeta(row, LOAD_ERROR);
+    if (navigator.onLine) reportFailure();
+    for (const { row } of jobs.values()) setMeta(row, loadError());
     batch.failed += jobs.size;
     jobs.clear();
     finish();
@@ -98,6 +101,14 @@ import Icon from "../../../src/components/Icon.astro";
     if (!job) return;
     jobs.delete(data.id);
     const { row, file, preset, firstPage } = job;
+    if (!data.ok && (data.load || !navigator.onLine)) {
+      // The engine could not be fetched: not the file's fault.
+      if (navigator.onLine) reportFailure();
+      setMeta(row, loadError());
+      batch.failed++;
+      finish();
+      return;
+    }
     if (!data.ok) {
       reportFailure();
       setMeta(row, "");
@@ -158,7 +169,7 @@ import Icon from "../../../src/components/Icon.astro";
       const row = fileRow({ name: file.name, meta: "", thumb: pdfThumb() });
       setMeta(row, `<span class="spin"></span>compressing ${fmtBytes(file.size)}…`);
       results.append(row);
-      if (broken) { setMeta(row, LOAD_ERROR); batch.failed++; finish(); continue; }
+      if (broken) { setMeta(row, loadError()); batch.failed++; finish(); continue; }
       const id = nextId++;
       jobs.set(id, { row, file, preset, firstPage });
       const bytes = await file.arrayBuffer();

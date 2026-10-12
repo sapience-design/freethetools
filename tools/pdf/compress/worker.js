@@ -4,10 +4,21 @@
 // the page builds the Ghostscript arguments (core.js) and sends them.
 
 const VENDOR = "/pdf/compress/vendor/";
-importScripts(VENDOR + "gs.js"); // defines global `Module`, an Emscripten factory
+// Defines global `Module`, an Emscripten factory. Offline, the engine is there only if it was kept
+// for offline use: when it is missing, each file is answered with that, instead of the worker failing.
+let missing = "";
+try {
+  importScripts(VENDOR + "gs.js");
+} catch (e) {
+  missing = String(e?.message ?? e);
+}
 
 self.onmessage = async ({ data }) => {
   const { id, bytes, args } = data;
+  if (missing) {
+    self.postMessage({ id, ok: false, load: true, error: missing });
+    return;
+  }
   const log = [];
   try {
     // A fresh instance per file: Emscripten's callMain runs once per instance.

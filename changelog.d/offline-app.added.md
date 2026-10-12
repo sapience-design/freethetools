@@ -1,0 +1,1 @@
+- Works offline: download every tool for offline use on the new Offline use page, or install the app, which downloads them by itself. Updates download in the background, only what changed, and a note in the corner offers to reload when a new version is ready. You can see what is kept, and remove it, on the same page.

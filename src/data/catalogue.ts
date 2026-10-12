@@ -118,7 +118,7 @@ export async function loadCatalogue() {
   // Language files: names that point at nothing are mistakes (the build stops); things not yet
   // translated are warnings, and English shows instead.
   const wantedIds = new Set(wanted.map((w) => `${w.category}/${w.slug}`));
-  const RESERVED = ["about", "ai", "api", "og", "library", "saved", "support", "stats", "suggest", "privacy", "verify", "licenses", "changelog", "offline", "how-it-works", "at-work", "404"];
+  const RESERVED = ["about", "ai", "api", "og", "library", "saved", "support", "stats", "suggest", "privacy", "verify", "licenses", "changelog", "offline", "offline-use", "how-it-works", "at-work", "404"];
   for (const l of OTHER_LANGS) {
     const f = langFile(l.code);
     const bad = [

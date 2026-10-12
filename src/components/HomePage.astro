@@ -22,6 +22,7 @@ const popular = POPULAR.map(([id, when]) => {
 });
 const sorts = [["used", h("sortUsed")], ["new", h("sortNew")], ["liked", h("sortLiked")], ["az", h("sortAz")]];
 const homeUrl = localePath(lang, "/");
+const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang}`;
 const whyEnd = slots(h("whyEnd"));
 const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
 ---
@@ -47,6 +48,7 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
         <li><Icon name="check-circle" />{h("trustNoSignup")}</li>
         <li><Icon name="check-circle" />{h("trustFiles")}</li>
         <li><Icon name="check-circle" />{h("trustOpen")}</li>
+        <li><Icon name="check-circle" /><a href={offlineHref}>{h("trustOffline")}</a></li>
       </ul>
       <p class="sr-only" id="find-status" role="status"></p>
       <form class="find" role="search" action={homeUrl} method="get">
@@ -182,6 +184,8 @@ const homeJs = JSON.stringify(jsStrings(lang, "home")).replace(/</g, "\\u003c");
   .trust { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 18px; color: var(--soft); font-size: 15px; }
   .trust li { display: inline-flex; gap: 7px; align-items: center; }
   .trust :global(.ic) { color: var(--ok); font-size: 18px; }
+  .trust a { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .trust a:hover { color: var(--ink); }
   .find { width: min(640px, 100%); margin-top: 8px; }
   .find-box { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px 0 18px; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); box-shadow: var(--shadow); text-align: left; cursor: text; }
   .find-box:focus-within { box-shadow: var(--shadow), 0 0 0 4px color-mix(in srgb, var(--hl) 70%, transparent); }

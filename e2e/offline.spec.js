@@ -76,6 +76,98 @@ test.describe("works offline after a visit", () => {
   });
 });
 
+// The whole site, kept when the visitor asks on /offline-use/ or installs the app (src/sw/sw.template.js).
+test.describe("the whole site offline", () => {
+  test.skip(({ isMobile }) => isMobile, "runs once, on desktop");
+
+  async function controlled(page, path) {
+    await page.goto(path);
+    await page.evaluate(() => navigator.serviceWorker.ready);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  }
+  // Only the worker's copy counts: the browser's HTTP cache is switched off before going offline.
+  // This session is told it is offline too; otherwise navigator.onLine reads true after a navigation.
+  const conditions = (offline) => ({ offline, latency: 0, downloadThroughput: -1, uploadThroughput: -1 });
+  async function goOffline(page, context) {
+    const cdp = await context.newCDPSession(page);
+    await cdp.send("Network.enable");
+    await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
+    await cdp.send("Network.emulateNetworkConditions", conditions(true));
+    await context.setOffline(true);
+    return cdp;
+  }
+  const NEVER_OPENED = ["/about/", "/privacy/", "/pdf/", "/text/", OFFLINE_TOOLS.find((p) => p.startsWith("/text/")), OFFLINE_TOOLS.find((p) => p.startsWith("/images/"))];
+
+  test("Download keeps pages never opened; Remove takes them away again", async ({ page, context }) => {
+    await controlled(page, "/offline-use/");
+    const state = page.locator("#ol-state");
+    await expect(state).toContainText("Not downloaded");
+    await page.locator("#ol-engine").uncheck();
+    await expect(page.locator("#ol-download")).toContainText(/^Download for offline use \(\d+(\.\d)? MB\)$/);
+    await page.locator("#ol-download").click();
+    await expect(state).toContainText("Ready offline", { timeout: 60_000 });
+    await expect(state).toContainText("English");
+    await expect(state).not.toContainText("Compress PDF engine");
+    await expect(page.locator("#ol-remove")).toBeVisible();
+
+    const cdp = await goOffline(page, context);
+    for (const path of NEVER_OPENED) {
+      await page.goto(path);
+      await expect(page.locator("main h1"), path).toBeVisible();
+      await expect(page.locator("main h1"), path).not.toHaveText("You're offline.");
+    }
+    // Only English was asked for.
+    await page.goto("/nb/pdf/merge/");
+    await expect(page.locator("main h1")).toHaveText("You're offline.");
+    // Without its engine, Compress PDF says what it needs instead of failing.
+    await page.goto("/pdf/compress/");
+    await page.setInputFiles("#pdfc-file", PDF);
+    await page.locator("#pdfc-go").click();
+    await expect(page.locator("#pdfc-tool .err").first()).toContainText("needs a one-time download of its engine");
+
+    await cdp.send("Network.emulateNetworkConditions", conditions(false));
+    await context.setOffline(false);
+    await page.goto("/offline-use/");
+    await expect(state).toContainText("Ready offline");
+    await page.locator("#ol-remove").click();
+    await expect(state).toContainText("You removed the offline copy");
+    await cdp.send("Network.emulateNetworkConditions", conditions(true));
+    await context.setOffline(true);
+    await page.goto("/about/");
+    await expect(page.locator("main h1")).toHaveText("You're offline.");
+  });
+
+  test("an installed app downloads everything by itself, with the Compress PDF engine on a computer", async ({ page }) => {
+    await page.addInitScript(() => Object.defineProperty(Navigator.prototype, "standalone", { get: () => true }));
+    await controlled(page, "/");
+    const kept = () => page.evaluate(async () => {
+      const out = [];
+      for (const n of await caches.keys()) for (const r of await (await caches.open(n)).keys()) out.push(new URL(r.url).pathname);
+      return out;
+    });
+    await expect.poll(async () => (await kept()).includes("/privacy/") && (await kept()).some((p) => p.endsWith("/gs.wasm")), { timeout: 60_000 }).toBe(true);
+    await page.goto("/offline-use/");
+    await expect(page.locator("#ol-app")).toBeVisible();
+    await expect(page.locator("#ol-state")).toContainText("with the Compress PDF engine", { timeout: 30_000 });
+  });
+
+  test("a new version shows a note with Reload in the corner, and Reload switches to it", async ({ page }) => {
+    await controlled(page, "/pdf/merge/");
+    const note = page.locator("#update-note");
+    await expect(note).toBeEmpty();
+    // The same worker under a new address stands in for a new deploy: the browser installs it as
+    // an update, and it waits for the visitor.
+    await page.evaluate(() => navigator.serviceWorker.register("/sw.js?next", { scope: "/" }));
+    await expect(note).toContainText("A new version is ready.", { timeout: 20_000 });
+    await expect(note.getByRole("button", { name: "Later" })).toBeVisible();
+    expect(await page.evaluate(() => navigator.serviceWorker.controller.scriptURL)).not.toContain("?next");
+    await Promise.all([page.waitForEvent("load"), note.getByRole("button", { name: "Reload" }).click()]);
+    await expect(note).toBeEmpty();
+    await expect.poll(() => page.evaluate(() => navigator.serviceWorker.controller?.scriptURL)).toContain("/sw.js?next");
+  });
+});
+
 // Each tool page is opened once with the network on, then again with it off. Everything the page
 // loads when it opens must come back from the worker: a script, font or vendor file it fetches but
 // the worker does not keep would fail here. Engines a tool loads only when it runs (Ghostscript for

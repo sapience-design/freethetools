@@ -22,6 +22,7 @@
       "installIos": "Tap Share, then Add to Home Screen.",
       "installIosMore": "Tap More (⋯), then Share, then Add to Home Screen.",
       "installMac": "In Safari, choose File > Add to Dock.",
+      "offline": "Offline use",
       "groups": "Groups",
       "project": "Project",
       "trust": "Trust",
@@ -64,6 +65,7 @@
       "trustNoSignup": "No sign-up",
       "trustFiles": "Files stay on your device",
       "trustOpen": "Open source",
+      "trustOffline": "Works offline",
       "findLabel": "What do you need to do?",
       "findPlaceholder": "What do you need to do?",
       "chipsLabel": "Show tools for",
@@ -158,6 +160,9 @@
     "js": {
       "common": {
         "donateLabel": "Donate",
+        "updateReady": "A new version is ready.",
+        "updateReload": "Reload",
+        "updateLater": "Later",
         "donateTitle": "Saved you some time?",
         "donateBody": "This tool is free and ran in your browser. A small donation helps keep it that way.",
         "donateButton": "Donate",

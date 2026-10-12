@@ -54,6 +54,8 @@ const abs = (p: string) => new URL(p, Astro.site).href;
 const hrefFor = (code: string) => localePath(code, hasPage(code, enPath) ? enPath : "/");
 const uiJson = JSON.stringify(jsStrings(lang, "common")).replace(/</g, "\\u003c");
 const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
+// The Offline use page is in English; it downloads the language the visitor came from.
+const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang}`;
 ---
 <!doctype html>
 <html lang={lang} dir={L.dir}>
@@ -148,6 +150,7 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
           <li><a href="/about/">{t(lang, "foot.about")}</a></li>
           <li><a href="/changelog/">{t(lang, "foot.changelog")}</a></li>
           <li><a href="/saved/">{t(lang, "foot.favourites")}</a></li>
+          <li><a href={offlineHref}>{t(lang, "foot.offline")}</a></li>
           <li><a href="/library/">{t(lang, "foot.library")}</a></li>
           <li><a href={SUGGEST_URL}>{t(lang, "foot.suggest")}</a></li>
           <li><a href="https://ko-fi.com/freethetools">{t(lang, "foot.donate")}</a></li>
@@ -185,6 +188,8 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
 
   {suggestDialog && <SuggestDialog lang={lang} />}
   <ViewerDialog lang={lang} />
+  {/* "A new version is ready", filled in by src/lib/offline.ts when there is one. */}
+  <div class="update-note" id="update-note" role="status" aria-live="polite"></div>
 
   {/* Words the scripts need, in this page's language (src/lib/ui.ts reads them). */}
   <script type="application/json" id="ftt-ui" set:html={uiJson} />
@@ -475,5 +480,12 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
     .brand { gap: 8px; font-size: 16px; }
     .navlink { padding: 0 8px; }
     .foot-in { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .update-note { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 50; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; max-width: min(380px, calc(100vw - 32px)); padding: 12px 14px; border: 1.5px solid var(--edge); border-radius: var(--r-lg); background: var(--card); color: var(--ink); box-shadow: var(--shadow); }
+  .update-note:empty { display: none; }
+  .update-note :global(p) { margin: 0; flex: 1 1 160px; font-weight: 650; }
+  @media (prefers-reduced-motion: no-preference) {
+    .update-note:not(:empty) { animation: update-in .2s ease-out; }
+    @keyframes update-in { from { opacity: 0; transform: translateY(8px); } }
   }
 </style>

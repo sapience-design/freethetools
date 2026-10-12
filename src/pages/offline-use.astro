@@ -1,0 +1,225 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+
+const LANG_NAMES: [string, string][] = [["en", "English"], ["nb", "Norsk bokmål"], ["es", "Español"], ["ru", "Русский"]];
+---
+<Base
+  title="Use Free the Tools offline"
+  description="Download Free the Tools to this device, and every tool works without the internet. Updates come in by themselves; you can remove the copy at any time."
+  jsonLd={{ "@type": "WebPage", name: "Use Free the Tools offline", url: "https://freethetools.com/offline-use/" }}
+>
+  <div class="page narrow offline-use">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Use it offline</h1>
+      <p class="lede">Download the tools to this device, and they work without the internet. Nothing you do is sent anywhere.</p>
+    </div>
+
+    <section class="card ol" aria-labelledby="ol-h">
+      <h2 class="h3" id="ol-h">On this device</h2>
+      <p class="ol-state" id="ol-state" role="status"><span id="ol-state-text">Checking…</span></p>
+      <div class="ol-progress" id="ol-progress-box" hidden><progress id="ol-progress" max="100" value="0" aria-label="Download progress"></progress><span id="ol-pct" aria-hidden="true"></span></div>
+      <p class="ol-app" id="ol-app" hidden><Icon name="check-circle" />You're using the installed app.</p>
+
+      <div class="ol-choose" id="ol-choose" hidden>
+        <label class="ol-field"><span>Language</span>
+          <select id="ol-lang">{LANG_NAMES.map(([code, name]) => <option value={code} lang={code}>{name}</option>)}</select>
+        </label>
+        <label class="ol-check"><input type="checkbox" id="ol-engine"> <span>Include the Compress PDF engine <span class="ol-size" id="ol-engine-size"></span></span></label>
+      </div>
+
+      <div class="ol-actions">
+        <button type="button" class="btn" id="ol-download" hidden><Icon name="download-simple" /><span id="ol-download-label">Download for offline use</span></button>
+        <button type="button" class="btn line" id="ol-update" hidden><Icon name="arrows-clockwise" />Check for updates</button>
+        <button type="button" class="btn line" id="ol-engine-add" hidden>Add the Compress PDF engine</button>
+        <button type="button" class="btn quiet" id="ol-engine-remove" hidden>Remove the Compress PDF engine</button>
+        <button type="button" class="btn quiet" id="ol-remove" hidden><Icon name="trash" />Remove the offline copy</button>
+      </div>
+      <p class="hint" id="ol-storage" hidden></p>
+    </section>
+
+    <section aria-labelledby="how-h">
+      <h2 class="h2" id="how-h">How it works</h2>
+      <ul>
+        <li>Your browser keeps a copy of the site. With no internet, pages and tools open from that copy.</li>
+        <li>The installed app downloads everything by itself the first time it opens. In a browser tab, use the button above.</li>
+        <li>Compress PDF needs a large engine, so it is a separate choice. Without it, Compress PDF needs the internet once; every other tool works.</li>
+        <li>Without the download, the tools you open are still kept, one by one.</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="update-h">
+      <h2 class="h2" id="update-h">Updates</h2>
+      <p>A new version downloads in the background the next time you are online. Only the files that changed are fetched, and each one is checked against the list published with that version. The copy you have keeps working until the new one is complete. Then a note in the corner offers to reload.</p>
+    </section>
+
+    <section aria-labelledby="remove-h">
+      <h2 class="h2" id="remove-h">Remove it</h2>
+      <p>The button above removes the copy from this browser. Your favourites and settings stay. To uninstall the app:</p>
+      <ul>
+        <li><b>Chrome or Edge on a computer:</b> open the app's menu (⋮), then choose Uninstall.</li>
+        <li><b>Safari on a Mac:</b> remove it from the Dock, then delete it from the Applications folder in your home folder.</li>
+        <li><b>iPhone or iPad:</b> press and hold the icon, then choose Remove App.</li>
+        <li><b>Android:</b> press and hold the icon, then choose Uninstall.</li>
+      </ul>
+    </section>
+
+    <p class="updated">Nothing is counted or sent. This page reads what is kept from your browser. See <a href="/privacy/">Privacy</a> and <a href="/how-it-works/">How it works</a>.</p>
+  </div>
+</Base>
+
+<script>
+  import { tellWorker, isInstalledApp, engineByDefault } from "../lib/offline";
+
+  type Status = {
+    type: "status"; full: boolean; lang: string; engine: boolean; removed: boolean; error?: boolean;
+    sizes: Record<string, number>; missing: number; engineReady: boolean; kept?: number;
+  };
+  const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
+  const stateText = $("ol-state-text"), progress = $<HTMLProgressElement>("ol-progress"), progressBox = $("ol-progress-box"), pct = $("ol-pct");
+  const choose = $("ol-choose"), langSel = $<HTMLSelectElement>("ol-lang"), engineBox = $<HTMLInputElement>("ol-engine");
+  const download = $<HTMLButtonElement>("ol-download"), downloadLabel = $("ol-download-label");
+  const update = $<HTMLButtonElement>("ol-update"), remove = $<HTMLButtonElement>("ol-remove");
+  const engineAdd = $<HTMLButtonElement>("ol-engine-add"), engineRemove = $<HTMLButtonElement>("ol-engine-remove");
+  const storage = $("ol-storage");
+  const buttons = [download, update, remove, engineAdd, engineRemove];
+
+  const mb = (n: number) => `${(n / 1e6).toFixed(n < 10e6 ? 1 : 0)} MB`;
+  const langName = (code: string) => langSel.querySelector<HTMLOptionElement>(`option[value="${code}"]`)?.textContent ?? code;
+  const asked = new URLSearchParams(location.search).get("lang");
+  if (asked && langSel.querySelector(`option[value="${asked}"]`)) langSel.value = asked;
+  engineBox.checked = engineByDefault();
+  $("ol-app").hidden = !isInstalledApp();
+
+  let last: Status | null = null;
+  let busy = false;
+
+  function say(text: string) { stateText.textContent = text; }
+
+  function render(s: Status) {
+    last = s;
+    buttons.forEach((b) => { b.hidden = true; b.disabled = false; });
+    if (s.error) { say("This browser could not read what is kept. Reload the page and try again."); return; }
+    const size = (lang: string, engine: boolean) => (s.sizes[lang] || 0) + (engine ? s.sizes.engine || 0 : 0);
+    $("ol-engine-size").textContent = s.sizes.engine ? `(${mb(s.sizes.engine)})` : "";
+    if (s.full) {
+      busy = s.missing > 0 && busy;
+      choose.hidden = true;
+      progressBox.hidden = !busy;
+      if (s.missing === 0) {
+        say(`✓ Ready offline · ${mb(size(s.lang, s.engine))} · ${langName(s.lang)}${s.engine ? ", with the Compress PDF engine" : ""}`);
+      } else if (!busy) {
+        say(`Partly downloaded: ${s.missing} files still to come. They download the next time this page is open online.`);
+        download.hidden = false;
+        downloadLabel.textContent = "Finish the download";
+      }
+      update.hidden = false;
+      remove.hidden = false;
+      engineAdd.hidden = s.engine;
+      engineRemove.hidden = !s.engine;
+    } else {
+      busy = false;
+      progressBox.hidden = true;
+      choose.hidden = false;
+      say(s.removed ? "Not downloaded. You removed the offline copy." : "Not downloaded. Tools you open are still kept, one by one.");
+      download.hidden = false;
+      downloadLabel.textContent = `Download for offline use (${mb(size(langSel.value, engineBox.checked))})`;
+    }
+    showStorage();
+  }
+
+  async function showStorage() {
+    if (!navigator.storage?.estimate) return;
+    try {
+      const { usage = 0, quota = 0 } = await navigator.storage.estimate();
+      const kept = navigator.storage.persisted ? await navigator.storage.persisted() : false;
+      storage.textContent = `This site uses ${mb(usage)} of the ${quota > 1e9 ? `${(quota / 1e9).toFixed(0)} GB` : mb(quota)} your browser allows. ${kept ? "The browser will keep it." : "The browser may clear it when the disk runs low."}`;
+      storage.hidden = false;
+    } catch {}
+  }
+
+  async function ask(msg: Record<string, unknown>) {
+    if (!(await tellWorker(msg))) unsupported();
+  }
+  function unsupported() {
+    buttons.forEach((b) => (b.hidden = true));
+    choose.hidden = true;
+    say("This browser cannot keep the site for offline use here. Open freethetools.com in Chrome, Edge, Firefox or Safari.");
+  }
+
+  // The worker answers on a channel: its status, and progress while it downloads.
+  if (!("serviceWorker" in navigator) || typeof BroadcastChannel !== "function") unsupported();
+  else {
+    const channel = new BroadcastChannel("ftt-offline");
+    channel.onmessage = ({ data }) => {
+      if (data?.type === "status") render(data as Status);
+      else if (data?.type === "progress") {
+        busy = data.done < data.total;
+        progressBox.hidden = false;
+        progress.value = Math.round((100 * data.done) / data.total);
+        // The bar and the number change as files arrive; screen readers hear only the start and the end.
+        pct.textContent = `${progress.value}%`;
+        if (stateText.textContent !== "Downloading…") say("Downloading…");
+      }
+    };
+    // The worker may still be starting on a first visit.
+    Promise.race([navigator.serviceWorker.ready, new Promise((r) => setTimeout(r, 5000))]).then((reg) => (reg ? ask({ type: "status" }) : unsupported()));
+  }
+
+  langSel.addEventListener("change", () => last && render(last));
+  engineBox.addEventListener("change", () => last && render(last));
+  download.addEventListener("click", () => {
+    // Asking now, while the visitor clicks, is when browsers grant it.
+    navigator.storage?.persist?.().catch(() => {});
+    busy = true;
+    download.disabled = true;
+    say("Downloading…");
+    progressBox.hidden = false;
+    progress.value = 0;
+    const s = last;
+    ask({ type: "download", lang: s?.full ? s.lang : langSel.value, engine: s?.full ? s.engine : engineBox.checked });
+  });
+  update.addEventListener("click", async () => {
+    update.disabled = true;
+    say("Checking for updates…");
+    const reg = await navigator.serviceWorker.getRegistration().catch(() => undefined);
+    await reg?.update().catch(() => {});
+    // A new version prepares itself in the background; the note in the corner offers to reload.
+    ask({ type: "sync" });
+  });
+  remove.addEventListener("click", () => { remove.disabled = true; ask({ type: "remove", what: "all" }); });
+  engineAdd.addEventListener("click", () => {
+    navigator.storage?.persist?.().catch(() => {});
+    busy = true;
+    engineAdd.disabled = true;
+    ask({ type: "download", lang: last?.lang ?? langSel.value, engine: true });
+  });
+  engineRemove.addEventListener("click", () => { engineRemove.disabled = true; ask({ type: "remove", what: "engine" }); });
+</script>
+
+<style>
+  .offline-use { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 12px; }
+  .ol { display: grid; gap: 14px; padding: clamp(16px, 2.5vw, 24px); }
+  .ol-state { margin: 0; font-weight: 650; font-size: 17px; }
+  .ol-app { margin: 0; display: inline-flex; align-items: center; gap: 8px; color: var(--soft); }
+  .ol-app :global(.ic) { color: var(--ok); }
+  .ol-progress { display: flex; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; color: var(--soft); }
+  progress { flex: 1; height: 10px; accent-color: var(--ink); }
+  .ol-choose { display: grid; gap: 12px; }
+  .ol-choose[hidden], .ol-app[hidden], .ol-progress[hidden], .hint[hidden] { display: none; }
+  .ol-field { display: grid; gap: 6px; max-width: 280px; font-weight: 650; }
+  .ol-field select { min-height: 44px; padding: 0 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--bg); color: var(--ink); font: inherit; font-weight: 400; }
+  .ol-check { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding-top: 10px; cursor: pointer; }
+  .ol-check input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--ink); flex: none; }
+  .ol-size { color: var(--soft); }
+  .ol-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+  .ol-actions .btn[hidden] { display: none; }
+  .hint { margin: 0; color: var(--soft); font-size: 14px; }
+  .offline-use > section:not(.ol) { display: grid; gap: 10px; }
+  section > p { margin: 0; }
+  section > ul { margin: 0; padding-left: 20px; display: grid; gap: 6px; }
+  .updated { color: var(--soft); margin: 0; }
+  .updated a { color: var(--ink); }
+</style>
