@@ -329,3 +329,18 @@ test("README.md links every tool page", () => {
     });
   }
 }
+
+test("the installed app lets our top bar fill the title bar (Window Controls Overlay)", () => {
+  const m = JSON.parse(html("manifest.webmanifest"));
+  assert.deepEqual(m.display_override, ["window-controls-overlay"]);
+  assert.equal(m.display, "standalone", "other browsers keep the plain app window");
+  const css = readdirSync(join(DIST, "_astro")).filter((f) => f.endsWith(".css")).map((f) => readFileSync(join(DIST, "_astro", f), "utf8")).join("\n");
+  const block = css.match(/@media \(display-mode:\s*window-controls-overlay\)\{[^@]*?\}\}/)?.[0] ?? "";
+  assert.ok(block, "the overlay media query is in the built CSS");
+  assert.match(block, /titlebar-area-x/);
+  assert.match(block, /titlebar-area-width/);
+  assert.match(block, /app-region:\s*drag/);
+  assert.match(block, /app-region:\s*no-drag/);
+  assert.match(block, /-webkit-app-region:\s*drag/);
+  assert.match(block, /-webkit-app-region:\s*no-drag/);
+});

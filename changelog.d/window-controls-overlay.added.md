@@ -1,0 +1,1 @@
+- The installed app (Chrome or Edge on a computer): our top bar now fills the window's title bar, and the title bar colour follows Light or Dark.
