@@ -209,7 +209,20 @@
         "viewSound": "Open the player full screen",
         "viewCompare": "View the comparison full screen",
         "showAll": "Show all {n} pages",
-        "showFewer": "Show fewer pages"
+        "showFewer": "Show fewer pages",
+        "layout": "Page layout",
+        "layoutOne": "One page",
+        "layoutTwo": "Two pages",
+        "layoutGrid": "Grid",
+        "layoutScroll": "Scroll",
+        "twoNeedsWide": "Needs a wider window",
+        "zoomLevel": "Zoom level",
+        "fitPage": "Fit page",
+        "fitWidth": "Fit width",
+        "pagesOf": "Pages {from}–{to} of {total}",
+        "imagesOf": "Images {from}–{to} of {total}",
+        "openPage": "Open page {n}",
+        "openImage": "Open image {n}"
       },
       "suggest": {
         "title": "Suggest a tool",

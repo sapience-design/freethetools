@@ -84,18 +84,20 @@ test.describe("full-screen viewer", () => {
     await expect(pageCanvas(page)).toBeVisible();
     const fit = await pageCanvas(page).evaluate((c) => c.getBoundingClientRect().width);
     await page.getByRole("button", { name: "Zoom in" }).click();
-    await expect(page.locator("#fv-fit")).toHaveText("125%");
-    expect(await pageCanvas(page).evaluate((c) => c.getBoundingClientRect().width)).toBeGreaterThan(fit * 1.2);
+    await expect(page.locator("#fv-level")).not.toHaveValue("page");
+    const zoomed = await pageCanvas(page).evaluate((c) => c.getBoundingClientRect().width);
+    expect(zoomed).toBeGreaterThan(fit * 1.2);
     await page.keyboard.press("+");
-    await expect(page.locator("#fv-fit")).toHaveText("156%");
+    expect(await pageCanvas(page).evaluate((c) => c.getBoundingClientRect().width)).toBeGreaterThan(zoomed * 1.2);
     await page.keyboard.press("-");
-    await expect(page.locator("#fv-fit")).toHaveText("125%");
+    expect(Math.abs((await pageCanvas(page).evaluate((c) => c.getBoundingClientRect().width)) - zoomed)).toBeLessThan(4);
     await page.keyboard.press("0");
-    await expect(page.locator("#fv-fit")).toHaveText("Fit");
+    await expect(page.locator("#fv-level")).toHaveValue("page");
     // Zoomed in far enough to need scrolling, the stage pans.
     for (let i = 0; i < 4; i++) await page.keyboard.press("+");
     expect(await page.locator("#fv-stage").evaluate((s) => s.scrollWidth > s.clientWidth || s.scrollHeight > s.clientHeight)).toBe(true);
     await page.locator("#fv-fit").click();
+    await expect(page.locator("#fv-level")).toHaveValue("page");
 
     await page.keyboard.press("Escape");
     await expect(viewer(page)).toBeHidden();
@@ -190,6 +192,241 @@ test.describe("full-screen viewer", () => {
     await tiles.first().getByRole("button", { name: "View page 1 full screen" }).click();
     await expect(pageCanvas(page)).toBeVisible();
     await page.keyboard.press("Escape");
+  });
+});
+
+/** Open Split PDF with an n-page file and open page 1 in the viewer. */
+async function openLong(page, n) {
+  await page.goto("/pdf/split/");
+  await page.setInputFiles("#pdfs-file", await pdfWithPages(n));
+  const open = page.locator("#pdfs-pages .page-tile").first().getByRole("button", { name: "View page 1 full screen" });
+  await expect(open).toBeVisible();
+  await open.click();
+  await expect(viewer(page)).toBeVisible();
+  await expect(pageCanvas(page).first()).toBeVisible();
+  return open;
+}
+const layoutRadio = (page, name) => page.getByRole("radio", { name });
+const pos = (page) => page.locator("#fv-pos");
+
+test.describe("viewer page layouts", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("the layout control is a radio group with four named options, shown for PDFs", async ({ page }) => {
+    await openLong(page, 9);
+    const group = page.getByRole("radiogroup", { name: "Page layout" });
+    await expect(group).toBeVisible();
+    await expect(group.getByRole("radio")).toHaveCount(4);
+    for (const n of ["One page", "Two pages", "Grid", "Scroll"]) await expect(layoutRadio(page, n)).toBeAttached();
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+  });
+
+  test("each layout shows the right number of pages and Previous and Next step by 1, 2 and 4", async ({ page }) => {
+    await openLong(page, 9);
+    await expect(pageCanvas(page)).toHaveCount(1);
+    await page.locator("#fv-next").click();
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+
+    await page.getByText("Two pages", { exact: true }).click();
+    await expect(layoutRadio(page, "Two pages")).toBeChecked();
+    await expect(pageCanvas(page)).toHaveCount(2);
+    await expect(pos(page)).toHaveText("Pages 1–2 of 9");
+    // Two canvases side by side.
+    const [a, b] = await pageCanvas(page).evaluateAll((cs) => cs.map((c) => c.getBoundingClientRect()).map((r) => ({ x: r.x, y: r.y })));
+    expect(b.x).toBeGreaterThan(a.x + 50);
+    expect(Math.abs(a.y - b.y)).toBeLessThan(2);
+    await page.locator("#fv-next").click();
+    await expect(pos(page)).toHaveText("Pages 3–4 of 9");
+    await expect(pageCanvas(page)).toHaveCount(2);
+    await page.locator("#fv-prev").click();
+    await expect(pos(page)).toHaveText("Pages 1–2 of 9");
+    await expect(page.locator("#fv-prev")).toBeDisabled();
+
+    await page.getByText("Grid", { exact: true }).click();
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(4);
+    await expect(pos(page)).toHaveText("Pages 1–4 of 9");
+    await expect(page.locator("#fv-stage canvas.fv-pic")).toHaveCount(4);
+    await page.locator("#fv-next").click();
+    await expect(pos(page)).toHaveText("Pages 5–8 of 9");
+    await page.locator("#fv-next").click();
+    await expect(pos(page)).toHaveText("Page 9 of 9");
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(1);
+    await expect(page.locator("#fv-next")).toBeDisabled();
+
+    await page.getByText("Scroll", { exact: true }).click();
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(9);
+    await page.getByText("One page", { exact: true }).click();
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(1);
+  });
+
+  test("keys 1, 2, 4 and S switch layouts", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("2");
+    await expect(layoutRadio(page, "Two pages")).toBeChecked();
+    await page.keyboard.press("4");
+    await expect(layoutRadio(page, "Grid")).toBeChecked();
+    await page.keyboard.press("s");
+    await expect(layoutRadio(page, "Scroll")).toBeChecked();
+    await page.keyboard.press("1");
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+  });
+
+  test("Grid: selecting a page opens it in One page", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("4");
+    await expect(page.locator("#fv-stage canvas.fv-pic")).toHaveCount(4);
+    await page.getByRole("button", { name: "Open page 3" }).click();
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+    await expect(pageCanvas(page)).toHaveCount(1);
+  });
+
+  test("Scroll: pages are drawn as they come into view, let go when far, and the page label follows", async ({ page }) => {
+    await openLong(page, 59);
+    await page.keyboard.press("s");
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(59);
+    await expect(pageCanvas(page).first()).toBeVisible();
+    const drawn = () => page.locator("#fv-stage canvas.fv-pic").count();
+    await expect.poll(drawn).toBeGreaterThan(0);
+    expect(await drawn()).toBeLessThanOrEqual(10);
+    await expect(pos(page)).toHaveText("Page 1 of 59");
+
+    // The arrows and Page Down scroll.
+    const top = () => page.locator("#fv-stage").evaluate((s) => s.scrollTop);
+    await page.keyboard.press("ArrowDown");
+    await expect.poll(top).toBeGreaterThan(0);
+    const t1 = await top();
+    await page.keyboard.press("PageDown");
+    await expect.poll(top).toBeGreaterThan(t1 + 200);
+
+    // Far down: the label follows, the page there is drawn, and page 1 has been let go.
+    await page.locator("#fv-stage").evaluate((s) => { s.scrollTop = s.scrollHeight * 0.5; });
+    await expect.poll(async () => Number(/Page (\d+) of 59/.exec((await pos(page).textContent()) ?? "")?.[1])).toBeGreaterThan(20);
+    await page.locator("#fv-stage").evaluate((s) => { s.scrollTop = s.scrollHeight; });
+    await expect(pos(page)).toHaveText("Page 59 of 59");
+    await expect(page.locator('#fv-stage .fv-cell[data-i="59"] canvas')).toHaveCount(1);
+    await expect(page.locator('#fv-stage .fv-cell[data-i="1"] canvas')).toHaveCount(0);
+    expect(await drawn()).toBeLessThanOrEqual(12);
+    await expect(page.locator("#fv-next")).toBeDisabled();
+    await page.locator("#fv-prev").click();
+    await expect(pos(page)).toHaveText("Page 58 of 59");
+  });
+
+  test("the zoom menu sizes pages in every layout; Fit width fits the column", async ({ page }) => {
+    await openLong(page, 5);
+    const level = page.getByRole("combobox", { name: "Zoom level" });
+    await expect(level.locator("option")).toHaveText(["Fit page", "Fit width", "50%", "75%", "100%", "125%", "150%", "200%"]);
+    const w = () => pageCanvas(page).first().evaluate((c) => c.getBoundingClientRect().width);
+    await level.selectOption("50");
+    await expect.poll(w).toBeLessThan(280);
+    await level.selectOption("200");
+    await expect.poll(w).toBeGreaterThan(700);
+    // 100% is the page's own size: a 400 pt page is 533 CSS pixels wide.
+    await level.selectOption("100");
+    await expect.poll(async () => Math.round(await w())).toBe(533);
+    await page.keyboard.press("2");
+    await level.selectOption("50");
+    await expect(pageCanvas(page)).toHaveCount(2);
+    await expect.poll(w).toBeLessThan(280);
+    await page.keyboard.press("s");
+    await level.selectOption("width");
+    const room = await page.locator("#fv-stage").evaluate((s) => { const cs = getComputedStyle(s); return s.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight); });
+    await expect.poll(async () => Math.abs((await w()) - room)).toBeLessThan(3);
+    await level.selectOption("page");
+    await expect.poll(async () => (await w()) < room).toBe(true);
+  });
+
+  test("the last layout and zoom are remembered for the next file", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("2");
+    await page.getByRole("combobox", { name: "Zoom level" }).selectOption("75");
+    await page.keyboard.press("Escape");
+    await expect(viewer(page)).toBeHidden();
+    // Same page, then after a reload: sessionStorage keeps it for the tab.
+    await page.locator("#pdfs-pages .page-tile").first().getByRole("button", { name: "View page 1 full screen" }).click();
+    await expect(layoutRadio(page, "Two pages")).toBeChecked();
+    await expect(page.getByRole("combobox", { name: "Zoom level" })).toHaveValue("75");
+    await page.keyboard.press("Escape");
+    await page.goto("/pdf/split/");
+    await page.setInputFiles("#pdfs-file", await pdfWithPages(4, "other.pdf"));
+    await page.locator("#pdfs-pages .page-tile").first().getByRole("button", { name: "View page 1 full screen" }).click();
+    await expect(layoutRadio(page, "Two pages")).toBeChecked();
+    await expect(page.getByRole("combobox", { name: "Zoom level" })).toHaveValue("75");
+    await expect(pageCanvas(page)).toHaveCount(2);
+  });
+
+  test("Two pages is unavailable on a narrow window and falls back to One page", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("2");
+    await expect(pageCanvas(page)).toHaveCount(2);
+    await page.setViewportSize({ width: 600, height: 900 });
+    await expect(layoutRadio(page, "Two pages")).toBeDisabled();
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+    await expect(pageCanvas(page)).toHaveCount(1);
+    await page.keyboard.press("2");
+    await expect(pageCanvas(page)).toHaveCount(1);
+    // Wide again: the choice comes back.
+    await page.setViewportSize({ width: 1200, height: 900 });
+    await expect(layoutRadio(page, "Two pages")).toBeEnabled();
+    await expect(layoutRadio(page, "Two pages")).toBeChecked();
+    await expect(pageCanvas(page)).toHaveCount(2);
+  });
+
+  test("PDF to Images: Grid and Scroll arrange the picture set", async ({ page }) => {
+    await page.goto("/pdf/to-images/");
+    await page.setInputFiles("#p2i-file", PDF);
+    await page.click("#p2i-go");
+    await expect(page.locator("#p2i-files li")).toHaveCount(3, { timeout: 60000 });
+    await page.locator("#p2i-files li").first().getByRole("button", { name: "View page 1 full screen" }).click();
+    await expect(pos(page)).toHaveText("Image 1 of 3");
+    await page.keyboard.press("4");
+    await expect(page.locator("#fv-stage img.fv-pic")).toHaveCount(3);
+    await expect(pos(page)).toHaveText("Images 1–3 of 3");
+    await page.getByRole("button", { name: "Open image 2" }).click();
+    await expect(pos(page)).toHaveText("Image 2 of 3");
+    await page.keyboard.press("s");
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(3);
+    await page.keyboard.press("Escape");
+  });
+
+  for (const theme of ["light", "dark"]) {
+    test(`${theme}: no WCAG 2.2 AA violations with each layout open`, async ({ page, context }) => {
+      await context.addInitScript((t) => { try { localStorage.setItem("ftt:theme", t); } catch {} }, theme);
+      await openLong(page, 9);
+      for (const key of ["1", "2", "4", "s"]) {
+        await page.keyboard.press(key);
+        await expect(page.locator("#fv-stage canvas.fv-pic").first()).toBeVisible();
+        const { violations } = await new AxeBuilder({ page })
+          .options({ runOnly: { type: "tag", values: WCAG }, rules: { "label-content-name-mismatch": { enabled: true } } })
+          .analyze();
+        const summary = violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.map((n) => n.target.join(" ")).slice(0, 4).join(" | ")}`);
+        expect(summary, `${key}\n${summary.join("\n")}`).toEqual([]);
+      }
+    });
+  }
+
+  test("at 320 px every layout fits without sideways scroll; the control is icons with 44 px buttons", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await openLong(page, 9);
+    for (const name of ["One page", "Grid", "Scroll"]) {
+      const radio = layoutRadio(page, name);
+      await expect(radio).toBeAttached();
+      const box = await page.locator(`label[for="${await radio.getAttribute("id")}"]`).boundingBox();
+      expect(box.width, name).toBeGreaterThanOrEqual(44);
+      expect(box.height, name).toBeGreaterThanOrEqual(44);
+    }
+    // Labels are kept for assistive technology, not shown.
+    expect((await page.locator("#fv-ll-grid .fv-lbl").boundingBox()).width).toBeLessThan(3);
+    for (const key of ["1", "4", "s"]) {
+      await page.keyboard.press(key);
+      await expect(page.locator("#fv-stage canvas.fv-pic").first()).toBeVisible();
+      expect(await viewer(page).evaluate((d) => d.scrollWidth <= d.clientWidth), key).toBe(true);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), key).toBe(true);
+      expect(await page.locator("#fv-bar, .fv-bar").first().evaluate((b) => b.scrollWidth <= b.clientWidth), key).toBe(true);
+    }
+    expect((await page.getByRole("combobox", { name: "Zoom level" }).boundingBox()).height).toBeGreaterThanOrEqual(44);
+    await page.keyboard.press("2");
+    await expect(layoutRadio(page, "Two pages")).toBeDisabled();
   });
 });
 
@@ -299,11 +536,18 @@ test.describe("accessibility and reflow with the viewer open", () => {
     await expect(pageCanvas(page)).toBeVisible();
     expect(await viewer(page).evaluate((d) => d.scrollWidth <= d.clientWidth)).toBe(true);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    for (const name of ["Close", "Next", "Zoom in", "Zoom out", "Fit to screen"]) {
+    for (const name of ["Close", "Next"]) {
       const box = await page.getByRole("button", { name }).first().boundingBox();
       expect(box.height, name).toBeGreaterThanOrEqual(44);
       expect(box.width, name).toBeGreaterThanOrEqual(44);
     }
+    // On a phone the zoom buttons give way to the menu; Close is an icon.
+    for (const name of ["Zoom in", "Zoom out", "Fit to screen"]) await expect(page.getByRole("button", { name })).toBeHidden();
+    expect((await page.locator("#fv-close").boundingBox()).width).toBeLessThan(60);
+    // Two rows at most: the name and Close, then the layout and zoom menu.
+    expect((await page.locator(".fv-bar").boundingBox()).height).toBeLessThan(140);
+    await page.keyboard.press("+");
+    await expect(page.locator("#fv-level")).not.toHaveValue("page");
   });
 });
 

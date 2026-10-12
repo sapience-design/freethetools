@@ -244,7 +244,20 @@
         "viewSound": "Открыть плеер на весь экран",
         "viewCompare": "Открыть сравнение на весь экран",
         "showAll": "Показать все страницы: {n}",
-        "showFewer": "Показать меньше страниц"
+        "showFewer": "Показать меньше страниц",
+        "layout": "Вид страниц",
+        "layoutOne": "Одна страница",
+        "layoutTwo": "Две страницы",
+        "layoutGrid": "Сетка",
+        "layoutScroll": "Прокрутка",
+        "twoNeedsWide": "Нужно более широкое окно",
+        "zoomLevel": "Масштаб",
+        "fitPage": "По странице",
+        "fitWidth": "По ширине",
+        "pagesOf": "Страницы {from}–{to} из {total}",
+        "imagesOf": "Изображения {from}–{to} из {total}",
+        "openPage": "Открыть страницу {n}",
+        "openImage": "Открыть изображение {n}"
       },
       "suggest": {
         "title": "Предложить инструмент",

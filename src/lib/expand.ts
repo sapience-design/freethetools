@@ -16,9 +16,9 @@ export type ViewItem =
       page?: number;
       /**
        * Draw one page to fit inside boxW x boxH device pixels (never more than 4096 on a side).
-       * Called for the page on screen only.
+       * Called for pages on screen only. `signal` stops a drawing that is no longer needed.
        */
-      render: (page: number, boxW: number, boxH: number) => Promise<HTMLCanvasElement | null>;
+      render: (page: number, boxW: number, boxH: number, signal?: AbortSignal) => Promise<HTMLCanvasElement | null>;
     };
 
 // Words come from the viewer's own block (see ViewerDialog.astro); English is the fallback.

@@ -57,11 +57,13 @@ export async function pdfPageCanvas(file: Blob, page = 1, size = 112, turn = 0):
  * more than 4096 on a side. For the full-screen viewer; the page on screen only. Null when the
  * page can't be drawn.
  */
-export async function pdfPageFit(file: Blob, page: number, boxW: number, boxH: number): Promise<HTMLCanvasElement | null> {
+export async function pdfPageFit(file: Blob, page: number, boxW: number, boxH: number, signal?: AbortSignal): Promise<HTMLCanvasElement | null> {
   try {
+    if (signal?.aborted) return null;
     const doc = await open(file);
     if (page < 1 || page > doc.numPages) return null;
     const pg = await doc.getPage(page);
+    if (signal?.aborted) return null;
     const base = pg.getViewport({ scale: 1, rotation: pg.rotate });
     const scale = Math.max(0.05, Math.min(boxW / base.width, boxH / base.height, 4096 / base.width, 4096 / base.height));
     const canvas = document.createElement("canvas");
@@ -70,16 +72,20 @@ export async function pdfPageFit(file: Blob, page: number, boxW: number, boxH: n
     const ctx = canvas.getContext("2d")!;
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    await pg.render({ canvas, canvasContext: ctx, viewport: pg.getViewport({ scale: canvas.width / base.width, rotation: pg.rotate }) }).promise;
-    return canvas;
+    canvas.dataset.nw = String((base.width * 96) / 72); // the page's own width in CSS pixels: the viewer's "100%"
+    const task = pg.render({ canvas, canvasContext: ctx, viewport: pg.getViewport({ scale: canvas.width / base.width, rotation: pg.rotate }) });
+    const stop = () => task.cancel();
+    signal?.addEventListener("abort", stop, { once: true });
+    try { await task.promise; } finally { signal?.removeEventListener("abort", stop); }
+    return signal?.aborted ? null : canvas;
   } catch {
     return null;
   }
 }
 
-/** A PDF (or one page of it) for the full-screen viewer. The viewer draws only the page on screen. */
+/** A PDF (or one page of it) for the full-screen viewer. The viewer draws only the pages on screen. */
 export function pdfViewItem(file: Blob, name: string, pages: number, page = 1): ViewItem {
-  return { kind: "pdf", name, pages, page, render: (n, w, h) => pdfPageFit(file, n, w, h) };
+  return { kind: "pdf", name, pages, page, render: (n, w, h, signal) => pdfPageFit(file, n, w, h, signal) };
 }
 
 /** A name for a Blob: a File's own, or a fallback. */
