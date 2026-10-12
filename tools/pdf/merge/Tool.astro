@@ -33,7 +33,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { usePdfWorker, pdfPreview, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   import { withUnlocked } from "../../../src/lib/pdfpassword";
-  usePdfWorker("pdf/merge");
+  usePdfWorker();
 
   type Item = { file: File; bytes: ArrayBuffer; pages: number };
   const items: Item[] = [];

@@ -23,6 +23,8 @@ Some libraries fetch extra files at runtime, such as a `.wasm` binary. List thos
 
 `from` is resolved like a Node `require`. `npm run build` and `npm run dev` copy each file to `public/<group>/<tool>/vendor/<to>`, so your code loads it from `/<group>/<tool>/vendor/<to>`. The `vendor` folders are generated, so they're git-ignored.
 
+If several tools need the same file, add `"shared": "<name>"` to the entry. The file is then copied once to `public/vendor/<name>/<to>` and every tool loads it from `/vendor/<name>/<to>`. The PDF tools do this for the pdf.js worker.
+
 See `tools/pdf/compress/` for a full example.
 
 ## Checklist for reviewers

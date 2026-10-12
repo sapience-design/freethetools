@@ -1,6 +1,8 @@
 // Copies each tool's third-party runtime files (listed under "vendor" in its tool.json)
 // from node_modules into public/<category>/<tool>/vendor/. They are served from our own
 // origin, so the Content Security Policy can block every outside connection.
+// An entry with "shared": "<name>" goes to public/vendor/<name>/ instead, once, so tools that
+// need the same file (the pdf.js worker) do not each ship a copy.
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { join } from "node:path";
@@ -24,6 +26,9 @@ const extractors = {
   },
 };
 
+const sharedOut = join(root, "public", "vendor");
+rmSync(sharedOut, { recursive: true, force: true });
+
 const dirs = (p) => readdirSync(p).filter((n) => !n.startsWith("_") && statSync(join(p, n)).isDirectory());
 
 for (const category of dirs(toolsDir)) {
@@ -33,9 +38,16 @@ for (const category of dirs(toolsDir)) {
     const { vendor = [] } = JSON.parse(readFileSync(manifest, "utf8"));
     const out = join(root, "public", category, tool, "vendor");
     rmSync(out, { recursive: true, force: true });
-    if (!vendor.length) continue;
-    mkdirSync(out, { recursive: true });
-    for (const { from, to, extract } of vendor) {
+    if (vendor.some((v) => !v.shared)) mkdirSync(out, { recursive: true });
+    for (const { from, to, extract, shared } of vendor) {
+      if (shared) {
+        const dest = join(sharedOut, shared, to);
+        if (existsSync(dest)) continue; // another tool already copied it
+        mkdirSync(join(sharedOut, shared), { recursive: true });
+        cpSync(require.resolve(from), dest);
+        console.log(`vendor  vendor/${shared}/${to}  <-  ${from}`);
+        continue;
+      }
       if (extract) writeFileSync(join(out, to), extractors[extract](readFileSync(require.resolve(from), "utf8")));
       else cpSync(require.resolve(from), join(out, to));
       console.log(`vendor  ${category}/${tool}/vendor/${to}  <-  ${from}`);

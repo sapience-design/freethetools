@@ -37,7 +37,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { stepTo } from "../../../src/lib/steps";
   import { buildArgs } from "./core.js";
   import { withUnlocked } from "../../../src/lib/pdfpassword";
-  usePdfWorker("pdf/compress");
+  usePdfWorker();
   const $ = <T extends HTMLElement>(s: string) => document.querySelector(s) as T;
   const root = $("#pdfc-tool"), picked = $("#pdfc-picked"), results = $("#pdfc-results"), status = $("#pdfc-status");
   const go = $<HTMLButtonElement>("#pdfc-go"), goLabel = $("#pdfc-go-label"), again = $("#pdfc-again");

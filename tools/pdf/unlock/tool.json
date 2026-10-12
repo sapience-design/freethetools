@@ -28,6 +28,6 @@
   "vendor": [
     { "from": "@jspawn/qpdf-wasm/qpdf.js", "to": "qpdf.js" },
     { "from": "@jspawn/qpdf-wasm/qpdf.wasm", "to": "qpdf.wasm" },
-    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }
+    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }
   ]
 }

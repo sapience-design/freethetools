@@ -55,9 +55,7 @@ import { RESOLUTIONS } from "./core.js";
   import { stepTo } from "../../../src/lib/steps";
   import { withUnlocked } from "../../../src/lib/pdfpassword";
 
-  // The worker is served from this site (see "vendor" in tool.json), never from a CDN.
-  pdfjs.GlobalWorkerOptions.workerSrc = "/pdf/to-images/vendor/pdf.worker.min.mjs";
-  usePdfWorker("pdf/to-images");
+  usePdfWorker();
   const $ = (id: string) => document.getElementById(id)!;
   const root = $("p2i-tool"), result = $("p2i-result"), files = $("p2i-files"), go = $("p2i-go") as HTMLButtonElement;
   const WAIT = "Your pictures will appear here.";

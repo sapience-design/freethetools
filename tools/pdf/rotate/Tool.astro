@@ -56,7 +56,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { usePdfWorker, pdfPreview, pageStrip, outputRow, type PageTile } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   import { withUnlocked } from "../../../src/lib/pdfpassword";
-  usePdfWorker("pdf/rotate");
+  usePdfWorker();
 
   let file: File | null = null, bytes: ArrayBuffer | null = null, total = 0;
   let tiles: PageTile[] = [];

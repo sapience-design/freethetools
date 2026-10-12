@@ -344,3 +344,23 @@ test("the installed app lets our top bar fill the title bar (Window Controls Ove
   assert.match(block, /-webkit-app-region:\s*drag/);
   assert.match(block, /-webkit-app-region:\s*no-drag/);
 });
+
+// The PDF tools share one copy of the pdf.js worker, so the site (and its offline copy) ships it once.
+test("the pdf.js worker is in dist once, and the PDF tools use that copy", () => {
+  const copies = [];
+  (function walk(dir) {
+    for (const n of readdirSync(dir)) {
+      const p = join(dir, n);
+      if (statSync(p).isDirectory()) walk(p);
+      else if (n === "pdf.worker.min.mjs") copies.push(p.slice(DIST.length + 1).replaceAll("\\", "/"));
+    }
+  })(DIST);
+  assert.deepEqual(copies, ["vendor/pdfjs/pdf.worker.min.mjs"]);
+  const users = ["compress", "fill-form", "merge", "rotate", "split", "to-images", "unlock"];
+  for (const t of users) {
+    const manifest = JSON.parse(readFileSync(`tools/pdf/${t}/tool.json`, "utf8"));
+    const worker = manifest.vendor.find((v) => v.to === "pdf.worker.min.mjs");
+    assert.equal(worker?.shared, "pdfjs", `pdf/${t} must list the worker as shared`);
+    assert.ok(html(`pdf/${t}/index.html`).includes("/vendor/pdfjs/pdf.worker.min.mjs"), `pdf/${t} must load the shared worker`);
+  }
+});
