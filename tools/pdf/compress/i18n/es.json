@@ -30,6 +30,14 @@
       "a": "Equilibrada sirve para el correo y para compartir. Más pequeña sirve para leer en pantalla. Impresión mantiene las imágenes lo bastante nítidas para el papel. Preimpresión conserva los perfiles de color para la impresión profesional."
     },
     {
+      "q": "¿Puedo ver cuánto pesará el archivo antes de guardarlo?",
+      "a": "Sí. Cada opción muestra el tamaño y el porcentaje que daría, medidos en tu dispositivo. En un archivo muy grande, el tamaño es una estimación a partir de las primeras páginas."
+    },
+    {
+      "q": "¿Qué hace «More options»?",
+      "a": "Da un control más fino que las cuatro opciones: nitidez de las imágenes en ppp, calidad de imagen, gris en lugar de color y borrado del título, el autor y otros datos del documento. Sustituye lo que haría la calidad elegida, y los tamaños se actualizan en consecuencia."
+    },
+    {
       "q": "¿Por qué mi archivo ha crecido?",
       "a": "Los PDF hechos sobre todo de texto y dibujos vectoriales ya suelen ser compactos. Ghostscript reescribe todo el archivo, así que el resultado puede salir algo más grande. En ese caso, quédate con el original."
     },

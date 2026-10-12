@@ -14,12 +14,45 @@ import Icon from "../../../src/components/Icon.astro";
   <Step n={2} title="Pick how small" state="later">
     <fieldset class="choices">
       <legend class="sr-only">Quality</legend>
-      <div class="choice"><input type="radio" name="preset" id="pdfc-p-screen" value="screen"><label for="pdfc-p-screen"><b>Smallest</b><small>Good for reading on screen · 72 dpi</small></label></div>
-      <div class="choice"><input type="radio" name="preset" id="pdfc-p-ebook" value="ebook" checked><label for="pdfc-p-ebook"><b>Good quality</b><small>Right for email and forms · 150 dpi</small><span class="badge rec">Recommended</span></label></div>
-      <div class="choice"><input type="radio" name="preset" id="pdfc-p-printer" value="printer"><label for="pdfc-p-printer"><b>For printing</b><small>Sharp text and pictures · 300 dpi</small></label></div>
-      <div class="choice"><input type="radio" name="preset" id="pdfc-p-prepress" value="prepress"><label for="pdfc-p-prepress"><b>For a print shop</b><small>Keeps colour profiles for professional printing</small></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-screen" value="screen"><label for="pdfc-p-screen"><b>Smallest</b><small>Good for reading on screen · 72 dpi</small><span class="est" data-est="screen"></span></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-ebook" value="ebook" checked><label for="pdfc-p-ebook"><b>Good quality</b><small>Right for email and forms · 150 dpi</small><span class="badge rec">Recommended</span><span class="est" data-est="ebook"></span></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-printer" value="printer"><label for="pdfc-p-printer"><b>For printing</b><small>Sharp text and pictures · 300 dpi</small><span class="est" data-est="printer"></span></label></div>
+      <div class="choice"><input type="radio" name="preset" id="pdfc-p-prepress" value="prepress"><label for="pdfc-p-prepress"><b>For a print shop</b><small>Keeps colour profiles for professional printing</small><span class="est" data-est="prepress"></span></label></div>
     </fieldset>
+    <p class="hint" id="pdfc-sizes-note" hidden></p>
+    <p class="sr-only" id="pdfc-announce" aria-live="polite"></p>
     <label class="check"><input type="checkbox" id="pdfc-first"> <span>Keep only the first page</span></label>
+    <details class="more" id="pdfc-more">
+      <summary>More options</summary>
+      <div class="more-body">
+        <p class="hint">These replace what the choice above would do. The sizes above follow them.</p>
+        <div class="row-fields">
+          <label class="field"><span>Picture sharpness</span>
+            <select id="pdfc-dpi">
+              <option value="">As chosen above</option>
+              <option value="72">72 dpi · screen</option>
+              <option value="100">100 dpi</option>
+              <option value="150">150 dpi · email</option>
+              <option value="200">200 dpi</option>
+              <option value="300">300 dpi · print</option>
+            </select>
+            <small>Only lowers pictures that are sharper than this.</small>
+          </label>
+          <label class="field"><span>Picture quality</span>
+            <select id="pdfc-jpeg">
+              <option value="">As chosen above</option>
+              <option value="low">Lower · smaller file</option>
+              <option value="medium">Medium</option>
+              <option value="high">High · sharper</option>
+            </select>
+            <small>How much JPEG pictures are squeezed.</small>
+          </label>
+        </div>
+        <label class="check"><input type="checkbox" id="pdfc-gray"> <span>Turn colours to grey</span></label>
+        <label class="check"><input type="checkbox" id="pdfc-strip"> <span>Remove title, author and other document details</span></label>
+        <button class="btn quiet" id="pdfc-reset" type="button" hidden>Back to the choice above</button>
+      </div>
+    </details>
     <button class="btn run" id="pdfc-go" type="button" disabled><Icon name="arrows-in" /><span id="pdfc-go-label">Make it smaller</span></button>
   </Step>
 
@@ -42,7 +75,8 @@ import Icon from "../../../src/components/Icon.astro";
   const root = $("#pdfc-tool"), picked = $("#pdfc-picked"), results = $("#pdfc-results"), status = $("#pdfc-status");
   const go = $<HTMLButtonElement>("#pdfc-go"), goLabel = $("#pdfc-go-label"), again = $("#pdfc-again");
   const worker = new Worker(new URL("./worker.js", import.meta.url));
-  type Job = { row: HTMLElement; file: File; preset: string; firstPage: boolean };
+  type Opts = { dpi?: number; jpeg?: string; gray?: boolean; stripInfo?: boolean };
+  type Job = { row: HTMLElement; file: File; preset: string; firstPage: boolean; opts: Opts };
   const jobs = new Map<number, Job>();
   let pending: File[] = [];
   let nextId = 1;
@@ -50,6 +84,10 @@ import Icon from "../../../src/components/Icon.astro";
   const running = () => batch.done + batch.failed < batch.total;
 
   const labels: Record<string, string> = { screen: "smallest", ebook: "good quality", printer: "for printing", prepress: "for a print shop" };
+  const names: Record<string, string> = { screen: "Smallest", ebook: "Good quality", printer: "For printing", prepress: "For a print shop" };
+  const jpegNames: Record<string, string> = { low: "lower picture quality", medium: "medium picture quality", high: "high picture quality" };
+  // "150 dpi · grey" for the result row.
+  const optNote = (o: Opts) => [o.dpi && `${o.dpi} dpi`, o.jpeg && jpegNames[o.jpeg], o.gray && "grey", o.stripInfo && "details removed"].filter(Boolean).join(" · ");
   // safe-html: only sizes, percentages and fixed labels go in, never a file name.
   const setMeta = (row: HTMLElement, html: string) => ((row.querySelector(".fmeta") as HTMLElement).innerHTML = html);
 
@@ -61,6 +99,8 @@ import Icon from "../../../src/components/Icon.astro";
   worker.onerror = () => {
     broken = true;
     if (navigator.onLine) reportFailure();
+    probes.clear();
+    showSizes();
     for (const { row } of jobs.values()) setMeta(row, loadError());
     batch.failed += jobs.size;
     jobs.clear();
@@ -85,6 +125,7 @@ import Icon from "../../../src/components/Icon.astro";
     goLabel.textContent = pending.length > 1 ? `Make ${pending.length} PDFs smaller` : "Make it smaller";
     if (pending.length) stepTo(root, 2);
     else if (!batch.total) stepTo(root, 1);
+    sizesChanged(0);
   }
 
   // A locked PDF asks for its password in its own row and joins the list once it is open.
@@ -95,12 +136,151 @@ import Icon from "../../../src/components/Icon.astro";
     renderPicked();
   });
 
+  // ---- Step 2: what size each choice gives ----
+  // The first file is compressed in the background with each choice, so the size shows on the
+  // choice before anyone commits. One run at a time, in the same worker, and never while the real
+  // compression runs. Results are kept per file and per setting, so going back is instant, and a
+  // result that arrives late is kept for later instead of being shown for the wrong file.
+  const SMALL_FILE = 2 * 1024 * 1024;   // up to here all four choices are measured; a run takes a few seconds at most
+  const SAMPLE_OVER = 12 * 1024 * 1024; // above this only the first pages are measured, and the size is "about"
+  const SAMPLE_PAGES = 5;
+  const TOO_BIG = 150 * 1024 * 1024;    // above this, copying the file for every run costs more than it tells
+  type Est = { size: number; sampled: boolean } | "failed";
+  type Probe = { file: File; key: string; sampled: boolean; scale: number };
+  const estimates = new WeakMap<File, Map<string, Est>>();
+  const probes = new Map<number, Probe>();
+  const presetInputs = () => [...document.querySelectorAll<HTMLInputElement>('input[name="preset"]')];
+  const chosenPreset = () => presetInputs().find((i) => i.checked)!.value;
+  const sizeNote = $("#pdfc-sizes-note"), announce = $("#pdfc-announce"), reset = $<HTMLButtonElement>("#pdfc-reset");
+  let engineMissing = false;
+  let announced = "";
+
+  /** The finer options, as the page has them. Every value comes from a fixed list (core.js checks it again). */
+  function readOpts(): Opts {
+    const dpi = +$<HTMLSelectElement>("#pdfc-dpi").value, jpeg = $<HTMLSelectElement>("#pdfc-jpeg").value;
+    return {
+      ...(dpi && { dpi }),
+      ...(jpeg && { jpeg }),
+      ...($<HTMLInputElement>("#pdfc-gray").checked && { gray: true }),
+      ...($<HTMLInputElement>("#pdfc-strip").checked && { stripInfo: true }),
+    };
+  }
+  const keyOf = (preset: string) => JSON.stringify([preset, $<HTMLInputElement>("#pdfc-first").checked, readOpts()]);
+  const target = () => (pending[0] && pending[0].size <= TOO_BIG ? pending[0] : null);
+  const cached = (f: File, key: string) => estimates.get(f)?.get(key);
+  const inFlight = (f: File, key: string) => [...probes.values()].some((p) => p.file === f && p.key === key);
+
+  /** "1.2 MB (−64%)", or "no smaller". The second text is what a screen reader hears. */
+  function describe(est: Est, original: number) {
+    if (est === "failed") return null;
+    const about = est.sampled ? "about " : "";
+    if (est.size >= original * 0.995) return { shown: `${about}${fmtBytes(est.size)} · no smaller`, spoken: `${about}${fmtBytes(est.size)}, no smaller than your file` };
+    const pct = Math.max(1, Math.round(100 * (1 - est.size / original)));
+    return { shown: `${about}${fmtBytes(est.size)} (−${pct}%)`, spoken: `${about}${fmtBytes(est.size)}, ${pct}% smaller` };
+  }
+
+  // safe-html: not used here. Only sizes and fixed words go in, set with textContent, never a file name as markup.
+  function showSizes() {
+    const f = target();
+    for (const input of presetInputs()) {
+      const slot = $(`[data-est="${input.value}"]`);
+      slot.replaceChildren();
+      if (!f) continue;
+      const key = keyOf(input.value), est = cached(f, key);
+      if (est) {
+        const d = describe(est, f.size);
+        if (!d) continue;
+        const seen = document.createElement("span"), heard = document.createElement("span");
+        seen.setAttribute("aria-hidden", "true");
+        seen.textContent = d.shown;
+        heard.className = "sr-only";
+        heard.textContent = d.spoken;
+        slot.append(seen, heard);
+        // One quiet announcement, and only for the choice that is selected.
+        if (input.checked && announced !== f.name + key) {
+          announced = f.name + key;
+          announce.textContent = `${names[input.value]}: ${d.spoken}.`;
+        }
+      } else if (!engineMissing && !broken && (inFlight(f, key) || input.checked)) {
+        const spin = document.createElement("span");
+        spin.className = "spin";
+        spin.setAttribute("aria-hidden", "true");
+        slot.append(spin, "measuring…");
+      }
+    }
+    // Says which file the sizes are for, and when they are only estimates.
+    const lines = f ? [pending.length > 1 ? `Sizes are for the first file, ${f.name}.` : "", f.size > SAMPLE_OVER ? `This file is large, so the sizes are estimated from its first ${SAMPLE_PAGES} pages.` : ""] : [];
+    sizeNote.textContent = lines.filter(Boolean).join(" ");
+    sizeNote.hidden = !sizeNote.textContent;
+    reset.hidden = !Object.keys(readOpts()).length;
+  }
+
+  /** Next setting to measure: the selected one first, then the others when the file is small. */
+  function nextProbe(f: File) {
+    const order = [chosenPreset(), ...presetInputs().map((i) => i.value).filter((v) => v !== chosenPreset())];
+    const wanted = f.size <= SMALL_FILE ? order : order.slice(0, 1);
+    return wanted.find((p) => !cached(f, keyOf(p)));
+  }
+
+  async function pump() {
+    const f = target();
+    if (!f || broken || engineMissing || probes.size || running()) return;
+    const preset = nextProbe(f);
+    if (!preset) return;
+    const key = keyOf(preset), opts = readOpts(), firstPage = $<HTMLInputElement>("#pdfc-first").checked;
+    // A large file is measured on its first pages only, and the size is scaled up from them.
+    let lastPage: number | undefined, scale = 1;
+    if (f.size > SAMPLE_OVER && !firstPage) {
+      const facts = await pdfFacts(f);
+      if (facts && facts.pages > SAMPLE_PAGES) { lastPage = SAMPLE_PAGES; scale = facts.pages / SAMPLE_PAGES; }
+    }
+    // The page may have changed while the page count was read: start over with what it asks for now.
+    if (f !== target() || key !== keyOf(preset) || probes.size || running()) return void pump();
+    const id = nextId++;
+    probes.set(id, { file: f, key, sampled: scale > 1, scale });
+    showSizes();
+    const bytes = await f.arrayBuffer();
+    worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage, lastPage, ...opts }) }, [bytes]);
+  }
+
+  function probeDone(data: { id: number; ok: boolean; load?: boolean; out?: ArrayBuffer }) {
+    const p = probes.get(data.id)!;
+    probes.delete(data.id);
+    if (!data.ok && (data.load || !navigator.onLine)) engineMissing = true; // the real run explains this; stay quiet here
+    if (!engineMissing) {
+      const map = estimates.get(p.file) ?? new Map<string, Est>();
+      estimates.set(p.file, map);
+      map.set(p.key, data.ok ? { size: Math.round(data.out!.byteLength * p.scale), sampled: p.sampled } : "failed");
+    }
+    showSizes();
+    pump();
+  }
+
+  // Waits a moment, so that changing several settings in a row measures only the last one.
+  let timer = 0;
+  function sizesChanged(delay = 400) {
+    showSizes();
+    clearTimeout(timer);
+    timer = window.setTimeout(pump, delay);
+  }
+  presetInputs().forEach((i) => i.addEventListener("change", () => sizesChanged(0)));
+  for (const sel of ["#pdfc-dpi", "#pdfc-jpeg", "#pdfc-gray", "#pdfc-strip", "#pdfc-first"]) $(sel).addEventListener("change", () => sizesChanged());
+  reset.addEventListener("click", () => {
+    $<HTMLSelectElement>("#pdfc-dpi").value = "";
+    $<HTMLSelectElement>("#pdfc-jpeg").value = "";
+    $<HTMLInputElement>("#pdfc-gray").checked = false;
+    $<HTMLInputElement>("#pdfc-strip").checked = false;
+    sizesChanged();
+    $("#pdfc-dpi").focus();
+  });
+
   // ---- Step 2 → 3: compress ----
   worker.onmessage = ({ data }) => {
+    if (probes.has(data.id)) return probeDone(data);
     const job = jobs.get(data.id);
     if (!job) return;
     jobs.delete(data.id);
-    const { row, file, preset, firstPage } = job;
+    const { row, file, preset, firstPage, opts } = job;
     if (!data.ok && (data.load || !navigator.onLine)) {
       // The engine could not be fetched: not the file's fault.
       if (navigator.onLine) reportFailure();
@@ -123,7 +303,7 @@ import Icon from "../../../src/components/Icon.astro";
     const size = data.out.byteLength;
     const pct = Math.round(100 * (1 - size / file.size));
     const note = pct > 0 ? `<span class="saved">${pct}% smaller</span>` : `<span>already compact, ${-pct}% larger</span>`;
-    setMeta(row, `${fmtBytes(file.size)} → ${fmtBytes(size)} · ${note} · ${labels[preset]}${firstPage ? " · page 1 only" : ""}`);
+    setMeta(row, `${fmtBytes(file.size)} → ${fmtBytes(size)} · ${note} · ${labels[preset]}${firstPage ? " · page 1 only" : ""}${optNote(opts) ? " · " + optNote(opts) : ""}`);
     const a = document.createElement("a");
     a.className = "btn";
     a.textContent = "Download";
@@ -143,6 +323,7 @@ import Icon from "../../../src/components/Icon.astro";
     if (!batch.total || running()) return;
     go.disabled = !pending.length;
     again.hidden = false;
+    sizesChanged(0);
     if (!batch.done) { showProblem(status, batch.total > 1 ? "None of these PDFs could be compressed. Each row says why." : "This PDF could not be compressed. The row below says why.", "That didn't work"); return; }
     stepTo(root, 4);
     const pct = Math.round(100 * (1 - batch.after / batch.before));
@@ -159,6 +340,7 @@ import Icon from "../../../src/components/Icon.astro";
     renderPicked();
     const preset = (document.querySelector('input[name="preset"]:checked') as HTMLInputElement).value;
     const firstPage = $<HTMLInputElement>("#pdfc-first").checked;
+    const opts = readOpts();
     batch = { total: files.length, done: 0, failed: 0, before: 0, after: 0 };
     again.hidden = true;
     results.replaceChildren();
@@ -171,9 +353,9 @@ import Icon from "../../../src/components/Icon.astro";
       results.append(row);
       if (broken) { setMeta(row, loadError()); batch.failed++; finish(); continue; }
       const id = nextId++;
-      jobs.set(id, { row, file, preset, firstPage });
+      jobs.set(id, { row, file, preset, firstPage, opts });
       const bytes = await file.arrayBuffer();
-      worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage }) }, [bytes]);
+      worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage, ...opts }) }, [bytes]);
     }
   });
 
@@ -187,3 +369,18 @@ import Icon from "../../../src/components/Icon.astro";
     document.getElementById("pdfc-drop")?.focus();
   });
 </script>
+
+<style>
+  /* The measured size on each choice. It is its own line, so a long size never pushes the label sideways. */
+  .est { grid-column: 2; font-size: 14px; font-weight: 600; color: var(--soft); min-height: 1.4em; overflow-wrap: anywhere; }
+  .est:empty { display: none; }
+  .est :global(.spin) { margin-right: 6px; }
+  /* "More options": a plain disclosure, with the same 44 px touch size as the rest of the tool. */
+  .more { margin: 12px 0; border: 1.5px solid var(--hair); border-radius: var(--r); background: var(--card); }
+  .more summary { cursor: pointer; min-height: 48px; display: flex; align-items: center; padding: 0 14px; font-weight: 650; border-radius: var(--r); }
+  .more summary:focus-visible { outline: 2.5px solid var(--ink); outline-offset: 3px; }
+  .more-body { display: grid; gap: 4px; padding: 4px 14px 14px; }
+  .more-body .hint { margin: 0 0 8px; }
+  .more-body .row-fields { margin-bottom: 8px; align-items: start; }
+  .more-body .btn { justify-self: start; margin-top: 8px; }
+</style>

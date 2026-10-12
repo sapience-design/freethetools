@@ -1,0 +1,1 @@
+- Compress PDF (PDF, Optimize): each choice now shows the size it would give for your file before you press the button, measured on your device. A new "More options" list adds picture sharpness (dpi), picture quality, grey instead of colour, and removing the title, author and other document details. The AI and npm tool has the same options.

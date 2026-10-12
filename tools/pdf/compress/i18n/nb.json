@@ -28,6 +28,14 @@
       "a": "Balansert passer for e-post og deling. Minst passer for lesing på skjerm. Utskrift beholder bilder skarpe nok for papir. Prepress beholder fargeprofiler for profesjonell trykking."
     },
     {
+      "q": "Kan jeg se hvor liten filen blir før jeg lagrer?",
+      "a": "Ja. Hvert valg viser størrelsen og prosenten det gir, målt på enheten din. For en svært stor fil er størrelsen et anslag fra de første sidene."
+    },
+    {
+      "q": "Hva gjør «More options»?",
+      "a": "De gir finere kontroll enn de fire valgene: bildeskarphet i dpi, bildekvalitet, grått i stedet for farger og fjerning av tittel, forfatter og andre dokumentopplysninger. De erstatter det den valgte kvaliteten ellers ville gjort, og størrelsene oppdateres tilsvarende."
+    },
+    {
       "q": "Hvorfor ble filen større?",
       "a": "PDF-er som mest består av tekst og vektortegninger er ofte små fra før. Ghostscript skriver om hele filen, så resultatet kan bli litt større. Behold originalen i så fall."
     },
