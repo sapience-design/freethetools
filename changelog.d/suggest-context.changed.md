@@ -1,1 +1,1 @@
-- Suggestions: Next and Back move straight to the next field. The dialog lists what is sent with a message (the page, your search words and the site language) before you send it.
+- Suggestions: Next and Back move straight to the next field, and after sending, focus goes to Close instead of the heading. The dialog lists what is sent with a message (the page, your search words and the site language) before you send it.

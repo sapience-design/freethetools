@@ -76,7 +76,11 @@ test("three steps send the same body as the /suggest/ form, and nothing is sent 
   expect(posts).toHaveLength(0);
 
   await dialog.getByRole("button", { name: "Send suggestion" }).click();
-  await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeFocused();
+  // Thanks: focus goes to Close, not the heading; the thanks is announced.
+  await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Close" }).last()).toBeFocused();
+  await expect(page.locator("#sg-live")).toHaveText(/^Thank you! We read every message\./);
+  expect(await page.locator("#sg [tabindex='-1']:not(input)").count(), "no heading takes focus").toBe(0);
   expect(posts).toHaveLength(1);
   expect(posts[0].headers["content-type"]).toBe("application/json");
   expect(posts[0].body).toEqual({ kind: "suggestion", message: "Merge two PDF files into one", use: "A website", tool: "", email: "me@example.com", website: "", page: "/", search: "", lang: "en" });

@@ -72,7 +72,7 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
     </form>
 
     <div id="sg-done" hidden>
-      <h3 class="sg-h" id="sg-done-h" tabindex="-1">{S("thanks")}</h3>
+      <h3 class="sg-h" id="sg-done-h">{S("thanks")}</h3>
       <p class="sg-text">{S("thanksBody")}</p>
       <div class="sg-actions"><button type="button" class="btn" id="sg-done-close">{S("close")}</button></div>
     </div>
@@ -245,7 +245,9 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
         sent = true;
         form.hidden = true;
         done.hidden = false;
-        $("sg-done-h").focus();
+        // Focus goes to Close, the only thing left to do; the live region reads the thanks.
+        $("sg-live").textContent = `${$("sg-done-h").textContent} ${done.querySelector(".sg-text")!.textContent}`;
+        $("sg-done-close").focus();
       } else {
         fallback(b, status);
         $("sg-e3").scrollIntoView({ block: "nearest" });
@@ -288,8 +290,6 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
   section { display: grid; gap: 14px; min-width: 0; }
   [hidden] { display: none !important; }
   .sg-h { margin: 0; display: grid; gap: 2px; font-family: var(--display); font-size: 20px; line-height: 1.25; }
-  .sg-h:focus { outline: none; }
-  .sg-h:focus-visible { outline: 2.5px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
   .sg-kicker { font-family: var(--sans); font-size: 14px; font-weight: 650; color: var(--soft); }
   .sg-field { display: grid; gap: 6px; min-width: 0; }
   .sg-field label { font-weight: 650; }
