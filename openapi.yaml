@@ -8,7 +8,7 @@ info:
     and a summary of anonymous usage totals (see https://freethetools.com/stats/).
     The tools themselves run in the browser; this API lists them, it does not run them.
     The site's own pages also write counts to /api/stats/event, /api/stats/like,
-    /api/stats/want and /api/stats/visit, and the suggestion form posts to /api/feedback. Those accept only same-origin requests from freethetools.com and are
+    /api/stats/want and /api/stats/visit, the suggestion form posts to /api/feedback, and /api/health reports delivery failures to the maintainers. Those accept only same-origin requests from freethetools.com and are
     not part of the public API.
   license:
     name: AGPL-3.0-only

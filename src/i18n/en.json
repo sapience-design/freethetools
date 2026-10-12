@@ -223,7 +223,7 @@
         "sooner": "Sponsoring a tool helps it get built sooner. Every little bit helps. You do not have to: your suggestion is welcome either way.",
         "sponsor": "Sponsor a tool",
         "newTab": "(opens in a new tab)",
-        "privacy": "Your suggestion is emailed to the maintainers only when you press Send suggestion. Nothing is stored.",
+        "privacy": "Your suggestion is sent to the maintainers only when you press Send suggestion. It is emailed, and copied without your email address to a private GitHub repository only they can read.",
         "back": "Back",
         "next": "Next",
         "send": "Send suggestion",
@@ -233,7 +233,8 @@
         "errLong": "Please keep it to 2000 characters or fewer.",
         "errEmail": "That email address does not look right. You can also leave it empty.",
         "errSend": "We could not send this just now. Your text is still here. Please try again, or",
-        "errMail": "email it to hello@freethetools.com"
+        "errMail": "email it to hello@freethetools.com",
+        "errCode": "Error {code}"
       },
       "wanted": {
         "people": { "one": "{n} person wants this.", "other": "{n} people want this." },

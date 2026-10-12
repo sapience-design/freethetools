@@ -40,3 +40,18 @@ A determined script can still send mail within the rate limit. If that happens, 
 - Maintainers read and answer by email. There is no public thread and no vote list, so a request is not visible to other people until a maintainer adds the tool to `wanted.json`.
 - The privacy page must describe the form, because a message can hold an email address and anything the person writes.
 - A new table needs `npx wrangler d1 migrations apply` before deploy (`migrations/0003_wants.sql`).
+
+## Update 2026-10-11: two channels, and failures are reported
+
+A visitor saw "We couldn't send this right now". The Worker had no logs, so the cause was unknown, and a failed send left no trace. One email was the only path.
+
+**Two channels.** `POST /api/feedback` now delivers each message by email (as before) and as an issue in a private GitHub repository, `FEEDBACK_REPO` (default `sapience-design/freethetools-inbox`), using the Worker secret `GITHUB_TOKEN`. It counts as delivered when at least one works (204). It answers 502 only when every configured channel failed, and 503 when none is configured (local development, previews). A channel with no secret or variable is skipped.
+
+- **The issue holds no identity.** The title is "Suggestion: " or "Problem: " plus the first 60 characters. The body has the kind, the tool, the message in a code fence and "What do you use today?". Backticks are replaced, so the text cannot mention a person, link or load an image. The email address stays in the email, as `Reply-To`. Labels: `suggestion` or `problem`, and `needs triage`. The builder is `buildIssue` in `worker/logic.js`.
+- **The repository is private**, so the "nothing is stored" line above no longer holds. The privacy page now says the message is also kept as an issue, without the email address.
+
+**Failures are counted and reported.** A failed channel adds one to a daily row in `dims` (dim `fail`, key `feedback-email` or `feedback-github`), never the text, address or reason. The reason (status code or error name only) goes to `console.error`. Workers Logs are on (`observability` in `wrangler.jsonc`), free on the Workers free plan. `GET /api/health` returns the counts for today and yesterday (UTC), for example `{"feedbackFailures":{"email":0,"github":0}}`. `scripts/live-check.mjs` fails when any count is above zero, so the daily Live check fails and GitHub emails the owner. The row stays visible for two UTC days, so one failure can fail two checks in a row. The public stats summary leaves dim `fail` out.
+
+**The page retries once** after 2 seconds on a server or network error, then keeps the typed text, offers the `mailto:` link and shows the status ("Error 502").
+
+**Costs.** The owner creates the private repository and a fine-grained token (Issues: read and write, this repository only, with an expiry) and renews it before it expires. When it expires, the GitHub channel fails and shows in `/api/health`; email keeps working. Setup: [How to set up feedback delivery](../how-to/feedback-delivery.md).

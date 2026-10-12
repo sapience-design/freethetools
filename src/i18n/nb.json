@@ -223,7 +223,7 @@
         "sooner": "Når noen sponser et verktøy, blir det laget raskere. Hver liten bit hjelper. Du må ikke: forslaget ditt er like velkomment uansett.",
         "sponsor": "Spons et verktøy",
         "newTab": "(åpnes i en ny fane)",
-        "privacy": "Forslaget sendes som e-post til utviklerne først når du trykker på Send forslag. Ingenting blir lagret.",
+        "privacy": "Forslaget sendes til utviklerne først når du trykker på Send forslag. Det sendes som e-post og kopieres, uten e-postadressen din, til et privat GitHub-arkiv som bare de kan lese.",
         "back": "Tilbake",
         "next": "Neste",
         "send": "Send forslag",
@@ -233,7 +233,8 @@
         "errLong": "Bruk høyst 2000 tegn.",
         "errEmail": "E-postadressen ser ikke riktig ut. Du kan også la feltet stå tomt.",
         "errSend": "Vi kunne ikke sende dette akkurat nå. Teksten din står fortsatt her. Prøv igjen, eller",
-        "errMail": "send den på e-post til hello@freethetools.com"
+        "errMail": "send den på e-post til hello@freethetools.com",
+        "errCode": "Feil {code}"
       },
       "wanted": {
         "people": { "one": "{n} person vil ha dette.", "other": "{n} personer vil ha dette." },

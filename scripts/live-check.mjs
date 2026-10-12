@@ -1,4 +1,4 @@
-// Read-only check of the live site: opens every page in the sitemap on desktop and phone and fails
+// Read-only check of the live site (and of /api/health, which reports failed suggestion deliveries): opens every page in the sitemap on desktop and phone and fails
 // on page errors, Content Security Policy violations, requests to other origins, or sideways scroll.
 // Catches problems that only exist in production, such as a script injected by a Cloudflare setting.
 //
@@ -57,6 +57,26 @@ async function checkPage(context, url) {
   return problems;
 }
 
+// The Worker counts failed feedback deliveries (email, GitHub issue) per UTC day. Any failure in
+// the last day fails this check, so GitHub emails the maintainers. See docs/how-to/feedback-delivery.md.
+async function deliveryFailures() {
+  const res = await fetch(`${BASE}/api/health`, { headers: { Accept: "application/json" } });
+  if (!res.ok) throw new Error(`/api/health returned ${res.status}`);
+  const { feedbackFailures } = await res.json();
+  return Object.entries(feedbackFailures ?? {}).filter(([, n]) => n > 0);
+}
+let healthFailed = false;
+try {
+  const bad = await deliveryFailures();
+  if (bad.length) {
+    healthFailed = true;
+    console.log(`::error title=Feedback delivery failed::Suggestions failed to deliver in the last 24 hours (${bad.map(([k, n]) => `${k}: ${n}`).join(", ")}). Read Workers Logs (search "feedback:") and see docs/how-to/feedback-delivery.md.`);
+  }
+} catch (e) {
+  healthFailed = true;
+  console.log(`::error title=Health check unreadable::${e.message}`);
+}
+
 const urls = await pagesFromSitemap();
 const browser = await chromium.launch();
 let failed = 0;
@@ -100,8 +120,9 @@ await browser.close();
 for (const r of reportOnly) {
   console.log(`::warning title=Report-only CSP::Some pages carry a report-only policy that sends reports to ${r}. It blocks nothing, but visitors' browsers contact that server. Cloudflare's client-side script monitoring adds it; turn it off to keep the no-outside-connections pledge exact.`);
 }
+if (healthFailed) process.exitCode = 1;
 if (failed) {
   console.log(`${failed} page checks failed on ${BASE}`);
   process.exit(1);
 }
-console.log(`All pages on ${BASE} are clean on desktop and phone.`);
+if (!healthFailed) console.log(`All pages on ${BASE} are clean on desktop and phone.`);

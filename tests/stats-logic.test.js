@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry, HIDDEN_SEARCHES } from "../worker/logic.js";
+import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, buildIssue, cleanRepo, deliver, healthBody, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry, HIDDEN_SEARCHES } from "../worker/logic.js";
 
 const tools = new Set(["pdf/compress", "text/word-counter"]);
 
@@ -282,4 +282,92 @@ test("a phrase on the hide list never reaches the public list", () => {
   } finally {
     HIDDEN_SEARCHES.delete("planted phrase");
   }
+});
+
+// ---- GitHub issue and delivery ----
+
+test("the issue has a one-line title, labels, and no sender identity", () => {
+  const fb = parseFeedback({ ...good, email: "ada@example.org" });
+  const issue = buildIssue(fb);
+  assert.match(issue.title, /^Suggestion: /);
+  assert.ok(!issue.title.includes("\n"));
+  assert.deepEqual(issue.labels, ["suggestion", "needs triage"]);
+  assert.match(issue.body, /\*\*Kind:\*\* suggestion/);
+  assert.match(issue.body, /What do you use today\?/);
+  const all = JSON.stringify(issue);
+  assert.equal(all.includes("ada@example.org"), false);
+  assert.equal(all.includes("example.org"), false);
+  const problem = buildIssue(parseFeedback({ kind: "problem", message: "The merge button does nothing", tool: "pdf/merge", use: "x" }));
+  assert.match(problem.title, /^Problem: /);
+  assert.deepEqual(problem.labels, ["problem", "needs triage"]);
+  assert.equal(problem.body.includes("What do you use today?"), false);
+});
+
+test("backticks cannot close the fence or a code span", () => {
+  const fb = parseFeedback({ kind: "suggestion", message: "before ``` after\n```\n# heading `x`", tool: "a`b", use: "`c`" });
+  const { body, title } = buildIssue(fb);
+  assert.equal(title.includes("`"), false);
+  const ticks = body.split("\n").filter((l) => l.includes("```"));
+  assert.deepEqual(ticks, ["```text", "```"]);
+  assert.equal(body.includes("a`b"), false);
+});
+
+test("mentions and images in the message stay inside the fence; the title cannot mention", () => {
+  const msg = "thanks @octocat and @sapience-design/team ![x](https://evil.example/p.png) [a](https://evil.example)";
+  const { title, body } = buildIssue(parseFeedback({ kind: "suggestion", message: msg }));
+  assert.equal(/@(?!​)/.test(title), false);
+  const [before, rest] = body.split("```text\n");
+  const [inside, after] = rest.split("\n```\n");
+  assert.ok(inside.includes("@octocat") && inside.includes("![x](https://evil.example/p.png)"));
+  assert.equal(/[@!\[]/.test(before + after), false);
+});
+
+test("a long message gives a title of at most 60 characters of text, and a bounded body", () => {
+  const long = "word ".repeat(380);
+  const { title, body } = buildIssue(parseFeedback({ kind: "suggestion", message: long }));
+  assert.ok([..."Suggestion: "].length + 60 >= [...title].length);
+  assert.ok(title.length <= "Suggestion: ".length + 60);
+  assert.ok(body.length < 2600);
+  const emoji = buildIssue(parseFeedback({ kind: "suggestion", message: "\u{1F600}".repeat(100) }));
+  assert.equal([...emoji.title.slice("Suggestion: ".length)].length, 60);
+});
+
+test("new lines in the message never reach the title", () => {
+  const { title, body } = buildIssue(parseFeedback({ kind: "problem", message: "line one\n\nline two\r\nline three" }));
+  assert.equal(title, "Problem: line one line two line three");
+  assert.ok(body.includes("line one\n\nline two\nline three"));
+});
+
+test("the repository name must be owner/name", () => {
+  assert.equal(cleanRepo("sapience-design/freethetools-inbox"), "sapience-design/freethetools-inbox");
+  for (const bad of ["", undefined, "a", "a/b/c", "../x", "a/b?x=1", "a b/c"]) assert.equal(cleanRepo(bad), "");
+});
+
+test("delivery: 204 when one channel works, 502 only when all fail, 503 when none is set up", async () => {
+  const ok = { name: "email", send: async () => {} };
+  const bad = (name) => ({ name, send: async () => { throw new Error("GitHub answered 401"); } });
+  assert.deepEqual(await deliver([]), { status: 503, failed: [] });
+  assert.deepEqual(await deliver([ok, ok]), { status: 204, failed: [] });
+  const one = await deliver([ok, bad("github")]);
+  assert.equal(one.status, 204);
+  assert.deepEqual(one.failed, [{ name: "github", reason: "GitHub answered 401" }]);
+  assert.equal((await deliver([bad("email"), ok])).status, 204);
+  const both = await deliver([bad("email"), bad("github")]);
+  assert.equal(both.status, 502);
+  assert.deepEqual(both.failed.map((f) => f.name), ["email", "github"]);
+  assert.equal((await deliver([bad("email")])).status, 502);
+  // a channel that throws synchronously is a failure too
+  assert.equal((await deliver([{ name: "email", send: () => { throw new Error("x"); } }])).status, 502);
+});
+
+test("the health body counts failures per channel and is zero when empty", () => {
+  assert.deepEqual(healthBody([]), { feedbackFailures: { email: 0, github: 0 } });
+  assert.deepEqual(healthBody(), { feedbackFailures: { email: 0, github: 0 } });
+  assert.deepEqual(healthBody([{ key: "feedback-github", n: 3 }, { key: "other", n: 9 }]), { feedbackFailures: { email: 0, github: 3 } });
+});
+
+test("failure rows never show up in the public summary", () => {
+  const s = summarize([], [{ dim: "fail", key: "feedback-email", n: 4 }, { dim: "visit", key: "all", n: 2 }], 0);
+  assert.equal(JSON.stringify(s).includes("feedback"), false);
+  assert.equal(s.site.visits30, 2);
 });
