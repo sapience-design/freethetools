@@ -1,0 +1,1 @@
+- The site opens in the light theme on every device. Dark, or System to follow your device, stay one click away at the bottom of every page, and the choice is remembered.
