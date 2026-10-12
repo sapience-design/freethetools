@@ -7,11 +7,10 @@
 // and device types; and per UTC day, short plain-word searches that found nothing; and per planned tool per UTC day, the count of "I want this" votes. Each breakdown is a separate counter, never linked to another or to a tool. Not stored: IP addresses, cookies,
 // user agents, full referrer links, or anything that could identify a person. See /stats/.
 import { EmailMessage } from "cloudflare:email";
-import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, SEARCH_LIMIT, SEARCH_MIN_DAYS, SEARCH_MIN_TOTAL, WANT_LIMIT, buildEmail, buildIssue, canRefetchTools, cleanRepo, dayKey, deliver, healthBody, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
+import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, SEARCH_LIMIT, SEARCH_MIN_DAYS, SEARCH_MIN_TOTAL, WANT_LIMIT, buildEmail, buildIssue, canRefetchTools, cleanMailbox, cleanRepo, dayKey, deliver, healthBody, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
 
 // The only address the site writes to. Mail comes from a name on the same domain, which Email Routing sends from.
 const FEEDBACK_FROM = "forms@freethetools.com";
-const FEEDBACK_TO = "hello@freethetools.com";
 
 const COLUMNS = { view: "views", use: "uses", success: "successes", error: "errors" };
 
@@ -200,12 +199,17 @@ async function feedback(request, env) {
   // A channel that is not set up is skipped. Local development and previews have neither, and then
   // the page offers a mailto link.
   const channels = [];
-  if (env.FEEDBACK) {
+  // The email goes to the maintainers' own inbox, a verified destination address in Email Routing.
+  // Cloudflare sends to verified destinations free on every plan; a routing address such as
+  // hello@freethetools.com is not one, and every send to it was refused. The inbox is the
+  // FEEDBACK_TO secret, so it never appears in this public repository.
+  const to = cleanMailbox(env.FEEDBACK_TO);
+  if (env.FEEDBACK && to) {
     channels.push({
       name: "email",
       send: async () => {
-        const raw = buildEmail(fb, { from: FEEDBACK_FROM, to: FEEDBACK_TO, date: new Date(), id: crypto.randomUUID() });
-        await env.FEEDBACK.send(new EmailMessage(FEEDBACK_FROM, FEEDBACK_TO, raw));
+        const raw = buildEmail(fb, { from: FEEDBACK_FROM, to, date: new Date(), id: crypto.randomUUID() });
+        await env.FEEDBACK.send(new EmailMessage(FEEDBACK_FROM, to, raw));
       },
     });
   }

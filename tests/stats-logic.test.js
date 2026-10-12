@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, buildIssue, cleanRepo, deliver, healthBody, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry, HIDDEN_SEARCHES } from "../worker/logic.js";
+import { EVENT_CEILING, LIKE_LIMIT, WANT_LIMIT, buildEmail, buildIssue, cleanMailbox, cleanRepo, deliver, healthBody, feedbackBody, feedbackSubject, parseFeedback, canRefetchTools, cleanWeight, dayKey, parseBody, sampleRateFor, sameOrigin, summarize, normalizeSearch, normalizeRef, SEARCH_LIMIT, normalizeCountry, HIDDEN_SEARCHES } from "../worker/logic.js";
 
 const tools = new Set(["pdf/compress", "text/word-counter"]);
 
@@ -337,6 +337,12 @@ test("new lines in the message never reach the title", () => {
   const { title, body } = buildIssue(parseFeedback({ kind: "problem", message: "line one\n\nline two\r\nline three" }));
   assert.equal(title, "Problem: line one line two line three");
   assert.ok(body.includes("line one\n\nline two\nline three"));
+});
+
+test("the email recipient must be one plain address", () => {
+  assert.equal(cleanMailbox("maintainer@example.com"), "maintainer@example.com");
+  assert.equal(cleanMailbox("first.last+forms@mail.example.co.uk"), "first.last+forms@mail.example.co.uk");
+  for (const bad of ["", undefined, null, 42, "no-at-sign", "a@b", "a@b.c", "two@one.com,three@two.com", "a@b.com\r\nBcc: x@y.com", "Name <a@b.com>", " a@b.com", "a@b.com ", `${"x".repeat(250)}@b.com`]) assert.equal(cleanMailbox(bad), "", String(bad));
 });
 
 test("the repository name must be owner/name", () => {
