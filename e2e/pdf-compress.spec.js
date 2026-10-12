@@ -22,6 +22,9 @@ test.beforeEach(async ({ page }) => {
 test.afterEach(async ({ page }) => expect(page.__problems).toEqual([]));
 
 test.describe("Compress PDF sizes", () => {
+  // Each test runs Ghostscript several times. One at a time, in one worker, so they do not starve the
+  // tests running beside them of CPU (Merge PDF's password checks timed out when four ran at once).
+  test.describe.configure({ mode: "default" });
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
 
   test("the chosen option shows its size, and the Make it smaller button is not held back", async ({ page }) => {
