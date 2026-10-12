@@ -239,7 +239,7 @@
         "sooner": "Patrocinar una herramienta ayuda a que se cree antes. Cada granito de arena cuenta. No es obligatorio: tu sugerencia es bienvenida de todos modos.",
         "sponsor": "Patrocinar una herramienta",
         "newTab": "(se abre en una pestaña nueva)",
-        "privacy": "Tu sugerencia se envía por correo a los responsables solo cuando pulsas Enviar sugerencia. No se guarda nada.",
+        "privacy": "Tu sugerencia se envía a los responsables solo cuando pulsas Enviar sugerencia. Va por correo y se copia, sin tu correo, a un repositorio privado de GitHub que solo ellos pueden leer.",
         "back": "Atrás",
         "next": "Siguiente",
         "send": "Enviar sugerencia",
@@ -249,7 +249,8 @@
         "errLong": "Usa 2000 caracteres como máximo.",
         "errEmail": "Ese correo no parece correcto. También puedes dejarlo vacío.",
         "errSend": "No hemos podido enviarlo ahora mismo. Tu texto sigue aquí. Inténtalo de nuevo o",
-        "errMail": "envíalo por correo a hello@freethetools.com"
+        "errMail": "envíalo por correo a hello@freethetools.com",
+        "errCode": "Error {code}"
       },
       "wanted": {
         "people": { "one": "{n} persona quiere esto.", "other": "{n} personas quieren esto." },

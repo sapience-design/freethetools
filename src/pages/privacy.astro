@@ -53,7 +53,8 @@ import { REPO } from "../data/catalogue";
     <section aria-labelledby="form-h">
       <h2 class="h2" id="form-h">The suggestion and problem form</h2>
       <p>The <a href="/suggest/">form</a> sends what you type: your message, the answer to “What do you use today?”, the tool you name, and your email address if you give one. It also sends whether you are suggesting a tool or reporting a problem.</p>
-      <p>It goes by email to the maintainers at <a href="mailto:hello@freethetools.com">hello@freethetools.com</a>. This site does not store it, and we do not add it to any list. Cloudflare carries the email, and the maintainers' mail provider keeps it like any other mail. We use your email address only to answer you.</p>
+      <p>It goes by email to the maintainers at <a href="mailto:hello@freethetools.com">hello@freethetools.com</a>. It is also copied as an issue into a private GitHub repository that only the maintainers can read. That copy holds your message, the tool and the answer to “What do you use today?”, but never your email address. Nothing else is stored, and we do not add it to any list. Cloudflare carries the email, and the maintainers' mail provider keeps it like any other mail. GitHub keeps the issue until a maintainer deletes it. We use your email address only to answer you.</p>
+      <p>If a message cannot be delivered, the site counts that failure for the day, so the maintainers hear about it. The count holds no text and no address.</p>
       <p>The form needs no account and sets no cookie. To have a message deleted, write to the same address.</p>
     </section>
 

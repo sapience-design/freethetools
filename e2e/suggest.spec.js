@@ -97,10 +97,23 @@ test("on a failed send the text stays and a plain message says what to do", asyn
   await dialog.getByRole("button", { name: "Next" }).click();
   await dialog.getByRole("button", { name: "Send suggestion" }).click();
   await expect(dialog.getByRole("alert").filter({ hasText: "could not send" })).toContainText("Your text is still here");
+  await expect(dialog.getByRole("alert").filter({ hasText: "could not send" })).toContainText("Error 500");
   await expect(dialog.getByRole("link", { name: /email it to hello@freethetools.com/ })).toHaveAttribute("href", /^mailto:hello@freethetools\.com\?/);
   await dialog.getByRole("button", { name: "Back" }).click();
   await dialog.getByRole("button", { name: "Back" }).click();
   await expect(dialog.getByRole("textbox", { name: "What should the tool do?" })).toHaveValue("Compare two text files");
+});
+
+test("a failed send is tried once more after 2 seconds", async ({ page }) => {
+  let calls = 0;
+  await page.route("**/api/feedback", (route) => { calls++; return route.fulfill({ status: calls === 1 ? 502 : 204 }); });
+  const { dialog } = await openFromHome(page);
+  await dialog.getByRole("textbox", { name: "What should the tool do?" }).fill("Compare two text files");
+  await dialog.getByRole("button", { name: "Next" }).click();
+  await dialog.getByRole("button", { name: "Next" }).click();
+  await dialog.getByRole("button", { name: "Send suggestion" }).click();
+  await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible({ timeout: 8000 });
+  expect(calls).toBe(2);
 });
 
 test("Escape closes the dialog and focus returns to the link; nothing is stored", async ({ page }) => {
@@ -189,4 +202,21 @@ for (const theme of ["light", "dark"]) {
       }
     });
   }
+}
+
+for (const theme of ["light", "dark"]) {
+  test(`${theme} theme, failed send: the error box is readable (WCAG 2.2 AA)`, async ({ page }) => {
+    await page.addInitScript((t) => { try { localStorage.setItem("ftt:theme", t); } catch {} }, theme);
+    await page.route("**/api/feedback", (route) => route.fulfill({ status: 502 }));
+    await page.setViewportSize({ width: 320, height: 800 });
+    const { dialog } = await openFromHome(page);
+    await dialog.getByRole("textbox", { name: "What should the tool do?" }).fill("Merge two PDF files");
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await dialog.getByRole("button", { name: "Next" }).click();
+    await dialog.getByRole("button", { name: "Send suggestion" }).click();
+    await expect(dialog.getByRole("alert").filter({ hasText: "Error 502" })).toBeVisible({ timeout: 8000 });
+    const { violations } = await new AxeBuilder({ page }).options({ runOnly: { type: "tag", values: WCAG } }).analyze();
+    const summary = violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.map((n) => n.target.join(" ")).slice(0, 4).join(" | ")}`);
+    expect(summary, summary.join("; ")).toEqual([]);
+  });
 }

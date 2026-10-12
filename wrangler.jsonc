@@ -29,6 +29,12 @@
   "send_email": [
     { "name": "FEEDBACK", "destination_address": "hello@freethetools.com" }
   ],
+  // Feedback goes to a private GitHub repository as well as by email. The token is a Worker secret
+  // (GITHUB_TOKEN, set in the Cloudflare dashboard, never here). Without it that channel is skipped.
+  // See docs/how-to/feedback-delivery.md.
+  "vars": { "FEEDBACK_REPO": "sapience-design/freethetools-inbox" },
+  // Workers Logs (free plan): console.error lines from the Worker, to find out why a delivery failed.
+  "observability": { "enabled": true },
   "routes": [
     { "pattern": "freethetools.com", "custom_domain": true },
     { "pattern": "www.freethetools.com", "custom_domain": true }

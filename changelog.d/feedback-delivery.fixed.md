@@ -1,0 +1,1 @@
+- Suggestions now reach the maintainers by email and as a private GitHub issue, failures are reported to them, and error messages are readable in dark mode.

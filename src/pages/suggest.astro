@@ -78,7 +78,8 @@ const { aisles } = await loadCatalogue();
       <h2 class="h3" id="what-h">What happens to your message</h2>
       <ul>
         <li>It is emailed to the maintainers at <a href="mailto:hello@freethetools.com">hello@freethetools.com</a>.</li>
-        <li>This site does not store it.</li>
+        <li>It is also copied, without your email address, into a private GitHub repository only the maintainers can read.</li>
+        <li>Nothing else is stored.</li>
         <li>Cloudflare carries the email. The <a href="/privacy/#form-h">privacy page</a> has the details.</li>
         <li>No account needed.</li>
       </ul>
@@ -130,7 +131,19 @@ const { aisles } = await loadCatalogue();
   }
 
   // When the message cannot be sent from here, offer an email with everything filled in.
-  function fallback(b: ReturnType<typeof body>) {
+  // One try; a second after 2 seconds when it failed in a way that may pass (not a refused request).
+  // Returns the HTTP status, or 0 when the network failed.
+  async function post(b: ReturnType<typeof body>): Promise<number> {
+    const once = () => fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }).then((r) => r.status, () => 0);
+    let code = await once();
+    if (code >= 500 || code === 0) {
+      await new Promise((r) => setTimeout(r, 2000));
+      code = await once();
+    }
+    return code;
+  }
+
+  function fallback(b: ReturnType<typeof body>, code: number) {
     const lines = [b.message];
     if (b.use) lines.push("", `What I use today: ${b.use}`);
     if (b.tool) lines.push("", `Tool: ${b.tool}`);
@@ -139,7 +152,10 @@ const { aisles } = await loadCatalogue();
     a.href = `mailto:hello@freethetools.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\n"))}`;
     a.textContent = "Email it to hello@freethetools.com";
     const p = document.createElement("p");
-    p.append("We could not send this from the page. Nothing is lost: ", a, ".");
+    const small = document.createElement("small");
+    small.className = "code";
+    small.textContent = `Error ${code || "network"}`;
+    p.append("We could not send this from the page. Nothing is lost: ", a, ". ", small);
     status.replaceChildren(p);
   }
 
@@ -152,20 +168,17 @@ const { aisles } = await loadCatalogue();
     const b = body();
     send.disabled = true;
     status.replaceChildren();
-    try {
-      const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
-      if (!res.ok) throw new Error(String(res.status));
+    const code = await post(b);
+    if (code < 200 || code >= 300) fallback(b, code);
+    else {
       const p = document.createElement("p");
       p.textContent = "Thanks. We read every message.";
       status.replaceChildren(p);
       form.reset();
       tool.value = "";
       applyKind();
-    } catch {
-      fallback(b);
-    } finally {
-      send.disabled = false;
     }
+    send.disabled = false;
   });
 </script>
 
@@ -183,6 +196,7 @@ const { aisles } = await loadCatalogue();
   .status { padding: 14px 16px; border-radius: var(--r-lg); background: var(--ok-t); font-weight: 600; }
   .status :global(p) { margin: 0; }
   .status :global(a) { color: var(--ink); }
+  .status :global(.code) { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; }
   .notes { display: grid; gap: 8px; }
   .notes ul { margin: 0; padding-left: 20px; color: var(--soft); }
   .notes a { color: var(--ink); }

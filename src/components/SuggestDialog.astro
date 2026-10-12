@@ -171,7 +171,19 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
     }
 
     // When the message cannot be sent from here, offer an email with everything filled in.
-    function fallback(b: ReturnType<typeof body>) {
+    // One try; a second after 2 seconds when it failed in a way that may pass (not a refused request).
+    // Returns the HTTP status, or 0 when the network failed.
+    async function post(b: ReturnType<typeof body>): Promise<number> {
+      const once = () => fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) }).then((r) => r.status, () => 0);
+      let status = await once();
+      if (status >= 500 || status === 0) {
+        await new Promise((r) => setTimeout(r, 2000));
+        status = await once();
+      }
+      return status;
+    }
+
+    function fallback(b: ReturnType<typeof body>, status: number) {
       const lines = [b.message];
       if (b.use) lines.push("", `What I use today: ${b.use}`);
       if (b.tool) lines.push("", `Tool: ${b.tool}`);
@@ -179,7 +191,10 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       a.href = `mailto:hello@freethetools.com?subject=${encodeURIComponent(`Suggestion: ${b.tool || "new tool"}`)}&body=${encodeURIComponent(lines.join("\n"))}`;
       a.textContent = T("errMail", "email it to hello@freethetools.com");
       const box = $("sg-e3");
-      box.replaceChildren(T("errSend", "We could not send this just now. Your text is still here. Please try again, or"), " ", a, ".");
+      const code = document.createElement("small");
+      code.className = "sg-code";
+      code.textContent = T("errCode", "Error {code}", { code: status || "network" });
+      box.replaceChildren(T("errSend", "We could not send this just now. Your text is still here. Please try again, or"), " ", a, ". ", code);
       box.hidden = false;
     }
 
@@ -191,19 +206,17 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       const b = body();
       $("sg-e3").hidden = true;
       send.disabled = true;
-      try {
-        const res = await fetch("/api/feedback", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
-        if (!res.ok) throw new Error(String(res.status));
+      const status = await post(b);
+      if (status >= 200 && status < 300) {
         sent = true;
         form.hidden = true;
         done.hidden = false;
         $("sg-done-h").focus();
-      } catch {
-        fallback(b);
+      } else {
+        fallback(b, status);
         $("sg-e3").scrollIntoView({ block: "nearest" });
-      } finally {
-        send.disabled = false;
       }
+      send.disabled = false;
     });
 
     // Links to /suggest/ open the dialog. Without script they still go to the page.
@@ -255,6 +268,7 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
   .sg-hint { font-size: 14px; color: var(--soft); }
   .sg-error { margin: 0; padding: 12px 14px; border-radius: var(--r); background: var(--bad-t); color: var(--bad); font-weight: 600; overflow-wrap: anywhere; }
   .sg-error a { color: inherit; }
+  .sg-code { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; }
   .sg-text { margin: 0; color: var(--ink); }
   .sg-note { font-size: 14px; color: var(--soft); }
   .sg-sponsor { justify-self: start; min-height: 48px; text-align: center; }

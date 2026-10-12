@@ -264,3 +264,61 @@ export function buildEmail(fb, { from, to, date, id }) {
   ];
   return headers.join("\r\n") + "\r\n\r\n" + b64(feedbackBody(fb)) + "\r\n";
 }
+
+// ---- Delivery: email and a private GitHub issue ----
+
+const ZWSP = "​";
+/** Text that is safe inside a code span or fence: backticks become modifier letters, so nothing can close the block. */
+const defang = (text) => String(text).replace(/`/g, "ˋ");
+/** First `max` characters (whole code points), on one line. */
+const oneLine = (text, max) => [...String(text).replace(/\s+/g, " ").trim()].slice(0, max).join("");
+
+/**
+ * The GitHub issue for one message. The sender's email address, and anything else that identifies
+ * them, is never part of it: the address stays in the email, as Reply-To. The message, the tool
+ * and the "what do you use today" answer sit in code spans or a fence with backticks neutralised,
+ * so they cannot mention a person, make a link or load an image. The title is one line.
+ * @param {ReturnType<typeof parseFeedback>} fb a result that is not spam
+ * @returns {{ title: string, body: string, labels: string[] }}
+ */
+export function buildIssue(fb) {
+  const problem = fb.kind === "problem";
+  // "@" followed by a zero-width space cannot form a mention, even where a title is rendered.
+  const title = (problem ? "Problem: " : "Suggestion: ") + defang(oneLine(fb.message, 60)).replace(/@/g, `@${ZWSP}`);
+  const lines = [
+    `**Kind:** ${problem ? "problem report" : "suggestion"}`,
+    `**Tool:** ${fb.tool ? `\`${defang(fb.tool)}\`` : "(none given)"}`,
+    "",
+    `**${problem ? "What went wrong?" : "What should it do?"}**`,
+    "```text",
+    defang(String(fb.message).slice(0, MESSAGE_MAX)),
+    "```",
+  ];
+  if (!problem) lines.push("", "**What do you use today?**", fb.use ? `\`${defang(fb.use)}\`` : "(not answered)");
+  return { title, body: lines.join("\n") + "\n", labels: [problem ? "problem" : "suggestion", "needs triage"] };
+}
+
+/** "owner/name" as GitHub names a repository, or "" when the value is not one. */
+export const cleanRepo = (v) => (typeof v === "string" && /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/.test(v) && !v.split("/").some((p) => /^\.+$/.test(p)) ? v : "");
+
+/**
+ * Run the configured channels together. A channel is { name, send }; send() rejects on failure.
+ * Delivered when at least one succeeds: 204. All failed: 502. None configured: 503.
+ * @param {{ name: string, send: () => Promise<unknown> }[]} channels only the configured ones
+ * @returns {Promise<{ status: 204 | 502 | 503, failed: { name: string, reason: string }[] }>}
+ */
+export async function deliver(channels) {
+  if (!channels.length) return { status: 503, failed: [] };
+  const results = await Promise.allSettled(channels.map((c) => Promise.resolve().then(c.send)));
+  const failed = [];
+  results.forEach((r, i) => {
+    if (r.status === "rejected") failed.push({ name: channels[i].name, reason: String(r.reason?.message ?? r.reason).slice(0, 120) });
+  });
+  return { status: failed.length < channels.length ? 204 : 502, failed };
+}
+
+/** The body of /api/health from dims rows ({ key, n }) of dim "fail". */
+export function healthBody(rows = []) {
+  const n = (key) => Math.max(0, rows.find((r) => r.key === key)?.n ?? 0);
+  return { feedbackFailures: { email: n("feedback-email"), github: n("feedback-github") } };
+}

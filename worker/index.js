@@ -1,5 +1,5 @@
 // The only server code on freethetools.com: anonymous usage totals, likes and "I want this" votes
-// at /api/stats/*, and the suggestion form at /api/feedback, which sends one email.
+// at /api/stats/*, the suggestion form at /api/feedback (an email and a private GitHub issue) and /api/health.
 // Everything else is a static file served by Cloudflare without running this Worker.
 //
 // Stored: per tool, per UTC day, counts of views, uses, successes, errors and likes; and per
@@ -7,7 +7,7 @@
 // and device types; and per UTC day, short plain-word searches that found nothing; and per planned tool per UTC day, the count of "I want this" votes. Each breakdown is a separate counter, never linked to another or to a tool. Not stored: IP addresses, cookies,
 // user agents, full referrer links, or anything that could identify a person. See /stats/.
 import { EmailMessage } from "cloudflare:email";
-import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, SEARCH_LIMIT, SEARCH_MIN_DAYS, SEARCH_MIN_TOTAL, WANT_LIMIT, buildEmail, canRefetchTools, dayKey, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
+import { EVENT_CEILING, FEEDBACK_MAX_BODY, LIKE_LIMIT, SEARCH_LIMIT, SEARCH_MIN_DAYS, SEARCH_MIN_TOTAL, WANT_LIMIT, buildEmail, buildIssue, canRefetchTools, cleanRepo, dayKey, deliver, healthBody, normalizeCountry, parseBody, parseFeedback, sampleRateFor, sameOrigin, summarize } from "./logic.js";
 
 // The only address the site writes to. Mail comes from a name on the same domain, which Email Routing sends from.
 const FEEDBACK_FROM = "forms@freethetools.com";
@@ -72,7 +72,7 @@ async function stats(request, env, ctx, url) {
       env.DB.prepare(
         "SELECT tool, SUM(views) AS views, SUM(uses) AS uses, SUM(likes) AS likes, SUM(successes) AS successes, SUM(errors) AS errors, SUM(CASE WHEN day >= ? THEN uses ELSE 0 END) AS uses30 FROM counts GROUP BY tool",
       ).bind(since),
-      env.DB.prepare("SELECT dim, key, SUM(n) AS n FROM dims WHERE day >= ? AND dim != 'search' GROUP BY dim, key").bind(since),
+      env.DB.prepare("SELECT dim, key, SUM(n) AS n FROM dims WHERE day >= ? AND dim NOT IN ('search', 'fail') GROUP BY dim, key").bind(since),
       env.DB.prepare("SELECT SUM(n) AS n FROM dims WHERE dim = 'visit' AND day >= ?").bind(since7),
       env.DB.prepare("SELECT tool, SUM(n) AS n FROM wants GROUP BY tool"),
       env.DB.prepare(`SELECT key, SUM(n) AS n, COUNT(DISTINCT day) AS days FROM dims WHERE dim = 'search' AND day >= ? GROUP BY key HAVING SUM(n) >= ${SEARCH_MIN_TOTAL} AND COUNT(DISTINCT day) >= ${SEARCH_MIN_DAYS} ORDER BY n DESC LIMIT 100`).bind(since),
@@ -138,7 +138,53 @@ async function stats(request, env, ctx, url) {
   return new Response(null, { status: 404 });
 }
 
-// A suggestion or problem report becomes one plain-text email. Nothing is stored here.
+// A failed delivery channel is counted per UTC day: dim "fail", key "feedback-email" or
+// "feedback-github". Never the message, the address or the reason.
+async function recordFailure(env, name) {
+  if (!env.DB) return;
+  try {
+    await env.DB.prepare("INSERT INTO dims (day, dim, key, n) VALUES (?, 'fail', ?, 1) ON CONFLICT(day, dim, key) DO UPDATE SET n = n + 1")
+      .bind(dayKey(), `feedback-${name}`).run();
+  } catch (e) {
+    console.error("feedback: could not record failure", name, String(e?.message ?? e).slice(0, 120));
+  }
+}
+
+// GET /api/health: failure counts for today and yesterday (UTC), read by scripts/live-check.mjs.
+async function health(request, env) {
+  if (request.method !== "GET") return new Response(null, { status: 405, headers: { Allow: "GET" } });
+  let rows = [];
+  if (env.DB) {
+    try {
+      const since = dayKey(new Date(Date.now() - 86400000));
+      rows = (await env.DB.prepare("SELECT key, SUM(n) AS n FROM dims WHERE dim = 'fail' AND day >= ? GROUP BY key").bind(since).all()).results;
+    } catch (e) {
+      console.error("health: could not read failures", String(e?.message ?? e).slice(0, 120));
+      return new Response(null, { status: 500 });
+    }
+  }
+  return new Response(JSON.stringify(healthBody(rows)), { headers: JSON_HEADERS });
+}
+
+// The issue goes to a private repository; the token is only ever read from the Worker secret.
+async function postIssue(env, repo, fb) {
+  const res = await fetch(`https://api.github.com/repos/${repo}/issues`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "User-Agent": "freethetools-feedback",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(buildIssue(fb)),
+  });
+  // Only the status is kept: the response is neither logged nor shown to the visitor.
+  if (!res.ok) throw new Error(`GitHub answered ${res.status}`);
+}
+
+// A suggestion or problem report is delivered two ways: as an email, and as an issue in a private
+// GitHub repository (without the email address). Delivered when either works. Nothing else is stored.
 async function feedback(request, env) {
   if (request.method !== "POST") return new Response(null, { status: 405, headers: { Allow: "POST" } });
   if (!sameOrigin(request)) return new Response(null, { status: 403 });
@@ -151,15 +197,26 @@ async function feedback(request, env) {
     return new Response(null, { status: 400 });
   }
   if (fb.spam) return new Response(null, { status: 204 }); // a bot filled the hidden field: say nothing
-  // Local development and previews have no mail binding. The page then offers a mailto link.
-  if (!env.FEEDBACK) return new Response(null, { status: 503 });
-  try {
-    const raw = buildEmail(fb, { from: FEEDBACK_FROM, to: FEEDBACK_TO, date: new Date(), id: crypto.randomUUID() });
-    await env.FEEDBACK.send(new EmailMessage(FEEDBACK_FROM, FEEDBACK_TO, raw));
-  } catch {
-    return new Response(null, { status: 502 });
+  // A channel that is not set up is skipped. Local development and previews have neither, and then
+  // the page offers a mailto link.
+  const channels = [];
+  if (env.FEEDBACK) {
+    channels.push({
+      name: "email",
+      send: async () => {
+        const raw = buildEmail(fb, { from: FEEDBACK_FROM, to: FEEDBACK_TO, date: new Date(), id: crypto.randomUUID() });
+        await env.FEEDBACK.send(new EmailMessage(FEEDBACK_FROM, FEEDBACK_TO, raw));
+      },
+    });
   }
-  return new Response(null, { status: 204 });
+  const repo = cleanRepo(env.FEEDBACK_REPO);
+  if (env.GITHUB_TOKEN && repo) channels.push({ name: "github", send: () => postIssue(env, repo, fb) });
+  const { status, failed } = await deliver(channels);
+  for (const f of failed) {
+    console.error(`feedback: ${f.name} failed: ${f.reason}`);
+    await recordFailure(env, f.name);
+  }
+  return new Response(null, { status });
 }
 
 export default {
@@ -167,6 +224,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith("/api/stats/")) return stats(request, env, ctx, url);
     if (url.pathname.replace(/\/+$/, "") === "/api/feedback") return feedback(request, env);
+    if (url.pathname.replace(/\/+$/, "") === "/api/health") return health(request, env);
     // Anything else reaching the Worker had no matching static file: serve the site's 404 page,
     // in the language of the address when that language has one (/nb/404.html).
     const lang = /^\/([a-z]{2,3})\//.exec(url.pathname)?.[1];
