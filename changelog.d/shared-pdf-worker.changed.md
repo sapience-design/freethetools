@@ -1,0 +1,1 @@
+- PDF tools now share one copy of the PDF reader, so the site is about 4 MB smaller to keep offline.

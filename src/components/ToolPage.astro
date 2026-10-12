@@ -83,7 +83,7 @@ const safe = files ? [T("safeFilesA"), T("safeFilesB")] : [T("safeOtherA"), T("s
         <p class="lede">{d.tagline}</p>
       </header>
       {lang !== "en" && <p class="tool-note">{ui(lang, "toolNote")}</p>}
-      <div class="work" id="tool-work" lang={lang !== "en" ? "en" : undefined} data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => `/${tool.id}/vendor/${v.to}`))}>
+      <div class="work" id="tool-work" lang={lang !== "en" ? "en" : undefined} data-tool={tool.id} data-vendor={JSON.stringify(d.vendor.map((v) => (v.shared ? `/vendor/${v.shared}/${v.to}` : `/${tool.id}/vendor/${v.to}`)))}>
         <UI />
       </div>
       {hasAgent && (

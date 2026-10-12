@@ -22,5 +22,5 @@
     { "q": "Does it keep links and bookmarks?", "a": "Page content, links on the page and form fields are kept. The combined file doesn't carry over each file's bookmarks outline yet." },
     { "q": "Can I merge password-protected PDFs?", "a": "Yes. If a PDF needs a password to open, the tool asks for it and unlocks the file on your device. The password is not saved or sent anywhere. A PDF with only print or copy limits can have them removed for the job. Only do this for files you own or may change." }
   ],
-  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }]
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }]
 }

@@ -27,6 +27,6 @@
   "vendor": [
     { "from": "@jspawn/ghostscript-wasm/gs.js", "to": "gs.js" },
     { "from": "@jspawn/ghostscript-wasm/gs.wasm", "to": "gs.wasm" },
-    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs" }
+    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }
   ]
 }

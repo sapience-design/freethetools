@@ -34,7 +34,7 @@ import Icon from "../../../src/components/Icon.astro";
   import { usePdfWorker, pdfPreview, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
   import { withUnlocked } from "../../../src/lib/pdfpassword";
-  usePdfWorker("pdf/fill-form");
+  usePdfWorker();
   const $ = (id: string) => document.getElementById(id)!;
   let bytes: ArrayBuffer | null = null, file: File | null = null;
   type Field = Awaited<ReturnType<typeof listFields>>[number];

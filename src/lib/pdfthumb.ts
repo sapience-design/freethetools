@@ -1,6 +1,6 @@
 // Small pictures of PDF pages, drawn in the browser by pdf.js, so a person sees the pages they are
-// about to combine, split, turn or fill in. Nothing is uploaded. Each tool that uses this serves its
-// own copy of the pdf.js worker (see "vendor" in its tool.json), so it also works offline.
+// about to combine, split, turn or fill in. Nothing is uploaded. All PDF tools share one copy of the
+// pdf.js worker, served from this site (see "shared" in their tool.json), so it also works offline.
 import * as pdfjs from "pdfjs-dist";
 import type { PDFDocumentProxy } from "pdfjs-dist";
 import { fmtBytes } from "./files";
@@ -8,9 +8,9 @@ import { viewButton, viewLabel, V, type ViewItem } from "./expand";
 
 const docs = new WeakMap<Blob, Promise<PDFDocumentProxy>>();
 
-/** Point pdf.js at this tool's copy of its worker. Call once, with the tool's id, before drawing. */
-export function usePdfWorker(toolId: string) {
-  pdfjs.GlobalWorkerOptions.workerSrc = `/${toolId}/vendor/pdf.worker.min.mjs`;
+/** Point pdf.js at the shared copy of its worker. Call once before drawing. */
+export function usePdfWorker() {
+  pdfjs.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
 }
 
 /** Open a PDF once per file; later calls share the parsed document. */

@@ -35,7 +35,7 @@ import Step from "../../../src/components/Step.astro";
   import { usePdfWorker, pdfPreview, pdfPages, pageStrip } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
 
-  usePdfWorker("pdf/unlock");
+  usePdfWorker();
   const root = document.getElementById("unlk-tool")!;
   const list = document.getElementById("unlk-list")!;
   const status = document.getElementById("unlk-status")!;
