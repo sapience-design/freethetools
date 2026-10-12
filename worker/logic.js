@@ -188,12 +188,21 @@ const EMAIL_MAX = 254;
 /** No spaces, quotes, brackets or commas, so an address can never smuggle in a header or a second recipient. */
 const EMAIL_RE = /^[^\s@<>()[\],;:"\\]+@[^\s@<>()[\],;:"\\]+\.[^\s@<>()[\],;:"\\]{2,}$/;
 
+const PAGE_MAX = 200;
+const SEARCH_MAX = 100;
+/** A path on this site ("/pdf/compress/"): no scheme, host or query, and no "//", so it can only ever point here. */
+const PAGE_RE = /^\/(?!\/)[A-Za-z0-9\-._~/%]*$/;
+/** A site language code: "en", "nb", "es", "pt". */
+const LANG_RE = /^[a-z]{2,3}$/;
+
 /** Text with control characters removed (tabs and new lines kept when `lines` is true). */
 const clean = (v, lines) => String(v).replace(lines ? /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g : /[\u0000-\u001f\u007f]/g, "").trim();
 
 /**
  * Check a feedback body. Returns { spam: true } when the hidden "website" field is filled (a bot),
- * otherwise a clean { kind, message, use, tool, email }. Throws with a short reason when it is bad.
+ * otherwise a clean { kind, message, use, tool, email, page, search, lang }. Throws with a short
+ * reason when it is bad. The context (page, search, lang) is dropped, not refused, when it does not
+ * fit its pattern: a stray value must never cost a real suggestion.
  * @param {unknown} body
  */
 export function parseFeedback(body) {
@@ -217,12 +226,29 @@ export function parseFeedback(body) {
   const email = text("email", EMAIL_MAX);
   if (email && !EMAIL_RE.test(email)) throw new Error("bad email");
   const use = b.kind === "suggestion" ? text("use", USE_MAX) : "";
-  return { kind: b.kind, message, use, tool: text("tool", TOOL_MAX), email };
+  // Where the person was when they wrote: shown to them in the form before they send.
+  const context = (key, max, re) => {
+    const v = b[key];
+    if (typeof v !== "string") return "";
+    const out = clean(v.replace(/\s+/g, " "), false);
+    return out.length <= max && (!re || re.test(out)) ? out : "";
+  };
+  return {
+    kind: b.kind, message, use, tool: text("tool", TOOL_MAX), email,
+    page: context("page", PAGE_MAX, PAGE_RE), search: context("search", SEARCH_MAX), lang: context("lang", 3, LANG_RE),
+  };
 }
 
-/** The subject line: "Suggestion: pdf/page-delete", "Suggestion: new tool" or "Problem: pdf/merge". */
-export const feedbackSubject = ({ kind, tool }) =>
-  kind === "problem" ? `Problem: ${tool || "the site"}` : `Suggestion: ${tool || "new tool"}`;
+/**
+ * The subject line opens with the message, so an inbox reads like a list of requests:
+ * "Suggestion: Passport image resize", "Suggestion for pdf/merge: Keep bookmarks",
+ * "Problem in pdf/merge: The download does nothing".
+ */
+export function feedbackSubject({ kind, tool, message }) {
+  const words = snippet(message, 60);
+  if (kind === "problem") return tool ? `Problem in ${tool}: ${words}` : `Problem: ${words}`;
+  return tool ? `Suggestion for ${tool}: ${words}` : `Suggestion: ${words}`;
+}
 
 // Base64 of UTF-8 text, in the 76-character lines mail expects.
 const b64 = (text) => {
@@ -234,23 +260,76 @@ const b64 = (text) => {
 // A header value with non-ASCII characters is sent as an RFC 2047 encoded word.
 const header = (text) => (/^[\x20-\x7e]*$/.test(text) ? text : `=?UTF-8?B?${btoa(String.fromCharCode(...new TextEncoder().encode(text)))}?=`);
 
-/** The plain-text body of the email, in the words of the form. */
-export function feedbackBody({ kind, message, use, tool, email }) {
+/** The plain-text body of the email, in the words of the form. The source of truth: the HTML part shows the same. */
+export function feedbackBody({ kind, message, use, tool, email, page, search, lang }) {
   const lines = [kind === "problem" ? "Kind: problem report" : "Kind: suggestion"];
-  lines.push(`Tool: ${tool || "(none given)"}`, `Reply to: ${email || "(no email given)"}`, "");
+  lines.push(`Tool: ${tool || "(none given)"}`, `Reply to: ${email || "(no email given)"}`);
+  if (page) lines.push(`Page: ${page}`);
+  if (search) lines.push(`Searched for: ${search}`);
+  if (lang) lines.push(`Language: ${lang}`);
+  lines.push("");
   lines.push(kind === "problem" ? "What went wrong?" : "What should it do?", message);
   if (kind === "suggestion") lines.push("", "What do you use today?", use || "(not answered)");
   return lines.join("\n") + "\n";
 }
 
+/** Text made safe as HTML text and inside a quoted attribute. Every visitor value passes through it. */
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+const SITE = "https://freethetools.com";
+// The site's colours (src/styles/global.css), set inline: mail apps drop <style> blocks.
+const INK = "#1d1b16", SOFT = "#4b473f", MUTED = "#6a655b", PAPER = "#fbf8f2", HL = "#ffe27a", PICK = "#fff3ca", HAIR = "#e6e0d4";
+const FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
 /**
- * A minimal RFC 5322 message: plain text, UTF-8, base64 body. Every value in a header was cleaned
- * of line breaks by parseFeedback, and the Reply-To address cannot hold spaces or commas.
+ * The same message as feedbackBody, laid out like the site: cream paper, an ink-outlined card, the
+ * yellow mark. Every value from the visitor is escaped; the page link can only point at this site
+ * (parseFeedback allows a path only) and the reply link only at an address with no quotes or spaces.
+ * @param {ReturnType<typeof parseFeedback>} fb a result that is not spam
+ */
+export function feedbackHtml(fb) {
+  const problem = fb.kind === "problem";
+  const muted = (text) => `<span style="color:${MUTED};">${text}</span>`;
+  const row = (label, value) =>
+    `<tr><td style="padding:8px 12px 8px 0;border-top:1px solid ${HAIR};color:${MUTED};vertical-align:top;width:38%;">${label}</td>` +
+    `<td style="padding:8px 0;border-top:1px solid ${HAIR};vertical-align:top;">${value}</td></tr>`;
+  const link = (href, text) => `<a href="${href}" style="color:${INK};">${text}</a>`;
+  const rows = [
+    !problem && row("What do you use today?", fb.use ? esc(fb.use) : muted("Not answered")),
+    row("Tool", fb.tool ? esc(fb.tool) : muted("None given")),
+    row("Reply to", fb.email ? link(`mailto:${esc(fb.email)}`, esc(fb.email)) : muted("No email given")),
+    fb.page && row("Page", link(`${SITE}${esc(fb.page)}`, esc(fb.page))),
+    fb.search && row("Searched for", esc(fb.search)),
+    fb.lang && row("Language", esc(fb.lang)),
+  ].filter(Boolean).join("");
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light only"><title>${esc(feedbackSubject(fb))}</title></head>
+<body style="margin:0;padding:0;background:${PAPER};">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${PAPER};"><tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;font-family:${FONT};color:${INK};">
+<tr><td style="padding:0 2px 14px;"><span style="display:inline-block;padding:3px 10px;background:${HL};border:1.5px solid ${INK};border-radius:8px;font-size:15px;font-weight:700;">Free the Tools</span></td></tr>
+<tr><td style="padding:22px;background:#ffffff;border:1.5px solid ${INK};border-radius:14px;box-shadow:0 3px 0 ${INK};">
+<p style="margin:0 0 6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${SOFT};">${problem ? "Problem report" : "New suggestion"}</p>
+<h1 style="margin:0 0 14px;font-size:22px;line-height:1.25;font-weight:700;">${problem ? "What went wrong?" : "What should it do?"}</h1>
+<div style="padding:14px 16px;background:${PICK};border-radius:10px;font-size:16px;line-height:1.5;">${esc(fb.message).replace(/\n/g, "<br>")}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-top:18px;font-size:15px;line-height:1.4;color:${INK};">${rows}</table>
+</td></tr>
+<tr><td style="padding:14px 2px 0;font-size:13px;line-height:1.5;color:${MUTED};">${fb.email ? "Reply to this email to answer the visitor." : "The visitor left no email address."} Sent by the form at ${link(`${SITE}/suggest/`, "freethetools.com/suggest")}.</td></tr>
+</table></td></tr></table>
+</body></html>
+`;
+}
+
+/**
+ * An RFC 5322 message with two parts: the plain text (feedbackBody, the source of truth) and the
+ * same in the site's look (feedbackHtml). UTF-8 and base64 throughout. Every header value was
+ * cleaned of line breaks by parseFeedback, and the Reply-To address cannot hold spaces or commas.
+ * The boundary is built from the message id; base64 never contains "--", so no part can end early.
  * @param {ReturnType<typeof parseFeedback>} fb a result that is not spam
  * @param {{ from: string, to: string, date: Date, id: string }} env
  */
 export function buildEmail(fb, { from, to, date, id }) {
   const domain = from.split("@")[1];
+  const boundary = `ftt-${String(id).replace(/[^A-Za-z0-9-]/g, "")}`;
   const headers = [
     `From: Free the Tools <${from}>`,
     `To: ${to}`,
@@ -259,10 +338,10 @@ export function buildEmail(fb, { from, to, date, id }) {
     `Date: ${date.toUTCString().replace("GMT", "+0000")}`,
     `Message-ID: <${id}@${domain}>`,
     "MIME-Version: 1.0",
-    "Content-Type: text/plain; charset=UTF-8",
-    "Content-Transfer-Encoding: base64",
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
   ];
-  return headers.join("\r\n") + "\r\n\r\n" + b64(feedbackBody(fb)) + "\r\n";
+  const part = (type, text) => [`--${boundary}`, `Content-Type: ${type}; charset=UTF-8`, "Content-Transfer-Encoding: base64", "", b64(text)].join("\r\n");
+  return headers.join("\r\n") + "\r\n\r\n" + [part("text/plain", feedbackBody(fb)), part("text/html", feedbackHtml(fb)), `--${boundary}--`].join("\r\n") + "\r\n";
 }
 
 // ---- Delivery: email and a private GitHub issue ----
@@ -272,6 +351,14 @@ const ZWSP = "​";
 const defang = (text) => String(text).replace(/`/g, "ˋ");
 /** First `max` characters (whole code points), on one line. */
 const oneLine = (text, max) => [...String(text).replace(/\s+/g, " ").trim()].slice(0, max).join("");
+/** Like oneLine, but a cut text ends at a word, with "…". For a subject a person reads. */
+function snippet(text, max) {
+  const all = [...String(text ?? "").replace(/\s+/g, " ").trim()];
+  if (all.length <= max) return all.join("");
+  const cut = all.slice(0, max).join("");
+  const space = cut.lastIndexOf(" ");
+  return (space > max * 0.6 ? cut.slice(0, space) : cut) + "…";
+}
 
 /**
  * The GitHub issue for one message. The sender's email address, and anything else that identifies
@@ -288,6 +375,9 @@ export function buildIssue(fb) {
   const lines = [
     `**Kind:** ${problem ? "problem report" : "suggestion"}`,
     `**Tool:** ${fb.tool ? `\`${defang(fb.tool)}\`` : "(none given)"}`,
+    ...(fb.page ? [`**Page:** \`${defang(fb.page)}\``] : []),
+    ...(fb.search ? [`**Searched for:** \`${defang(fb.search)}\``] : []),
+    ...(fb.lang ? [`**Language:** \`${defang(fb.lang)}\``] : []),
     "",
     `**${problem ? "What went wrong?" : "What should it do?"}**`,
     "```text",

@@ -63,3 +63,11 @@ Every email failed. The binding sent to `hello@freethetools.com`, which is a rou
 **Decision.** The `send_email` binding names no address, so it can send only to verified destinations in the account. The Worker sends to the Worker secret `FEEDBACK_TO`: the maintainers' inbox, which is the verified destination `hello@freethetools.com` forwards to. The address stays out of this public repository. `cleanMailbox` in `worker/logic.js` accepts only one plain address, so the secret cannot add mail headers. Without the secret, the email channel is skipped, as the GitHub channel is without its token.
 
 The earlier line "with `hello@freethetools.com` verified as a destination" no longer applies.
+
+## Update 2026-10-12: context, subject and HTML email
+
+The maintainers asked where a message came from, and the subject "Suggestion: new tool" said nothing.
+
+**Decision.** The form also sends the page it was opened on, the search words when it was opened from a search with no results, and the site language. The form at /suggest/ sends the page the visitor came from, when it is on this site. The dialog lists these on its last step and the form names the page, before anything is sent. `parseFeedback` keeps a page only when it is a path on this site, search words up to 100 characters, and a two- or three-letter language code. Anything else is dropped without refusing the message.
+
+The subject starts with the message, for example "Suggestion for images/join: Please add a tool…". The email is `multipart/alternative`: plain text first, then an HTML part in the site's colours. Every visitor value in the HTML is escaped, and its links go only to freethetools.com or the visitor's own address. The GitHub copy carries the same context and still never the email address.

@@ -2,6 +2,8 @@
 // "Suggest a tool" in three short steps, in a native <dialog>. Base.astro puts it on every page.
 // Any link to /suggest/ opens it; a button with data-suggest does too (data-term fills step 1).
 // It sends exactly what the form at /suggest/ sends, to /api/feedback, and only on "Send suggestion".
+// It also sends the page it was opened on, the search words when opened from a search with no
+// results, and the site language. Step 3 shows these before anything is sent.
 // Nothing is stored. Text a person typed never goes through innerHTML.
 import Icon from "./Icon.astro";
 import { t, jsStrings } from "../i18n/index";
@@ -19,9 +21,10 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       <button type="button" class="sg-close" id="sg-close"><Icon name="x" />{S("close")}</button>
     </header>
 
+    <p class="sr-only" id="sg-live" aria-live="polite"></p>
     <form id="sg-form" novalidate>
       <section data-step="1" aria-labelledby="sg-h1">
-        <h3 class="sg-h" id="sg-h1" tabindex="-1"><span class="sg-kicker">{S("step", { n: 1, total })}</span> <span id="sg-t1">{S("s1")}</span></h3>
+        <h3 class="sg-h" id="sg-h1"><span class="sg-kicker">{S("step", { n: 1, total })}</span> <span id="sg-t1">{S("s1")}</span></h3>
         <div class="sg-field">
           <textarea id="sg-message" name="message" rows="3" maxlength="2000" required aria-labelledby="sg-t1" aria-describedby="sg-hint1 sg-e1"></textarea>
           <span class="sg-hint" id="sg-hint1">{S("hint1")}</span>
@@ -30,7 +33,7 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       </section>
 
       <section data-step="2" aria-labelledby="sg-h2" hidden>
-        <h3 class="sg-h" id="sg-h2" tabindex="-1"><span class="sg-kicker">{S("step", { n: 2, total })}</span> <span>{S("s2")}</span></h3>
+        <h3 class="sg-h" id="sg-h2"><span class="sg-kicker">{S("step", { n: 2, total })}</span> <span>{S("s2")}</span></h3>
         <div class="sg-field">
           <label for="sg-use">{S("useLabel")}</label>
           <input type="text" id="sg-use" name="use" maxlength="300" autocomplete="off" aria-describedby="sg-hint-use">
@@ -50,9 +53,13 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       </section>
 
       <section data-step="3" aria-labelledby="sg-h3" hidden>
-        <h3 class="sg-h" id="sg-h3" tabindex="-1"><span class="sg-kicker">{S("step", { n: 3, total })}</span> <span>{S("s3")}</span></h3>
+        <h3 class="sg-h" id="sg-h3"><span class="sg-kicker">{S("step", { n: 3, total })}</span> <span>{S("s3")}</span></h3>
         <p class="sg-text">{S("sooner")}</p>
         <a class="btn line sg-sponsor" href="/support/#company-h" target="_blank" rel="noopener"><Icon name="hand-heart" />{S("sponsor")}<span class="sr-only"> {S("newTab")}</span></a>
+        <div class="sg-ctx" id="sg-ctx" hidden>
+          <p class="sg-text sg-note">{S("ctxIntro")}</p>
+          <ul class="sg-note" id="sg-ctx-list"></ul>
+        </div>
         <p class="sg-text sg-note">{S("privacy")}</p>
         <div class="sg-error" id="sg-e3" role="alert" hidden></div>
       </section>
@@ -90,7 +97,7 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
     const done = $("sg-done");
     const steps = [...form.querySelectorAll<HTMLElement>("[data-step]")];
     const total = steps.length;
-    let step = 0, tool = "", opener: HTMLElement | null = null, sent = false;
+    let step = 0, tool = "", search = "", opener: HTMLElement | null = null, sent = false;
 
     // Same rules as the form at /suggest/ and as worker/logic.js.
     const EMAIL = /^[^\s@<>()[\],;:"\\]+@[^\s@<>()[\],;:"\\]+\.[^\s@<>()[\],;:"\\]{2,}$/;
@@ -125,8 +132,33 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
       back.hidden = to === 0;
       next.hidden = to === total - 1;
       send.hidden = to !== total - 1;
-      // Moving focus to the step heading makes a screen reader read "Step 2 of 3" and the title.
-      if (moveFocus) steps[to].querySelector<HTMLElement>(".sg-h")!.focus();
+      if (to === total - 1) showContext();
+      if (!moveFocus) return;
+      // Focus goes to the step's first field, or to Send on the last step.
+      // The live region reads "Step 2 of 3" and the title, as the heading did.
+      $("sg-live").textContent = steps[to].querySelector(".sg-h")!.textContent!.replace(/\s+/g, " ").trim();
+      (steps[to].querySelector<HTMLElement>("textarea, input:not([tabindex='-1'])") ?? send).focus();
+    }
+
+    // What goes with the message besides what was typed. Never more than the Worker keeps.
+    const context = () => ({ page: location.pathname.slice(0, 200), search: search.slice(0, 100), lang: document.documentElement.lang });
+    function language(code: string) {
+      try { return new Intl.DisplayNames([code], { type: "language" }).of(code) ?? code; } catch { return code; }
+    }
+    function showContext() {
+      const c = context();
+      const rows: [string, string, string][] = [
+        ["ctxPage", "The page you were on: {value}", c.page],
+        ["ctxSearch", "What you searched for: {value}", c.search],
+        ["ctxLang", "The site language: {value}", c.lang && language(c.lang)],
+      ];
+      const items = rows.filter(([, , v]) => v).map(([key, fallback, v]) => {
+        const li = document.createElement("li");
+        li.textContent = T(key, fallback, { value: v });
+        return li;
+      });
+      $("sg-ctx-list").replaceChildren(...items);
+      $("sg-ctx").hidden = !items.length;
     }
 
     function reset() {
@@ -142,7 +174,9 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
     function open(from: HTMLElement | null, term: string, toolId: string) {
       opener = from;
       if (sent) reset();
+      $("sg-live").textContent = "";
       tool = toolId;
+      search = term.replace(/\s+/g, " ").trim();
       if (term) message.value = term.slice(0, 2000);
       show(0, false);
       if (!dlg.open) dlg.showModal();
@@ -167,7 +201,7 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
 
     // The same fields, names and rules as the form at /suggest/.
     function body() {
-      return { kind: "suggestion", message: message.value.trim(), use: use.value.trim(), tool, email: email.value.trim(), website: website.value };
+      return { kind: "suggestion", message: message.value.trim(), use: use.value.trim(), tool, email: email.value.trim(), website: website.value, ...context() };
     }
 
     // When the message cannot be sent from here, offer an email with everything filled in.
@@ -271,6 +305,8 @@ const json = JSON.stringify(jsStrings(lang, "suggest")).replace(/</g, "\\u003c")
   .sg-code { display: block; margin-top: 4px; font-size: 13px; font-weight: 500; }
   .sg-text { margin: 0; color: var(--ink); }
   .sg-note { font-size: 14px; color: var(--soft); }
+  .sg-ctx { display: grid; gap: 4px; }
+  .sg-ctx ul { margin: 0; padding-left: 20px; overflow-wrap: anywhere; }
   .sg-sponsor { justify-self: start; min-height: 48px; text-align: center; }
   .sg-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
   #sg-back { margin-right: auto; }

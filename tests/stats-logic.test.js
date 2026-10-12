@@ -137,11 +137,11 @@ test("the summary carries want totals by tool", () => {
 const good = { kind: "suggestion", message: "Please add a tool that joins two images side by side.", use: "Paint", tool: "images/join", email: "ada@example.org", website: "" };
 
 test("a good suggestion is cleaned and kept", () => {
-  assert.deepEqual(parseFeedback(good), { kind: "suggestion", message: good.message, use: "Paint", tool: "images/join", email: "ada@example.org" });
+  assert.deepEqual(parseFeedback(good), { kind: "suggestion", message: good.message, use: "Paint", tool: "images/join", email: "ada@example.org", page: "", search: "", lang: "" });
 });
 
 test("optional fields may be missing, and a problem report ignores 'use'", () => {
-  assert.deepEqual(parseFeedback({ kind: "problem", message: "The download button does nothing.", use: "x" }), { kind: "problem", message: "The download button does nothing.", use: "", tool: "", email: "" });
+  assert.deepEqual(parseFeedback({ kind: "problem", message: "The download button does nothing.", use: "x" }), { kind: "problem", message: "The download button does nothing.", use: "", tool: "", email: "", page: "", search: "", lang: "" });
 });
 
 test("a filled honeypot is dropped as spam, whatever else is in the body", () => {
@@ -178,47 +178,106 @@ test("line breaks cannot get into a header field", () => {
   assert.equal(raw.split("\r\n\r\n")[0].split("\r\n").some((l) => l.startsWith("Bcc:")), false);
 });
 
-test("the subject names the tool, or says 'new tool'", () => {
-  assert.equal(feedbackSubject({ kind: "suggestion", tool: "" }), "Suggestion: new tool");
-  assert.equal(feedbackSubject({ kind: "suggestion", tool: "pdf/page-delete" }), "Suggestion: pdf/page-delete");
-  assert.equal(feedbackSubject({ kind: "problem", tool: "pdf/merge" }), "Problem: pdf/merge");
+test("the subject opens with the message, and names the tool when there is one", () => {
+  assert.equal(feedbackSubject({ kind: "suggestion", tool: "", message: "Passport image resize" }), "Suggestion: Passport image resize");
+  assert.equal(feedbackSubject({ kind: "suggestion", tool: "pdf/merge", message: "Keep bookmarks" }), "Suggestion for pdf/merge: Keep bookmarks");
+  assert.equal(feedbackSubject({ kind: "problem", tool: "pdf/merge", message: "The download\nbutton does nothing" }), "Problem in pdf/merge: The download button does nothing");
+  assert.equal(feedbackSubject({ kind: "problem", tool: "", message: "Blank page" }), "Problem: Blank page");
+  // A long message is cut at a word, with an ellipsis, and stays on one line.
+  const long = feedbackSubject({ kind: "suggestion", tool: "", message: "A tool that resizes passport photos to the exact size each country asks for, with a print sheet" });
+  assert.equal(long, "Suggestion: A tool that resizes passport photos to the exact size each…");
+  assert.ok(!long.includes("\n"));
 });
 
-test("the email is a plain-text UTF-8 message from the forms address, with a Reply-To only when given", () => {
+// The two parts of a built email, decoded: { head: string[], text, html, types, parts }.
+function readEmail(raw) {
+  const [head, ...rest] = raw.split("\r\n\r\n");
+  const lines = head.split("\r\n");
+  const boundary = lines.find((l) => l.startsWith("Content-Type: multipart/alternative")).match(/boundary="([^"]+)"/)[1];
+  const parts = rest.join("\r\n\r\n").split(`--${boundary}`).slice(1, -1).map((p) => {
+    const [ph, body] = p.replace(/^\r\n/, "").split("\r\n\r\n");
+    const type = ph.match(/Content-Type: ([^;]+)/)[1];
+    return { type, body, text: new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\s/g, "")), (c) => c.charCodeAt(0))) };
+  });
+  return { head: lines, types: parts.map((p) => p.type), text: parts.find((p) => p.type === "text/plain").text, html: parts.find((p) => p.type === "text/html").text, parts };
+}
+
+test("the email has a plain-text part and a branded HTML part, from the forms address, with a Reply-To only when given", () => {
   const meta = { from: "forms@freethetools.com", to: "hello@freethetools.com", date: new Date(Date.UTC(2026, 9, 10, 12, 0, 0)), id: "abc" };
   const raw = buildEmail(parseFeedback(good), meta);
-  const [head, body] = raw.split("\r\n\r\n");
-  const lines = head.split("\r\n");
-  assert.ok(lines.includes("From: Free the Tools <forms@freethetools.com>"));
-  assert.ok(lines.includes("To: hello@freethetools.com"));
-  assert.ok(lines.includes("Reply-To: ada@example.org"));
-  assert.ok(lines.includes("Subject: Suggestion: images/join"));
-  assert.ok(lines.includes("Message-ID: <abc@freethetools.com>"));
-  assert.ok(lines.includes("MIME-Version: 1.0"));
-  assert.ok(lines.includes("Content-Type: text/plain; charset=UTF-8"));
-  assert.ok(lines.includes("Date: Sat, 10 Oct 2026 12:00:00 +0000"));
-  assert.ok(body.split("\r\n").every((l) => l.length <= 76));
-  const decoded = new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
-  assert.equal(decoded, feedbackBody(parseFeedback(good)));
-  assert.match(decoded, /What should it do\?\nPlease add a tool/);
-  assert.match(decoded, /What do you use today\?\nPaint/);
+  const mail = readEmail(raw);
+  assert.ok(mail.head.includes("From: Free the Tools <forms@freethetools.com>"));
+  assert.ok(mail.head.includes("To: hello@freethetools.com"));
+  assert.ok(mail.head.includes("Reply-To: ada@example.org"));
+  assert.ok(mail.head.includes("Subject: Suggestion for images/join: Please add a tool that joins two images side by side."));
+  assert.ok(mail.head.includes("Message-ID: <abc@freethetools.com>"));
+  assert.ok(mail.head.includes("MIME-Version: 1.0"));
+  assert.ok(mail.head.includes('Content-Type: multipart/alternative; boundary="ftt-abc"'));
+  assert.ok(mail.head.includes("Date: Sat, 10 Oct 2026 12:00:00 +0000"));
+  assert.deepEqual(mail.types, ["text/plain", "text/html"], "plain text first, so the HTML is the preferred view");
+  for (const p of mail.parts) assert.ok(p.body.split("\r\n").every((l) => l.length <= 76));
+  assert.ok(raw.trimEnd().endsWith("--ftt-abc--"));
+  assert.equal(mail.text, feedbackBody(parseFeedback(good)));
+  assert.match(mail.text, /What should it do\?\nPlease add a tool/);
+  assert.match(mail.text, /What do you use today\?\nPaint/);
+  // The HTML says the same, in the site's colours.
+  assert.match(mail.html, /Please add a tool that joins two images side by side\./);
+  assert.match(mail.html, /Paint/);
+  assert.match(mail.html, /#ffe27a/i);
+  assert.match(mail.html, /Reply to this email to answer the visitor\./);
   const noReply = buildEmail(parseFeedback({ ...good, email: "" }), meta);
   assert.equal(/^Reply-To:/m.test(noReply), false);
+  assert.match(readEmail(noReply).html, /The visitor left no email address\./);
 });
 
-test("non-ASCII text survives in the body and in the subject", () => {
+test("non-ASCII text survives in both parts and in the subject", () => {
   const meta = { from: "forms@freethetools.com", to: "hello@freethetools.com", date: new Date(0), id: "z" };
   const fb = parseFeedback({ kind: "problem", message: "Æøå ø fungerer ikke: 日本語 \u{1F600}", tool: "pdf/fløy" });
-  const raw = buildEmail(fb, meta);
-  const [head, body] = raw.split("\r\n\r\n");
-  const subject = head.split("\r\n").find((l) => l.startsWith("Subject: "));
+  const mail = readEmail(buildEmail(fb, meta));
+  const subject = mail.head.find((l) => l.startsWith("Subject: "));
   const m = subject.match(/^Subject: =\?UTF-8\?B\?(.+)\?=$/);
   assert.ok(m);
-  assert.equal(new TextDecoder().decode(Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0))), "Problem: pdf/fløy");
-  const decoded = new TextDecoder().decode(Uint8Array.from(atob(body.replace(/\s/g, "")), (c) => c.charCodeAt(0)));
-  assert.match(decoded, /Æøå ø fungerer ikke: 日本語 \u{1F600}/u);
-  assert.match(decoded, /What went wrong\?/);
-  assert.equal(/What do you use today/.test(decoded), false);
+  assert.equal(new TextDecoder().decode(Uint8Array.from(atob(m[1]), (c) => c.charCodeAt(0))), "Problem in pdf/fløy: Æøå ø fungerer ikke: 日本語 \u{1F600}");
+  assert.match(mail.text, /Æøå ø fungerer ikke: 日本語 \u{1F600}/u);
+  assert.match(mail.html, /Æøå ø fungerer ikke: 日本語 \u{1F600}/u);
+  assert.match(mail.text, /What went wrong\?/);
+  assert.equal(/What do you use today/.test(mail.text), false);
+});
+
+test("context: the page, search words and language are kept when they fit, and dropped when they don't", () => {
+  const fb = parseFeedback({ ...good, page: "/pdf/compress/", search: "passport photo", lang: "nb" });
+  assert.equal(fb.page, "/pdf/compress/");
+  assert.equal(fb.search, "passport photo");
+  assert.equal(fb.lang, "nb");
+  for (const page of ["https://evil.example/x", "//evil.example/x", "/x?y=1", "/x#y", "javascript:alert(1)", "pdf/compress/", "/a b", "/" + "x".repeat(200), 42]) {
+    assert.equal(parseFeedback({ ...good, page }).page, "", String(page));
+  }
+  for (const lang of ["english", "EN", "e n", "<b>", "nb-NO", 1]) assert.equal(parseFeedback({ ...good, lang }).lang, "", String(lang));
+  assert.equal(parseFeedback({ ...good, search: "x".repeat(101) }).search, "");
+  assert.equal(parseFeedback({ ...good, search: "two\nlines\r\nBcc: x@y.org" }).search, "two lines Bcc: x@y.org");
+  // A bad context field never costs the message itself.
+  assert.equal(parseFeedback({ ...good, page: "https://evil.example" }).message, good.message);
+  // It reaches the plain text, the HTML and the issue.
+  const meta = { from: "forms@freethetools.com", to: "hello@freethetools.com", date: new Date(0), id: "c" };
+  const mail = readEmail(buildEmail(fb, meta));
+  assert.match(mail.text, /Page: \/pdf\/compress\/\nSearched for: passport photo\nLanguage: nb/);
+  assert.match(mail.html, /href="https:\/\/freethetools\.com\/pdf\/compress\/"/);
+  assert.match(mail.html, /passport photo/);
+  const issue = buildIssue(fb);
+  assert.match(issue.body, /\*\*Page:\*\* `\/pdf\/compress\/`/);
+  assert.match(issue.body, /\*\*Searched for:\*\* `passport photo`/);
+  assert.match(issue.body, /\*\*Language:\*\* `nb`/);
+});
+
+test("the HTML part escapes every visitor value and links only to this site or the reply address", () => {
+  const evil = '<script>alert(1)</script> "><img src=x onerror=alert(1)> <a href="https://evil.example">x</a>';
+  const fb = parseFeedback({ kind: "suggestion", message: evil, use: evil.slice(0, 290), tool: '"><b>t</b>', search: "<i>s</i>", page: "/pdf/", lang: "en", email: "ada@example.org" });
+  const { html } = readEmail(buildEmail(fb, { from: "forms@freethetools.com", to: "hello@freethetools.com", date: new Date(0), id: "e" }));
+  assert.doesNotMatch(html, /<script|<img|<b>|<i>|onerror=alert\(1\)>/i);
+  assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  const hrefs = [...html.matchAll(/href="([^"]*)"/g)].map((m) => m[1]);
+  assert.ok(hrefs.length >= 3);
+  for (const h of hrefs) assert.match(h, /^(https:\/\/freethetools\.com\/|mailto:ada@example\.org$)/, h);
 });
 
 test("search terms: short plain words only", () => {

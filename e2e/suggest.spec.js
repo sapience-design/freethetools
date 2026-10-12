@@ -48,8 +48,10 @@ test("three steps send the same body as the /suggest/ form, and nothing is sent 
   await message.fill("Merge two PDF files into one");
   await dialog.getByRole("button", { name: "Next" }).click();
 
-  // Step 2: heading has focus (announces the step); a bad email is refused.
-  await expect(dialog.getByRole("heading", { name: /Step 2 of 3.*Anything else/ })).toBeFocused();
+  // Step 2: focus goes to its first field, not the heading; the step is announced instead.
+  await expect(dialog.getByLabel("What do you use today?")).toBeFocused();
+  await expect(page.locator("#sg-live")).toHaveText("Step 2 of 3 Anything else?");
+  await expect(dialog.getByRole("heading", { name: /Step 2 of 3/ })).not.toHaveAttribute("tabindex");
   await dialog.getByLabel("What do you use today?").fill("A website");
   await dialog.getByLabel("Your email, if you want a reply").fill("nope");
   await dialog.getByRole("button", { name: "Next" }).click();
@@ -57,12 +59,19 @@ test("three steps send the same body as the /suggest/ form, and nothing is sent 
   await dialog.getByLabel("Your email, if you want a reply").fill("me@example.com");
   await dialog.getByRole("button", { name: "Next" }).click();
 
-  // Step 3: sponsoring is optional and goes to the support page.
-  await expect(dialog.getByRole("heading", { name: /Step 3 of 3.*Want it sooner/ })).toBeFocused();
+  // Step 3: focus is on Send; sponsoring is optional and goes to the support page.
+  await expect(dialog.getByRole("button", { name: "Send suggestion" })).toBeFocused();
+  await expect(page.locator("#sg-live")).toHaveText("Step 3 of 3 Want it sooner?");
+  // It lists what goes with the message before anything is sent.
+  await expect(dialog.locator("#sg-ctx li")).toHaveText(["The page you were on: /", "The site language: English"]);
   await expect(dialog.getByRole("link", { name: /Sponsor a tool/ })).toHaveAttribute("href", "/support/#company-h");
   // Back keeps what was typed.
   await dialog.getByRole("button", { name: "Back" }).click();
   await expect(dialog.getByLabel("What do you use today?")).toHaveValue("A website");
+  await expect(dialog.getByLabel("What do you use today?")).toBeFocused();
+  await dialog.getByRole("button", { name: "Back" }).click();
+  await expect(dialog.getByRole("textbox", { name: "What should the tool do?" })).toBeFocused();
+  await dialog.getByRole("button", { name: "Next" }).click();
   await dialog.getByRole("button", { name: "Next" }).click();
   expect(posts).toHaveLength(0);
 
@@ -70,7 +79,7 @@ test("three steps send the same body as the /suggest/ form, and nothing is sent 
   await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeFocused();
   expect(posts).toHaveLength(1);
   expect(posts[0].headers["content-type"]).toBe("application/json");
-  expect(posts[0].body).toEqual({ kind: "suggestion", message: "Merge two PDF files into one", use: "A website", tool: "", email: "me@example.com", website: "" });
+  expect(posts[0].body).toEqual({ kind: "suggestion", message: "Merge two PDF files into one", use: "A website", tool: "", email: "me@example.com", website: "", page: "/", search: "", lang: "en" });
   await dialog.getByRole("button", { name: "Close" }).last().click();
   await expect(dialog).toBeHidden();
 });
@@ -86,7 +95,7 @@ test("a wanted-page link keeps its tool in the payload", async ({ page }) => {
   await dialog.getByRole("button", { name: "Next" }).click();
   await dialog.getByRole("button", { name: "Send suggestion" }).click();
   await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
-  expect(body).toEqual({ kind: "suggestion", message: "Delete pages from a PDF", use: "", tool: "pdf/page-delete", email: "", website: "" });
+  expect(body).toEqual({ kind: "suggestion", message: "Delete pages from a PDF", use: "", tool: "pdf/page-delete", email: "", website: "", page: "/pdf/page-delete/", search: "", lang: "en" });
 });
 
 test("on a failed send the text stays and a plain message says what to do", async ({ page }) => {
@@ -145,6 +154,31 @@ test("a search with no results offers to suggest it, with the term in step 1", a
   await expect(dialog.getByRole("textbox", { name: "What should the tool do?" })).toBeFocused();
   await page.keyboard.press("Escape");
   await expect(page.getByRole("button", { name: "Suggest it" })).toBeFocused();
+});
+
+test("the search words go with a suggestion made from a search with no results, and the dialog says so", async ({ page }) => {
+  let body;
+  await page.route("**/api/feedback", (route) => { body = route.request().postDataJSON(); return route.fulfill({ status: 200, body: "{}" }); });
+  await page.goto("/nb/");
+  await page.locator("#find").fill("zzqx   qqyy");
+  await page.locator("#results-none").getByRole("button").click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("textbox").first().fill("Endre størrelse på passbilder for visum");
+  await dialog.getByRole("button", { name: "Neste" }).click();
+  await dialog.getByRole("button", { name: "Neste" }).click();
+  await expect(dialog.locator("#sg-ctx li")).toHaveText(["Siden du var på: /nb/", "Det du søkte etter: zzqx qqyy", "Språket på nettstedet: norsk bokmål"]);
+  await dialog.getByRole("button", { name: "Send forslag" }).click();
+  await expect.poll(() => body).toBeTruthy();
+  expect(body).toMatchObject({ message: "Endre størrelse på passbilder for visum", page: "/nb/", search: "zzqx qqyy", lang: "nb" });
+  // A later suggestion from a plain link does not carry the old search.
+  await dialog.getByRole("button", { name: "Lukk" }).last().click();
+  await page.locator("footer").getByRole("link", { name: "Foreslå et verktøy" }).click();
+  await dialog.getByRole("textbox").first().fill("Noe helt annet her");
+  await dialog.getByRole("button", { name: "Neste" }).click();
+  await dialog.getByRole("button", { name: "Neste" }).click();
+  await dialog.getByRole("button", { name: "Send forslag" }).click();
+  await expect.poll(() => body.message).toBe("Noe helt annet her");
+  expect(body.search).toBe("");
 });
 
 test("Enter in a search with no results opens the dialog", async ({ page }) => {
