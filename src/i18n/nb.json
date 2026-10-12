@@ -230,7 +230,11 @@
         "pagesOf": "Side {from}–{to} av {total}",
         "imagesOf": "Bilde {from}–{to} av {total}",
         "openPage": "Åpne side {n}",
-        "openImage": "Åpne bilde {n}"
+        "openImage": "Åpne bilde {n}",
+        "rotate": "Roter",
+        "rotated": "Rotert til {n}°",
+        "goToPage": "Gå til side",
+        "goToImage": "Gå til bilde"
       },
       "suggest": {
         "title": "Foreslå et verktøy",

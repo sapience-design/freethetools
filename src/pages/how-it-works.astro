@@ -246,6 +246,7 @@ import { REPO } from "../data/catalogue";
     "ftt:slash": ["The / search shortcut", (v) => (v === "off" ? "Off" : "On")],
     "ftt:sort": ["Home page sorting", (v) => SORTS[v] ?? v],
     "ftt:tz": ["Time zones you added", (v) => { const z = parse(v); return Array.isArray(z) ? z.join(", ") || "None" : String(v); }],
+    "ftt:viewer-layout": ["Full-screen preview layout", (v) => ({ one: "One page", two: "Two pages", grid: "Grid", scroll: "Scroll" })[v] ?? v],
     "ftt:md-view": ["Markdown view", (v) => (v === "code" ? "Code" : "Preview")],
     "ftt:library-note": ["A note for the library page", (v) => v],
     "ftt:rate": ["How often visits are counted", (v) => (v === "1" ? "Every visit" : `1 in ${v}, when traffic is high`)],

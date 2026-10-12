@@ -230,7 +230,11 @@
         "pagesOf": "Pages {from}–{to} of {total}",
         "imagesOf": "Images {from}–{to} of {total}",
         "openPage": "Open page {n}",
-        "openImage": "Open image {n}"
+        "openImage": "Open image {n}",
+        "rotate": "Rotate",
+        "rotated": "Rotated to {n}°",
+        "goToPage": "Go to page",
+        "goToImage": "Go to image"
       },
       "suggest": {
         "title": "Suggest a tool",
