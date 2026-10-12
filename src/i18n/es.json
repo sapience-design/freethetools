@@ -22,6 +22,7 @@
       "installIos": "Toca Compartir y luego Añadir a pantalla de inicio.",
       "installIosMore": "Toca Más (⋯), luego Compartir y luego Añadir a pantalla de inicio.",
       "installMac": "En Safari, elige Archivo > Añadir al Dock.",
+      "offline": "Uso sin conexión",
       "groups": "Grupos",
       "project": "Proyecto",
       "trust": "Confianza",
@@ -64,6 +65,7 @@
       "trustNoSignup": "Sin registro",
       "trustFiles": "Los archivos se quedan en tu dispositivo",
       "trustOpen": "Código abierto",
+      "trustOffline": "Funciona sin conexión",
       "findLabel": "¿Qué necesitas hacer?",
       "findPlaceholder": "¿Qué necesitas hacer?",
       "chipsLabel": "Mostrar herramientas de",
@@ -158,6 +160,9 @@
     "js": {
       "common": {
         "donateLabel": "Donar",
+        "updateReady": "Hay una versión nueva.",
+        "updateReload": "Recargar",
+        "updateLater": "Más tarde",
         "donateTitle": "¿Te hemos ahorrado tiempo?",
         "donateBody": "Esta herramienta es gratuita y se ejecutó en tu navegador. Una pequeña donación ayuda a que siga así.",
         "donateButton": "Donar",

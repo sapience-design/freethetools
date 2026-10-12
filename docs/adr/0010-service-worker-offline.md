@@ -27,3 +27,18 @@ A hand-written service worker, `/sw.js`, with scope `/`. It has no dependencies 
 - **Privacy.** Nothing new leaves the device. The worker keeps only files from this site.
 - **Tests.** `tests/site.test.js` checks the built worker. `e2e/offline.spec.js` opens a tool, switches the network off and merges two PDFs.
 - **First visit.** The worker does not claim pages that are already open, because that aborts the page's view transition on the next click. The page that registered it is served by the network, and the worker controls the next one.
+
+## Update 2026-10-12: the whole site offline, and updates the visitor sees
+
+The site worked offline only for tools opened before, and every deploy dropped them until the next visit online. A "Works offline" promise on the home page needs more.
+
+**Decision.**
+
+- **A list per build.** `scripts/build-sw.mjs` also writes `/offline-files.json`: every page and file a visitor can keep, with the first 128 bits of its SHA-256, its size and the files each page needs, grouped by language (`en`, `nb`, `es`, `ru`), shared files (`common`) and engines too large for everyone (`compress`, Ghostscript, about 16 MB). Share images, `/api/`, `/stats/` and machine-readable copies are left out.
+- **Download with permission.** The whole site for one language is kept when the visitor asks on `/offline-use/`, or when the app is installed (the `appinstalled` event, or a page opened in the installed app's window). The Compress PDF engine is a separate choice, on by default on computers and off on phones. Everyone else keeps tools one by one, as before. The visitor's choice is kept in the `ftt-state` cache, which outlives versions.
+- **Checked files.** Every file the download fetches is checked against the list; a file that does not match is not kept.
+- **Updates prepared in full.** A new worker copies every unchanged file from the old cache (same path, same hash) and fetches the rest, including the tools the visitor had kept. When a full copy cannot be completed (the network dropped), the install fails and the browser tries again later, while the old version keeps serving. The new worker then waits instead of taking over at once: the page shows "A new version is ready" with Reload in the bottom right corner, and the new version takes over when the visitor reloads or closes every tab. An open window checks for a new version every hour.
+- **Remove.** `/offline-use/` removes the whole copy or only the engine. Favourites and settings live elsewhere and stay.
+- **The file list is never cached by the fetch handler**, so a newer list cannot land in an older version's cache.
+
+**Consequences.** A full download is about 14 MB for one language (after the shared pdf.js worker), plus about 16 MB for the Compress PDF engine. Updates fetch only changed files: mostly pages. The earlier line "replaces the old one at once" no longer applies.

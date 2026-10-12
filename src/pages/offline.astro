@@ -10,7 +10,7 @@ const offlineTools = tools.filter((t) => t.data.offline);
   <div class="page narrow lost">
     <span class="tag">Offline</span>
     <h1 class="h1">You're offline.</h1>
-    <p class="lede">Tools you have opened before still work.</p>
+    <p class="lede">Tools you have opened before still work. To keep every tool, go online once and use <a href="/offline-use/">Offline use</a>.</p>
     <ul class="rows card" id="offline-list" hidden>
       {offlineTools.map((t) => (
         <li data-path={t.url} hidden>

@@ -175,6 +175,37 @@ test("the service worker is built, same-origin only, and registered from the pag
   assert.match(html("offline/index.html"), /You're offline|You&#39;re offline/);
 });
 
+test("the offline list names every file it offers, with its hash and size, by language", async () => {
+  const { createHash } = await import("node:crypto");
+  const version = html("sw.js").match(/const VERSION = "([0-9a-f]+)"/)[1];
+  const list = JSON.parse(html("offline-files.json"));
+  assert.equal(list.version, version, "the list belongs to the same build as the worker");
+  const paths = list.files.map((f) => f[0]);
+  for (const [path, sha, bytes, dep] of list.files) {
+    const buf = readFileSync(join(DIST, path.endsWith("/") ? `${path.slice(1)}index.html` : path.slice(1)));
+    assert.equal(buf.length, bytes, `${path}: size`);
+    assert.equal(createHash("sha256").update(buf).digest("hex").slice(0, 32), sha, `${path}: hash`);
+    assert.doesNotMatch(path, /^\/(og|api|stats)\/|\.(xml|txt|md)$/, `${path} is not for offline use`);
+    if (dep !== undefined) assert.ok(list.deps[dep].every((i) => paths[i]), `${path}: dependencies`);
+  }
+  const named = (set) => (list.sets[set] ?? []).map((i) => paths[i]);
+  for (const set of ["en", "nb", "es", "ru", "common", "compress"]) assert.ok(named(set).length, `the "${set}" set is empty`);
+  assert.ok(named("en").includes("/pdf/merge/") && named("en").includes("/offline-use/"));
+  // Another language has its own pages, and the English pages it has no translation of.
+  assert.ok(named("nb").includes("/nb/pdf/merge/") && named("nb").includes("/privacy/") && !named("nb").includes("/pdf/merge/"));
+  // The Ghostscript engine is a choice of its own, never part of the shared files.
+  assert.ok(named("compress").some((p) => p.endsWith("/gs.wasm")));
+  assert.ok(!named("common").some((p) => /\/gs\.(js|wasm)$/.test(p)));
+  for (const deps of list.deps) assert.ok(!deps.some((i) => /\/gs\.(js|wasm)$/.test(paths[i])), "a page set pulls in the engine");
+  // A page's set holds the scripts it loads.
+  const merge = list.files[paths.indexOf("/pdf/merge/")];
+  assert.ok(list.deps[merge[3]].some((i) => /^\/_astro\/.+\.js$/.test(paths[i])));
+  // The worker never caches the list itself, and waits for the visitor before taking over.
+  const sw = html("sw.js");
+  assert.match(sw, /path === LIST\) return;/);
+  assert.doesNotMatch(sw.replace(/msg\.type === "skip-waiting"\) \{\s*self\.skipWaiting\(\)/, ""), /skipWaiting\(\)/, "skipWaiting only on the visitor's Reload");
+});
+
 test("the AI assistants page is in the sitemap, and /ai.md has the prompt and every agent tool name", async () => {
   assert.match(html("sitemap.xml"), /<loc>https:\/\/freethetools\.com\/ai\/<\/loc>/);
   assert.ok(existsSync(join(DIST, "ai.md")), "dist/ai.md is missing");

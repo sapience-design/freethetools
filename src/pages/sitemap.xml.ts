@@ -30,6 +30,7 @@ export const GET: APIRoute = async ({ site }) => {
     { loc: "/licenses/" },
     { loc: "/privacy/" },
     { loc: "/at-work/" },
+    { loc: "/offline-use/" },
     { loc: "/terms/" },
     { loc: "/stats/" },
     { loc: "/verify/" },

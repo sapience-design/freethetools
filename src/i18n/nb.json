@@ -22,6 +22,7 @@
       "installIos": "Trykk på Del, og så på Legg til på Hjem-skjerm.",
       "installIosMore": "Trykk på Mer (⋯), så på Del, og så på Legg til på Hjem-skjerm.",
       "installMac": "Velg Arkiv > Legg til i Dock i Safari.",
+      "offline": "Bruk uten nett",
       "groups": "Grupper",
       "project": "Prosjekt",
       "trust": "Tillit",
@@ -64,6 +65,7 @@
       "trustNoSignup": "Ingen registrering",
       "trustFiles": "Filene blir på enheten din",
       "trustOpen": "Åpen kildekode",
+      "trustOffline": "Virker uten nett",
       "findLabel": "Hva trenger du å gjøre?",
       "findPlaceholder": "Hva trenger du å gjøre?",
       "chipsLabel": "Vis verktøy for",
@@ -158,6 +160,9 @@
     "js": {
       "common": {
         "donateLabel": "Doner",
+        "updateReady": "En ny versjon er klar.",
+        "updateReload": "Last inn på nytt",
+        "updateLater": "Senere",
         "donateTitle": "Sparte verktøyet deg for litt tid?",
         "donateBody": "Dette verktøyet er gratis og kjører i nettleseren. En liten donasjon bidrar til at vi kan fortsette å tilby det gratis.",
         "donateButton": "Doner",
