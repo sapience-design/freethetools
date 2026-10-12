@@ -26,8 +26,12 @@ Never put the token in the repository, a pull request or a chat.
 
 ## Check email
 
-1. In the Cloudflare dashboard, open the domain freethetools.com → Email → Email Routing.
-2. Confirm that `hello@freethetools.com` is a **verified destination** and routing is on.
+Cloudflare needs two things before the Worker can send mail. Check both.
+
+1. **The sender's domain is set up for sending.** The Worker sends from `forms@freethetools.com`. Cloudflare requires the sender address to belong to a domain onboarded to Email Service, which is separate from receiving mail with Email Routing. If freethetools.com is set up only for receiving, every send fails and Workers Logs show a sender-not-verified error. Onboard the domain as Cloudflare's [domain setup guide](https://developers.cloudflare.com/email-service/configuration/domains/) describes.
+2. **The destination is verified.** In Email Routing for freethetools.com, `hello@freethetools.com` is a verified destination address and routing is on.
+
+Cloudflare states both rules on its [send bindings page](https://developers.cloudflare.com/email-service/configuration/send-bindings/) (checked 12 October 2026).
 
 ## Test
 
