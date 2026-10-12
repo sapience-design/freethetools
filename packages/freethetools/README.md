@@ -2,7 +2,7 @@
 
 **Free the Tools on your own computer, for AI assistants. Your files never leave it.**
 
-This package runs a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server and a small command line. They give an AI assistant a growing set of tools for everyday file jobs, such as compressing, merging, splitting, rotating and unlocking PDFs, stripping location data from photos, converting CSV and JSON, and hashing. The tools are the same ones as on [freethetools.com](https://freethetools.com).
+This package runs a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server and a small command line, and works as a code library. They give an AI assistant a growing set of tools for everyday file jobs, such as compressing, merging, splitting, rotating and unlocking PDFs, stripping location data from photos, converting CSV and JSON, and hashing. The tools are the same ones as on [freethetools.com](https://freethetools.com).
 
 It is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.sapience-design/freethetools`.
 
@@ -78,6 +78,30 @@ npx -y freethetools run convert_case '{"text":"hello world","case":"title"}'
 ```
 
 `run` prints the result as JSON: `ok`, a `summary`, `data` and the `files` it saved, with their full paths. It exits with code 1 if the job failed. On Windows, put the JSON in a file and write `@args.json` instead of the JSON. Run `freethetools --help` for everything.
+
+## Use it from your own code
+
+Install it with `npm install freethetools` (Node.js 22 or later), then call any tool from JavaScript or TypeScript. Each tool is a function named after it: `compress_pdf` is `compressPdf`.
+
+```js
+import { compressPdf, mergePdfs, convertCase } from "freethetools";
+import { readFile, writeFile } from "node:fs/promises";
+
+const { files } = await compressPdf({ file: "report.pdf", quality: "smallest" });
+await writeFile(files[0].name, files[0].bytes);
+
+const merged = await mergePdfs({ files: ["a.pdf", await readFile("b.pdf")] });
+const { data } = await convertCase({ text: "hello world", case: "title" });
+```
+
+- **Files go in** as a path, bytes (a `Uint8Array` or `Buffer`), a `Blob`, or `{ name, bytes }`. Your bytes are copied, never changed. Paths are read as the command line reads them: hidden files and folders are refused.
+- **Results come back** as `{ tool, summary, data, files }`. Each file has a `name`, a `type`, a `size` and its `bytes`. Nothing is written to disk or recorded in the library folder; you decide what to save.
+- **Mistakes throw** a `FreeTheToolsError` with a plain message, such as `case should be one of: upper, lower, …`.
+- `run(name, args)` calls a tool by name, and `listTools()` lists every tool with its options as JSON Schema.
+- Each call runs in its own thread with a time limit: 60 seconds, or 300 for tools that start an engine such as Ghostscript. Pass `{ timeout: seconds }` as the second argument to change it.
+- Types are included, and each function carries its tool's description for your editor.
+
+Everything runs on your computer, with no network connection, like the MCP server.
 
 ## The tools
 

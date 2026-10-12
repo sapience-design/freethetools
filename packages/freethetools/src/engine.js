@@ -49,10 +49,25 @@ export const describe = (t) =>
 
 const fail = (message) => Object.assign(new Error(message), { plain: true });
 
-async function readInputs(t, args, folders) {
+/** Seconds a call may run: longer for tools that start an engine such as Ghostscript. */
+export const secondsFor = (t) => (t.def.needs?.length ? SECONDS_WITH_ENGINE : SECONDS);
+
+/**
+ * Turn each file field's paths into { name, type, bytes }. The code library (src/api.js) may also
+ * pass files already in memory as { name, bytes }: they skip the disk but not the size limit.
+ */
+export async function readInputs(t, args, folders) {
   const inputs = [];
   let total = 0;
   const load = async (p) => {
+    if (p && typeof p === "object" && p.bytes instanceof Uint8Array) {
+      total += p.bytes.length;
+      if (p.bytes.length > MAX_FILE_BYTES || total > MAX_FILE_BYTES)
+        throw fail(`${p.name} is too large. The limit is 2 GB for each call. Split the job into smaller files.`);
+      const f = { name: p.name, type: detectType(p.bytes, p.name), bytes: p.bytes };
+      inputs.push({ name: f.name, type: f.type, size: f.bytes.length });
+      return f;
+    }
     if (typeof p !== "string" || !p) throw fail("A file path is empty.");
     const given = isAbsolute(p) ? p : resolve(process.cwd(), p);
     let path;
@@ -82,7 +97,7 @@ async function readInputs(t, args, folders) {
 let running = 0;
 const waiting = [];
 /** Run a tool in a worker, at most MAX_WORKERS at a time. The time limit starts when the worker does. */
-async function inWorker(name, args, seconds) {
+export async function inWorker(name, args, seconds) {
   if (running >= MAX_WORKERS) await new Promise((go) => waiting.push(go));
   else running++;
   try {
@@ -151,7 +166,7 @@ export async function callTool(name, rawArgs, { library, allowSave = [], via = "
     settings = settingsOf(t.def.input, args); // options only: never text, secrets or saveTo
     const read = await readInputs(t, toolArgs, folders);
     inputs = read.inputs;
-    result = await inWorker(name, read.run, t.def.needs?.length ? SECONDS_WITH_ENGINE : SECONDS);
+    result = await inWorker(name, read.run, secondsFor(t));
   } catch (e) {
     error = e.plain ? e.message : `${name} failed: ${e?.message ?? e}`;
   }
