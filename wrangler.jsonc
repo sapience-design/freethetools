@@ -23,11 +23,13 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "freethetools-stats", "database_id": "a53387a5-0d88-47ff-9b85-48065abf0fd8", "migrations_dir": "migrations" }
   ],
-  // The suggestion form (POST /api/feedback) sends one email to this address and no other. Email
-  // Routing must be on for the domain, with this address verified. Local development and
-  // previews simulate the binding or lack it; the form then offers a mailto link.
+  // The suggestion form (POST /api/feedback) sends one email to the maintainers' inbox. With no
+  // address here, the binding can send only to verified destination addresses in the account,
+  // which Cloudflare does free on every plan. The inbox is the Worker secret FEEDBACK_TO, so it
+  // is not in this public file; without it the email is skipped. Local development and previews
+  // lack the secret; the form then offers a mailto link.
   "send_email": [
-    { "name": "FEEDBACK", "destination_address": "hello@freethetools.com" }
+    { "name": "FEEDBACK" }
   ],
   // Feedback goes to a private GitHub repository as well as by email. The token is a Worker secret
   // (GITHUB_TOKEN, set in the Cloudflare dashboard, never here). Without it that channel is skipped.

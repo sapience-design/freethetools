@@ -1,6 +1,6 @@
 # How to set up feedback delivery
 
-Suggestions and problem reports reach you by email and as an issue in a private GitHub repository. You set up the repository, a token and the email destination once. Only you run these steps. See [ADR 0013](../adr/0013-feedback-without-github.md).
+Suggestions and problem reports reach you by email and as an issue in a private GitHub repository. You set up the email recipient, the repository and a token once. Only you run these steps. See [ADR 0013](../adr/0013-feedback-without-github.md).
 
 ## Create the private repository
 
@@ -24,10 +24,19 @@ Suggestions and problem reports reach you by email and as an issue in a private 
 
 Never put the token in the repository, a pull request or a chat.
 
-## Check email
+## Set up email
+
+The form emails the maintainers' own inbox. Cloudflare sends to a **verified destination address** free on every plan, including when only Email Routing is set up ([pricing](https://developers.cloudflare.com/email-service/platform/pricing/)). A routing address such as `hello@freethetools.com` is not a destination address, so the form cannot send to it.
 
 1. In the Cloudflare dashboard, open the domain freethetools.com → Email → Email Routing.
-2. Confirm that `hello@freethetools.com` is a **verified destination** and routing is on.
+2. Under **Destination addresses**, find the inbox that `hello@freethetools.com` forwards to. Check that it shows **Verified**.
+3. Open Workers & Pages → freethetools → Settings → Variables and Secrets.
+4. Add a **Secret** named `FEEDBACK_TO`, with that inbox address as the value. Save and deploy.
+5. Leave **Email Sending** (Email Service) off. It is the paid way to send to any address, and the form does not need it.
+
+Without the secret, the email channel is skipped. Never put the address in `wrangler.jsonc`: the repository is public.
+
+Cloudflare's [send-binding reference](https://developers.cloudflare.com/email-service/configuration/send-bindings/) also says the sender's domain must be onboarded to Email Service. If the logs below show `E_SENDER_NOT_VERIFIED`, that rule applies to this account, and the GitHub channel still delivers.
 
 ## Test
 

@@ -298,6 +298,13 @@ export function buildIssue(fb) {
   return { title, body: lines.join("\n") + "\n", labels: [problem ? "problem" : "suggestion", "needs triage"] };
 }
 
+/**
+ * One plain email address ("name@example.com"), or "" when the value is not one. The suggestion
+ * email goes to the address in the FEEDBACK_TO secret; a space, line break or angle bracket would
+ * let it add mail headers, so anything but a single plain address is refused.
+ */
+export const cleanMailbox = (v) => (typeof v === "string" && v.length <= 254 && /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ? v : "");
+
 /** "owner/name" as GitHub names a repository, or "" when the value is not one. */
 export const cleanRepo = (v) => (typeof v === "string" && /^[A-Za-z0-9_.-]{1,100}\/[A-Za-z0-9_.-]{1,100}$/.test(v) && !v.split("/").some((p) => /^\.+$/.test(p)) ? v : "");
 

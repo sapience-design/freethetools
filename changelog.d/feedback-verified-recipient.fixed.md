@@ -1,0 +1,1 @@
+- The suggestion form now delivers its email. It sent to a routing address, which Cloudflare refuses; it now sends to the maintainers' verified inbox, free on Cloudflare's free plan.

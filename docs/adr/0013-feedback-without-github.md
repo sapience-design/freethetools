@@ -55,3 +55,11 @@ A visitor saw "We couldn't send this right now". The Worker had no logs, so the 
 **The page retries once** after 2 seconds on a server or network error, then keeps the typed text, offers the `mailto:` link and shows the status ("Error 502").
 
 **Costs.** The owner creates the private repository and a fine-grained token (Issues: read and write, this repository only, with an expiry) and renews it before it expires. When it expires, the GitHub channel fails and shows in `/api/health`; email keeps working. Setup: [How to set up feedback delivery](../how-to/feedback-delivery.md).
+
+## Update 2026-10-12: email to a verified destination
+
+Every email failed. The binding sent to `hello@freethetools.com`, which is a routing address in Email Routing, not a verified destination address. A Worker may send only to verified destination addresses, which Cloudflare does free on every plan, "including when only Email Routing is configured" ([pricing](https://developers.cloudflare.com/email-service/platform/pricing/), checked 2026-10-12). Sending to any other address is Email Sending, which needs the Workers paid plan.
+
+**Decision.** The `send_email` binding names no address, so it can send only to verified destinations in the account. The Worker sends to the Worker secret `FEEDBACK_TO`: the maintainers' inbox, which is the verified destination `hello@freethetools.com` forwards to. The address stays out of this public repository. `cleanMailbox` in `worker/logic.js` accepts only one plain address, so the secret cannot add mail headers. Without the secret, the email channel is skipped, as the GitHub channel is without its token.
+
+The earlier line "with `hello@freethetools.com` verified as a destination" no longer applies.
