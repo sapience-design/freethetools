@@ -388,7 +388,7 @@ test("the pdf.js worker is in dist once, and the PDF tools use that copy", () =>
     }
   })(DIST);
   assert.deepEqual(copies, ["vendor/pdfjs/pdf.worker.min.mjs"]);
-  const users = ["compress", "fill-form", "merge", "rotate", "split", "to-images", "unlock"];
+  const users = ["compress", "edit-sign", "fill-form", "merge", "rotate", "split", "to-images", "unlock"];
   for (const t of users) {
     const manifest = JSON.parse(readFileSync(`tools/pdf/${t}/tool.json`, "utf8"));
     const worker = manifest.vendor.find((v) => v.to === "pdf.worker.min.mjs");

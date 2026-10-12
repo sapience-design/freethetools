@@ -83,6 +83,52 @@ export async function pdfPageFit(file: Blob, page: number, boxW: number, boxH: n
   }
 }
 
+/** Each page's size as a person sees it (turned, cut to the crop box), in points. For tools that lay pages out before drawing them. */
+export async function pdfPageSizes(file: Blob): Promise<{ width: number; height: number }[]> {
+  const doc = await open(file);
+  const sizes: { width: number; height: number }[] = [];
+  for (let n = 1; n <= doc.numPages; n++) {
+    const vp = (await doc.getPage(n)).getViewport({ scale: 1 });
+    sizes.push({ width: vp.width, height: vp.height });
+  }
+  return sizes;
+}
+
+/**
+ * Draw one page into an existing canvas, sharp for a page `cssWidth` pixels wide on this screen
+ * (never more than 4096 on a side). Returns false when the page can't be drawn or the drawing was
+ * stopped by `signal`.
+ */
+export async function pdfDrawPage(file: Blob, page: number, canvas: HTMLCanvasElement, cssWidth: number, signal?: AbortSignal): Promise<boolean> {
+  try {
+    const doc = await open(file);
+    const pg = await doc.getPage(page);
+    if (signal?.aborted) return false;
+    const base = pg.getViewport({ scale: 1 });
+    const ratio = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+    const scale = Math.max(0.05, Math.min((cssWidth * ratio) / base.width, 4096 / base.width, 4096 / base.height));
+    const vp = pg.getViewport({ scale });
+    // Draw off screen, then swap in: the page never flashes empty while it is redrawn.
+    const work = document.createElement("canvas");
+    work.width = Math.max(1, Math.floor(vp.width));
+    work.height = Math.max(1, Math.floor(vp.height));
+    const ctx = work.getContext("2d")!;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, work.width, work.height);
+    const task = pg.render({ canvas: work, canvasContext: ctx, viewport: vp });
+    const stop = () => task.cancel();
+    signal?.addEventListener("abort", stop, { once: true });
+    try { await task.promise; } finally { signal?.removeEventListener("abort", stop); }
+    if (signal?.aborted) return false;
+    canvas.width = work.width;
+    canvas.height = work.height;
+    canvas.getContext("2d")!.drawImage(work, 0, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /** A PDF (or one page of it) for the full-screen viewer. The viewer draws only the pages on screen. */
 export function pdfViewItem(file: Blob, name: string, pages: number, page = 1): ViewItem {
   return { kind: "pdf", name, pages, page, render: (n, w, h, signal) => pdfPageFit(file, n, w, h, signal) };

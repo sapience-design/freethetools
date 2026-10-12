@@ -1,0 +1,47 @@
+{
+  "name": "Rediger og signer PDF",
+  "task": "Rediger og signer en PDF",
+  "tagline": "Skriv, tegn, marker og signer hvor som helst på en PDF, og lagre en ferdig kopi.",
+  "seoTitle": "Rediger og signer PDF på nett gratis, uten opplasting",
+  "description": "Skriv, tegn og signer på en hvilken som helst PDF, gratis i nettleseren. Legg til tekst, bokser, markeringer og signaturen din. Ingenting lastes opp.",
+  "keywords": [
+    "rediger pdf",
+    "signer pdf",
+    "signatur",
+    "skriv på pdf",
+    "kommenter pdf",
+    "marker tekst i pdf",
+    "tegn på pdf",
+    "skjema uten felt",
+    "pdf-skjema på nett"
+  ],
+  "specs": {
+    "Motor": "pdf.js (Apache-2.0) viser sidene, pdf-lib 1.17 (MIT) lagrer dem",
+    "Legg til": "Tekst, bokser, markeringer, frihåndstegning og et signaturbilde",
+    "Bokstaver": "Latinske bokstaver i Helvetica. Kyrillisk, gresk og mer i Roboto (Apache-2.0)",
+    "Signatur": "Et bilde av signaturen din, ikke en sertifikatbasert digital signatur",
+    "Fungerer frakoblet": "Ja, etter at du har åpnet en PDF i det én gang"
+  },
+  "faq": [
+    {
+      "q": "Lastes PDF-en min opp?",
+      "a": "Nei. Kontrakter og skjemaer inneholder personlige opplysninger, så PDF-en åpnes og lagres i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Er dette en digital signatur?",
+      "a": "Nei. Det legger et bilde av signaturen din på siden, som å signere på papir og skanne det. Det er ikke en sertifikatbasert digital signatur, så det beviser ikke hvem som signerte eller at filen er uendret. De fleste skjemaer og enkle avtaler godtar et bilde. Trenger den andre parten en sertifisert signatur, spør hvilken tjeneste de bruker."
+    },
+    {
+      "q": "Skjemaet mitt har ingen felt å fylle ut. Kan jeg likevel bruke det?",
+      "a": "Ja, det er det dette verktøyet er laget for. Klikk på siden og skriv, så havner teksten akkurat der. Har PDF-en ekte felt, går Fyll ut PDF-skjema raskere."
+    },
+    {
+      "q": "Hvordan fjerner jeg noe jeg har lagt til?",
+      "a": "Klikk på det (eller trykk Tab for å komme til det), og trykk Delete eller bruk Delete-knappen. Ctrl+Z (Cmd+Z på Mac) angrer siste endring, og Shift+Ctrl+Z henter den tilbake. Etter lagring er merkene en del av siden, så behold originalfilen."
+    },
+    {
+      "q": "Kan jeg skrive på russisk, gresk eller andre alfabeter?",
+      "a": "Ja. Latinske bokstaver, også æ, ø, å, é og ß, bruker standardfonten Helvetica. Andre alfabeter bruker en åpen font som lagres i filen, så de ser likt ut i alle lesere."
+    }
+  ]
+}

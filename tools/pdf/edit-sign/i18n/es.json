@@ -1,0 +1,47 @@
+{
+  "name": "Editar y firmar PDF",
+  "task": "Editar y firmar un PDF",
+  "tagline": "Escribe, dibuja, resalta y firma en cualquier parte de un PDF y guarda una copia terminada.",
+  "seoTitle": "Editar y firmar PDF online gratis, sin subirlo",
+  "description": "Escribe, dibuja y firma en cualquier PDF, gratis y en tu navegador. Añade texto, recuadros, resaltados y tu firma. No se sube nada.",
+  "keywords": [
+    "editar pdf",
+    "firmar pdf",
+    "firma",
+    "escribir en pdf",
+    "anotar pdf",
+    "resaltar pdf",
+    "dibujar en pdf",
+    "formulario sin campos",
+    "formulario pdf online"
+  ],
+  "specs": {
+    "Motor": "pdf.js (Apache-2.0) muestra las páginas y pdf-lib 1.17 (MIT) las guarda",
+    "Añadir": "Texto, recuadros, resaltados, dibujo a mano alzada y una imagen de firma",
+    "Letras": "Letras latinas en Helvetica. Cirílico, griego y más en Roboto (Apache-2.0)",
+    "Firma": "Una imagen de tu firma, no una firma digital con certificado",
+    "Funciona sin conexión": "Sí, después de abrir un PDF en ella una vez"
+  },
+  "faq": [
+    {
+      "q": "¿Se sube mi PDF?",
+      "a": "No. Los contratos y formularios contienen datos personales, así que el PDF se abre y se guarda dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Es una firma digital?",
+      "a": "No. Pone una imagen de tu firma en la página, como firmar en papel y escanear. No es una firma digital con certificado, así que no prueba quién firmó ni que el archivo no haya cambiado. La mayoría de formularios y contratos sencillos aceptan una imagen. Si la otra parte necesita una firma certificada, pregúntale qué servicio usa."
+    },
+    {
+      "q": "Mi formulario no tiene casillas para rellenar. ¿Puedo usarlo igualmente?",
+      "a": "Sí, para eso sirve esta herramienta. Haz clic en la página y escribe, y el texto queda justo ahí. Si el PDF tiene campos reales, Rellenar formulario PDF es más rápido."
+    },
+    {
+      "q": "¿Cómo quito algo que he añadido?",
+      "a": "Haz clic en ello (o llega con la tecla Tab) y pulsa Supr o usa el botón Delete. Ctrl+Z (Cmd+Z en Mac) deshace el último cambio y Mayús+Ctrl+Z lo recupera. Una vez guardado, las marcas forman parte de la página, así que conserva el archivo original."
+    },
+    {
+      "q": "¿Puedo escribir en ruso, griego u otros alfabetos?",
+      "a": "Sí. Las letras latinas, incluidas æ, ø, å, é y ß, usan la fuente estándar Helvetica. Otros alfabetos usan una fuente abierta que se guarda en tu archivo, así que se ven igual en cualquier lector."
+    }
+  ]
+}

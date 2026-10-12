@@ -1,0 +1,298 @@
+---
+// Edit and Sign PDF: choose a PDF, put text, boxes, highlights, drawings and a signature on its
+// pages, save a finished copy. The page logic is in editor.ts; the signature dialog in signature.ts.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+
+const inks = [["#000000", "Black"], ["#c62828", "Red"], ["#1f5fcc", "Blue"], ["#0f7a44", "Green"]];
+const marker = [["#ffdf3d", "Yellow"], ["#7ddf64", "Green"], ["#ff8fc4", "Pink"], ["#6fb7ff", "Blue"], ["#ffa24d", "Orange"]];
+const modes = [
+  ["select", "Select", "cursor"],
+  ["text", "Text", "text-t"],
+  ["box", "Box", "rectangle"],
+  ["highlight", "Highlight", "highlighter-circle"],
+  ["draw", "Draw", "scribble"],
+];
+---
+<section class="tool" id="pes-tool" aria-label="Edit and sign PDF">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="pes" toolId="pdf/edit-sign" category="pdf" name="Edit and Sign PDF" accept="application/pdf,.pdf" title="Drop your PDF here" hint="A contract, a form or any other PDF" button="Choose PDF" />
+    <ul class="file-list" id="pes-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="pes-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pes-name"></span><span class="fmeta" id="pes-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="pes-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
+
+  <Step n={2} title="Write and sign on the pages" state="later">
+    <p class="pes-note">
+      <Icon name="info" />
+      <span>A signature here is a picture of your signature. It is not a certificate-based digital signature.</span>
+    </p>
+    <div class="pes-editor" id="pes-editor" data-mode="select">
+      <div class="pes-bar" id="pes-bar">
+        <fieldset class="pes-modes seg">
+          <legend class="sr-only">What do you want to do?</legend>
+          {modes.map(([id, label, icon]) => (
+            <>
+              <input type="radio" name="pes-mode" id={`pes-m-${id}`} value={id} checked={id === "select"}>
+              <label for={`pes-m-${id}`}><Icon name={icon} /><span>{label}</span></label>
+            </>
+          ))}
+        </fieldset>
+        <button class="btn line small" id="pes-sig-open" type="button" aria-haspopup="dialog"><Icon name="signature" /><span>Signature</span></button>
+        <div class="pes-acts">
+          <button class="btn quiet small" id="pes-undo" type="button" disabled><Icon name="arrow-counter-clockwise" /><span>Undo</span></button>
+          <button class="btn quiet small" id="pes-redo" type="button" disabled><Icon name="arrow-clockwise" /><span>Redo</span></button>
+          <button class="btn quiet small" id="pes-delete" type="button" disabled><Icon name="trash" /><span>Delete</span></button>
+          <button class="btn small" id="pes-finish" type="button"><Icon name="floppy-disk" /><span>Finish</span></button>
+        </div>
+      </div>
+
+      <div class="pes-opts" id="pes-opts">
+        <fieldset class="pes-opt" id="pes-o-color" hidden>
+          <legend id="pes-o-color-l">Colour</legend>
+          <div class="pes-sw">
+            {inks.map(([c, name], i) => (
+              <>
+                <input type="radio" name="pes-color" id={`pes-c${i}`} value={c} checked={i === 0}>
+                <label for={`pes-c${i}`} class="sw" data-c={c}><span class="sr-only">{name}</span></label>
+              </>
+            ))}
+            <label class="sw sw-own" for="pes-color-own"><span class="sr-only">Other colour</span></label>
+            <input type="color" id="pes-color-own" value="#7b3fc4" class="sw-pick">
+          </div>
+        </fieldset>
+        <fieldset class="pes-opt" id="pes-o-marker" hidden>
+          <legend>Highlight colour</legend>
+          <div class="pes-sw">
+            {marker.map(([c, name], i) => (
+              <>
+                <input type="radio" name="pes-marker" id={`pes-h${i}`} value={c} checked={i === 0}>
+                <label for={`pes-h${i}`} class="sw" data-c={c}><span class="sr-only">{name}</span></label>
+              </>
+            ))}
+          </div>
+        </fieldset>
+        <label class="field pes-opt pes-small" id="pes-o-size" hidden>
+          <span>Text size</span>
+          <input type="number" id="pes-size" min="6" max="96" step="1" value="16" inputmode="numeric">
+        </label>
+        <label class="field pes-opt pes-small" id="pes-o-bw" hidden>
+          <span>Border</span>
+          <select id="pes-bw">
+            <option value="0">None</option>
+            <option value="1">Thin</option>
+            <option value="2" selected>Medium</option>
+            <option value="4">Thick</option>
+          </select>
+        </label>
+        <fieldset class="pes-opt pes-fill" id="pes-o-fill" hidden>
+          <legend class="sr-only">Fill</legend>
+          <label class="check"><input type="checkbox" id="pes-fill-on"> <span>Fill</span></label>
+          <label class="pes-small pes-inline"><span class="sr-only">Fill colour</span><input type="color" id="pes-fill-color" value="#ffdf3d" class="sw-pick"></label>
+          <label class="field pes-small pes-inline">
+            <span class="sr-only">Fill strength</span>
+            <select id="pes-fill-op">
+              <option value="0.25">25%</option>
+              <option value="0.5" selected>50%</option>
+              <option value="0.75">75%</option>
+              <option value="1">100%</option>
+            </select>
+          </label>
+        </fieldset>
+        <label class="field pes-opt pes-small" id="pes-o-pw" hidden>
+          <span>Pen thickness</span>
+          <select id="pes-pw">
+            <option value="1.5">Thin</option>
+            <option value="3" selected>Medium</option>
+            <option value="6">Thick</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="pes-hintrow">
+        <p class="pes-hint" id="pes-hint"></p>
+        <button class="btn line small" id="pes-add" type="button" hidden></button>
+      </div>
+
+      <div class="pes-selbar" id="pes-selbar" hidden>
+        <p id="pes-seltext"></p>
+        <div class="pes-selacts">
+          <button class="btn quiet small" id="pes-edit" type="button"><Icon name="pencil-simple" /><span>Edit text</span></button>
+          <button class="btn quiet small" id="pes-smaller" type="button"><Icon name="minus" /><span>Smaller</span></button>
+          <button class="btn quiet small" id="pes-bigger" type="button"><Icon name="plus" /><span>Bigger</span></button>
+        </div>
+      </div>
+
+      <div class="pes-pages" id="pes-pages" role="region" tabindex="-1" aria-label="The pages of your PDF"></div>
+
+      <details class="pes-list" id="pes-list">
+        <summary id="pes-list-sum">Everything you added (0)</summary>
+        <p id="pes-none">Nothing yet.</p>
+        <ul id="pes-marks"></ul>
+      </details>
+    </div>
+    <p class="sr-only" id="pes-live" role="status" aria-live="polite"></p>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <button class="btn run" id="pes-go" type="button" disabled><Icon name="floppy-disk" /><span>Save PDF</span></button>
+    <div class="result" id="pes-result" aria-live="polite"><p class="res-wait">Your signed PDF will appear here.</p></div>
+  </Step>
+
+  <dialog id="pes-sig" class="pes-dlg" aria-labelledby="pes-sig-title">
+    <div class="pes-dlg-box">
+      <h2 id="pes-sig-title">Add your signature</h2>
+      <p class="pes-dlg-note">This adds a picture of your signature. It is not a certificate-based digital signature.</p>
+      <fieldset class="seg pes-tabs">
+        <legend class="sr-only">How do you want to make it?</legend>
+        <input type="radio" name="pes-sigtab" id="pes-st-draw" value="draw" checked><label for="pes-st-draw"><Icon name="scribble" /><span>Draw</span></label>
+        <input type="radio" name="pes-sigtab" id="pes-st-type" value="type"><label for="pes-st-type"><Icon name="text-t" /><span>Type</span></label>
+        <input type="radio" name="pes-sigtab" id="pes-st-pic" value="pic"><label for="pes-st-pic"><Icon name="image" /><span>Picture</span></label>
+      </fieldset>
+
+      <div class="pes-panel" id="pes-sp-draw">
+        <canvas id="pes-pad" class="pes-pad" width="900" height="300" role="img" aria-label="Signature drawing area. Use the Type tab if you cannot draw."></canvas>
+        <div class="pes-padbar">
+          <fieldset class="pes-inkset seg">
+            <legend class="sr-only">Ink colour</legend>
+            <input type="radio" name="pes-ink" id="pes-ink-k" value="#111111" checked><label for="pes-ink-k">Black</label>
+            <input type="radio" name="pes-ink" id="pes-ink-b" value="#1f3f9e"><label for="pes-ink-b">Blue</label>
+          </fieldset>
+          <button class="btn quiet small" id="pes-pad-clear" type="button">Clear</button>
+        </div>
+      </div>
+
+      <div class="pes-panel" id="pes-sp-type" hidden>
+        <label class="field"><span>Your name</span><input type="text" id="pes-sigtext" maxlength="60" autocomplete="off"></label>
+        <label class="field"><span>Style</span>
+          <select id="pes-sigfont">
+            <option value="script">Script</option>
+            <option value="formal">Formal</option>
+            <option value="casual">Casual</option>
+          </select>
+        </label>
+        <canvas id="pes-sigprev" class="pes-pad pes-prev" width="900" height="200" aria-hidden="true"></canvas>
+      </div>
+
+      <div class="pes-panel" id="pes-sp-pic" hidden>
+        <label class="field"><span>A PNG or JPG of your signature</span><input type="file" id="pes-sigfile" accept="image/png,image/jpeg"></label>
+        <label class="check"><input type="checkbox" id="pes-sig-see" checked> <span>Make the white background see-through</span></label>
+        <canvas id="pes-sigpic" class="pes-pad pes-prev" width="900" height="300" aria-hidden="true"></canvas>
+        <p class="pes-small-note">Sign on white paper and take a straight photo, or scan it. The picture stays on this device.</p>
+      </div>
+
+      <p class="tool-error" id="pes-sig-err" role="alert" hidden></p>
+      <div class="pes-dlg-acts">
+        <button class="btn" id="pes-sig-use" type="button" disabled>Use signature</button>
+        <button class="btn quiet" id="pes-sig-last" type="button" hidden>Use the last one</button>
+        <button class="btn quiet" id="pes-sig-cancel" type="button">Cancel</button>
+      </div>
+    </div>
+  </dialog>
+</section>
+
+<script>
+  import { startEditor } from "./editor";
+  startEditor();
+</script>
+
+<style is:global>
+  /* Edit and Sign PDF. Every rule starts with pes-: the page and signature dialog are built by script. */
+  .pes-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 10px 14px; border-radius: var(--r); background: var(--well); font-size: 15px; }
+  .pes-note .ic { flex: none; font-size: 20px; margin-top: 2px; }
+  .pes-editor { display: grid; gap: 12px; min-width: 0; }
+  .pes-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px; border: 1.5px solid var(--hair); border-radius: var(--r-lg); background: var(--card); }
+  @media (min-width: 700px) and (min-height: 760px) { .pes-bar { position: sticky; top: 76px; z-index: 6; } }
+  .pes-modes { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .pes-modes label, .pes-tabs label { display: inline-flex; align-items: center; gap: 8px; }
+  .pes-modes .ic, .pes-tabs .ic { font-size: 18px; }
+  .pes-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .pes-acts .btn, .pes-bar > .btn { white-space: nowrap; }
+
+  .pes-opts { display: flex; flex-wrap: wrap; align-items: end; gap: 10px 22px; }
+  .pes-opt[hidden] { display: none; }
+  fieldset.pes-opt { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .pes-opt legend { padding: 0; margin-bottom: 4px; font-weight: 650; }
+  .pes-small input, .pes-small select { max-width: 140px; }
+  .pes-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+  .pes-inline { display: inline-grid; }
+  .pes-sw { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .pes-sw input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+  .sw { position: relative; display: inline-block; width: 44px; height: 44px; border: 2px solid var(--hair); border-radius: 50%; cursor: pointer; background: var(--c, #000); }
+  .sw:hover { border-color: var(--edge); }
+  .pes-sw input:checked + .sw { border-color: var(--edge); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--edge); }
+  .pes-sw input:focus-visible + .sw { outline: 2.5px solid var(--ink); outline-offset: 5px; }
+  .sw[data-c="#000000"] { background: #000000; } .sw[data-c="#c62828"] { background: #c62828; } .sw[data-c="#1f5fcc"] { background: #1f5fcc; } .sw[data-c="#0f7a44"] { background: #0f7a44; }
+  .sw[data-c="#ffdf3d"] { background: #ffdf3d; } .sw[data-c="#7ddf64"] { background: #7ddf64; } .sw[data-c="#ff8fc4"] { background: #ff8fc4; } .sw[data-c="#6fb7ff"] { background: #6fb7ff; } .sw[data-c="#ffa24d"] { background: #ffa24d; }
+  .sw-own { background: conic-gradient(#d32f2f, #f9a825, #43a047, #1e88e5, #8e24aa, #d32f2f); }
+  .sw-pick { width: 44px; height: 44px; padding: 2px; border: 2px solid var(--hair); border-radius: var(--r-sm); background: var(--card); cursor: pointer; }
+  .sw-own + .sw-pick { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .sw-own:has(+ .sw-pick:focus-visible) { outline: 2.5px solid var(--ink); outline-offset: 5px; }
+
+  .pes-hintrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+  .pes-hint { margin: 0; flex: 1 1 260px; color: var(--soft); font-size: 15px; }
+  .pes-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 8px 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--pick); color: #1d1b16; }
+  .pes-selbar[hidden] { display: none; }
+  .pes-selbar p { margin: 0; flex: 1 1 220px; font-weight: 600; }
+  .pes-selacts { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .pes-pages { display: grid; gap: 18px; justify-items: center; min-width: 0; padding: 14px; border-radius: var(--r-lg); background: var(--well); outline: none; }
+  .pes-pg { display: grid; gap: 6px; width: 100%; max-width: 920px; min-width: 0; }
+  .pes-cap { margin: 0; font-size: 14px; color: var(--soft); }
+  .pes-page { position: relative; width: 100%; background: #fff; box-shadow: 0 2px 10px rgba(0, 0, 0, .25); isolation: isolate; overflow: hidden; }
+  .pes-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .pes-layer { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; display: block; user-select: none; -webkit-user-select: none; }
+  .pes-draggy .pes-layer { touch-action: none; }
+  .pes-editor[data-mode="select"] .pes-layer { cursor: default; }
+  .pes-editor[data-mode="text"] .pes-layer { cursor: text; }
+  .pes-editor[data-mode="box"] .pes-layer, .pes-editor[data-mode="highlight"] .pes-layer, .pes-editor[data-mode="draw"] .pes-layer { cursor: crosshair; }
+  .pes-mark { pointer-events: none; outline: none; }
+  .pes-editor[data-mode="select"] .pes-mark { pointer-events: all; cursor: move; }
+  .pes-mark text { white-space: pre; font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; }
+  .pes-mark.pes-editing text { visibility: hidden; }
+  .pes-hl { mix-blend-mode: multiply; }
+  .pes-selbox { fill: none; stroke: #1f5fcc; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .pes-handle { fill: #fff; stroke: #1f5fcc; stroke-width: 2.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .pes-grab { fill: transparent; cursor: nwse-resize; pointer-events: all; }
+  .pes-ghost { fill: rgba(31, 95, 204, .12); stroke: #1f5fcc; stroke-width: 1.5; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .pes-edit {
+    position: absolute; z-index: 3; box-sizing: border-box; margin: 0; padding: 0; border: 1.5px dashed #1f5fcc; border-radius: 2px; resize: none; overflow: hidden;
+    background: rgba(255, 255, 255, .92); color: #000; line-height: 1.2; font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; white-space: pre; outline: none;
+  }
+  .pes-edit.pes-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .pes-edit:focus { box-shadow: 0 0 0 3px rgba(31, 95, 204, .35); }
+
+  .pes-list { border: 1.5px solid var(--hair); border-radius: var(--r); padding: 4px 14px; background: var(--card); }
+  .pes-list summary { min-height: 44px; display: flex; align-items: center; font-weight: 650; cursor: pointer; }
+  .pes-list ul { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 6px; }
+  .pes-list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .pes-list li .pes-pick { flex: 1 1 220px; justify-content: flex-start; text-align: left; white-space: normal; }
+  .pes-list li[aria-current="true"] .pes-pick { border-color: var(--edge); background: var(--pick); color: #1d1b16; }
+  .pes-list p { margin: 4px 0 8px; color: var(--soft); }
+
+  .pes-dlg { width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); color: var(--ink); box-shadow: var(--shadow); overflow: auto; }
+  .pes-dlg::backdrop { background: rgba(20, 20, 24, .6); }
+  .pes-dlg-box { display: grid; gap: 14px; padding: clamp(14px, 3vw, 22px); }
+  .pes-dlg h2 { margin: 0; font-family: var(--display); font-size: 20px; }
+  .pes-dlg-note, .pes-small-note { margin: 0; color: var(--soft); font-size: 15px; }
+  .pes-tabs, .pes-inkset { margin: 0; padding: 0; border: 0; min-width: 0; }
+  .pes-panel { display: grid; gap: 12px; }
+  .pes-panel[hidden] { display: none; }
+  .pes-pad { display: block; width: 100%; height: auto; max-width: 100%; border: 1.5px solid var(--edge); border-radius: var(--r); background: #fff; touch-action: none; cursor: crosshair; }
+  .pes-prev { cursor: default; }
+  .pes-padbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+  .pes-dlg-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pes-dlg-acts .btn { flex: 1 1 150px; }
+
+  @media (max-width: 560px) {
+    .pes-modes label span, .pes-acts .btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .pes-modes label, .pes-acts .btn { min-width: 44px; justify-content: center; padding-left: 10px; padding-right: 10px; }
+    .pes-pages { padding: 8px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .pes-page { scroll-behavior: auto; } }
+</style>

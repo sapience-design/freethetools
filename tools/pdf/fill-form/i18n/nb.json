@@ -16,7 +16,7 @@
   "specs": {
     "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
     "Felt": "Tekst, avkrysningsbokser, nedtrekkslister, radioknapper og lister",
-    "Ikke ennå": "Signaturer, og skjemaer som bare er trykte streker uten ekte felt",
+    "Ikke her": "Signaturer, og skjemaer som bare er trykte streker uten ekte felt. Bruk Rediger og signer PDF til dem",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
@@ -26,7 +26,7 @@
     },
     {
       "q": "Den sier at PDF-en min ikke har felt. Hvorfor?",
-      "a": "Noen skjemaer er bare trykte streker, uten ekte felt i filen. De trenger et verktøy som plasserer tekst hvor som helst på siden. Det er planlagt."
+      "a": "Noen skjemaer er bare trykte streker, uten ekte felt i filen. Bruk Rediger og signer PDF til dem: det plasserer tekst, bokser og signaturen din hvor som helst på siden."
     },
     {
       "q": "Hva gjør det å låse svarene?",

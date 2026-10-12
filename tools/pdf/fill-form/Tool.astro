@@ -29,7 +29,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { listFields, fillForm } from "./core.js";
-  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { wireDrop, fmtBytes, downloadLink, showError, showProblem, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
   import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
   import { usePdfWorker, pdfPreview, outputRow } from "../../../src/lib/pdfthumb";
   import { stepTo } from "../../../src/lib/steps";
@@ -93,7 +93,15 @@ import Icon from "../../../src/components/Icon.astro";
       $("pff-form").replaceChildren(...fields.map(control));
       go.disabled = !fields.length;
       if (!fields.length) {
-        showError(result, "It may be a scanned page. Print it and fill it by hand, or ask the sender for a fillable copy.", "This PDF has no boxes to type in");
+        // Not a failure: a flat form is common, and Edit and Sign PDF is made for it.
+        showProblem(result, "It may be only printed lines, or a scan.", "This PDF has no fields to fill");
+        const next = document.createElement("span");
+        next.id = "pff-next";
+        const link = document.createElement("a");
+        link.href = "/pdf/edit-sign/";
+        link.textContent = "Edit and sign PDF";
+        next.append("Type and sign anywhere on it with ", link, ".");
+        result.querySelector(".res-bad")?.append(" ", next);
         stepTo(root, 1);
       } else stepTo(root, 2);
     } catch (e) { showError(result, (e as Error).message); }
@@ -132,4 +140,5 @@ import Icon from "../../../src/components/Icon.astro";
 <style>
   .pff-fields { display: grid; gap: 16px; }
   .pff-fields :global(select[multiple]) { min-height: 110px; }
+  #pff-result :global(#pff-next) { display: block; margin-top: 6px; font-weight: 650; }
 </style>
