@@ -189,6 +189,16 @@ test("compress_pdf uses the engine the channel lends it", async () => {
   assert.ok(r.data.percentSmaller > 0);
 });
 
+test("compress_pdf passes the finer options on, and refuses values outside the lists", async () => {
+  let seen;
+  const ghostscript = async (args, input) => { seen = args; return input.subarray(0, 100); };
+  const r = await call("compress_pdf", { file: pdf(), dpi: 100, imageQuality: "low", grayscale: true, removeDocumentInfo: true }, { ghostscript });
+  assert.ok(seen.includes("-dColorImageResolution=100") && seen.includes("-sColorConversionStrategy=Gray") && seen.some((a) => /QFactor 1\.5/.test(a)) && seen.some((a) => /DOCINFO pdfmark/.test(a)));
+  assert.deepEqual([r.data.dpi, r.data.imageQuality, r.data.grayscale, r.data.removeDocumentInfo], [100, "low", true, true]);
+  assert.match(checkArgs(byName.compress_pdf.input, { file: "a.pdf", dpi: 96 })[0], /dpi should be one of/);
+  assert.match(checkArgs(byName.compress_pdf.input, { file: "a.pdf", imageQuality: "x" })[0], /imageQuality should be one of/);
+});
+
 test("unlock_pdf uses the engine the channel lends it, and says what it did", async () => {
   await assert.rejects(call("unlock_pdf", { file: pdf() }), /isn.t available here/);
   const seen = [];
