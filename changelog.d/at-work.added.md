@@ -1,0 +1,1 @@
+- A page for IT teams, "Free the Tools at work" (/at-work/), linked from the footer: the one site to allow, why upload rules don't block it, which browser features it uses (WebAssembly only for Compress PDF and Unlock PDF), how to handle Edge's enhanced security mode, how to install it for everyone with a browser policy, and how to run your own copy.

@@ -1,0 +1,97 @@
+---
+import Base from "../layouts/Base.astro";
+import Icon from "../components/Icon.astro";
+import { REPO } from "../data/catalogue";
+
+const FORCE_INSTALL = `[{"url": "https://freethetools.com/", "default_launch_container": "window", "create_desktop_shortcut": true}]`;
+---
+<Base
+  page="at-work"
+  title="Free the Tools at work: a note for IT"
+  description="How to allow Free the Tools on a company network: one site to allow, nothing uploaded, which browser features it uses, and how to install it for everyone."
+  jsonLd={{ "@type": "WebPage", name: "Free the Tools at work", url: "https://freethetools.com/at-work/" }}
+>
+  <div class="page narrow at-work">
+    <a class="back" href="/"><Icon name="caret-left" />All tools</a>
+    <div class="intro">
+      <h1 class="h1">Free the Tools at work</h1>
+      <p class="lede">A note for IT teams. The tools run inside the browser, so files never leave the computer. To allow them, allow one site: freethetools.com.</p>
+    </div>
+
+    <section aria-labelledby="allow-h">
+      <h2 class="h2" id="allow-h">What to allow</h2>
+      <div class="tbl"><table>
+        <thead><tr><th>Address</th><th>What it is</th><th>Needed for</th></tr></thead>
+        <tbody>
+          <tr><td><code>https://freethetools.com/</code></td><td>Pages, scripts, fonts and tool engines. <code>www.freethetools.com</code> redirects here.</td><td>Everything</td></tr>
+          <tr><td><code>/api/stats/</code> on the same site</td><td>Anonymous counts: a tool's name and an event such as “used”. Never a file or its contents.</td><td>Nothing. Blocking it is fine.</td></tr>
+          <tr><td><code>/api/feedback</code> on the same site</td><td>The “Suggest a tool” form, only when someone sends it</td><td>The form</td></tr>
+        </tbody>
+      </table></div>
+      <p>There are no other domains: no CDNs, web fonts, analytics or ads. Every page carries a Content Security Policy with <code>connect-src 'self'</code>, so the browser itself refuses any connection to another server.</p>
+      <p>A newly registered domain is often blocked by web filters as new or uncategorised. If yours blocks it, add freethetools.com to your allow list.</p>
+    </section>
+
+    <section aria-labelledby="dlp-h">
+      <h2 class="h2" id="dlp-h">Uploads and data loss prevention</h2>
+      <p>A tool reads a file with the browser's own file picker and works on it inside the tab. No upload request is made, so rules that block uploads are not triggered, and no file reaches us.</p>
+      <p>Results are saved through the browser's normal download. Your download rules still apply to them. Results are documents, images, text and ZIP files.</p>
+    </section>
+
+    <section aria-labelledby="features-h">
+      <h2 class="h2" id="features-h">Browser features it uses</h2>
+      <ul>
+        <li><b>JavaScript and Web Workers:</b> every tool.</li>
+        <li><b>WebAssembly:</b> only Compress PDF (Ghostscript) and Unlock PDF (qpdf). The files come from this site.</li>
+        <li><b>Service worker:</b> keeps the tools someone has opened, so they work offline. Optional: without it, the tools still work online.</li>
+        <li><b>Local storage and IndexedDB:</b> favourites, settings and the Library of recent results. Optional, and it stays in that browser.</li>
+      </ul>
+      <p><b>Microsoft Edge's enhanced security mode</b> runs WebAssembly through a slower interpreter. Microsoft recommends adding a site that needs it as an exception: in Edge, Settings, then Privacy, search, and services, then Manage enhanced security for sites. Setting the <code>EnhanceSecurityMode</code> policy to Strict, or <code>DefaultJavaScriptJitSetting</code> to <code>BlockJavaScriptJit</code>, applies the mode to every site, so add freethetools.com as an exception there too (<a href="https://learn.microsoft.com/en-us/deployedge/microsoft-edge-security-browse-safer">Microsoft's guide</a>).</p>
+    </section>
+
+    <section aria-labelledby="install-h">
+      <h2 class="h2" id="install-h">Install it for everyone</h2>
+      <p>Microsoft Edge (version 80 or later) and Google Chrome can install the site as an app for every user with the <code>WebAppInstallForceList</code> policy. It then opens in its own window and keeps working offline once opened.</p>
+      <pre><code>{FORCE_INSTALL}</code></pre>
+      <p>See <a href="https://learn.microsoft.com/en-us/deployedge/microsoft-edge-browser-policies/webappinstallforcelist">Microsoft's policy reference</a>.</p>
+    </section>
+
+    <section aria-labelledby="own-h">
+      <h2 class="h2" id="own-h">Run your own copy</h2>
+      <p>The site is a set of static files, so you can host it inside your network. The <a href={`${REPO}/blob/main/docs/how-to/self-host.md`}>self-hosting guide</a> shows how.</p>
+    </section>
+
+    <section aria-labelledby="check-h">
+      <h2 class="h2" id="check-h">Check it yourself</h2>
+      <ul>
+        <li><a href="/how-it-works/">How it works</a> lists exactly what the site sends, and how to watch it in the browser's Network tab.</li>
+        <li><a href="/verify/">Verify this site</a> checks the live files against the published build.</li>
+        <li>The <a href={REPO}>source code</a> is open, under the AGPL-3.0 licence.</li>
+        <li>Report a security problem to <a href="mailto:security@freethetools.com">security@freethetools.com</a>, or see the <a href={`${REPO}/security/policy`}>security policy</a>.</li>
+      </ul>
+    </section>
+
+    <p class="updated">Last updated: 2026-10-12</p>
+  </div>
+</Base>
+
+<style>
+  .at-work { display: grid; gap: 28px; }
+  .intro { display: grid; gap: 12px; }
+  section { display: grid; gap: 10px; padding-top: 8px; }
+  section p, section ul { color: var(--soft); margin: 0; }
+  section b { color: var(--ink); font-weight: 650; }
+  section ul { padding-left: 22px; display: grid; gap: 4px; }
+  section a { color: var(--ink); }
+  .tbl { overflow-x: auto; border: 1px solid var(--hair); border-radius: var(--r); background: var(--card); }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--hair); }
+  tbody tr:last-child td { border-bottom: 0; }
+  th { font-weight: 650; color: var(--ink); }
+  td { color: var(--soft); }
+  td:first-child { white-space: nowrap; }
+  /* The policy value wraps rather than scrolls: a scrolling box would need its own keyboard stop. */
+  pre { margin: 0; padding: 12px 14px; white-space: pre-wrap; overflow-wrap: anywhere; border-radius: var(--r); background: var(--well); font-size: 14px; }
+  code { font-family: var(--mono); font-size: .92em; }
+  .updated { color: var(--soft); margin: 0; }
+</style>
