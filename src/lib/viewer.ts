@@ -11,7 +11,7 @@ type Pdf = Extract<ViewItem, { kind: "pdf" }>;
 type Layout = "one" | "two" | "grid" | "scroll";
 /** "page" fits a whole page, "width" fits the page width, a number is a percent of the page's own size. */
 type Zoom = "page" | "width" | number;
-interface Cell { i: number; el: HTMLElement; pic: HTMLElement | null; w: number; ctl: AbortController | null; css: number; need: number }
+interface Cell { i: number; el: HTMLElement; pic: HTMLElement | null; w: number; ctl: AbortController | null; css: number; pw: number; need: number }
 interface Job { c: Cell; need: number; ctl: AbortController; my: number }
 
 const MIN_PCT = 25, MAX_PCT = 800, STEP = 1.25;
@@ -20,12 +20,17 @@ const NARROW = 700;           // below this width "Two pages" falls back to "One
 const MAX_JOBS = 2;           // pages drawn at the same time
 const PER: Record<Layout, number> = { one: 1, two: 2, grid: 4, scroll: 1 };
 const LEVELS = [50, 75, 100, 125, 150, 200];
-const KEY = "ftt-viewer-view";
+const KEY = "ftt-viewer-view";       // zoom: this tab only
+const LAYOUT_KEY = "ftt:viewer-layout"; // layout: kept in this browser, listed on the How it works page
+const TURN_AT = 60;           // wheel distance that counts as "turn the page"
+const GESTURE_GAP = 120;      // ms of quiet that ends one wheel gesture
+const TURN_LOCK = 200;        // ms after a turn when the wheel is ignored
+const SWIPE = 50;             // px a finger must travel sideways to turn the page
 const $ = <E extends HTMLElement>(id: string) => document.getElementById(id) as E;
 
 let dlg: HTMLDialogElement, stage: HTMLElement, fig: HTMLElement;
 let items: ViewItem[] = [], idx = 0, page = 1;
-let pref: Layout = "one";       // the layout the person chose; remembered for the session
+let chosen: Layout | null = null; // the layout the person chose; remembered in this browser
 let forced: Layout | null = null; // a Grid tile opens its page in One page without changing the choice
 let zoom: Zoom = "page";
 let opener: HTMLElement | null = null;
@@ -46,6 +51,11 @@ let near = new Set<number>();
 let drawObs: IntersectionObserver | null = null, freeObs: IntersectionObserver | null = null;
 let lastEff: Layout = "one";
 let lockUntil = 0, followRaf = 0;
+let rot = 0;            // the view is turned by this many degrees (0, 90, 180, 270); not saved, not in the file
+// Wheel and touch: one gesture turns one page.
+let wAcc = 0, wLast = 0, wAbs = 0, wLock = 0, wSettle = false, wPanned = 0, zBase = 0, zLast = 0;
+let touch: { x: number; y: number; t: number } | null = null;
+let tapAt = { t: 0, x: 0, y: 0 }, lastTouch = 0;
 
 const cur = () => items[idx];
 const isPdf = (it: ViewItem): it is Pdf => it.kind === "pdf";
@@ -62,22 +72,32 @@ const narrow = () => dlg.clientWidth < NARROW;
 const hasLayouts = () => multi() && pages() > 1;
 const eff = (): Layout => {
   if (!multi()) return "one";
-  const l = forced ?? pref;
+  // Until the person picks one, PDFs scroll and sets of pictures show one at a time.
+  const l = forced ?? chosen ?? (isPdf(cur()) ? "scroll" : "one");
   return l === "two" && narrow() ? "one" : l;
 };
 /** First page of the group on screen (the pairs are 1-2, 3-4 and so on; the grid's fours likewise). */
 const groupStart = () => (eff() === "two" || eff() === "grid" ? Math.floor((page - 1) / PER[eff()]) * PER[eff()] + 1 : page);
 const groupEnd = () => (eff() === "scroll" ? page : Math.min(pages(), groupStart() + PER[eff()] - 1));
 
+/** The number shown in "Go to page": the first page on screen. */
+const here = () => (multi() ? (eff() === "scroll" ? page : groupStart()) : pos());
+
 function readView() {
   try {
+    const l = localStorage.getItem(LAYOUT_KEY);
+    if (l === "one" || l === "two" || l === "grid" || l === "scroll") chosen = l;
+  } catch { /* storage may be blocked */ }
+  try {
     const v = JSON.parse(sessionStorage.getItem(KEY) || "null");
-    if (v && ["one", "two", "grid", "scroll"].includes(v.l)) pref = v.l;
+    if (v && ["one", "two", "grid", "scroll"].includes(v.l) && !chosen) chosen = v.l;
     if (v && (v.z === "page" || v.z === "width" || (typeof v.z === "number" && v.z >= MIN_PCT && v.z <= MAX_PCT))) zoom = v.z;
   } catch { /* storage may be blocked */ }
 }
 function saveView() {
-  try { sessionStorage.setItem(KEY, JSON.stringify({ l: pref, z: zoom })); } catch { /* ignore */ }
+  try { sessionStorage.setItem(KEY, JSON.stringify({ l: chosen, z: zoom })); } catch { /* ignore */ }
+  // Only a layout the person picked is remembered; zooming alone does not fix the default.
+  try { if (chosen) localStorage.setItem(LAYOUT_KEY, chosen); } catch { /* ignore */ }
 }
 
 function init() {
@@ -112,6 +132,28 @@ function init() {
     if (eff() !== "scroll" || followRaf) return;
     followRaf = requestAnimationFrame(() => { followRaf = 0; follow(); });
   }, { passive: true });
+  $("fv-rot").addEventListener("click", () => rotate(90));
+  const jump = $<HTMLInputElement>("fv-jump");
+  jump.addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const n = parseInt(jump.value, 10);
+    if (n > 0) goTo(n);
+    jump.value = String(here());
+    jump.select();
+  });
+  jump.addEventListener("blur", () => { if (items.length) jump.value = String(here()); });
+  fig.addEventListener("animationend", () => fig.classList.remove("t-next", "t-prev"));
+  // Not passive: a wheel turn or a zoom must stop the page from also scrolling or the browser from zooming.
+  stage.addEventListener("wheel", onWheel, { passive: false });
+  stage.addEventListener("touchstart", (e) => { touch = e.touches.length === 1 ? { x: e.touches[0].clientX, y: e.touches[0].clientY, t: performance.now() } : null; }, { passive: true });
+  stage.addEventListener("touchmove", (e) => { if (e.touches.length > 1) touch = null; }, { passive: true });
+  stage.addEventListener("touchend", onTouchEnd, { passive: true });
+  stage.addEventListener("touchcancel", () => { touch = null; }, { passive: true });
+  stage.addEventListener("dblclick", (e) => {
+    if (performance.now() - lastTouch < 600 || !paged() || eff() === "grid") return; // a double tap is handled on its own
+    toggleZoom(e.clientX, e.clientY);
+  });
   dlg.addEventListener("close", cleanup);
   dlg.addEventListener("keydown", onKey);
   new ResizeObserver(() => {
@@ -132,6 +174,8 @@ export function show(list: ViewItem[], start: number, from: HTMLElement | null) 
   idx = Math.min(Math.max(0, start), list.length - 1);
   opener = from;
   forced = null;
+  rot = 0;
+  wAcc = 0; wSettle = false; wLock = 0;
   const it = cur();
   page = isPdf(it) ? Math.min(Math.max(1, it.page ?? 1), it.pages) : isSet() ? idx + 1 : 1;
   if (!dlg.open) dlg.showModal();
@@ -216,6 +260,12 @@ function chrome(announce: boolean) {
   ($("fv-next") as HTMLButtonElement).disabled = last;
   const zoomable = paged();
   $("fv-zoom").hidden = !zoomable;
+  $("fv-rot").hidden = !zoomable;
+  // "Go to page [ 3 ]": for three or more pages, so Previous and Next are not the only way.
+  $("fv-jumpbox").hidden = n < 3;
+  $("fv-jl").textContent = isPdf(it) ? V("goToPage", "Go to page") : V("goToImage", "Go to image");
+  const jump = $<HTMLInputElement>("fv-jump");
+  if (document.activeElement !== jump) jump.value = String(here());
   $("fv-full").hidden = !(it.kind === "media" && it.blob.type.startsWith("video/"));
   const seg = $("fv-layout");
   seg.hidden = !hasLayouts();
@@ -303,7 +353,7 @@ function layout() {
 
 /** Width in CSS pixels that page `i` takes now, from the layout and the zoom. */
 function widthFor(i: number): number {
-  const a = aspect.get(i) ?? defAr, nat = natural.get(i) ?? defNat;
+  const a = shape(i), nat = ownWidth(i);
   const mode = eff(), r = room();
   const cols = mode === "two" || mode === "grid" ? 2 : 1, rows = mode === "grid" ? 2 : 1;
   const cw = mode === "scroll" ? r.w : (r.w - GAP * (cols - 1)) / cols;
@@ -313,12 +363,34 @@ function widthFor(i: number): number {
   return nat * (zoom / 100);
 }
 
+const turned = () => rot === 90 || rot === 270;
+/** Width / height of page `i` as shown: a view turned a quarter has them swapped. */
+function shape(i: number) {
+  const a = aspect.get(i) ?? defAr;
+  return turned() ? 1 / a : a;
+}
+/** The page's own width as shown, in CSS pixels at 100%. */
+function ownWidth(i: number) {
+  const nat = natural.get(i) ?? defNat;
+  return turned() ? nat / (aspect.get(i) ?? defAr) : nat;
+}
+
 function size(c: Cell) {
   const w = Math.max(24, Math.floor(widthFor(c.i)));
-  const h = Math.max(24, Math.floor(w / (aspect.get(c.i) ?? defAr)));
+  const h = Math.max(24, Math.floor(w / shape(c.i)));
   c.css = w;
   c.el.style.width = `${w}px`;
   c.el.style.height = `${h}px`;
+  // The picture is drawn upright and turned here; a quarter turn also swaps its box.
+  const p = c.pic;
+  if (p) {
+    p.style.position = rot ? "absolute" : "";
+    p.style.left = p.style.top = rot ? "50%" : "";
+    p.style.width = rot ? `${turned() ? h : w}px` : "";
+    p.style.height = rot ? `${turned() ? w : h}px` : "";
+    p.style.transform = rot ? `translate(-50%, -50%) rotate(${rot}deg)` : "";
+  }
+  c.pw = turned() ? h : w;
 }
 function sizeAll() { for (const c of cells.values()) size(c); }
 
@@ -326,7 +398,7 @@ function sizeAll() { for (const c of cells.values()) size(c); }
 function effPct(): number {
   const c = cells.get(eff() === "scroll" ? page : groupStart()) ?? cells.values().next().value;
   if (!c) return 100;
-  return Math.round(((c.css || widthFor(c.i)) / (natural.get(c.i) ?? defNat)) * 100);
+  return Math.round(((c.css || widthFor(c.i)) / ownWidth(c.i)) * 100);
 }
 
 function build() {
@@ -352,7 +424,7 @@ function build() {
     } else el = document.createElement("div");
     el.className = "fv-cell";
     el.dataset.i = String(i);
-    const c: Cell = { i, el, pic: null, w: 0, ctl: null, css: 0, need: 0 };
+    const c: Cell = { i, el, pic: null, w: 0, ctl: null, css: 0, pw: 0, need: 0 };
     cells.set(i, c);
     size(c);
     els.push(el);
@@ -415,7 +487,7 @@ function stopAll() {
 
 /** Draw `c` if it has no picture, or one too small or far too large for its size. */
 function want(c: Cell) {
-  const need = Math.min(4096, Math.ceil(c.css * dpr()));
+  const need = Math.min(4096, Math.ceil((c.pw || c.css) * dpr()));
   if (c.pic && c.w >= need * 0.95 && c.w <= need * 2.2) return;
   if (c.ctl && c.need >= need * 0.95 && c.need <= need * 2.2) return; // already being drawn big enough
   c.ctl?.abort();
@@ -523,24 +595,26 @@ function setLayout(l: Layout) {
   if (l === "two" && narrow()) return;
   const keep = page;
   forced = null;
-  pref = l;
+  chosen = l;
   saveView();
   page = keep;
   build();
   $("fv-live").textContent = where();
 }
 
-function setZoom(z: Zoom) {
+/** `at` is a point on screen to keep still (the mouse, the tap); without it the middle stays in the middle. */
+function setZoom(z: Zoom, at?: { x: number; y: number }) {
   if (!paged()) return;
   if (typeof z === "number") z = Math.min(MAX_PCT, Math.max(MIN_PCT, Math.round(z)));
   if (z === zoom) { chrome(false); return; }
-  // Keep the middle of what the person is looking at in the middle.
-  const fx = (stage.scrollLeft + stage.clientWidth / 2) / (stage.scrollWidth || 1), fy = (stage.scrollTop + stage.clientHeight / 2) / (stage.scrollHeight || 1);
+  const r = stage.getBoundingClientRect();
+  const ax = at ? at.x - r.left : stage.clientWidth / 2, ay = at ? at.y - r.top : stage.clientHeight / 2;
+  const fx = (stage.scrollLeft + ax) / (stage.scrollWidth || 1), fy = (stage.scrollTop + ay) / (stage.scrollHeight || 1);
   zoom = z;
   saveView();
   sizeAll();
-  stage.scrollLeft = fx * stage.scrollWidth - stage.clientWidth / 2;
-  stage.scrollTop = fy * stage.scrollHeight - stage.clientHeight / 2;
+  stage.scrollLeft = fx * stage.scrollWidth - ax;
+  stage.scrollTop = fy * stage.scrollHeight - ay;
   chrome(false);
   scheduleRedraw();
 }
@@ -551,23 +625,126 @@ function zoomBy(f: number) {
   setZoom(f > 1 ? Math.max(now + 1, Math.round(now * f)) : Math.min(now - 1, Math.round(now * f)));
 }
 
-/** Previous (-1) or Next (+1): by the layout's step in a PDF or picture set, or another item of the list. */
-function go(d: number) {
+
+/** Turn the whole view by a quarter. It is only how the pages are shown; the file is not changed. */
+function rotate(d: number) {
+  if (!paged()) return;
+  rot = (rot + d + 360) % 360;
+  sizeAll();
+  chrome(false);
+  scheduleRedraw();
+  $("fv-live").textContent = V("rotated", "Rotated to {n}°", { n: rot });
+}
+
+/** Double-click and double-tap: from a fitted page to twice its size at that spot, and back. */
+function toggleZoom(x: number, y: number) {
+  if (!paged()) return;
+  if (zoom === "page" || zoom === "width") setZoom(Math.max(200, effPct() * 2), { x, y });
+  else setZoom("page");
+}
+
+/** The slide-in on a page turn (the style only runs when the person has not asked for less motion). */
+function turnAnim(d: number) {
+  fig.classList.remove("t-next", "t-prev");
+  if (!d) return;
+  void fig.offsetWidth;
+  fig.classList.add(d > 0 ? "t-next" : "t-prev");
+}
+
+/** Previous (-1) or Next (+1): by the layout's step in a PDF or picture set, or another item of the list. False when there is none. */
+function go(d: number): boolean {
   if (multi()) {
     const mode = eff();
     const to = mode === "scroll" ? page + d : groupStart() + d * PER[mode];
-    if (to < 1 || to > pages()) return;
-    page = to;
-    if (isSet()) idx = to - 1;
-    if (mode === "scroll") { scrollToPage(to); chrome(true); return; }
-    build();
-    chrome(true);
-    return;
+    if (to < 1 || to > pages()) return false;
+    return goTo(to, d);
   }
   const to = idx + 1 + d;
-  if (to < 1 || to > items.length) return;
-  idx = to - 1;
-  load(true);
+  if (to < 1 || to > items.length) return false;
+  return goTo(to, d);
+}
+
+/** Straight to page (or item) `n`, counted from 1. */
+function goTo(n: number, d = 0): boolean {
+  n = Math.min(Math.max(1, Math.round(n)), count());
+  if (multi()) {
+    page = n;
+    if (isSet()) idx = n - 1;
+    if (eff() === "scroll") { scrollToPage(n); chrome(true); return true; }
+    build();
+  } else {
+    idx = n - 1;
+    load(true);
+  }
+  turnAnim(d);
+  if (multi()) chrome(true);
+  return true;
+}
+
+/** Can the picture area still scroll this way? Zoomed in, it can; fitted, it cannot. */
+function canPan(horiz: boolean, dir: number) {
+  return horiz
+    ? dir > 0 ? stage.scrollLeft + stage.clientWidth < stage.scrollWidth - 1 : stage.scrollLeft > 0
+    : dir > 0 ? stage.scrollTop + stage.clientHeight < stage.scrollHeight - 1 : stage.scrollTop > 0;
+}
+const zoomedIn = () => stage.scrollWidth > stage.clientWidth + 1 || stage.scrollHeight > stage.clientHeight + 1;
+
+/**
+ * The wheel. Ctrl or Cmd (and a trackpad pinch, which arrives as the same) zooms. In One page and Two pages
+ * it scrolls a zoomed page first and, at the edge, turns the page: a trackpad sends dozens of small events
+ * for one swipe, so a turn needs enough travel, then the wheel is ignored until the gesture has died away.
+ * Grid and Scroll keep the browser's own scrolling.
+ */
+function onWheel(e: WheelEvent) {
+  if (!items.length || !paged()) return;
+  if (e.ctrlKey || e.metaKey) {
+    e.preventDefault();
+    const now = performance.now();
+    if (now - zLast > 300 || !zBase) zBase = effPct();
+    zLast = now;
+    zBase = Math.min(MAX_PCT, Math.max(MIN_PCT, zBase * Math.exp(-e.deltaY * (e.deltaMode === 1 ? 16 : 1) * 0.0025)));
+    setZoom(zBase, { x: e.clientX, y: e.clientY });
+    return;
+  }
+  const mode = eff();
+  if (mode === "grid" || mode === "scroll" || count() < 2) return;
+  const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? stage.clientHeight : 1;
+  const dx = e.deltaX * unit, dy = e.deltaY * unit;
+  const horiz = Math.abs(dx) > Math.abs(dy), d = horiz ? dx : dy;
+  if (!d) return;
+  const now = performance.now(), gap = now - wLast, dir = d > 0 ? 1 : -1;
+  wLast = now;
+  if (canPan(horiz, dir)) { wPanned = now; wAcc = 0; return; } // the page scrolls by itself
+  e.preventDefault();
+  if (now - wPanned < GESTURE_GAP) { wPanned = now; return; }  // the same swipe that just reached the edge
+  if (now < wLock) { wAbs = Math.abs(d); return; }
+  if (wSettle) {
+    // After a turn, only a pause or a fresh, harder push starts a new gesture; the tail of a swipe does not.
+    if (gap < GESTURE_GAP && Math.abs(d) <= wAbs * 1.5) { wAbs = Math.abs(d); return; }
+    wSettle = false;
+    wAcc = 0;
+  }
+  if (gap > GESTURE_GAP || Math.sign(wAcc) !== dir) wAcc = 0;
+  wAcc += d;
+  wAbs = Math.abs(d);
+  if (Math.abs(wAcc) >= TURN_AT && go(dir)) { wAcc = 0; wSettle = true; wLock = now + TURN_LOCK; }
+  else if (Math.abs(wAcc) >= TURN_AT) wAcc = 0; // at the first or last page
+}
+
+/** Touch: a sideways swipe turns the page when it is not zoomed in sideways; two quick taps zoom. */
+function onTouchEnd(e: TouchEvent) {
+  const s = touch;
+  touch = null;
+  if (!s || e.touches.length || !items.length || !paged()) return;
+  const t = e.changedTouches[0], dx = t.clientX - s.x, dy = t.clientY - s.y, now = performance.now(), dt = now - s.t;
+  lastTouch = now;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {
+    if (now - tapAt.t < 350 && Math.hypot(t.clientX - tapAt.x, t.clientY - tapAt.y) < 30 && eff() !== "grid") { tapAt.t = 0; toggleZoom(t.clientX, t.clientY); }
+    else tapAt = { t: now, x: t.clientX, y: t.clientY };
+    return;
+  }
+  const mode = eff();
+  if ((mode === "one" || mode === "two") && count() > 1 && dt < 800 && Math.abs(dx) >= SWIPE && Math.abs(dx) > Math.abs(dy) * 1.5 && !(stage.scrollWidth > stage.clientWidth + 1)) go(dx < 0 ? 1 : -1);
 }
 
 function onKey(e: KeyboardEvent) {
@@ -575,27 +752,37 @@ function onKey(e: KeyboardEvent) {
   const t = e.target as HTMLElement;
   const typing = t.matches("input:not([type=radio]), textarea, select, video, audio");
   const radio = t.matches("input[type=radio]");
+  const k = e.key.toLowerCase();
   if (paged() && !typing) {
     if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomBy(STEP); return; }
     if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomBy(1 / STEP); return; }
     if (e.key === "0") { e.preventDefault(); setZoom("page"); return; }
+    if (k === "r") { e.preventDefault(); rotate(e.shiftKey ? -90 : 90); return; }
+    if (k === "g" && !$("fv-jumpbox").hidden) { e.preventDefault(); const j = $<HTMLInputElement>("fv-jump"); j.focus(); j.select(); return; }
     if (hasLayouts()) {
-      const k = e.key.toLowerCase();
       const to: Layout | undefined = k === "1" ? "one" : k === "2" ? "two" : k === "4" ? "grid" : k === "s" ? "scroll" : undefined;
       if (to) { e.preventDefault(); setLayout(to); return; }
     }
   }
   if (count() < 2 || typing) return;
+  if (e.key === "Home" || e.key === "End") { e.preventDefault(); goTo(e.key === "Home" ? 1 : count()); return; }
   if (multi() && eff() === "scroll") {
     const by = e.key === "PageDown" ? stage.clientHeight * 0.9 : e.key === "PageUp" ? -stage.clientHeight * 0.9 : !radio && e.key === "ArrowDown" ? 60 : !radio && e.key === "ArrowUp" ? -60 : 0;
     if (by) { e.preventDefault(); stage.scrollBy({ top: by }); }
     return;
   }
-  if (e.key === "PageDown") { e.preventDefault(); go(1); }
-  else if (e.key === "PageUp") { e.preventDefault(); go(-1); }
+  // Page Down and Space read on: they scroll a zoomed page first and turn the page at its end. Space on a button presses it.
+  const space = e.key === " " && !t.closest("button, input, select, a, summary");
+  const read = e.key === "PageDown" || (space && !e.shiftKey) ? 1 : e.key === "PageUp" || (space && e.shiftKey) ? -1 : 0;
+  if (read) {
+    e.preventDefault();
+    if (canPan(false, read)) stage.scrollBy({ top: read * stage.clientHeight * 0.9 });
+    else go(read);
+    return;
+  }
   // The arrows turn pages when there is nothing to pan; when zoomed in they pan, as the browser does by itself.
-  else if (!radio && !(stage.scrollWidth > stage.clientWidth + 1 || stage.scrollHeight > stage.clientHeight + 1)) {
-    if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
+  if (!radio && !zoomedIn()) {
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") { e.preventDefault(); go(-1); }
   }
 }

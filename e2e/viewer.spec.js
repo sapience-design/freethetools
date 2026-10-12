@@ -9,6 +9,12 @@ import { deflateSync, crc32 } from "node:zlib";
 const PDF = "tools/pdf/compress/tests/fixtures/sample.pdf"; // 3 pages
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
+// PDFs open in Scroll until a person picks a layout. Most tests here page through One page, so they
+// start with that choice already made; "the default layout" below starts with none.
+const ORIGIN = new URL(process.env.BASE_URL ?? "http://localhost:8788").origin;
+const withLayout = (value) => ({ cookies: [], origins: value ? [{ origin: ORIGIN, localStorage: [{ name: "ftt:viewer-layout", value }] }] : [] });
+test.use({ storageState: withLayout("one") });
+
 // Every test fails on a page error, a request to another origin, or a CSP violation.
 test.beforeEach(async ({ page }) => {
   const problems = [];
@@ -208,6 +214,29 @@ async function openLong(page, n) {
 }
 const layoutRadio = (page, name) => page.getByRole("radio", { name });
 const pos = (page) => page.locator("#fv-pos");
+
+test.describe("the default layout", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+  test.use({ storageState: withLayout(null) });
+
+  test("a PDF opens in Scroll until a layout is picked; zooming alone does not save one", async ({ page }) => {
+    const open = await mergeWithViewer(page);
+    await open.click();
+    await expect(layoutRadio(page, "Scroll")).toBeChecked();
+    await expect(page.locator("#fv-stage canvas.fv-pic")).toHaveCount(3);
+    await page.locator("#fv-in").click();
+    await page.keyboard.press("Escape");
+    expect(await page.evaluate(() => localStorage.getItem("ftt:viewer-layout"))).toBeNull();
+    await open.click();
+    await expect(layoutRadio(page, "Scroll")).toBeChecked();
+    // A picked layout is remembered.
+    await page.getByText("One page", { exact: true }).click();
+    await page.keyboard.press("Escape");
+    await open.click();
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+    expect(await page.evaluate(() => localStorage.getItem("ftt:viewer-layout"))).toBe("one");
+  });
+});
 
 test.describe("viewer page layouts", () => {
   test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
@@ -560,5 +589,241 @@ test.describe("on a touch screen", () => {
     await expect(open).toBeVisible();
     expect(await open.evaluate((b) => getComputedStyle(b).opacity)).toBe("1");
     expect((await open.boundingBox()).height).toBeGreaterThanOrEqual(44);
+  });
+});
+
+// ---- Scrolling, swiping and the other ways to move around ----
+const stageBox = async (page) => (await page.locator("#fv-stage").boundingBox());
+async function overStage(page) {
+  const b = await stageBox(page);
+  await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2);
+}
+const settle = (page) => page.waitForTimeout(450);
+/** A trackpad swipe: n small wheel events, 8 ms apart, sent from inside the page so a slow test machine cannot stretch it. */
+const burst = (page, n, dy) => page.locator("#fv-stage").evaluate(async (s, [n, dy]) => {
+  const r = s.getBoundingClientRect();
+  for (let i = 0; i < n; i++) {
+    s.dispatchEvent(new WheelEvent("wheel", { deltaY: dy, bubbles: true, cancelable: true, clientX: r.x + r.width / 2, clientY: r.y + r.height / 2 }));
+    await new Promise((ok) => setTimeout(ok, 8));
+  }
+}, [n, dy]);
+
+test.describe("viewer: wheel, keys, jump, rotate", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+
+  test("one wheel turn moves one page; down and right go on, up and left go back", async ({ page }) => {
+    await openLong(page, 9);
+    await overStage(page);
+    await page.mouse.wheel(0, 120);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await expect(page.locator("#fv-live")).toHaveText("Page 2 of 9");
+    await settle(page);
+    await page.mouse.wheel(120, 0);
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+    await settle(page);
+    await page.mouse.wheel(0, -120);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await settle(page);
+    await page.mouse.wheel(-120, 0);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    // Nothing before the first page.
+    await settle(page);
+    await page.mouse.wheel(0, -120);
+    await settle(page);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+  });
+
+  test("a trackpad burst of 20 small events turns exactly one page, and a later swipe turns the next", async ({ page }) => {
+    await openLong(page, 9);
+    await overStage(page);
+    await burst(page, 20, 8);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await settle(page);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await burst(page, 20, 8);
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+    await settle(page);
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+  });
+
+  test("zoomed in, the wheel scrolls the page first and turns it only after the edge", async ({ page }) => {
+    await openLong(page, 9);
+    for (let i = 0; i < 5; i++) await page.keyboard.press("+");
+    await overStage(page);
+    const top = () => page.locator("#fv-stage").evaluate((s) => Math.round(s.scrollTop));
+    const before = await top();
+    await page.mouse.wheel(0, 100);
+    await expect.poll(top).toBeGreaterThan(before);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    // Go to the bottom, wait for the swipe to end, then one more turns the page.
+    await page.locator("#fv-stage").evaluate((s) => { s.scrollTop = s.scrollHeight; });
+    await settle(page);
+    await page.mouse.wheel(0, 120);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+  });
+
+  test("Ctrl and wheel zoom and do not turn pages", async ({ page }) => {
+    await openLong(page, 9);
+    await overStage(page);
+    await expect(page.locator("#fv-level")).toHaveValue("page");
+    await page.keyboard.down("Control");
+    await page.mouse.wheel(0, -100);
+    await page.keyboard.up("Control");
+    await expect(page.locator("#fv-level")).not.toHaveValue("page");
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+  });
+
+  test("Two pages: the wheel turns one spread; Grid and Scroll keep scrolling", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("2");
+    await overStage(page);
+    await page.mouse.wheel(0, 120);
+    await expect(pos(page)).toHaveText("Pages 3–4 of 9");
+    await page.keyboard.press("4");
+    await settle(page);
+    await page.mouse.wheel(0, 300);
+    await settle(page);
+    await expect(pos(page)).toHaveText("Pages 1–4 of 9");
+    await page.keyboard.press("s");
+    await expect(page.locator("#fv-stage .fv-cell")).toHaveCount(9);
+    await page.mouse.wheel(0, 1500);
+    await expect.poll(() => page.locator("#fv-stage").evaluate((s) => s.scrollTop)).toBeGreaterThan(500);
+    await expect.poll(async () => (await pos(page).textContent()) !== "Page 1 of 9").toBe(true);
+  });
+
+  test("keys: Page Down, Space, Shift+Space, arrows, Home and End turn pages; Space on a button still presses it", async ({ page }) => {
+    await openLong(page, 9);
+    await page.locator("#fv-stage").focus();
+    await page.keyboard.press("PageDown");
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await page.keyboard.press("Space");
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+    await page.keyboard.press("Shift+Space");
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await page.keyboard.press("ArrowDown");
+    await expect(pos(page)).toHaveText("Page 3 of 9");
+    await page.keyboard.press("ArrowUp");
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await page.keyboard.press("PageUp");
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    await page.keyboard.press("End");
+    await expect(pos(page)).toHaveText("Page 9 of 9");
+    await page.keyboard.press("Home");
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    await page.locator("#fv-next").focus();
+    await page.keyboard.press("Space");
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    // Zoomed in, Page Down scrolls the page before it turns it.
+    await page.locator("#fv-stage").focus();
+    for (let i = 0; i < 5; i++) await page.keyboard.press("+");
+    await page.keyboard.press("PageDown");
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    expect(await page.locator("#fv-stage").evaluate((s) => s.scrollTop)).toBeGreaterThan(0);
+  });
+
+  test("Go to page: type a number, Enter; G focuses the box; out-of-range numbers are held to the ends", async ({ page }) => {
+    await openLong(page, 9);
+    const box = page.getByLabel("Go to page");
+    await expect(box).toHaveValue("1");
+    await box.fill("7");
+    await box.press("Enter");
+    await expect(pos(page)).toHaveText("Page 7 of 9");
+    await expect(page.locator("#fv-live")).toHaveText("Page 7 of 9");
+    await box.fill("99");
+    await box.press("Enter");
+    await expect(pos(page)).toHaveText("Page 9 of 9");
+    await page.locator("#fv-stage").focus();
+    await page.keyboard.press("g");
+    await expect(box).toBeFocused();
+    // Typing in the box does not trigger the viewer's shortcuts.
+    await page.keyboard.type("4");
+    await expect(layoutRadio(page, "One page")).toBeChecked();
+    await page.keyboard.press("Enter");
+    await expect(pos(page)).toHaveText("Page 4 of 9");
+  });
+
+  test("double-click zooms in at that spot and back to fit", async ({ page }) => {
+    await openLong(page, 9);
+    await pageCanvas(page).first().dblclick();
+    await expect(page.locator("#fv-level")).not.toHaveValue("page");
+    await pageCanvas(page).first().dblclick();
+    await expect(page.locator("#fv-level")).toHaveValue("page");
+  });
+
+  test("Rotate turns the view a quarter; R and Shift+R do too; it resets on the next open", async ({ page }) => {
+    await openLong(page, 9);
+    const shape = () => pageCanvas(page).first().evaluate((c) => { const r = c.getBoundingClientRect(); return r.width / r.height; });
+    const upright = await shape();
+    expect(upright).toBeLessThan(1);
+    await page.getByRole("button", { name: "Rotate" }).click();
+    await expect(page.locator("#fv-live")).toHaveText("Rotated to 90°");
+    await expect.poll(shape).toBeGreaterThan(1);
+    await page.keyboard.press("r");
+    await expect(page.locator("#fv-live")).toHaveText("Rotated to 180°");
+    await expect.poll(async () => Math.abs((await shape()) - upright)).toBeLessThan(0.02);
+    await page.keyboard.press("Shift+R");
+    await page.keyboard.press("Shift+R");
+    await page.keyboard.press("Shift+R");
+    await expect(page.locator("#fv-live")).toHaveText("Rotated to 270°");
+    // The turned page is still drawn and still fits the room.
+    await expect.poll(shape).toBeGreaterThan(1);
+    const s = await stageBox(page);
+    await expect.poll(async () => { const b = await pageCanvas(page).first().boundingBox(); return !!b && b.width <= s.width && b.height <= s.height; }).toBe(true);
+    await page.keyboard.press("Escape");
+    await page.locator("#pdfs-pages .page-tile").first().getByRole("button", { name: "View page 1 full screen" }).click();
+    await expect.poll(shape).toBeLessThan(1);
+  });
+
+  test("the layout is kept in this browser", async ({ page }) => {
+    await openLong(page, 9);
+    await page.keyboard.press("2");
+    expect(await page.evaluate(() => localStorage.getItem("ftt:viewer-layout"))).toBe("two");
+  });
+
+  test("a page turn slides in only when motion is allowed", async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await openLong(page, 9);
+    await page.locator("#fv-next").click();
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    expect(await page.locator(".fv-fig").evaluate((f) => getComputedStyle(f).animationName)).toBe("none");
+  });
+});
+
+test.describe("viewer: touch swipe", () => {
+  test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
+  test.use({ hasTouch: true });
+
+  /** A one-finger drag on the picture area, sent as touch events. */
+  async function swipe(page, dx, dy = 0) {
+    await page.locator("#fv-stage").evaluate(async (s, [dx, dy]) => {
+      const r = s.getBoundingClientRect();
+      const x = r.x + r.width / 2, y = r.y + r.height / 2;
+      const mk = (type, px, py) => new TouchEvent(type, {
+        bubbles: true, cancelable: true,
+        touches: type === "touchend" ? [] : [new Touch({ identifier: 1, target: s, clientX: px, clientY: py })],
+        changedTouches: [new Touch({ identifier: 1, target: s, clientX: px, clientY: py })],
+      });
+      s.dispatchEvent(mk("touchstart", x, y));
+      s.dispatchEvent(mk("touchmove", x + dx / 2, y + dy / 2));
+      await new Promise((ok) => setTimeout(ok, 30));
+      s.dispatchEvent(mk("touchend", x + dx, y + dy));
+    }, [dx, dy]);
+  }
+
+  test("a sideways swipe turns the page; a short or vertical one does not; zoomed in sideways it pans", async ({ page }) => {
+    await openLong(page, 9);
+    await swipe(page, -120);
+    await expect(pos(page)).toHaveText("Page 2 of 9");
+    await swipe(page, 120);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    await swipe(page, 20);
+    await swipe(page, -30, 150);
+    await page.waitForTimeout(200);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
+    for (let i = 0; i < 6; i++) await page.keyboard.press("+");
+    expect(await page.locator("#fv-stage").evaluate((s) => s.scrollWidth > s.clientWidth + 1)).toBe(true);
+    await swipe(page, -120);
+    await page.waitForTimeout(200);
+    await expect(pos(page)).toHaveText("Page 1 of 9");
   });
 });

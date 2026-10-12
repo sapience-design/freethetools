@@ -230,7 +230,11 @@
         "pagesOf": "Páginas {from}–{to} de {total}",
         "imagesOf": "Imágenes {from}–{to} de {total}",
         "openPage": "Abrir página {n}",
-        "openImage": "Abrir imagen {n}"
+        "openImage": "Abrir imagen {n}",
+        "rotate": "Girar",
+        "rotated": "Girado a {n}°",
+        "goToPage": "Ir a la página",
+        "goToImage": "Ir a la imagen"
       },
       "suggest": {
         "title": "Sugerir una herramienta",

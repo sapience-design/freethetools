@@ -1,0 +1,4 @@
+- Full-screen preview: the mouse wheel, a trackpad swipe or a finger swipe now turns pages in One page and Two pages. When you are zoomed in, the wheel scrolls the page first and turns it only at the edge. Ctrl and wheel (or a pinch on a trackpad) zoom.
+- Full-screen preview: Page Down, Page Up, Space, Shift+Space, Home and End move through the pages. Type a page number in "Go to page" (or press G) to jump to it.
+- Full-screen preview: double-click or double-tap to zoom in and back out, Rotate (or R) turns the view a quarter, and the layout you chose is remembered in this browser.
+- PDFs open in the full-screen viewer as one long scroll. One page, Two pages and Grid are a click away, and the viewer remembers the one you pick.
