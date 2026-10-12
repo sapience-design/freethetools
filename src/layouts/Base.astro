@@ -58,12 +58,12 @@ const slashParts = slots(t(lang, "foot.slash", { key: "{key}" }));
 const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang}`;
 ---
 <!doctype html>
-<html lang={lang} dir={L.dir}>
+<html lang={lang} dir={L.dir} data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Apply a saved Light/Dark choice before the first paint, so the page never flashes the wrong theme. -->
-  <script is:inline>try{var t=localStorage.getItem("ftt:theme");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}</script>
+  <script is:inline>try{var t=localStorage.getItem("ftt:theme");if(t==="dark")document.documentElement.dataset.theme="dark";else if(t==="system")delete document.documentElement.dataset.theme}catch(e){}</script>
   <!-- Page-change animation. Chrome rejects it when a page the service worker does not control links to one it does (a console error, no harm), so a page opts in only once the worker controls it. Without a service worker it always opts in. -->
   <script is:inline>try{if(!("serviceWorker" in navigator)||navigator.serviceWorker.controller){var vt=new CSSStyleSheet();vt.replaceSync("@view-transition{navigation:auto}");document.adoptedStyleSheets=[vt]}}catch(e){}</script>
   <title>{title}</title>
@@ -124,7 +124,7 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
         <a class="initiative" href="https://sapience.design"><img src="/brand/sapience-wordmark.webp" alt="Sapience Design" width="86" height="16"><span>{t(lang, "foot.initiative")}</span></a>
         <div class="theme" role="group" aria-label={t(lang, "foot.theme")}>
           {themes.map(([v, ic, label], i) => (
-            <button type="button" data-theme-set={v} aria-pressed={i === 0 ? "true" : "false"}><Icon name={ic} />{label}</button>
+            <button type="button" data-theme-set={v} aria-pressed={v === "light" ? "true" : "false"}><Icon name={ic} />{label}</button>
           ))}
         </div>
         {LANGS.length > 1 && (
@@ -203,7 +203,7 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
     registerServiceWorker();
     watchExternalLinks();
 
-    // ---- Theme: System (follows the device), Light or Dark; remembered in this browser only ----
+    // ---- Theme: Light unless the person picks Dark or System (follows the device); remembered in this browser only ----
     const THEME = "ftt:theme";
     const themeButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-theme-set]")];
     function applyTheme(choice: string) {
@@ -219,13 +219,12 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
     function paintTitleBar(dark: boolean) {
       document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]').forEach((m) => { m.content = dark ? "#15130f" : "#fbf8f2"; });
     }
-    let stored = "system";
-    try { stored = localStorage.getItem(THEME) || "system"; } catch {}
-    applyTheme(stored);
-    darkOS.addEventListener("change", () => applyTheme((() => { try { return localStorage.getItem(THEME) || "system"; } catch { return "system"; } })()));
+    const storedTheme = () => { try { return localStorage.getItem(THEME) || "light"; } catch { return "light"; } };
+    applyTheme(storedTheme());
+    darkOS.addEventListener("change", () => applyTheme(storedTheme()));
     themeButtons.forEach((b) => b.addEventListener("click", () => {
       const choice = b.dataset.themeSet!;
-      try { choice === "system" ? localStorage.removeItem(THEME) : localStorage.setItem(THEME, choice); } catch {}
+      try { choice === "light" ? localStorage.removeItem(THEME) : localStorage.setItem(THEME, choice); } catch {}
       applyTheme(choice);
     }));
 

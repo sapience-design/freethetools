@@ -320,7 +320,7 @@ import { REPO } from "../data/catalogue";
     btn.setAttribute("aria-label", `Clear ${r.name.toLowerCase()}`);
     btn.addEventListener("click", async () => {
       await r.clear();
-      if (r.name === "Theme") delete document.documentElement.dataset.theme;
+      if (r.name === "Theme") document.documentElement.dataset.theme = "light"; // back to the default
       status.textContent = `${r.name} cleared.`;
       await draw();
       (list.querySelector<HTMLButtonElement>(".s-clear") ?? document.getElementById("stores-h"))?.focus();
@@ -357,7 +357,7 @@ import { REPO } from "../data/catalogue";
   document.getElementById("stores-no")!.addEventListener("click", () => { confirmBox.hidden = true; clearBtn.focus(); });
   document.getElementById("stores-yes")!.addEventListener("click", async () => {
     for (const r of rows) await r.clear();
-    delete document.documentElement.dataset.theme;
+    document.documentElement.dataset.theme = "light"; // back to the default
     confirmBox.hidden = true;
     status.textContent = "Everything this site kept in this browser is cleared.";
     await draw();
