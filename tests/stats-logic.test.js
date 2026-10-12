@@ -295,8 +295,9 @@ test("the issue has a one-line title, labels, and no sender identity", () => {
   assert.match(issue.body, /\*\*Kind:\*\* suggestion/);
   assert.match(issue.body, /What do you use today\?/);
   const all = JSON.stringify(issue);
-  assert.equal(all.includes("ada@example.org"), false);
-  assert.equal(all.includes("example.org"), false);
+  // Neither the address nor its domain may reach the issue.
+  assert.doesNotMatch(all, /ada@example.org/);
+  assert.doesNotMatch(all, /example.org/);
   const problem = buildIssue(parseFeedback({ kind: "problem", message: "The merge button does nothing", tool: "pdf/merge", use: "x" }));
   assert.match(problem.title, /^Problem: /);
   assert.deepEqual(problem.labels, ["problem", "needs triage"]);
