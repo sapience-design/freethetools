@@ -1,0 +1,11 @@
+{
+  "source": "sapience-design/claude-playbook",
+  "version": "0.1.0",
+  "commit": "3030be5",
+  "skills": [
+    "audit-design",
+    "audit-security",
+    "ship-pr",
+    "spec-first"
+  ]
+}

@@ -20,6 +20,9 @@ nothing else. The npm package in `packages/freethetools/` runs the same tools as
 4. Add a changelog file such as `changelog.d/<slug>.added.md`. Never edit `CHANGELOG.md`.
 5. Run `npm run check`. It builds the site and runs every test.
 
+Claude Code runs this workflow through the `/new-tool` skill; see
+[Build with Claude Code](docs/how-to/build-with-claude.md). Never edit the files in `.claude/protected-paths`.
+
 ## Rules
 
 - Nothing leaves the device: no requests to other sites, and no third-party scripts, fonts, images
