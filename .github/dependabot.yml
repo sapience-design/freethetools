@@ -10,6 +10,10 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: weekly }
+    # One pull request a week for every action. The github/codeql-action steps (init, analyze,
+    # upload-sarif) must share one version, or CodeQL fails: separate bumps can never pass.
+    groups:
+      actions: { patterns: ["*"] }
     commit-message: { prefix: "ci" }
   - package-ecosystem: pip
     directory: /
