@@ -219,6 +219,7 @@
         "viewVideo": "View video full screen",
         "viewSound": "Open the player full screen",
         "viewCompare": "View the comparison full screen",
+        "viewCode": "Show the code full screen",
         "showAll": "Show all {n} pages",
         "showFewer": "Show fewer pages",
         "layout": "Page layout",

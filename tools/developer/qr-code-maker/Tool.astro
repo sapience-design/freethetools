@@ -41,9 +41,10 @@ import Step from "../../../src/components/Step.astro";
 <script>
   import { makeQr, wifiPayload } from "./core.js";
   import { downloadLink } from "../../../src/lib/files";
+  import { viewTextButton, viewLabel } from "../../../src/lib/expand";
   const $ = (id: string) => document.getElementById(id)!;
   const val = (id: string) => ($(id) as HTMLInputElement).value;
-  let svg = "";
+  let svg = "", shown = "";
 
   function payload() {
     const wifi = ($("qr-wifi") as HTMLInputElement).checked;
@@ -53,7 +54,7 @@ import Step from "../../../src/components/Step.astro";
   async function pngBlob(svgText: string, px = 1024): Promise<Blob> {
     const img = new Image();
     img.src = URL.createObjectURL(new Blob([svgText], { type: "image/svg+xml" }));
-    await img.decode();
+    try { await img.decode(); } finally { URL.revokeObjectURL(img.src); }
     const c = document.createElement("canvas"); c.width = c.height = px;
     const ctx = c.getContext("2d")!; ctx.imageSmoothingEnabled = false; ctx.drawImage(img, 0, 0, px, px);
     return new Promise((res) => c.toBlob((b) => res(b!), "image/png"));
@@ -63,13 +64,18 @@ import Step from "../../../src/components/Step.astro";
     try {
       const level = (document.querySelector('input[name="qr-level"]:checked') as HTMLInputElement).value as "L" | "M" | "Q" | "H";
       svg = makeQr(payload(), { level }).svg;
-      const img = new Image(); img.alt = ""; img.src = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      // Each keystroke makes a new picture; the old one's address is let go.
+      if (shown) URL.revokeObjectURL(shown);
+      shown = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      const img = new Image(); img.alt = ""; img.src = shown;
       $("qr-code").replaceChildren(img);
       err.hidden = true;
       actions.replaceChildren(downloadLink(svg, "qr-code.svg", "image/svg+xml", "Download SVG"));
-      const png = downloadLink(await pngBlob(svg), "qr-code.png", "image/png", "Download PNG");
+      const pngFile = await pngBlob(svg);
+      const png = downloadLink(pngFile, "qr-code.png", "image/png", "Download PNG");
       png.classList.add("line");
-      actions.append(png);
+      // Full screen makes the code big enough to scan from across a room.
+      actions.append(png, viewTextButton(viewLabel("code"), () => ({ kind: "image", blob: pngFile, name: "qr-code.png" })));
     } catch (e) {
       // role="alert" speaks whenever its text is written, so write only when it changes.
       if (err.textContent !== (e as Error).message) err.textContent = (e as Error).message;

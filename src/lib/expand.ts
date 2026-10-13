@@ -34,11 +34,12 @@ export async function openViewer(items: ViewItem[], index = 0, opener?: HTMLElem
 }
 
 /** The button text for what is being shown: "View page 3 full screen", "View photo full screen". */
-export const viewLabel = (what: "page" | "photo" | "video" | "sound" | "comparison", n?: number) =>
+export const viewLabel = (what: "page" | "photo" | "video" | "sound" | "comparison" | "code", n?: number) =>
   what === "page" ? V("viewPage", "View page {n} full screen", { n: n ?? 1 })
   : what === "video" ? V("viewVideo", "View video full screen")
   : what === "sound" ? V("viewSound", "Open the player full screen")
   : what === "comparison" ? V("viewCompare", "View the comparison full screen")
+  : what === "code" ? V("viewCode", "Show the code full screen")
   : V("viewPhoto", "View photo full screen");
 
 /** A round expand button. It looks like part of the preview and is at least 44 px square to press. */
