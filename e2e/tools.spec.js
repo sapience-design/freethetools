@@ -10,6 +10,10 @@ const pdf = (buf) => PDFDocument.load(buf);
 const pageCount = async (buf) => (await pdf(buf)).getPageCount();
 // A valid 2x1 PNG, built as a buffer so no fixture file is needed.
 const PNG = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAEElEQVR4nGP4z8DAwMDAAAAN/gH/7yFJ5QAAAABJRU5ErkJggg==", "base64");
+// A 24-unit icon: a red square with a transparent hole, the size most icon sets use.
+const SVG = { name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#c00" fill-rule="evenodd" d="M0 0h24v24H0zM8 8v8h8V8z"/></svg>') };
+/** A PNG's width and height, from its IHDR chunk. */
+const pngSize = (buf) => [buf.readUInt32BE(16), buf.readUInt32BE(20)];
 
 const catalogue = JSON.parse(readFileSync("dist/api/tools.json", "utf8"));
 const TOOLS = catalogue.categories.flatMap((c) => c.tools).map((t) => new URL(t.url).pathname);
@@ -123,6 +127,16 @@ test.describe("PDF tools", () => {
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect(out.subarray(0, 5).toString()).toBe("%PDF-");
     expect(await pageCount(out)).toBe(2);
+  });
+
+  test("Images to PDF takes an SVG drawing", async ({ page }) => {
+    await page.goto("/pdf/images-to-pdf/");
+    await page.setInputFiles("#i2p-file", SVG);
+    await expect(page.locator("#i2p-list .fthumb img")).toHaveCount(1);
+    await page.click("#i2p-go");
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
+    expect(out.subarray(0, 5).toString()).toBe("%PDF-");
+    expect(await pageCount(out)).toBe(1);
   });
 
   // Unlock PDF. The encrypted files are made by qpdf itself from the sample PDF (tools/pdf/unlock/tests/helpers.js).
@@ -569,6 +583,45 @@ test.describe("image tools", () => {
     await page.setInputFiles("#cmi-file", png());
     await page.click("#cmi-go");
     await expect(page.locator("#cmi-list .fmeta")).toContainText(/smaller|Already compact/);
+  });
+
+  test("Convert Image Format turns an SVG icon into a 512 px PNG", async ({ page }) => {
+    await page.goto("/images/convert/");
+    await page.setInputFiles("#cvi-file", SVG);
+    await page.click('label[for="cvi-png"]');
+    await page.click("#cvi-go");
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
+    expect(out.subarray(1, 4).toString()).toBe("PNG");
+    expect(pngSize(out)).toEqual([512, 512]);
+  });
+
+  test("Resize Images redraws an SVG at the new size, as a PNG", async ({ page }) => {
+    await page.goto("/images/resize/");
+    await page.fill("#rsz-w", "2000");
+    await page.setInputFiles("#rsz-file", SVG);
+    await page.click("#rsz-go");
+    await expect(page.locator("#rsz-list .fmeta")).toContainText("512×512 → 2000×2000");
+    const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
+    expect(out.subarray(1, 4).toString()).toBe("PNG");
+    expect(pngSize(out)).toEqual([2000, 2000]);
+    // Drawn at 2000 px, the edge of the hole is a clean step: no blurred band from upscaling a 512 px picture.
+    const edge = await page.evaluate(async (b64) => {
+      const bmp = await createImageBitmap(new Blob([Uint8Array.from(atob(b64), (c) => c.charCodeAt(0))]));
+      const ctx = new OffscreenCanvas(bmp.width, bmp.height).getContext("2d");
+      ctx.drawImage(bmp, 0, 0);
+      const row = ctx.getImageData(640, 1000, 30, 1).data;
+      let soft = 0;
+      for (let i = 3; i < row.length; i += 4) if (row[i] > 10 && row[i] < 245) soft++;
+      return soft;
+    }, out.toString("base64"));
+    expect(edge).toBeLessThanOrEqual(2);
+  });
+
+  test("Compress Images explains that an SVG is a drawing", async ({ page }) => {
+    await page.goto("/images/compress/");
+    await page.setInputFiles("#cmi-file", SVG);
+    await page.click("#cmi-go");
+    await expect(page.locator("#cmi-list .fmeta")).toContainText("use Convert Image Format");
   });
 
   test("Remove Photo Location strips GPS", async ({ page }) => {

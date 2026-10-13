@@ -1,14 +1,48 @@
 // Image helpers for tool pages, built on the browser's own decoders and <canvas>. No libraries.
+import { looksLikeSvg, svgRasterSize } from "./svg.js";
 
 export type Format = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
 export const EXT: Record<Format, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" };
 
-/** Decode a file, applying its EXIF rotation so phone photos come out the right way up. */
-export async function decode(file: Blob): Promise<ImageBitmap> {
+/** True for an SVG drawing, by its type, its name, or (for a file with no type) its first bytes. */
+export async function isSvg(file: Blob): Promise<boolean> {
+  if (file.type === "image/svg+xml" || /\.svg$/i.test((file as File).name ?? "")) return true;
+  if (file.type && !/xml|^text\//.test(file.type)) return false;
+  return looksLikeSvg(await file.slice(0, 4096).text());
+}
+
+/**
+ * Decode a file, applying its EXIF rotation so phone photos come out the right way up. An SVG is drawn
+ * at `size` when given (so a drawing stays sharp at any size), else at its own size, with small icons
+ * scaled up to 512 px.
+ */
+export async function decode(file: Blob, size?: { width: number; height: number }): Promise<ImageBitmap> {
+  if (await isSvg(file)) return drawSvg(file, size);
   try {
     return await createImageBitmap(file, { imageOrientation: "from-image" });
   } catch {
     throw new Error("This browser can't open that image. HEIC photos need converting first.");
+  }
+}
+
+/** The browser draws the SVG through an <img>, which runs no scripts and loads nothing from other sites. */
+async function drawSvg(file: Blob, size?: { width: number; height: number }): Promise<ImageBitmap> {
+  const text = await file.text();
+  const { width, height } = size ?? svgRasterSize(text);
+  const url = URL.createObjectURL(new Blob([text], { type: "image/svg+xml" }));
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    c.getContext("2d")!.drawImage(img, 0, 0, width, height);
+    return await createImageBitmap(c);
+  } catch {
+    throw new Error("This SVG couldn't be drawn. Check that the file isn't damaged.");
+  } finally {
+    URL.revokeObjectURL(url);
   }
 }
 
