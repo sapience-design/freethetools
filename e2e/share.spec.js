@@ -94,8 +94,10 @@ test("a result that is redrawn as you type keeps exactly one Share per link", as
   }
   await expect(page.locator("#qr-actions a[download]")).toHaveCount(2);
   await expect(page.locator("#qr-actions .share-btn")).toHaveCount(2);
+  // Each download keeps exactly one Share right after it; the one other button is View full screen.
   const order = await page.locator("#qr-actions").evaluate((el) => [...el.children].map((c) => c.tagName + (c.classList.contains("share-btn") ? ".share" : "")));
-  expect(order).toEqual(["A", "BUTTON.share", "A", "BUTTON.share"]);
+  expect(order.filter((c) => c !== "BUTTON")).toEqual(["A", "BUTTON.share", "A", "BUTTON.share"]);
+  expect(order.filter((c) => c === "BUTTON")).toHaveLength(1);
   await page.locator("#qr-actions .share-btn").last().click();
   await expect.poll(() => shared(page)).toHaveLength(1);
   expect((await shared(page))[0].files[0]).toMatchObject({ name: "qr-code.png", type: "image/png" });
