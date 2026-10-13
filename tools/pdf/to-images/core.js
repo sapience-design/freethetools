@@ -11,6 +11,7 @@ export const FORMATS = [
   { ext: "png", type: "image/png", label: "PNG", note: "Sharp, good for text" },
   { ext: "jpg", type: "image/jpeg", label: "JPG", note: "Smaller files, good for photos" },
   { ext: "webp", type: "image/webp", label: "WebP", note: "Smallest, for websites" },
+  { ext: "svg", type: "image/svg+xml", label: "SVG", note: "Sharp at any size; a 10 MB engine loads once" },
 ];
 
 /** The picture type for a file extension; PNG when it is unknown. */
