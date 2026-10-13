@@ -6,7 +6,7 @@ import Icon from "../../../src/components/Icon.astro";
 ---
 <section class="tool" id="i2p-tool" aria-label="Images to PDF">
   <Step n={1} title="Choose your photos">
-    <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG or WebP · as many as you like" button="Choose photos" />
+    <DropZone prefix="i2p" toolId="pdf/images-to-pdf" category="pdf" name="Images to PDF" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG, WebP or SVG · as many as you like" button="Choose photos" />
   </Step>
 
   <Step n={2} title="Check the order and page size" state="later">
@@ -43,6 +43,8 @@ import Icon from "../../../src/components/Icon.astro";
   import { imagesToPdf } from "./core.js";
   import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, iconButton, refocus, photoRow } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
+  import { decode, isSvg } from "../../../src/lib/images";
+  import { svgRasterSize } from "../../../src/lib/svg.js";
 
   type Item = { file: File; bytes: ArrayBuffer; type: "image/jpeg" | "image/png" };
   const items: Item[] = [];
@@ -51,10 +53,17 @@ import Icon from "../../../src/components/Icon.astro";
   const go = $("i2p-go") as HTMLButtonElement, goLabel = $("i2p-go-label"), clear = $("i2p-clear");
   const WAIT = "Your PDF will appear here.";
 
-  // JPG and PNG go in untouched; anything else the browser can decode is re-encoded as PNG.
+  // JPG and PNG go in untouched; anything else the browser can decode is re-encoded as PNG. An SVG is
+  // drawn about 2480 px on its long side (A4 at 300 dpi), so it prints sharply.
   async function toEmbeddable(file: File): Promise<Item> {
     if (file.type === "image/jpeg" || file.type === "image/png") return { file, bytes: await file.arrayBuffer(), type: file.type };
-    const bmp = await createImageBitmap(file);
+    let size: { width: number; height: number } | undefined;
+    if (await isSvg(file)) {
+      const s = svgRasterSize(await file.text()), long = Math.max(s.width, s.height);
+      const k = Math.min(4096, Math.max(2480, long)) / long;
+      size = { width: Math.round(s.width * k), height: Math.round(s.height * k) };
+    }
+    const bmp = await decode(file, size);
     const canvas = document.createElement("canvas");
     canvas.width = bmp.width; canvas.height = bmp.height;
     canvas.getContext("2d")!.drawImage(bmp, 0, 0);

@@ -3,7 +3,7 @@
   "task": "Cambiar el tipo de una foto",
   "tagline": "JPG, PNG, WebP y AVIF, el que necesites.",
   "seoTitle": "Convertir imágenes PNG, JPG y WebP sin subirlas",
-  "description": "Convierte imágenes entre PNG, JPG, WebP y AVIF gratis en tu navegador, una o varias a la vez. Tus imágenes no salen de tu dispositivo.",
+  "description": "Convierte imágenes entre PNG, JPG, WebP y AVIF gratis en tu navegador, una o varias a la vez. También dibujos SVG. Tus imágenes no salen de tu dispositivo.",
   "keywords": [
     "png a jpg",
     "webp a png",
@@ -12,11 +12,14 @@
     "convertir imagen",
     "formato de imagen",
     "webp a jpg",
-    "pasar png a jpg"
+    "pasar png a jpg",
+    "svg a png",
+    "svg a jpg"
   ],
   "specs": {
     "Motor": "Los codificadores de imagen de tu propio navegador",
     "AVIF": "Disponible cuando tu navegador puede escribirlo",
+    "SVG": "Lo dibuja tu navegador; los iconos pequeños, a 512 px",
     "Funciona sin conexión": "Sí, una vez cargada la página"
   },
   "faq": [

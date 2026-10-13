@@ -6,6 +6,20 @@ export const RESOLUTIONS = [
   { dpi: 300, label: "Print" },
 ];
 
+/** The picture types, in the order shown. WebP is offered only where the browser can write it. */
+export const FORMATS = [
+  { ext: "png", type: "image/png", label: "PNG", note: "Sharp, good for text" },
+  { ext: "jpg", type: "image/jpeg", label: "JPG", note: "Smaller files, good for photos" },
+  { ext: "webp", type: "image/webp", label: "WebP", note: "Smallest, for websites" },
+  { ext: "svg", type: "image/svg+xml", label: "SVG", note: "Sharp at any size; a 10 MB engine loads once" },
+];
+
+/** The picture type for a file extension; PNG when it is unknown. */
+export const formatFor = (ext) => FORMATS.find((f) => f.ext === ext) ?? FORMATS[0];
+
+/** PNG is lossless; JPG and WebP are saved at quality 0.9. */
+export const qualityFor = (type) => (type === "image/png" ? undefined : 0.9);
+
 /** PDF units are points (1/72 inch), so the render scale for a DPI is dpi / 72. */
 export const scaleFor = (dpi) => dpi / 72;
 
