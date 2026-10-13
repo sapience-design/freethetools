@@ -1,0 +1,114 @@
+---
+// View and Edit PDF: choose a PDF, look through its pages (read only), then press Edit or View full
+// screen. Both open the site's shared full-screen viewer; Edit opens it in edit mode, where you write
+// on the pages and sign. The editor is src/lib/pdf-edit/, shared by every PDF the viewer opens. A saved
+// copy comes back to this page (the viewer's `onSave`) and is shown here with its download.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+---
+<section class="tool" id="pve-tool" aria-label="View and edit PDF">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="pve" toolId="pdf/edit" category="pdf" name="View and Edit PDF" accept="application/pdf,.pdf" title="Drop your PDF here" hint="To read it, fill it in or sign it" button="Choose PDF" />
+    <ul class="file-list" id="pve-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="pve-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="pve-name"></span><span class="fmeta" id="pve-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="pve-change" type="button">Change</button></span>
+      </li>
+    </ul>
+  </Step>
+
+  <Step n={2} title="Look through it, then edit" state="later">
+    <div class="pve-acts">
+      <button class="btn" id="pve-edit" type="button" disabled><Icon name="pencil-simple" /><span>Edit</span></button>
+      <button class="btn line" id="pve-full" type="button" disabled><Icon name="arrows-out" /><span>View full screen</span></button>
+    </div>
+    <p class="pve-note">
+      <Icon name="info" />
+      <span>This is a read-only preview. Press Edit to write on the pages or sign. A signature here is a picture of your signature, not a certificate-based digital signature.</span>
+    </p>
+    <div class="pve-pages" id="pve-pages"></div>
+  </Step>
+
+  <Step n={3} title="Your edited PDF" state="later">
+    <div class="result" id="pve-result" aria-live="polite"><p class="res-wait">After you save in the editor, your edited PDF appears here.</p></div>
+  </Step>
+</section>
+
+<script>
+  import { wireDrop, fmtBytes, downloadLink, showError, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { pdfFacts, pdfMeta } from "../../../src/lib/pdfinfo";
+  import { usePdfWorker, pdfPreview, pdfPages, pageStrip, outputRow, pdfViewItem } from "../../../src/lib/pdfthumb";
+  import { openViewer } from "../../../src/lib/expand";
+  import { stepTo } from "../../../src/lib/steps";
+  import { withUnlocked } from "../../../src/lib/pdfpassword";
+
+  usePdfWorker();
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const root = $("pve-tool"), result = $("pve-result"), pages = $("pve-pages");
+  const edit = $<HTMLButtonElement>("pve-edit"), full = $<HTMLButtonElement>("pve-full");
+  const WAIT = "After you save in the editor, your edited PDF appears here.";
+
+  let file: File | null = null;
+  let total = 0;
+
+  wireDrop("pve", async (files) => {
+    const picked = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!picked) return;
+    await withUnlocked(picked, $("pve-drop"), use);
+  });
+  $("pve-change").addEventListener("click", () => $("pve-file").click());
+
+  /** Show a file: its facts, its first page, and every page as a read-only picture. */
+  async function show(f: File, pageCount: number, fromSave = false) {
+    file = f;
+    total = pageCount;
+    $("pve-name").textContent = f.name;
+    $("pve-meta").textContent = pdfMeta(await pdfFacts(f), f.size);
+    $("pve-picked").hidden = false;
+    pdfPreview($("pve-thumb"), f, f.name, total, 176, onSave);
+    const strip = pageStrip(f, total, { name: f.name, max: 12, onSave });
+    pages.replaceChildren(strip.el);
+    edit.disabled = full.disabled = false;
+    compactDrop("pve", true);
+    if (!fromSave) stepTo(root, 2);
+  }
+
+  async function use(f: File) {
+    showWait(result, WAIT);
+    const n = await pdfPages(f);
+    if (!n) {
+      showError(result, "This file couldn't be opened as a PDF. It may be damaged.");
+      return;
+    }
+    await show(f, n);
+  }
+
+  /** The viewer saved a copy: show it here, with its download, and keep editing on it from now on. */
+  async function onSave(blob: Blob, name: string) {
+    const f = new File([blob], name, { type: "application/pdf" });
+    await show(f, total, true);
+    const dl = downloadLink(blob, name, "application/pdf", "Download PDF");
+    dl.classList.add("run");
+    showDone(result, "Done. Your marks are saved into the PDF.", `${name} · ${fmtBytes(blob.size)}`);
+    result.append(outputRow(blob, dl, name));
+    stepTo(root, 3);
+  }
+
+  function open(button: HTMLElement, editing: boolean) {
+    if (!file) return;
+    openViewer([pdfViewItem(file, file.name, total, 1, onSave)], 0, button, { edit: editing });
+  }
+  edit.addEventListener("click", () => open(edit, true));
+  full.addEventListener("click", () => open(full, false));
+</script>
+
+<style is:global>
+  /* View and Edit PDF. The editing look lives with the viewer (ViewerDialog.astro). */
+  .pve-acts { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pve-acts .btn { flex: 0 1 auto; }
+  .pve-note { display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 10px 14px; border-radius: var(--r); background: var(--well); font-size: 15px; }
+  .pve-note .ic { flex: none; font-size: 20px; margin-top: 2px; }
+  .pve-pages { min-width: 0; }
+</style>

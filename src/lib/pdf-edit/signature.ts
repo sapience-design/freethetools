@@ -1,5 +1,8 @@
 // The signature dialog: draw it, type it, or pick a picture. The result is a transparent PNG
 // trimmed to the ink. Nothing is uploaded: a picked file is read here and never fetched.
+// The dialog is built by script when the editor starts and removed when it ends.
+import { T } from "./words";
+import { el, icon } from "./dom";
 
 export type Signature = { bytes: Uint8Array; width: number; height: number };
 
@@ -9,8 +12,6 @@ const STYLES: Record<string, string> = {
   casual: '100px "Bradley Hand", "Segoe Print", "Chalkboard SE", "Comic Sans MS", "Comic Neue", cursive',
 };
 const MAX_WIDTH = 900;
-
-const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
 
 /** Crop a canvas to the pixels that have ink, with a small margin. Null when it is empty. */
 function trim(src: HTMLCanvasElement): HTMLCanvasElement | null {
@@ -41,22 +42,78 @@ const toPng = (c: HTMLCanvasElement) =>
   new Promise<Signature | null>((done) =>
     c.toBlob(async (b) => done(b ? { bytes: new Uint8Array(await b.arrayBuffer()), width: c.width, height: c.height } : null), "image/png"));
 
-/** Wire the dialog. `open()` shows it and resolves with the signature, or null when cancelled. */
+/** A group of radio buttons that look like the site's segmented control. */
+function segment(name: string, legend: string, items: [string, string, string?][], extra = ""): HTMLFieldSetElement {
+  const fs = el("fieldset", `seg fv-sg-seg ${extra}`.trim());
+  fs.append(el("legend", "sr-only", legend));
+  items.forEach(([value, label], i) => {
+    const id = `fv-sg-${name}-${value}`;
+    fs.append(el("input", "", "", { type: "radio", name: `fv-sg-${name}`, id, value, checked: i === 0 }), el("label", "", label, { for: id }));
+  });
+  return fs;
+}
+
+/** Build the dialog and wire it. `open()` shows it and resolves with the signature, or null when cancelled. */
 export function setupSignature() {
-  const dlg = $<HTMLDialogElement>("pes-sig");
-  const pad = $<HTMLCanvasElement>("pes-pad");
-  const prev = $<HTMLCanvasElement>("pes-sigprev");
-  const pic = $<HTMLCanvasElement>("pes-sigpic");
-  const use = $<HTMLButtonElement>("pes-sig-use");
-  const last = $<HTMLButtonElement>("pes-sig-last");
-  const err = $("pes-sig-err");
+  const dlg = el("dialog", "fv-sg", "", { "aria-labelledby": "fv-sg-title" });
+  const box = el("div", "fv-sg-box");
+  const err = el("p", "tool-error", "", { id: "fv-sg-err", role: "alert", hidden: true });
+
+  const tabs = segment("tab", T("sigHow", "How do you want to make it?"), [["draw", T("sigDraw", "Draw")], ["type", T("sigType", "Type")], ["pic", T("sigPicture", "Picture")]], "fv-sg-tabs");
+  tabs.querySelectorAll("label").forEach((l, i) => l.prepend(icon((["scribble", "textT", "image"] as const)[i])));
+
+  // Draw
+  const pad = el("canvas", "fv-sg-pad", "", { id: "fv-sg-pad", width: 900, height: 300, role: "img", "aria-label": T("sigPad", "Signature drawing area. Use the Type tab if you cannot draw.") });
+  const clear = el("button", "btn quiet small", T("sigClear", "Clear"), { type: "button", id: "fv-sg-clear" });
+  const inks = segment("ink", T("sigInk", "Ink colour"), [["#111111", T("cBlack", "Black")], ["#1f3f9e", T("cBlue", "Blue")]], "fv-sg-inkset");
+  const panelDraw = el("div", "fv-sg-panel");
+  panelDraw.append(pad, Object.assign(el("div", "fv-sg-padbar"), {}));
+  panelDraw.lastElementChild!.append(inks, clear);
+
+  // Type
+  const nameIn = el("input", "", "", { type: "text", id: "fv-sg-text", maxlength: 60, autocomplete: "off" });
+  const nameField = el("label", "field");
+  nameField.append(el("span", "", T("sigName", "Your name")), nameIn);
+  const fontSel = el("select", "", "", { id: "fv-sg-font" });
+  for (const [v, l] of [["script", T("sigScript", "Script")], ["formal", T("sigFormal", "Formal")], ["casual", T("sigCasual", "Casual")]]) fontSel.append(el("option", "", l, { value: v }));
+  const fontField = el("label", "field");
+  fontField.append(el("span", "", T("sigStyle", "Style")), fontSel);
+  const prev = el("canvas", "fv-sg-pad fv-sg-prev", "", { width: 900, height: 200, "aria-hidden": "true" });
+  const panelType = el("div", "fv-sg-panel", "", { hidden: true });
+  panelType.append(nameField, fontField, prev);
+
+  // Picture
+  const fileIn = el("input", "", "", { type: "file", id: "fv-sg-file", accept: "image/png,image/jpeg" });
+  const fileField = el("label", "field");
+  fileField.append(el("span", "", T("sigFile", "A PNG or JPG of your signature")), fileIn);
+  const see = el("input", "", "", { type: "checkbox", id: "fv-sg-see", checked: true });
+  const seeField = el("label", "check");
+  seeField.append(see, document.createTextNode(" "), el("span", "", T("sigSee", "Make the white background see-through")));
+  const pic = el("canvas", "fv-sg-pad fv-sg-prev", "", { width: 900, height: 300, "aria-hidden": "true" });
+  const panelPic = el("div", "fv-sg-panel", "", { hidden: true });
+  panelPic.append(fileField, seeField, pic, el("p", "fv-sg-small", T("sigPicNote", "Sign on white paper and take a straight photo, or scan it. The picture stays on this device.")));
+
+  const use = el("button", "btn", T("sigUse", "Use signature"), { type: "button", id: "fv-sg-use", disabled: true });
+  const last = el("button", "btn quiet", T("sigLast", "Use the last one"), { type: "button", hidden: true });
+  const cancel = el("button", "btn quiet", T("sigCancel", "Cancel"), { type: "button", id: "fv-sg-cancel" });
+  const acts = el("div", "fv-sg-acts");
+  acts.append(use, last, cancel);
+
+  box.append(
+    el("h2", "", T("sigTitle", "Add your signature"), { id: "fv-sg-title" }),
+    el("p", "fv-sg-note", T("sigNote", "This adds a picture of your signature. It is not a certificate-based digital signature.")),
+    tabs, panelDraw, panelType, panelPic, err, acts,
+  );
+  dlg.append(box);
+  document.body.append(dlg);
+
   let remembered: Signature | null = null;
   let settle: ((s: Signature | null) => void) | null = null;
   let picked: ImageBitmap | HTMLImageElement | null = null;
   let strokes = 0;
 
-  const tab = () => (document.querySelector('input[name="pes-sigtab"]:checked') as HTMLInputElement).value as "draw" | "type" | "pic";
-  const ink = () => (document.querySelector('input[name="pes-ink"]:checked') as HTMLInputElement).value;
+  const checked = (name: string) => (dlg.querySelector(`input[name="fv-sg-${name}"]:checked`) as HTMLInputElement).value;
+  const tab = () => checked("tab") as "draw" | "type" | "pic";
   const problem = (text: string) => { err.textContent = text; err.hidden = !text; };
 
   // ---- Draw -------------------------------------------------------------------------------------
@@ -67,8 +124,8 @@ export function setupSignature() {
     const r = pad.getBoundingClientRect();
     return [((e.clientX - r.left) * pad.width) / r.width, ((e.clientY - r.top) * pad.height) / r.height];
   };
-  const segment = (from: [number, number], to: [number, number]) => {
-    pctx.strokeStyle = ink();
+  const seg = (from: [number, number], to: [number, number]) => {
+    pctx.strokeStyle = checked("ink");
     pctx.lineWidth = 6;
     pctx.lineCap = "round";
     pctx.lineJoin = "round";
@@ -83,7 +140,7 @@ export function setupSignature() {
     pad.setPointerCapture(e.pointerId);
     drawing = true;
     lastPt = at(e);
-    segment(lastPt, [lastPt[0] + 0.01, lastPt[1]]); // a tap leaves a dot
+    seg(lastPt, [lastPt[0] + 0.01, lastPt[1]]); // a tap leaves a dot
     strokes++;
     refresh();
   });
@@ -92,20 +149,20 @@ export function setupSignature() {
     e.preventDefault();
     for (const p of e.getCoalescedEvents?.() ?? [e]) {
       const next = at(p);
-      segment(lastPt, next);
+      seg(lastPt, next);
       lastPt = next;
     }
   });
   const stop = () => { drawing = false; lastPt = null; };
   pad.addEventListener("pointerup", stop);
   pad.addEventListener("pointercancel", stop);
-  $("pes-pad-clear").addEventListener("click", clearPad);
+  clear.addEventListener("click", clearPad);
 
   // ---- Type -------------------------------------------------------------------------------------
   const tctx = prev.getContext("2d")!;
   function drawTyped() {
-    const text = ($("pes-sigtext") as HTMLInputElement).value.trim();
-    const font = STYLES[($("pes-sigfont") as HTMLSelectElement).value] ?? STYLES.script;
+    const text = nameIn.value.trim();
+    const font = STYLES[fontSel.value] ?? STYLES.script;
     tctx.clearRect(0, 0, prev.width, prev.height);
     if (text) {
       tctx.font = font;
@@ -121,8 +178,8 @@ export function setupSignature() {
     }
     refresh();
   }
-  $("pes-sigtext").addEventListener("input", drawTyped);
-  $("pes-sigfont").addEventListener("change", drawTyped);
+  nameIn.addEventListener("input", drawTyped);
+  fontSel.addEventListener("change", drawTyped);
 
   // ---- Picture ----------------------------------------------------------------------------------
   const cctx = pic.getContext("2d", { willReadFrequently: true })!;
@@ -133,7 +190,7 @@ export function setupSignature() {
     const h = "naturalHeight" in picked ? picked.naturalHeight : picked.height;
     const scale = Math.min(pic.width / w, pic.height / h, 1);
     cctx.drawImage(picked, 0, 0, w * scale, h * scale);
-    if (($("pes-sig-see") as HTMLInputElement).checked) {
+    if (see.checked) {
       // White paper becomes see-through: the lighter a pixel, the less of it is kept.
       const img = cctx.getImageData(0, 0, pic.width, pic.height);
       const d = img.data;
@@ -147,34 +204,34 @@ export function setupSignature() {
     }
     refresh();
   }
-  $("pes-sigfile").addEventListener("change", async (e) => {
-    const f = (e.target as HTMLInputElement).files?.[0];
+  fileIn.addEventListener("change", async () => {
+    const f = fileIn.files?.[0];
     picked = null;
     problem("");
     if (f) {
-      if (!/^image\/(png|jpeg)$/.test(f.type)) problem("Choose a PNG or JPG picture.");
-      else if (f.size > 15 * 1024 * 1024) problem("That picture is very large. Choose one under 15 MB.");
+      if (!/^image\/(png|jpeg)$/.test(f.type)) problem(T("sigErrType", "Choose a PNG or JPG picture."));
+      else if (f.size > 15 * 1024 * 1024) problem(T("sigErrBig", "That picture is very large. Choose one under 15 MB."));
       else {
         try { picked = await createImageBitmap(f); }
-        catch { problem("That picture could not be opened. Try another one."); }
+        catch { problem(T("sigErrOpen", "That picture could not be opened. Try another one.")); }
       }
     }
     drawPicked();
   });
-  $("pes-sig-see").addEventListener("change", drawPicked);
+  see.addEventListener("change", drawPicked);
 
   // ---- Dialog -----------------------------------------------------------------------------------
   function ready(): boolean {
     if (tab() === "draw") return strokes > 0;
-    if (tab() === "type") return !!($("pes-sigtext") as HTMLInputElement).value.trim();
+    if (tab() === "type") return !!nameIn.value.trim();
     return !!picked;
   }
   function refresh() { use.disabled = !ready(); }
 
-  const panels = { draw: $("pes-sp-draw"), type: $("pes-sp-type"), pic: $("pes-sp-pic") };
-  document.querySelectorAll('input[name="pes-sigtab"]').forEach((r) =>
+  const panels = { draw: panelDraw, type: panelType, pic: panelPic };
+  tabs.querySelectorAll("input").forEach((r) =>
     r.addEventListener("change", () => {
-      for (const [k, el] of Object.entries(panels)) el.hidden = k !== tab();
+      for (const [k, p] of Object.entries(panels)) p.hidden = k !== tab();
       problem("");
       refresh();
     }));
@@ -182,7 +239,7 @@ export function setupSignature() {
   use.addEventListener("click", async () => {
     const source = tab() === "draw" ? pad : tab() === "type" ? prev : pic;
     const cut = trim(source);
-    if (!cut) return problem("There is nothing to use yet.");
+    if (!cut) return problem(T("sigErrEmpty", "There is nothing to use yet."));
     // Keep the picture a sensible size: it is shown small on the page.
     let out = cut;
     if (cut.width > MAX_WIDTH) {
@@ -192,12 +249,12 @@ export function setupSignature() {
       out.getContext("2d")!.drawImage(cut, 0, 0, out.width, out.height);
     }
     const sig = await toPng(out);
-    if (!sig) return problem("The signature could not be made. Try again.");
+    if (!sig) return problem(T("sigErrMake", "The signature could not be made. Try again."));
     remembered = sig;
     finish(sig);
   });
   last.addEventListener("click", () => finish(remembered));
-  $("pes-sig-cancel").addEventListener("click", () => finish(null));
+  cancel.addEventListener("click", () => finish(null));
 
   function finish(result: Signature | null) {
     const done = settle;
@@ -208,6 +265,8 @@ export function setupSignature() {
   dlg.addEventListener("close", () => { const done = settle; settle = null; done?.(null); }); // Escape
 
   return {
+    get isOpen() { return dlg.open; },
+    /** Remember the last signature between visits to the dialog (until the editor ends). */
     open(): Promise<Signature | null> {
       problem("");
       clearPad();
@@ -217,6 +276,10 @@ export function setupSignature() {
         settle = done;
         dlg.showModal();
       });
+    },
+    destroy() {
+      if (dlg.open) dlg.close();
+      dlg.remove();
     },
   };
 }

@@ -154,6 +154,7 @@ test("the service worker is built, same-origin only, and registered from the pag
   assert.doesNotMatch(sw, /https?:\/\/(?!freethetools\.com)/, "the worker must not name another origin");
   const shell = JSON.parse(sw.match(/const SHELL = (\[[\s\S]*?\]);/)[1]);
   assert.ok(shell.includes("/") && shell.includes("/offline/"));
+  assert.ok(!shell.some((f) => /^\/_astro\/(editor|fontkit|pdfthumb)\./.test(f)), "the PDF editor and its libraries load on demand, not with the shell");
   for (const path of shell) {
     assert.ok(path.startsWith("/") && !path.startsWith("//"), `${path} is not a same-origin path`);
     const file = path.endsWith("/") ? `${path}index.html` : path;
@@ -388,7 +389,7 @@ test("the pdf.js worker is in dist once, and the PDF tools use that copy", () =>
     }
   })(DIST);
   assert.deepEqual(copies, ["vendor/pdfjs/pdf.worker.min.mjs"]);
-  const users = ["compress", "edit-sign", "fill-form", "merge", "rotate", "split", "to-images", "unlock"];
+  const users = ["compress", "edit", "fill-form", "merge", "rotate", "split", "to-images", "unlock"];
   for (const t of users) {
     const manifest = JSON.parse(readFileSync(`tools/pdf/${t}/tool.json`, "utf8"));
     const worker = manifest.vendor.find((v) => v.to === "pdf.worker.min.mjs");

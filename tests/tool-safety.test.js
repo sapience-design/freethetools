@@ -13,14 +13,17 @@ import { join } from "node:path";
 
 const SKIP = new Set(["vendor", "tests", "node_modules", "i18n"]);
 const files = [];
-(function walk(dir) {
+// The tools, and the editor they share with the full-screen viewer (src/lib/pdf-edit/): the same rules apply to both.
+const ROOTS = ["tools", "src/lib/pdf-edit"];
+function walk(dir) {
   for (const n of readdirSync(dir)) {
     const p = join(dir, n);
     if (statSync(p).isDirectory()) {
       if (!SKIP.has(n)) walk(p);
     } else if (/\.(js|mjs|ts|astro)$/.test(n)) files.push(p.split("\\").join("/"));
   }
-})("tools");
+}
+ROOTS.forEach(walk);
 
 const EVERYWHERE = [
   [/\beval\s*\(/, "eval runs text as code"],

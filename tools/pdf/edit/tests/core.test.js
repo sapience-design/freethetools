@@ -7,7 +7,7 @@ import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
 import {
   applyMarks, boundsOf, cleanMark, createHistory, describeMark, isLatinText, moveMark, oddCharacters, pageGeometry,
   pageSizes, pdfToView, scaleMark, smoothPath, viewMatrix, viewToPdf, wrapText,
-} from "../core.js";
+} from "../../../../src/lib/pdf-edit/core.js";
 
 const SAMPLE = new Uint8Array(readFileSync("tools/pdf/compress/tests/fixtures/sample.pdf"));
 const ROBOTO = new Uint8Array(readFileSync("node_modules/roboto-fontface/fonts/roboto/Roboto-Regular.woff"));

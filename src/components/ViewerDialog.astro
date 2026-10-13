@@ -3,11 +3,13 @@
 // Any preview opens it through its expand button (src/lib/expand.ts); the logic is src/lib/viewer.ts
 // and loads only then. This file also holds the look of those buttons and of the larger previews.
 import Icon from "./Icon.astro";
-import { t, jsStrings } from "../i18n/index";
+import { t, jsStrings, DEFAULT_LANG } from "../i18n/index";
 
 interface Props { lang?: string }
 const { lang = "en" } = Astro.props;
 const S = (key: string) => t(lang, `js.viewer.${key}`);
+// The editor's words (src/lib/pdf-edit/) travel only on pages that are not English: English is written in the code.
+const editJson = JSON.stringify(jsStrings(lang, "pdfedit")).replace(/</g, "\\u003c");
 const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
 ---
 <dialog id="fv" class="fv" aria-label={S("dialog")}>
@@ -29,10 +31,13 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
       </span>
       <button type="button" class="fv-btn fv-wide" id="fv-rot" aria-keyshortcuts="r" hidden><Icon name="arrow-clockwise" /><span class="fv-cap">{S("rotate")}</span></button>
       </div>
+      <button type="button" class="fv-btn fv-wide fv-keep" id="fv-edit" hidden><Icon name="pencil-simple" /><span class="fv-cap">{S("edit")}</span></button>
+      <button type="button" class="fv-btn fv-wide fv-keep" id="fv-done" hidden><Icon name="check" /><span class="fv-cap">{S("done")}</span></button>
       <button type="button" class="fv-btn fv-wide" id="fv-full" hidden><Icon name="arrows-out" />{S("fullscreen")}</button>
       <button type="button" class="fv-btn fv-wide" id="fv-close"><Icon name="x" /><span class="fv-cap">{S("close")}</span></button>
     </div>
   </div>
+  <div class="fv-ed" id="fv-ed" role="group" aria-label={S("editTools")} hidden></div>
   <div class="fv-stage" id="fv-stage" role="group" aria-label={S("area")} tabindex="0"></div>
   <div class="fv-nav" id="fv-nav" hidden>
     <button type="button" class="fv-btn fv-wide" id="fv-prev"><Icon name="caret-left" />{S("prev")}</button>
@@ -43,11 +48,13 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
   <p class="sr-only" id="fv-live" role="status" aria-live="polite"></p>
 </dialog>
 <script type="application/json" id="ftt-viewer" set:html={json} />
+{lang !== DEFAULT_LANG && <script type="application/json" id="ftt-pdfedit" set:html={editJson} />}
 
 <style is:global>
   /* ---- The viewer ---- */
   dialog.fv { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100vh; height: 100dvh; max-height: none; margin: 0; padding: 0; border: 0; background: var(--bg); color: var(--ink); overflow: hidden; }
-  dialog.fv[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+  dialog.fv[open] { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr) auto; grid-template-areas: "bar" "ed" "stage" "nav"; }
+  .fv-bar { grid-area: bar; } .fv-ed { grid-area: ed; } .fv-stage { grid-area: stage; } .fv-nav { grid-area: nav; }
   dialog.fv::backdrop { background: var(--bg); }
   html:has(dialog.fv[open]) { overflow: hidden; }
   .fv [hidden] { display: none !important; }
@@ -100,14 +107,16 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
   .fv-view { display: contents; }
   @media (max-width: 640px) {
     /* Phones, two rows: the name and Close, then the layout icons and the zoom menu. Pinch and the menu zoom; the keys still work. */
-    .fv-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 6px 8px; }
+    .fv-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 6px 8px; }
     .fv-tools, .fv-view { display: contents; }
     .fv-name { grid-row: 1; grid-column: 1; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
     #fv-full, #fv-rot { grid-row: 1; grid-column: 2; }
-    #fv-close { grid-row: 1; grid-column: 3; padding: 0; justify-self: end; }
+    #fv-edit, #fv-done { grid-row: 1; grid-column: 3; }
+    #fv-close { grid-row: 1; grid-column: 4; padding: 0; justify-self: end; }
     .fv-cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-    .fv-seg { grid-row: 2; grid-column: 1 / 3; justify-self: start; }
-    .fv-zoom { grid-row: 2; grid-column: 3; }
+    .fv-seg { grid-row: 2; grid-column: 1 / 4; justify-self: start; }
+    .fv-zoom { grid-row: 2; grid-column: 4; }
+    .fv-keep > .fv-cap { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
     #fv-out, #fv-fit, #fv-in { display: none; }
     .fv-select { max-width: 130px; }
     .fv-seg label { padding: 0; }
@@ -128,6 +137,104 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
     .fv-fig.t-prev { animation: fv-prev .16s ease-out; }
     @keyframes fv-next { from { opacity: 0; transform: translateX(24px); } }
     @keyframes fv-prev { from { opacity: 0; transform: translateX(-24px); } }
+  }
+
+  /* ---- Editing a PDF in the viewer (src/lib/pdf-edit/): the toolbar, the marks, the signature dialog ---- */
+  .fv-i { display: inline-flex; }
+  .fv-ed { border-bottom: 1px solid var(--hair); background: var(--card); }
+  .fv-ed-in { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; }
+  .fv-ed-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .fv-eseg { display: inline-flex; gap: 2px; margin: 0; padding: 3px; border: 0; min-width: 0; border-radius: 12px; background: var(--well); }
+  .fv-eseg input { position: absolute; opacity: 0; pointer-events: none; }
+  .fv-eseg label { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .fv-eseg label:hover { color: var(--ink); }
+  .fv-eseg input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .fv-eseg input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 2px; }
+  .fv-eseg .ic, .fv-ed .fv-btn .ic { font-size: 18px; }
+  .fv-ed-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+  .fv-ed-optbtn { display: none; }
+  .fv-ed-save { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .fv-ed-save:hover:not(:disabled) { border-color: var(--edge); }
+  .fv-ed-sheet { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
+  .fv-ed-opts { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 18px; }
+  .fv-ed-opts[hidden], .fv-ed-opt[hidden] { display: none; }
+  .fv-ed fieldset.fv-ed-opt { border: 0; padding: 0; margin: 0; min-width: 0; }
+  .fv-ed-opt legend { padding: 0; margin-bottom: 4px; font-weight: 650; }
+  .fv-ed .fv-small input, .fv-ed .fv-small select { max-width: 130px; }
+  .fv-ed-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
+  .fv-ed-fill select { min-height: 44px; }
+  .fv-ed-hintrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; flex: 1 1 280px; }
+  .fv-ed-hint { margin: 0; flex: 1 1 240px; color: var(--soft); font-size: 15px; }
+  .fv-ed-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 10px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--pick); color: #1d1b16; }
+  .fv-ed-selbar[hidden] { display: none; }
+  .fv-ed-selbar p { margin: 0; flex: 1 1 200px; font-weight: 600; }
+  .fv-ed-selacts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fv-ed-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--pick); color: #1d1b16; }
+  .fv-ed-ask[hidden] { display: none; }
+  .fv-ed-ask p { margin: 0; flex: 1 1 200px; font-weight: 650; }
+  .fv-ed-status { margin: 0; font-size: 14px; color: var(--soft); }
+  .fv-ed-status:empty { display: none; }
+  /* Colour swatches: circles you can press, a ring on the chosen one */
+  .fv-sw { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .fv-sw input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+  .fv-swl { position: relative; display: inline-block; width: 44px; height: 44px; border: 2px solid var(--hair); border-radius: 50%; cursor: pointer; }
+  .fv-swl:hover { border-color: var(--edge); }
+  .fv-sw input:checked + .fv-swl { border-color: var(--edge); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--edge); }
+  .fv-sw input:focus-visible + .fv-swl { outline: 2.5px solid var(--ink); outline-offset: 5px; }
+  .fv-swl-own { background: conic-gradient(#d32f2f, #f9a825, #43a047, #1e88e5, #8e24aa, #d32f2f); }
+  .fv-swpick { width: 44px; height: 44px; padding: 2px; border: 2px solid var(--hair); border-radius: var(--r-sm); background: var(--card); cursor: pointer; }
+  .fv-swl-own + .fv-swpick { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .fv-swl-own:has(+ .fv-swpick:focus-visible) { outline: 2.5px solid var(--ink); outline-offset: 5px; }
+  /* The marks: an svg in page points over each page */
+  dialog.fv.fv-editing .fv-cell { isolation: isolate; }
+  .fv-ed-layer { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; max-width: none; display: block; user-select: none; -webkit-user-select: none; }
+  dialog.fv.fv-draggy .fv-ed-layer { touch-action: none; }
+  dialog.fv[data-edmode="text"] .fv-ed-layer { cursor: text; }
+  dialog.fv[data-edmode="box"] .fv-ed-layer, dialog.fv[data-edmode="highlight"] .fv-ed-layer, dialog.fv[data-edmode="draw"] .fv-ed-layer { cursor: crosshair; }
+  .fv-mark { pointer-events: none; outline: none; }
+  dialog.fv[data-edmode="select"] .fv-mark { pointer-events: all; cursor: move; }
+  .fv-mark text { white-space: pre; font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; }
+  .fv-mark.fv-editing-mark text { visibility: hidden; }
+  .fv-hl { mix-blend-mode: multiply; }
+  .fv-selbox { fill: none; stroke: #1f5fcc; stroke-width: 2; stroke-dasharray: 6 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .fv-handle { fill: #fff; stroke: #1f5fcc; stroke-width: 2.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .fv-grab { fill: transparent; cursor: nwse-resize; pointer-events: all; }
+  .fv-ghost { fill: rgba(31, 95, 204, .12); stroke: #1f5fcc; stroke-width: 1.5; stroke-dasharray: 5 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .fv-ed-edit {
+    position: absolute; z-index: 3; box-sizing: border-box; margin: 0; padding: 0; border: 1.5px dashed #1f5fcc; border-radius: 2px; resize: none; overflow: hidden;
+    background: rgba(255, 255, 255, .92); color: #000; line-height: 1.2; font-family: "Helvetica Neue", Helvetica, Arial, "Liberation Sans", sans-serif; white-space: pre; outline: none;
+  }
+  .fv-ed-edit.fv-wrap { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .fv-ed-edit:focus { box-shadow: 0 0 0 3px rgba(31, 95, 204, .35); }
+  /* The signature dialog (a second dialog above the viewer) */
+  .fv-sg { width: min(640px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); color: var(--ink); box-shadow: var(--shadow); overflow: auto; }
+  .fv-sg::backdrop { background: rgba(20, 20, 24, .6); }
+  .fv-sg-box { display: grid; gap: 14px; padding: clamp(14px, 3vw, 22px); }
+  .fv-sg h2 { margin: 0; font-family: var(--display); font-size: 20px; }
+  .fv-sg-note, .fv-sg-small { margin: 0; color: var(--soft); font-size: 15px; }
+  .fv-sg-seg { margin: 0; padding: 0; border: 0; min-width: 0; }
+  .fv-sg-seg label { display: inline-flex; align-items: center; gap: 8px; }
+  .fv-sg-seg .ic { font-size: 18px; }
+  .fv-sg-panel { display: grid; gap: 12px; }
+  .fv-sg-panel[hidden] { display: none; }
+  .fv-sg-pad { display: block; width: 100%; height: auto; max-width: 100%; border: 1.5px solid var(--edge); border-radius: var(--r); background: #fff; touch-action: none; cursor: crosshair; }
+  .fv-sg-prev { cursor: default; }
+  .fv-sg-padbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
+  .fv-sg-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .fv-sg-acts .btn { flex: 1 1 150px; }
+  /* Phones: the editing bar is at the bottom; the colour, size and pen choices open above it */
+  @media (max-width: 640px) {
+    dialog.fv[open] { grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "bar" "stage" "nav" "ed"; }
+    .fv-ed { border-bottom: 0; border-top: 1px solid var(--hair); }
+    .fv-ed-in { gap: 6px; padding: 6px 8px max(6px, env(safe-area-inset-bottom)); }
+    .fv-ed-in > .fv-ed-ask { order: -2; }
+    .fv-ed-in > .fv-ed-sheet { order: -1; display: none; max-height: 40dvh; overflow: auto; }
+    .fv-ed-in.open > .fv-ed-sheet { display: flex; }
+    .fv-ed-optbtn { display: inline-flex; }
+    .fv-ed-acts { width: 100%; margin-left: 0; justify-content: space-between; gap: 4px; }
+    .fv-eseg label { padding: 0; }
+    .fv-ed-in .fv-btn { padding: 0 10px; }
+    dialog.fv.fv-editing .fv-nav { display: none; }
   }
 
   /* ---- The expand button on a preview: round, 44 px to press, shown on hover and focus, and always on touch screens ---- */

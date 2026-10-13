@@ -1,4 +1,4 @@
-// Edit and Sign PDF: marks (text, boxes, highlights, drawings, pictures) placed on a PDF's pages,
+// View and Edit PDF: marks (text, boxes, highlights, drawings, pictures) placed on a PDF's pages,
 // and the code that writes them into the page content so every reader shows them the same way.
 // Uses pdf-lib (MIT). No page code here, so it can be tested and reused (see agent.js).
 //
@@ -192,17 +192,24 @@ export function scaleMark(m, factor) {
   return { ...m, w: Math.max(4, m.w * factor), h: Math.max(4, m.h * factor) };
 }
 
+/** The words describeMark uses. A page can pass its own, in another language; {n} is a page number and {t} a clip of text. */
+export const MARK_WORDS = {
+  page: "page {n}", text: "Text “{t}”", box: "Box", boxText: "Box with text “{t}”", highlight: "Highlight", drawing: "Drawing", picture: "Picture", mark: "Mark",
+};
+
 /** A short plain-words description of a mark, for lists and screen readers. */
-export function describeMark(m) {
-  const where = `page ${m.page}`;
+export function describeMark(m, words = {}) {
+  const w = { ...MARK_WORDS, ...words };
+  const fill = (s, t = "") => s.replace("{n}", String(m.page)).replace("{t}", () => t);
+  const where = fill(w.page);
   const clip = (s) => { const t = String(s ?? "").replace(/\s+/g, " ").trim(); return t.length > 40 ? `${t.slice(0, 39)}…` : t; };
   switch (m.type) {
-    case "text": return `Text “${clip(m.text)}”, ${where}`;
-    case "rect": return m.text ? `Box with text “${clip(m.text)}”, ${where}` : `Box, ${where}`;
-    case "highlight": return `Highlight, ${where}`;
-    case "path": return `Drawing, ${where}`;
-    case "image": return `${m.label || "Picture"}, ${where}`;
-    default: return `Mark, ${where}`;
+    case "text": return `${fill(w.text, clip(m.text))}, ${where}`;
+    case "rect": return m.text ? `${fill(w.boxText, clip(m.text))}, ${where}` : `${w.box}, ${where}`;
+    case "highlight": return `${w.highlight}, ${where}`;
+    case "path": return `${w.drawing}, ${where}`;
+    case "image": return `${m.label || w.picture}, ${where}`;
+    default: return `${w.mark}, ${where}`;
   }
 }
 

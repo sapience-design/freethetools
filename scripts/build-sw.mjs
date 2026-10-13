@@ -44,7 +44,9 @@ export function buildServiceWorker(dist = join(root, "dist")) {
   // The /_astro/ files a page uses, and the ones those files load in turn (script chunks, fonts,
   // vendor files named in scripts). A file name is matched as text, which is how Vite writes them.
   // Fonts: only the Latin woff2 files; other subsets load when a page needs them, and are then kept.
-  const skip = (name) => /\.woff2?$/.test(name) && !/-latin-(?!ext).*\.woff2$/.test(name);
+  // The editor chunk (Edit in the full-screen viewer) loads on demand and is kept after its first use, so a script that
+  // merely names it does not pull it in, nor what only it needs (the font code).
+  const skip = (name) => (/\.woff2?$/.test(name) && !/-latin-(?!ext).*\.woff2$/.test(name)) || /^\/_astro\/editor\./.test(name);
   const closure = (start) => {
     const seen = new Set();
     const visit = (name) => {

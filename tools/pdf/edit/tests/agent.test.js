@@ -34,7 +34,7 @@ test("writes text, a box with text, a highlight and a picture, and names the cop
     image: { name: "sig.png", type: "image/png", bytes: PNG },
     imageAt: { page: 3, x: 300, y: 600, width: 120 },
   }, {});
-  assert.equal(r.files[0].name, "form-signed.pdf");
+  assert.equal(r.files[0].name, "form-edited.pdf");
   assert.equal(r.data.added, 4);
   assert.match(r.summary, /Added 4 items to a 3-page PDF/);
   assert.ok((await pageText(r.files[0].bytes, 1)).includes("Agreed, Ada Lovelace"));

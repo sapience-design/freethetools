@@ -1,5 +1,5 @@
 import { baseName, defineTools, detectType, expectType, file, withUnlockHint } from "../../../src/agent/contract.js";
-import { applyMarks, pageSizes } from "./core.js";
+import { applyMarks, pageSizes } from "../../../src/lib/pdf-edit/core.js";
 
 const PDF = ["application/pdf"];
 const IMAGE = ["image/png", "image/jpeg"];
@@ -9,7 +9,7 @@ const num = (what) => ({ type: "number", description: what });
 export default defineTools({
   name: "add_to_pdf",
   makesFiles: true,
-  title: "Edit and Sign PDF",
+  title: "View and Edit PDF",
   description:
     "Write text, boxes, highlights and one picture (such as a signature image) onto a PDF's pages and save a new PDF. Positions are in points (1/72 inch) from the top-left corner of the page as it looks when opened, page numbers start at 1. The text uses a built-in Latin font (Windows-1252: æ, ø, å, é, ü, ß). A picture signature is only a picture, not a certificate-based digital signature. Runs on this device; nothing is uploaded.",
   input: {
@@ -82,7 +82,7 @@ export default defineTools({
     return {
       summary: `Added ${list.length} ${list.length === 1 ? "item" : "items"} to a ${pages.length}-page PDF.`,
       data: { added: list.length, pages: pages.map((p, i) => ({ page: i + 1, width: Math.round(p.width * 100) / 100, height: Math.round(p.height * 100) / 100 })) },
-      files: [{ name: `${baseName(f.name)}-signed.pdf`, type: "application/pdf", bytes: out }],
+      files: [{ name: `${baseName(f.name)}-edited.pdf`, type: "application/pdf", bytes: out }],
     };
   }),
 });

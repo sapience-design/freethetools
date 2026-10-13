@@ -1,2 +1,0 @@
-- Edit and Sign PDF (PDF, Edit): type, draw, highlight and sign anywhere on a PDF, including forms that are only printed lines, then save a finished copy. Select, move and delete any mark, and undo. Nothing is uploaded.
-- Fill PDF Form now points to Edit and Sign PDF when a PDF has no fields to fill.
