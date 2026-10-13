@@ -3,7 +3,7 @@
 import DropZone from "../../../src/components/DropZone.astro";
 import Step from "../../../src/components/Step.astro";
 import Icon from "../../../src/components/Icon.astro";
-import { RESOLUTIONS } from "./core.js";
+import { RESOLUTIONS, FORMATS } from "./core.js";
 ---
 <section class="tool" id="p2i-tool" aria-label="PDF to images">
   <Step n={1} title="Choose your PDF">
@@ -20,8 +20,7 @@ import { RESOLUTIONS } from "./core.js";
   <Step n={2} title="Pick a picture type" state="later">
     <fieldset class="choices cols">
       <legend class="sr-only">Picture type</legend>
-      <div class="choice"><input type="radio" name="p2i-fmt" id="p2i-png" value="png" checked><label for="p2i-png"><b>PNG</b><small>Sharp, good for text</small><span class="badge rec">Recommended</span></label></div>
-      <div class="choice"><input type="radio" name="p2i-fmt" id="p2i-jpg" value="jpg"><label for="p2i-jpg"><b>JPG</b><small>Smaller files, good for photos</small></label></div>
+      {FORMATS.map((f, i) => (<div class="choice"><input type="radio" name="p2i-fmt" id={`p2i-${f.ext}`} value={f.ext} checked={i === 0} /><label for={`p2i-${f.ext}`}><b>{f.label}</b><small>{f.note}</small>{i === 0 && <span class="badge rec">Recommended</span>}</label></div>))}
     </fieldset>
     <fieldset class="field">
       <legend>Sharpness</legend>
@@ -29,6 +28,7 @@ import { RESOLUTIONS } from "./core.js";
         {RESOLUTIONS.map((r, i) => (<><input type="radio" name="p2i-dpi" id={`p2i-${r.dpi}`} value={r.dpi} checked={i === 1} /><label for={`p2i-${r.dpi}`}>{r.label}<small>{r.dpi} dpi</small></label></>))}
       </div>
     </fieldset>
+    <label class="check"><input type="checkbox" id="p2i-invert"> Invert colours: white pages turn black, black text turns white</label>
     <label class="field">
       <span>Pages (leave empty for all)</span>
       <input type="text" id="p2i-range" placeholder="e.g. 1-3, 5" autocomplete="off">
@@ -45,7 +45,8 @@ import { RESOLUTIONS } from "./core.js";
 
 <script>
   import * as pdfjs from "pdfjs-dist";
-  import { safeScale, pageFileName } from "./core.js";
+  import { safeScale, pageFileName, formatFor, qualityFor } from "./core.js";
+  import { canEncode } from "../../../src/lib/images";
   import { parseRanges, everyPage } from "../split/core.js";
   import { pagesFromRanges } from "../rotate/core.js";
   import { wireDrop, fmtBytes, downloadLink, downloadAllButton, baseName, showError, showBusy, showDone, showWait, compactDrop, fileRow, imageThumb } from "../../../src/lib/files";
@@ -62,6 +63,13 @@ import { RESOLUTIONS } from "./core.js";
   let doc: pdfjs.PDFDocumentProxy | null = null, file: File | null = null;
 
   $("p2i-change").addEventListener("click", () => $("p2i-file").click());
+
+  canEncode("image/webp").then((ok) => {
+    if (ok) return;
+    ($("p2i-webp") as HTMLInputElement).disabled = true;
+    const note = document.querySelector('label[for="p2i-webp"] small');
+    if (note) note.textContent = "This browser can't write WebP";
+  });
 
   wireDrop("p2i", async (picks) => {
     const picked0 = picks.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
@@ -93,8 +101,9 @@ import { RESOLUTIONS } from "./core.js";
 
   go.addEventListener("click", async () => {
     if (!doc || !file) return;
-    const ext = (document.querySelector('input[name="p2i-fmt"]:checked') as HTMLInputElement).value;
+    const { ext, type } = formatFor((document.querySelector('input[name="p2i-fmt"]:checked') as HTMLInputElement).value);
     const dpi = +(document.querySelector('input[name="p2i-dpi"]:checked') as HTMLInputElement).value;
+    const invert = ($("p2i-invert") as HTMLInputElement).checked;
     const rangeText = ($("p2i-range") as HTMLInputElement).value.trim();
     go.disabled = true;
     files.replaceChildren();
@@ -116,8 +125,14 @@ import { RESOLUTIONS } from "./core.js";
         const ctx = canvas.getContext("2d")!;
         if (ext === "jpg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
         await page.render({ canvas, canvasContext: ctx, viewport }).promise;
-        const type = ext === "jpg" ? "image/jpeg" : "image/png";
-        const blob: Blob = await new Promise((r) => canvas.toBlob((b) => r(b!), type, 0.9));
+        // A white layer in "difference" mode turns each colour into its opposite, in one fast step.
+        if (invert) {
+          ctx.globalCompositeOperation = "difference";
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.globalCompositeOperation = "source-over";
+        }
+        const blob: Blob = await new Promise((r, no) => canvas.toBlob((b) => (b ? r(b) : no(new Error(`This browser couldn't save page ${n} as ${ext.toUpperCase()}.`))), type, qualityFor(type)));
         const name = pageFileName(file.name, n, doc.numPages, ext);
         // Each picture opens full screen, and Previous and Next browse all the pictures made.
         const at = outs.length;

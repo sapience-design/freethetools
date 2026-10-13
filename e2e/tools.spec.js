@@ -626,6 +626,30 @@ test.describe("PDF to images", () => {
     const out = await download(page, () => page.getByRole("link", { name: "Download", exact: true }).first().click());
     expect(out.subarray(1, 4).toString()).toBe("PNG");
   });
+
+  test("saves a page as WebP with the colours inverted", async ({ page }) => {
+    await page.goto("/pdf/to-images/");
+    await page.setInputFiles("#p2i-file", PDF);
+    await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
+    await page.click('label[for="p2i-webp"]');
+    await page.check("#p2i-invert");
+    await page.fill("#p2i-range", "1");
+    await page.click("#p2i-go");
+    const link = page.getByRole("link", { name: "Download", exact: true });
+    await expect(link).toHaveCount(1, { timeout: 30_000 });
+    const out = await download(page, () => link.click());
+    expect(out.subarray(0, 4).toString()).toBe("RIFF");
+    expect(out.subarray(8, 12).toString()).toBe("WEBP");
+    // The white page corner comes out black.
+    const corner = await page.evaluate(async (b64) => {
+      const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      const bmp = await createImageBitmap(new Blob([bytes], { type: "image/webp" }));
+      const ctx = new OffscreenCanvas(1, 1).getContext("2d");
+      ctx.drawImage(bmp, 0, 0, 1, 1, 0, 0, 1, 1);
+      return [...ctx.getImageData(0, 0, 1, 1).data];
+    }, out.toString("base64"));
+    expect(corner.slice(0, 3).every((v) => v < 24)).toBe(true);
+  });
 });
 
 test.describe("fill form and developer tools", () => {
