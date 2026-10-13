@@ -6,7 +6,7 @@ import Icon from "../../../src/components/Icon.astro";
 ---
 <section class="tool" id="rsz-tool" aria-label="Resize images">
   <Step n={1} title="Choose your photos">
-    <DropZone prefix="rsz" toolId="images/resize" category="images" name="Resize Images" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG or WebP · one or many" button="Choose photos" />
+    <DropZone prefix="rsz" toolId="images/resize" category="images" name="Resize Images" accept="image/*" multiple title="Drop your photos here" hint="JPG, PNG, WebP or SVG · one or many" button="Choose photos" />
     <ul class="file-list" id="rsz-picked" hidden></ul>
   </Step>
 
@@ -37,7 +37,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { targetSize, checkSize } from "./core.js";
-  import { decode, encode, EXT, type Format } from "../../../src/lib/images";
+  import { decode, encode, isSvg, EXT, type Format } from "../../../src/lib/images";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   import { compareButton } from "../../../src/lib/preview";
@@ -92,16 +92,20 @@ import Icon from "../../../src/components/Icon.astro";
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
       try {
-        const bmp = await decode(f);
+        let bmp = await decode(f);
+        const { width: w0, height: h0 } = bmp;
         const md = mode();
         const opt = md === "percent" ? { mode: md, percent: num("rsz-p") } : md === "width" ? { mode: md, width: num("rsz-w") } : md === "height" ? { mode: md, height: num("rsz-h") } : { mode: md, width: num("rsz-w"), height: num("rsz-h") };
-        const size = checkSize(targetSize(bmp.width, bmp.height, opt as never));
-        const type: Format = f.type === "image/png" || f.type === "image/webp" ? (f.type as Format) : "image/jpeg";
+        const size = checkSize(targetSize(w0, h0, opt as never));
+        // A drawing is redrawn at the new size, so it stays sharp; PNG keeps its transparency.
+        const svg = await isSvg(f);
+        if (svg) bmp = await decode(f, size);
+        const type: Format = svg ? "image/png" : f.type === "image/png" || f.type === "image/webp" ? (f.type as Format) : "image/jpeg";
         const blob = await encode(bmp, size.width, size.height, type, 0.9);
-        m.textContent = `${bmp.width}×${bmp.height} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
+        m.textContent = `${w0}×${h0} → ${size.width}×${size.height} · ${fmtBytes(blob.size)}`;
         const out = `${baseName(f.name)}_${size.width}x${size.height}.${EXT[type]}`;
         li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
-        act.append(compareButton(li, f, blob, { beforeLabel: `Original · ${bmp.width}×${bmp.height}`, afterLabel: `Resized · ${size.width}×${size.height}`, name: f.name }), downloadLink(blob, out, type));
+        act.append(compareButton(li, f, blob, { beforeLabel: `Original · ${w0}×${h0}`, afterLabel: `Resized · ${size.width}×${size.height}`, name: f.name }), downloadLink(blob, out, type));
         outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; }

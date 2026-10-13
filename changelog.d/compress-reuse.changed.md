@@ -1,0 +1,1 @@
+- Compress PDF: when the size of a choice was already measured, Make it smaller hands over that very file, at once, so the download is exactly the size shown.

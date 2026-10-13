@@ -1,0 +1,1 @@
+- PDF to Images (PDF, Convert): save pages as SVG, sharp at any size, for print and design apps. The SVG engine (MuPDF, 10 MB) downloads only when you pick SVG.

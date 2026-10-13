@@ -1,31 +1,43 @@
 {
   "name": "PDF a imágenes",
   "task": "Guardar páginas de PDF como imágenes",
-  "tagline": "Todas las páginas, o solo algunas, como JPG o PNG.",
-  "seoTitle": "PDF a JPG y PNG sin subir nada",
-  "description": "Convierte páginas de PDF en imágenes PNG o JPG gratis en tu navegador, a 72, 150 o 300 ppp. Elige las páginas. No se sube nada.",
+  "tagline": "Todas las páginas, o solo algunas, como PNG, JPG, WebP o SVG.",
+  "seoTitle": "PDF a JPG, PNG, WebP y SVG sin subir nada",
+  "description": "Convierte páginas de PDF en PNG, JPG, WebP o SVG gratis en tu navegador, a 72, 150 o 300 ppp. Elige las páginas o invierte los colores. No se sube nada.",
   "keywords": [
     "pdf a jpg",
     "pdf a png",
+    "pdf a webp",
+    "pdf a svg",
     "pdf a imagen",
     "extraer páginas",
     "convertir pdf",
     "captura de pdf",
-    "pasar pdf a jpg"
+    "pasar pdf a jpg",
+    "invertir colores pdf"
   ],
   "specs": {
-    "Motor": "pdf.js 6.3 (Apache-2.0), en tu navegador",
+    "Motor": "pdf.js 6.3 (Apache-2.0); MuPDF 1.28 (AGPL-3.0) para SVG; en tu navegador",
+    "Formatos": "PNG, JPG, SVG, y WebP si tu navegador puede guardarlo",
     "Resolución": "72, 150 o 300 ppp, con un máximo de 8000 px por lado",
     "Funciona sin conexión": "Sí, una vez cargada la página"
   },
   "faq": [
     {
       "q": "¿Se suben mis archivos?",
-      "a": "No. pdf.js dibuja las páginas dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+      "a": "No. pdf.js (o MuPDF, para SVG) dibuja las páginas dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
     },
     {
-      "q": "¿PNG o JPG?",
-      "a": "PNG es nítido y sin pérdida, ideal para texto y diagramas. JPG pesa mucho menos, ideal para fotos y escaneos."
+      "q": "¿PNG, JPG o WebP?",
+      "a": "PNG es nítido y sin pérdida, ideal para texto y diagramas. JPG pesa mucho menos, ideal para fotos y escaneos. WebP pesa aún menos y se abre en cualquier navegador moderno, pero algunos programas antiguos no lo abren."
+    },
+    {
+      "q": "¿Para qué sirve SVG?",
+      "a": "SVG mantiene nítidos las líneas y el texto a cualquier tamaño, para imprenta, logotipos y programas de diseño como Inkscape, Illustrator y Figma. El texto pasa a ser formas, así que se ve bien sin las fuentes del PDF, pero ya no se puede editar como texto. El motor SVG se descarga la primera vez (10 MB) y después se queda en tu dispositivo."
+    },
+    {
+      "q": "¿Qué hace Invert colours?",
+      "a": "Cambia cada color por su opuesto: las páginas blancas pasan a negro y el texto negro a blanco. Va bien para leer en una pantalla oscura o para diapositivas con fondo oscuro."
     }
   ]
 }

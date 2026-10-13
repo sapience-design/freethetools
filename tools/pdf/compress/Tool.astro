@@ -148,6 +148,11 @@ import Icon from "../../../src/components/Icon.astro";
   type Est = { size: number; sampled: boolean } | "failed";
   type Probe = { file: File; key: string; sampled: boolean; scale: number };
   const estimates = new WeakMap<File, Map<string, Est>>();
+  // The whole-file results the sizes were measured from. Compress hands over the one that matches,
+  // so the download is exactly the size shown, at once. Two Ghostscript runs can differ by a few
+  // bytes, enough to change a rounded "7 KB" to "6 KB". Large outputs are not kept.
+  const outputs = new WeakMap<File, Map<string, ArrayBuffer>>();
+  const KEEP_UNDER = 25 * 1024 * 1024;
   const probes = new Map<number, Probe>();
   const presetInputs = () => [...document.querySelectorAll<HTMLInputElement>('input[name="preset"]')];
   const chosenPreset = () => presetInputs().find((i) => i.checked)!.value;
@@ -251,6 +256,11 @@ import Icon from "../../../src/components/Icon.astro";
       const map = estimates.get(p.file) ?? new Map<string, Est>();
       estimates.set(p.file, map);
       map.set(p.key, data.ok ? { size: Math.round(data.out!.byteLength * p.scale), sampled: p.sampled } : "failed");
+      if (data.ok && !p.sampled && data.out!.byteLength <= KEEP_UNDER) {
+        const kept = outputs.get(p.file) ?? new Map<string, ArrayBuffer>();
+        outputs.set(p.file, kept);
+        kept.set(p.key, data.out!);
+      }
     }
     showSizes();
     pump();
@@ -341,6 +351,7 @@ import Icon from "../../../src/components/Icon.astro";
     const preset = (document.querySelector('input[name="preset"]:checked') as HTMLInputElement).value;
     const firstPage = $<HTMLInputElement>("#pdfc-first").checked;
     const opts = readOpts();
+    const runKey = keyOf(preset);
     batch = { total: files.length, done: 0, failed: 0, before: 0, after: 0 };
     again.hidden = true;
     results.replaceChildren();
@@ -354,6 +365,13 @@ import Icon from "../../../src/components/Icon.astro";
       if (broken) { setMeta(row, loadError()); batch.failed++; finish(); continue; }
       const id = nextId++;
       jobs.set(id, { row, file, preset, firstPage, opts });
+      const measured = outputs.get(file)?.get(runKey);
+      if (measured) {
+        // Already compressed with these settings while the size was measured: use that result.
+        const out = measured.slice(0);
+        queueMicrotask(() => worker.onmessage?.call(worker, new MessageEvent("message", { data: { id, ok: true, out } })));
+        continue;
+      }
       const bytes = await file.arrayBuffer();
       worker.postMessage({ id, bytes, args: buildArgs({ preset, firstPage, ...opts }) }, [bytes]);
     }

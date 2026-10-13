@@ -3,7 +3,7 @@
   "task": "Convertir fotos en un PDF",
   "tagline": "Fotos, escaneos y capturas de pantalla en un solo PDF, en el orden que quieras.",
   "seoTitle": "JPG y PNG a PDF sin subir nada",
-  "description": "Convierte imágenes JPG, PNG y WebP en un solo PDF gratis en tu navegador. Ajusta a la imagen o a A4 y reordena las páginas. No se sube nada.",
+  "description": "Convierte imágenes JPG, PNG, WebP y SVG en un solo PDF gratis en tu navegador. Ajusta a la imagen o a A4 y reordena las páginas. No se sube nada.",
   "keywords": [
     "jpg a pdf",
     "png a pdf",
@@ -12,11 +12,12 @@
     "fotos a pdf",
     "escaneos",
     "convertir",
-    "webp a pdf"
+    "webp a pdf",
+    "svg a pdf"
   ],
   "specs": {
     "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
-    "Formatos": "JPG y PNG tal cual; WebP, GIF y otros se convierten antes a PNG",
+    "Formatos": "JPG y PNG tal cual; WebP, GIF, SVG y otros se convierten antes a PNG",
     "Funciona sin conexión": "Sí, una vez cargada la página"
   },
   "faq": [

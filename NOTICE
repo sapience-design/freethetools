@@ -27,6 +27,10 @@ qpdf 11.0.0
 @jspawn/qpdf-wasm 0.0.2 (qpdf compiled to WebAssembly)
   License: Apache-2.0 · https://www.npmjs.com/package/@jspawn/qpdf-wasm
 
+MuPDF 1.28.1 (mupdf.js, MuPDF compiled to WebAssembly, in PDF to Images)
+  Copyright (C) Artifex Software, Inc.
+  License: AGPL-3.0 · https://mupdf.com/ · https://www.npmjs.com/package/mupdf
+
 libheif 1.22
   Copyright (c) Dirk Farin and contributors
   License: LGPL-3.0 · https://github.com/strukturag/libheif
