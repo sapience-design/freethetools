@@ -138,7 +138,7 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
         )}
         <label class="slash-opt"><input type="checkbox" id="slash-key" checked> <span>{slashParts.map((p) => (typeof p === "string" ? p : <kbd>/</kbd>))}</span></label>
         <button type="button" class="install-app" id="install-app" hidden><Icon name="download-simple" />{t(lang, "foot.install")}</button>
-        <p class="install-hint" id="install-hint" hidden data-ios={t(lang, "foot.installIos")} data-ios-more={t(lang, "foot.installIosMore")} data-mac={t(lang, "foot.installMac")}></p>
+        <p class="install-hint" id="install-hint" hidden data-ios={t(lang, "foot.installIos")} data-ios-more={t(lang, "foot.installIosMore")} data-mac={t(lang, "foot.installMac")} data-other={t(lang, "foot.installOther")} data-firefox={t(lang, "foot.installFirefox")} data-in-app={t(lang, "foot.installInApp")}></p>
       </div>
       <div class="col">
         <p class="col-h">{t(lang, "foot.groups")}</p>
@@ -261,7 +261,9 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
     // "Install the app" shows where the browser offers a one-step install (Chrome and Edge on
     // computers and Android, Samsung Internet), and opens the browser's prompt. Apple offers no such
     // step and no way for a page to open its menu, so on iPhone, iPad and Safari on a Mac the button
-    // opens the steps instead. Elsewhere it stays hidden. Nothing is counted or stored.
+    // opens the steps instead. Everywhere else it explains where the browser keeps its own Install
+    // (or that Firefox has none), so the button never just disappears. Only the installed app itself
+    // hides it. Nothing is counted or stored.
     type InstallPrompt = Event & { prompt: () => Promise<void>; userChoice: Promise<unknown> };
     const installBtn = document.getElementById("install-app") as HTMLButtonElement | null;
     const installHint = document.getElementById("install-hint");
@@ -274,6 +276,15 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
       if (installHint) installHint.hidden = true;
       if (installBtn) { installBtn.removeAttribute("aria-expanded"); installBtn.hidden = false; }
     });
+    function useSteps(key: string) {
+      if (!installBtn || !installHint?.dataset[key]) return;
+      installSteps = true;
+      installHint.textContent = installHint.dataset[key]!;
+      installHint.hidden = true;
+      installBtn.setAttribute("aria-controls", "install-hint");
+      installBtn.setAttribute("aria-expanded", "false");
+      installBtn.hidden = false;
+    }
     if (installBtn && installHint) {
       const ua = navigator.userAgent;
       const installed = matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone === true;
@@ -283,14 +294,10 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
       const inApp = /FBAN|FBAV|Instagram|LinkedInApp|Snapchat|musical_ly|BytedanceWebview|Line\//.test(ua);
       const safari = /Safari\//.test(ua) && !/Chrome|Chromium|CriOS|Edg|FxiOS|Firefox|OPR/.test(ua) ? Number(/Version\/(\d+)/.exec(ua)?.[1] ?? 0) : 0;
       // Safari 26 moved Share into the More (⋯) menu on iPhone and iPad. On a Mac, Add to Dock
-      // needs macOS 14; Safari 26 runs only there, so an older Safari gets no line.
-      const key = installed || inApp ? "" : ios ? (safari >= 26 ? "iosMore" : "ios") : /Macintosh/.test(ua) && safari >= 26 ? "mac" : "";
-      if (key && installHint.dataset[key]) {
-        installSteps = true;
-        installHint.textContent = installHint.dataset[key]!;
-        installBtn.setAttribute("aria-controls", "install-hint");
-        installBtn.setAttribute("aria-expanded", "false");
-        installBtn.hidden = false;
+      // needs macOS 14; Safari 26 runs only there, so an older Safari gets the general line.
+      const firefox = /Firefox\//.test(ua) && !/Android/.test(ua);
+      if (!installed) {
+        useSteps(inApp ? "inApp" : ios ? (safari >= 26 ? "iosMore" : "ios") : /Macintosh/.test(ua) && safari >= 26 ? "mac" : firefox ? "firefox" : "other");
       }
     }
     installBtn?.addEventListener("click", async () => {
@@ -303,8 +310,10 @@ const offlineHref = lang === "en" ? "/offline-use/" : `/offline-use/?lang=${lang
       const p = installPrompt;
       if (!p) return;
       installPrompt = null; // a prompt can be shown once
-      installBtn.hidden = true;
-      try { await p.prompt(); await p.userChoice; } catch {}
+      let outcome = "";
+      try { await p.prompt(); outcome = ((await p.userChoice) as { outcome?: string })?.outcome ?? ""; } catch {}
+      // Said no, or closed it: the button stays, and now explains where the browser's own Install is.
+      if (outcome !== "accepted") useSteps("other"); else installBtn.hidden = true;
     });
     addEventListener("appinstalled", () => { installPrompt = null; if (installBtn) installBtn.hidden = true; });
 

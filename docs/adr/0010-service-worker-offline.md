@@ -42,3 +42,7 @@ The site worked offline only for tools opened before, and every deploy dropped t
 - **The file list is never cached by the fetch handler**, so a newer list cannot land in an older version's cache.
 
 **Consequences.** A full download is about 14 MB for one language (after the shared pdf.js worker), plus about 16 MB for the Compress PDF engine. Updates fetch only changed files: mostly pages. The earlier line "replaces the old one at once" no longer applies.
+
+## Update 2026-10-12: the note only for a release
+
+Every deploy builds a new worker, so the "A new version is ready" note showed after every merge. Now each worker knows its release, the `package.json` version shown in the footer, and answers a `release` message from the page. The note shows only when the waiting worker's release differs from the one in charge, or when either cannot say. A deploy within the same release waits quietly and takes over once every tab is closed; pages are network first, so visitors online see new pages at once anyway.

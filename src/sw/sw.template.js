@@ -6,6 +6,7 @@
 // the rest are fetched and checked against /offline-files.json. The new worker then waits until the
 // visitor reloads (the page offers it) or closes every tab, and only then deletes the old cache.
 const VERSION = "__VERSION__";
+const RELEASE = "__RELEASE__"; // the site's version number; a new one is announced, other builds are not
 const SHELL = __SHELL__;
 const CACHE = "ftt-" + VERSION;
 const STATE = "ftt-state"; // what the visitor chose to keep; outlives versions
@@ -255,6 +256,11 @@ self.addEventListener("message", (event) => {
   const msg = event.data || {};
   if (msg.type === "skip-waiting") {
     self.skipWaiting();
+    return;
+  }
+  // Any worker, waiting or in charge, says which release it is, so the page can compare the two.
+  if (msg.type === "release") {
+    event.ports?.[0]?.postMessage(RELEASE);
     return;
   }
   // Only the version in charge changes what is kept; a waiting one gets its turn after the reload.
