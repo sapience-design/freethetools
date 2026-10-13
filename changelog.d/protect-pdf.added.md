@@ -1,0 +1,1 @@
+- Protect PDF (Security): lock a PDF with a password, in the browser. It uses 256-bit AES, and you can choose whether people may print, copy text or change the file. Your file and your password are never uploaded.

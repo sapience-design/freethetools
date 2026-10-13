@@ -1,4 +1,4 @@
-// qpdf (WebAssembly) for unlock_pdf, run in Node. The Emscripten loader tries to fetch the wasm file
+// qpdf (WebAssembly) for unlock_pdf and protect_pdf, run in Node. The Emscripten loader tries to fetch the wasm file
 // by URL, which Node cannot do for a file path, so the wasm is compiled here and handed over through
 // `instantiateWasm`. A fresh instance runs each file, as on the site.
 import { readFileSync } from "node:fs";
