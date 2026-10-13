@@ -3,7 +3,7 @@
   "task": "Gjør bilder om til en PDF",
   "tagline": "Bilder, skanninger og skjermbilder i én PDF, i den rekkefølgen du vil.",
   "seoTitle": "JPG og PNG til PDF uten å laste opp",
-  "description": "Gjør JPG-, PNG- og WebP-bilder om til én PDF, gratis i nettleseren. Tilpass til bildet eller A4, og bytt rekkefølge på sidene. Ingenting lastes opp.",
+  "description": "Gjør JPG-, PNG-, WebP- og SVG-bilder om til én PDF, gratis i nettleseren. Tilpass til bildet eller A4, og bytt rekkefølge på sidene. Ingenting lastes opp.",
   "keywords": [
     "jpg til pdf",
     "png til pdf",
@@ -11,11 +11,12 @@
     "bilder",
     "skanninger",
     "konverter",
-    "webp til pdf"
+    "webp til pdf",
+    "svg til pdf"
   ],
   "specs": {
     "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
-    "Formater": "JPG og PNG som de er; WebP, GIF og andre gjøres først om til PNG",
+    "Formater": "JPG og PNG som de er; WebP, GIF, SVG og andre gjøres først om til PNG",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [

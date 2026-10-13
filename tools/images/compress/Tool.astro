@@ -30,7 +30,7 @@ import Icon from "../../../src/components/Icon.astro";
 
 <script>
   import { PRESETS, outputType, worthIt, saving } from "./core.js";
-  import { decode, encode, canEncode, fitWithin, EXT, type Format } from "../../../src/lib/images";
+  import { decode, encode, canEncode, fitWithin, isSvg, EXT, type Format } from "../../../src/lib/images";
   import { wireDrop, compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, baseName, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, compareBars, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
   import { stepTo } from "../../../src/lib/steps";
   import { compareButton } from "../../../src/lib/preview";
@@ -77,6 +77,8 @@ import Icon from "../../../src/components/Icon.astro";
       const li = fileRow({ name: f.name, meta: "Compressing…", thumb: viewableImage(f, f.name) });
       const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
       list.append(li);
+      // An SVG is a drawing kept as text; turning it into pixels here would not make it smaller.
+      if (await isSvg(f)) { failed++; m.textContent = "SVG is a drawing, not a photo. To save it as PNG, JPG or WebP, use Convert Image Format."; continue; }
       try {
         const bmp = await decode(f);
         const type = outputType(f.type, await webpOk, keep) as Format;

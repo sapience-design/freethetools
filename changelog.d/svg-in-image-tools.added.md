@@ -1,0 +1,1 @@
+- Convert Image Format, Resize Images and Images to PDF open SVG drawings. Resize redraws an SVG at the new size, so it stays sharp.
