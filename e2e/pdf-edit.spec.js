@@ -479,18 +479,40 @@ test.describe("View and Edit PDF", () => {
     });
   }
 
-  test("every control in the edit bar is at least 44 px and focus is visible", async ({ page }) => {
+  // A wide window with a mouse gets a compact palette, as drawing tools do: every target at least
+  // 32 px (WCAG 2.2 AA asks for 24). Touch screens and narrow windows get 44 px (the phone tests).
+  test("every control in the edit bar is at least 32 px on a wide screen", async ({ page }) => {
     await openAndEdit(page);
-    await mode(page, "box");
-    const small = await page.evaluate(() => {
-      const out = [];
-      for (const el of document.querySelectorAll("#fv-ed button, #fv-ed label, #fv-ed input[type=number], #fv-ed .check, #fv-ed select, #fv-ed .fv-swl, #fv-ed .fv-fillpick")) {
-        const r = el.getBoundingClientRect();
-        if (r.width && r.height && (r.height < 43.5 || r.width < 43.5) && !el.closest("[hidden]")) out.push(`${el.id || el.className}: ${Math.round(r.width)}x${Math.round(r.height)}`);
-      }
-      return out;
-    });
-    expect(small).toEqual([]);
+    for (const m of ["box", "text", "highlight", "draw"]) {
+      await mode(page, m);
+      const small = await page.evaluate(() => {
+        const out = [];
+        for (const el of document.querySelectorAll("#fv-ed button, #fv-ed label")) {
+          const r = el.getBoundingClientRect();
+          if (r.width && r.height && (r.height < 31.5 || r.width < 31.5) && !el.closest("[hidden]")) out.push(`${el.id || el.htmlFor || el.className}: ${Math.round(r.width)}x${Math.round(r.height)}`);
+        }
+        return out;
+      });
+      expect(small, m).toEqual([]);
+    }
+  });
+
+  test("the bar keeps two steady rows: tools and actions, then the style row", async ({ page }) => {
+    await openAndEdit(page);
+    const save = await page.locator("#fv-ed-save").boundingBox();
+    const heights = [];
+    for (const m of ["select", "text", "box", "highlight", "draw"]) {
+      await mode(page, m);
+      const now = await page.locator("#fv-ed-save").boundingBox();
+      expect(Math.round(now.y), `Save moved in ${m}`).toBe(Math.round(save.y));
+      heights.push(Math.round((await page.locator("#fv-ed").boundingBox()).height));
+    }
+    expect(new Set(heights).size, `bar heights ${heights}`).toBe(1);
+    // With nothing to style, the row says what to do.
+    await mode(page, "select");
+    await expect(page.locator(".fv-ed-empty")).toBeVisible();
+    // Choices are visual: no form labels or menus in the bar.
+    expect(await page.locator("#fv-ed select, #fv-ed input[type=number]").count()).toBe(0);
   });
 });
 
@@ -617,7 +639,7 @@ test.describe("on a phone", () => {
       expect(bar.y + bar.height).toBeLessThanOrEqual(view.height + 1);
       expect(bar.y).toBeGreaterThan(view.height / 2); // at the bottom, not under the top bar
       // The main actions are visible inside the window: modes, signature, Undo, Delete, Save.
-      for (const sel of ["label[for='fv-ed-m-select']", "label[for='fv-ed-m-text']", "label[for='fv-ed-m-draw']", "#fv-ed-sig", "#fv-ed-undo", "#fv-ed-del", "#fv-ed-save", "#fv-ed-optbtn"]) {
+      for (const sel of ["label[for='fv-ed-m-select']", "label[for='fv-ed-m-text']", "label[for='fv-ed-m-draw']", "#fv-ed-sig", "#fv-ed-undo", "#fv-ed-del", "#fv-ed-save"]) {
         const r = await page.locator(sel).boundingBox();
         expect(r, sel).not.toBeNull();
         expect(r.x, sel).toBeGreaterThanOrEqual(0);
@@ -629,19 +651,21 @@ test.describe("on a phone", () => {
       // The page being edited is still big enough to work on.
       const stage = await page.locator("#fv-stage").boundingBox();
       expect(stage.height).toBeGreaterThan(220);
-      // Options sit behind a button and open above the bar.
+      // The style choices are one strip above the tools, sliding sideways, never widening the page.
       await mode(page, "box");
-      await expect(page.locator("#fv-ed-sheet")).toBeHidden();
-      await page.locator("#fv-ed-optbtn").click();
-      await expect(page.locator("#fv-ed-sheet")).toBeVisible();
-      await expect(page.locator("#fv-ed-optbtn")).toHaveAttribute("aria-expanded", "true");
+      const strip = page.locator("#fv-ed-opts");
+      await expect(strip).toBeVisible();
       expect(await wide(page)).toBeLessThanOrEqual(0);
-      const sheet = await page.locator("#fv-ed-sheet").boundingBox();
-      expect(sheet.y + sheet.height).toBeLessThanOrEqual(bar.y + bar.height);
-      expect(sheet.x + sheet.width).toBeLessThanOrEqual(width + 0.5);
+      const s = await strip.boundingBox();
+      const tools = await page.locator(".fv-ed-tools").boundingBox();
+      expect(s.y + s.height).toBeLessThanOrEqual(tools.y + 1);
+      expect(s.x + s.width).toBeLessThanOrEqual(width + 0.5);
+      for (const lab of await strip.locator(".fv-ch:not([hidden]) label").all()) {
+        const r = await lab.boundingBox();
+        expect(r.width, "choice width").toBeGreaterThanOrEqual(43.5);
+        expect(r.height, "choice height").toBeGreaterThanOrEqual(43.5);
+      }
       await scan(page, `phone ${width}`);
-      await page.locator("#fv-ed-optbtn").click();
-      await expect(page.locator("#fv-ed-sheet")).toBeHidden();
     });
   }
 
@@ -674,7 +698,6 @@ test.describe("on a phone", () => {
   test("on a phone Save in the bar works at once", async ({ page }) => {
     await phone(page, 320);
     await mode(page, "text");
-    await page.locator("#fv-ed-optbtn").click();
     await page.getByRole("button", { name: "Add text in the middle of the screen" }).click();
     await page.locator(".fv-ed-edit").fill("From a phone");
     await page.keyboard.press("Escape");

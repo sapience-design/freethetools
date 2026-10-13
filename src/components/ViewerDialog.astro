@@ -141,50 +141,83 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
 
   /* ---- Editing a PDF in the viewer (src/lib/pdf-edit/): the toolbar, the marks, the signature dialog ---- */
   .fv-i { display: inline-flex; }
-  .fv-ed { border-bottom: 1px solid var(--hair); background: var(--card); }
+  .fv-ed { position: relative; border-bottom: 1px solid var(--hair); background: var(--card); }
   .fv-ed-in { display: flex; flex-direction: column; gap: 8px; padding: 8px 12px; }
-  .fv-ed-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  /* Two steady rows: the tools and the actions, then the style of the tool in hand. */
+  .fv-ed-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "tools acts" "ctx ctx"; align-items: center; gap: 8px 12px; }
+  .fv-ed-in, .fv-ed-main > * { min-width: 0; }
+  .fv-ed-tools { grid-area: tools; display: flex; align-items: center; gap: 6px; }
   .fv-eseg { display: inline-flex; gap: 2px; margin: 0; padding: 3px; border: 0; min-width: 0; border-radius: 12px; background: var(--well); }
   .fv-eseg input { position: absolute; opacity: 0; pointer-events: none; }
-  .fv-eseg label { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 0 12px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .fv-eseg label { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 40px; min-height: 38px; padding: 0 11px; border-radius: 9px; color: var(--soft); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .fv-eseg label:hover { color: var(--ink); }
   .fv-eseg input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
   .fv-eseg input:focus-visible + label { outline: 3px solid var(--ink); outline-offset: 2px; }
   .fv-eseg .ic, .fv-ed .fv-btn .ic { font-size: 18px; }
-  .fv-ed-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
-  .fv-ed-optbtn { display: none; }
-  .fv-ed-save { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+  .fv-ed .fv-btn { min-height: 40px; }
+  .fv-ed .fv-ico { min-width: 40px; padding: 0; }
+  .fv-ico > .fv-cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .fv-ed-acts { grid-area: acts; display: flex; align-items: center; gap: 4px; }
+  .fv-ed-save { margin-left: 6px; background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
   .fv-ed-save:hover:not(:disabled) { border-color: var(--edge); }
-  .fv-ed-sheet { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; }
-  .fv-ed-opts { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 18px; }
-  .fv-ed-opts[hidden], .fv-ed-opt[hidden] { display: none; }
-  .fv-ed fieldset.fv-ed-opt { border: 0; padding: 0; margin: 0; min-width: 0; }
-  .fv-ed-opt legend { padding: 0; margin-bottom: 4px; font-weight: 650; }
-  .fv-ed .fv-small input, .fv-ed .fv-small select { max-width: 130px; }
-  .fv-ed-fill { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
-  .fv-ed-fill select { min-height: 44px; }
-  .fv-ed-hintrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; flex: 1 1 280px; }
-  .fv-ed-hint { margin: 0; flex: 1 1 240px; color: var(--soft); font-size: 15px; }
-  .fv-ed-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 6px 10px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--pick); color: #1d1b16; }
-  .fv-ed-selbar[hidden] { display: none; }
-  .fv-ed-selbar p { margin: 0; flex: 1 1 200px; font-weight: 600; }
-  .fv-ed-selacts { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  /* The style of the tool in hand: groups of small visual choices, no labels on screen (each choice is
+     named for screen readers and has a tooltip), split from the tools by a hairline. */
+  /* Its height is the tallest thing it can hold (a 40 px button) plus the rule and space above, so the
+     bar keeps one height whichever tool is in hand. */
+  .fv-ed-ctx { grid-area: ctx; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; min-height: calc(40px + 9px); padding-top: 8px; border-top: 1px solid var(--hair); }
+  .fv-ch[hidden], .fv-ed-sel[hidden], .fv-ed-selacts[hidden], .fv-ed-empty[hidden] { display: none; }
+  .fv-ed-empty { margin: 0; font-size: 14px; color: var(--soft); }
+  /* Positioned, so the hidden radio inputs stay inside the strip when it scrolls sideways on a phone */
+  .fv-ch { position: relative; display: inline-flex; align-items: center; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+  .fv-ch input { position: absolute; opacity: 0; pointer-events: none; }
+  /* Colour dots: 20 px of colour in a 32 px target, a ring on the chosen one */
+  .fv-dots label, .fv-own { position: relative; display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; }
+  .fv-dot { display: block; width: 20px; height: 20px; border-radius: 50%; background: var(--c); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2); }
+  .fv-dots input:checked + label .fv-dot, .fv-own.on .fv-dot { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .2), 0 0 0 2px var(--card), 0 0 0 4px var(--ink); }
+  .fv-dots input:focus-visible + label, .fv-own:has(input:focus-visible) { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+  .fv-dot-own { background: conic-gradient(from 90deg, #e53935, #fb8c00, #fdd835, #43a047, #1e88e5, #8e24aa, #e53935); }
+  /* Once a colour is picked, the dot shows it inside a thin rainbow ring, so it still reads as "any colour". */
+  .fv-own.on .fv-dot-own { background: radial-gradient(var(--c) 0 6px, transparent 6.5px), conic-gradient(from 90deg, #e53935, #fb8c00, #fdd835, #43a047, #1e88e5, #8e24aa, #e53935); }
+  .fv-own input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+  .fv-dot-none { background: linear-gradient(to top right, transparent calc(50% - 1px), #c62828 calc(50% - 1px), #c62828 calc(50% + 1px), transparent calc(50% + 1px)), var(--card); box-shadow: inset 0 0 0 1.5px var(--soft); }
+  .fv-dot-sm { width: 16px; height: 16px; }
+  /* Small segmented choices: line weights that get heavier, text sizes as growing letters, fill strength */
+  .fv-seg-s { padding: 3px; border-radius: 10px; background: var(--well); }
+  .fv-seg-s label { display: inline-grid; place-items: center; min-width: 34px; height: 32px; padding: 0 6px; border-radius: 7px; color: var(--soft); cursor: pointer; }
+  .fv-seg-s label:hover { color: var(--ink); }
+  .fv-seg-s input:checked + label { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+  .fv-seg-s input:focus-visible + label { outline: 2.5px solid var(--ink); outline-offset: 1px; }
+  .fv-line { display: block; width: 18px; height: var(--w); border-radius: 99px; background: currentColor; }
+  .fv-aa { font-family: var(--display); font-weight: 700; line-height: 1; }
+  .fv-op { position: relative; display: block; width: 16px; height: 16px; border: 1.5px solid currentColor; border-radius: 4px; }
+  .fv-op::after { content: ""; position: absolute; inset: 1.5px; border-radius: 2px; background: currentColor; opacity: var(--o); }
+  /* A selected mark: its name and its own actions, in the same row */
+  .fv-ed-sel { margin: 0; font-size: 14px; font-weight: 650; color: var(--soft); white-space: nowrap; }
+  .fv-ed-selacts { display: inline-flex; align-items: center; gap: 4px; }
+  .fv-ed-add { font-size: 14px; }
+
+  /* The unsaved choice and the status line */
   .fv-ed-ask { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px; border: 1.5px solid var(--edge); border-radius: var(--r); background: var(--pick); color: #1d1b16; }
   .fv-ed-ask[hidden] { display: none; }
   .fv-ed-ask p { margin: 0; flex: 1 1 200px; font-weight: 650; }
   .fv-ed-status { margin: 0; font-size: 14px; color: var(--soft); }
   .fv-ed-status:empty { display: none; }
-  /* Colour swatches: circles you can press, a ring on the chosen one */
-  .fv-sw { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
-  .fv-sw input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
-  .fv-swl { position: relative; display: inline-block; width: 44px; height: 44px; border: 2px solid var(--hair); border-radius: 50%; cursor: pointer; }
-  .fv-swl:hover { border-color: var(--edge); }
-  .fv-sw input:checked + .fv-swl { border-color: var(--edge); box-shadow: 0 0 0 3px var(--card), 0 0 0 5px var(--edge); }
-  .fv-sw input:focus-visible + .fv-swl { outline: 2.5px solid var(--ink); outline-offset: 5px; }
-  .fv-swl-own { background: conic-gradient(#d32f2f, #f9a825, #43a047, #1e88e5, #8e24aa, #d32f2f); }
-  .fv-swpick { width: 44px; height: 44px; padding: 2px; border: 2px solid var(--hair); border-radius: var(--r-sm); background: var(--card); cursor: pointer; }
-  .fv-swl-own + .fv-swpick { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .fv-swl-own:has(+ .fv-swpick:focus-visible) { outline: 2.5px solid var(--ink); outline-offset: 5px; }
+  /* How to use the tool in hand: a dark pill over the page for a few seconds */
+  .fv-ed-toast { position: absolute; top: calc(100% + 12px); left: 50%; z-index: 5; width: max-content; max-width: min(560px, calc(100vw - 32px)); margin: 0; padding: 9px 16px; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600; line-height: 1.35; text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, .18); opacity: 0; pointer-events: none; transform: translate(-50%, -4px); transition: opacity .2s, transform .2s; }
+  .fv-ed-toast.show { opacity: 1; transform: translate(-50%, 0); }
+  .fv-ed-toast:empty { display: none; }
+  @media (prefers-reduced-motion: reduce) { .fv-ed-toast { transition: none; } }
+  /* Mid-size windows: the tools show icons only, with tooltips, so the style row stays on one line */
+  @media (min-width: 641px) and (max-width: 1180px) { .fv-eseg .fv-cap { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; } .fv-eseg label { padding: 0; } }
+  /* Touch screens and narrow windows: every choice is a 44 px target */
+  @media (pointer: coarse), (max-width: 640px) {
+    .fv-dots label, .fv-own { width: 44px; height: 44px; }
+    .fv-seg-s label { min-width: 44px; height: 44px; }
+    .fv-ed .fv-btn, .fv-eseg label { min-height: 44px; }
+    .fv-eseg label { min-width: 44px; }
+    .fv-ed .fv-ico { min-width: 44px; }
+  }
   /* The marks: an svg in page points over each page */
   dialog.fv.fv-editing .fv-cell { isolation: isolate; }
   .fv-ed-layer { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; max-width: none; display: block; user-select: none; -webkit-user-select: none; }
@@ -222,18 +255,23 @@ const json = JSON.stringify(jsStrings(lang, "viewer")).replace(/</g, "\\u003c");
   .fv-sg-padbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between; }
   .fv-sg-acts { display: flex; flex-wrap: wrap; gap: 8px; }
   .fv-sg-acts .btn { flex: 1 1 150px; }
-  /* Phones: the editing bar is at the bottom; the colour, size and pen choices open above it */
+  /* Phones: the editing bar is at the bottom. The style choices are one slim strip above the tools,
+     sliding sideways when they do not fit; Undo, Delete and Save are always in reach. */
   @media (max-width: 640px) {
     dialog.fv[open] { grid-template-rows: auto minmax(0, 1fr) auto auto; grid-template-areas: "bar" "stage" "nav" "ed"; }
     .fv-ed { border-bottom: 0; border-top: 1px solid var(--hair); }
     .fv-ed-in { gap: 6px; padding: 6px 8px max(6px, env(safe-area-inset-bottom)); }
     .fv-ed-in > .fv-ed-ask { order: -2; }
-    .fv-ed-in > .fv-ed-sheet { order: -1; display: none; max-height: 40dvh; overflow: auto; }
-    .fv-ed-in.open > .fv-ed-sheet { display: flex; }
-    .fv-ed-optbtn { display: inline-flex; }
-    .fv-ed-acts { width: 100%; margin-left: 0; justify-content: space-between; gap: 4px; }
+    dialog.fv[open] { grid-template-columns: minmax(0, 1fr); }
+    .fv-ed-main { grid-template-columns: minmax(0, 1fr); grid-template-areas: "ctx" "tools" "acts"; gap: 6px; }
+    .fv-ed-ctx { flex-wrap: nowrap; gap: 12px; min-height: 44px; padding: 0 8px; border-top: 0; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(to right, transparent, #000 8px, #000 calc(100% - 16px), transparent); mask-image: linear-gradient(to right, transparent, #000 8px, #000 calc(100% - 16px), transparent); }
+    .fv-ed-ctx::-webkit-scrollbar { display: none; }
+    .fv-ed-ctx > * { flex: none; }
+    .fv-ed-tools { justify-content: space-between; }
     .fv-eseg label { padding: 0; }
-    .fv-ed-in .fv-btn { padding: 0 10px; }
+    .fv-ed-acts { justify-content: space-between; }
+    .fv-ed-save { margin-left: 0; }
+    .fv-ed-toast { top: auto; bottom: calc(100% + 12px); }
     dialog.fv.fv-editing .fv-nav { display: none; }
   }
 

@@ -15,7 +15,7 @@ import { T } from "./words";
 import { baseName } from "../files";
 import { pdfPageSizes, pdfViewItem } from "../pdfthumb";
 import type { ViewItem } from "../expand";
-import { buildBar, type Bar } from "./bar";
+import { buildBar, INKS, MARKERS, type Bar } from "./bar";
 import { el } from "./dom";
 import { setupSignature } from "./signature";
 
@@ -105,30 +105,31 @@ export async function startSession(host: EditHost): Promise<Session> {
   const find = (id: string | null) => marks.find((m) => m.id === id) as Mark | undefined;
 
   // ---- Controls (the controls are the one place the current choices live) -----------------------
-  const radio = (name: string) => ui.root.querySelector<HTMLInputElement>(`input[name="fv-ed-${name}"]:checked`);
   let ownOn = false;
-  const ink = () => (ownOn || !radio("color") ? ui.own.value : radio("color")!.value);
-  const marker = () => radio("marker")?.value ?? "#ffdf3d";
-  const sizeVal = () => clamp(Math.round(Number(ui.sizeIn.value) || 16), 6, 96);
-  const bwVal = () => Number(ui.bwSel.value);
-  const pwVal = () => Number(ui.pwSel.value);
-  const fillOn = () => ui.fillOn.checked;
-  const fillColor = () => ui.fillColor.value;
-  const fillOp = () => Number(ui.fillOp.value);
+  const own = ui.color.own!, ownDot = ui.color.ownDot!;
+  const ink = () => (ownOn || !ui.color.value ? own.value : ui.color.value);
+  const marker = () => ui.marker.value || "#ffdf3d";
+  // A selected mark may have been resized to a size between the steps; new marks take the step.
+  const sizeVal = () => clamp(Math.round(Number(ui.size.value) || 16), 6, 96);
+  const bwVal = () => Number(ui.bw.value || 2);
+  const pwVal = () => Number(ui.pw.value || 3);
+  const fillOn = () => !!ui.fill.value && ui.fill.value !== "none";
+  const fillColor = () => ui.fill.value;
+  const fillOp = () => Number(ui.fillOp.value || 1);
 
+  /** The "other colour" dot shows the picked colour and the selection ring while it is in use. */
+  function markOwn(on: boolean, c?: string) {
+    ownOn = on;
+    ownDot.parentElement!.classList.toggle("on", on);
+    if (c) ownDot.style.setProperty("--c", c);
+  }
   function setInk(c: string) {
-    const all = [...ui.root.querySelectorAll<HTMLInputElement>('input[name="fv-ed-color"]')];
-    const hit = all.find((r) => r.value.toLowerCase() === c.toLowerCase());
-    if (hit) { hit.checked = true; ownOn = false; }
-    else {
-      all.forEach((r) => (r.checked = false));
-      ui.own.value = c; ownOn = true;
-      ui.ownLabel.style.background = c;
-    }
+    const hit = INKS.find(([h]) => h.toLowerCase() === c.toLowerCase());
+    if (hit) { ui.color.value = hit[0]; markOwn(false); }
+    else { ui.color.value = ""; own.value = c; markOwn(true, c); }
   }
   function setMarker(c: string) {
-    const hit = [...ui.root.querySelectorAll<HTMLInputElement>('input[name="fv-ed-marker"]')].find((r) => r.value.toLowerCase() === c.toLowerCase());
-    if (hit) hit.checked = true;
+    ui.marker.value = MARKERS.find(([h]) => h.toLowerCase() === c.toLowerCase())?.[0] ?? "";
   }
 
   /** Which kind of mark the option controls are about: the selected mark's, else the mode's. */
@@ -139,26 +140,30 @@ export async function startSession(host: EditHost): Promise<Session> {
   }
   function showOptions() {
     const k = kind();
-    ui.colorSet.hidden = !(k === "text" || k === "rect" || k === "pen");
-    ui.markSet.hidden = k !== "hl";
-    ui.size.hidden = !(k === "text" || k === "rect");
-    ui.bw.hidden = k !== "rect";
-    ui.fill.hidden = k !== "rect";
-    ui.pw.hidden = k !== "pen";
-    ui.optRow.hidden = !k;
-    ui.colorLegend.textContent = k === "rect" ? T("edBorderColor", "Border colour") : k === "text" ? T("edTextColor", "Text colour") : T("edPenColor", "Pen colour");
+    ui.color.el.hidden = !(k === "text" || k === "rect" || k === "pen");
+    ui.marker.el.hidden = k !== "hl";
+    ui.size.el.hidden = !(k === "text" || k === "rect");
+    ui.bw.el.hidden = k !== "rect";
+    ui.fill.el.hidden = k !== "rect";
+    ui.fillOp.el.hidden = k !== "rect" || !fillOn();
+    ui.pw.el.hidden = k !== "pen";
+    ui.color.el.querySelector("legend")!.textContent = k === "rect" ? T("edBorderColor", "Border colour") : k === "text" ? T("edTextColor", "Text colour") : T("edPenColor", "Pen colour");
+    showContext();
+  }
+  /** The style row is always there; with nothing to style it says what to do. */
+  function showContext() {
+    ui.empty.hidden = !(ui.groups.every((g) => g.hidden) && ui.selacts.hidden && ui.add.hidden);
   }
   function controlsFrom(m: Mark) {
-    if (m.type === "text") { setInk(m.color); ui.sizeIn.value = String(Math.round(m.size)); }
+    if (m.type === "text") { setInk(m.color); ui.size.value = String(Math.round(m.size)); }
     else if (m.type === "rect") {
       setInk(m.color);
-      ui.sizeIn.value = String(Math.round(m.size));
-      ui.bwSel.value = String(m.strokeWidth);
-      ui.fillOn.checked = !!m.fill;
-      if (m.fill) ui.fillColor.value = m.fill;
+      ui.size.value = String(Math.round(m.size));
+      ui.bw.value = String(m.strokeWidth);
+      ui.fill.value = m.fill ?? "none";
       ui.fillOp.value = String(m.fillOpacity);
     } else if (m.type === "highlight") setMarker(m.color);
-    else if (m.type === "path") { setInk(m.color); ui.pwSel.value = String(m.width); }
+    else if (m.type === "path") { setInk(m.color); ui.pw.value = String(m.width); }
   }
   /** A changed control also changes the selected mark, when it has that setting. */
   function change(patch: (m: Mark) => Mark | null, key: string) {
@@ -167,23 +172,24 @@ export async function startSession(host: EditHost): Promise<Session> {
     const next = patch(m);
     if (next) commit(marks.map((x) => (x.id === m.id ? next : x)), `${key}:${m.id}`);
   }
-  ui.root.querySelectorAll('input[name="fv-ed-color"]').forEach((r) => r.addEventListener("change", () => {
-    ownOn = false;
+  ui.color.on(() => {
+    markOwn(false);
     change((m) => (m.type === "text" || m.type === "rect" || m.type === "path" ? { ...m, color: ink() } : null), "ink");
-  }));
-  ui.own.addEventListener("input", () => {
-    setInk(ui.own.value);
-    change((m) => (m.type === "text" || m.type === "rect" || m.type === "path" ? { ...m, color: ui.own.value } : null), "ink");
   });
-  ui.root.querySelectorAll('input[name="fv-ed-marker"]').forEach((r) => r.addEventListener("change", () =>
-    change((m) => (m.type === "highlight" ? { ...m, color: marker() } : null), "marker")));
-  ui.sizeIn.addEventListener("input", () => change((m) => (m.type === "text" || m.type === "rect" ? { ...m, size: sizeVal() } : null), "size"));
-  ui.bwSel.addEventListener("change", () => change((m) => (m.type === "rect" ? { ...m, strokeWidth: bwVal() } : null), "bw"));
-  ui.pwSel.addEventListener("change", () => change((m) => (m.type === "path" ? { ...m, width: pwVal() } : null), "pw"));
-  const fillChange = () => change((m) => (m.type === "rect" ? { ...m, fill: fillOn() ? fillColor() : null, fillOpacity: fillOp() } : null), "fill");
-  ui.fillOn.addEventListener("change", fillChange);
-  ui.fillColor.addEventListener("input", () => { ui.fillOn.checked = true; fillChange(); });
-  ui.fillOp.addEventListener("change", fillChange);
+  own.addEventListener("input", () => {
+    setInk(own.value);
+    change((m) => (m.type === "text" || m.type === "rect" || m.type === "path" ? { ...m, color: own.value } : null), "ink");
+  });
+  ui.marker.on(() => change((m) => (m.type === "highlight" ? { ...m, color: marker() } : null), "marker"));
+  ui.size.on(() => change((m) => (m.type === "text" || m.type === "rect" ? { ...m, size: sizeVal() } : null), "size"));
+  ui.bw.on(() => change((m) => (m.type === "rect" ? { ...m, strokeWidth: bwVal() } : null), "bw"));
+  ui.pw.on(() => change((m) => (m.type === "path" ? { ...m, width: pwVal() } : null), "pw"));
+  const fillChange = () => {
+    ui.fillOp.el.hidden = kind() !== "rect" || !fillOn();
+    change((m) => (m.type === "rect" ? { ...m, fill: fillOn() ? fillColor() : null, fillOpacity: fillOp() } : null), "fill");
+  };
+  ui.fill.on(fillChange);
+  ui.fillOp.on(fillChange);
 
   // ---- Mark pictures (SVG) ----------------------------------------------------------------------
   function urlFor(m: Mark) {
@@ -360,18 +366,34 @@ export async function startSession(host: EditHost): Promise<Session> {
     ui.del.disabled = !selId;
     ui.save.disabled = saving;
     const m = find(selId);
-    ui.selbar.hidden = !m;
+    ui.selacts.hidden = !m;
+    ui.selLabel.hidden = !m;
     if (m) {
-      ui.seltext.textContent = T("edSelected", "Selected: {what}. Move it with the arrow keys (Shift for bigger steps).", { what: describe(m) });
+      // Short on screen; the whole sentence, with how to move it, for screen readers.
+      ui.selLabel.textContent = T("edSelectedShort", "Selected: {what}", { what: describe(m) });
+      ui.selLabel.append(el("span", "sr-only", ` ${T("edMoveHow", "Move it with the arrow keys (Shift for bigger steps).")}`));
       ui.editText.hidden = m.type !== "text" && m.type !== "rect";
     }
     const [, , addKey, addEn] = HINT[mode];
     ui.add.hidden = !addKey;
     if (addKey) ui.add.textContent = T(addKey, addEn);
+    showContext();
     dlg.dataset.marks = String(marks.length);
   }
 
-  function setMode(next: string) {
+  // How to use the tool in hand shows for a few seconds over the page, then gets out of the way.
+  let hintTimer = 0;
+  function showHint(text: string) {
+    ui.hint.textContent = text;
+    ui.hint.classList.add("show");
+    clearTimeout(hintTimer);
+    hintTimer = window.setTimeout(() => {
+      ui.hint.classList.remove("show");
+      hintTimer = window.setTimeout(() => (ui.hint.textContent = ""), 300);
+    }, 4500);
+  }
+
+  function setMode(next: string, hint = true) {
     finishEdit(true);
     mode = next;
     const input = ui.root.querySelector<HTMLInputElement>(`#fv-ed-m-${next}`);
@@ -380,7 +402,7 @@ export async function startSession(host: EditHost): Promise<Session> {
     dlg.classList.toggle("fv-draggy", next === "box" || next === "highlight" || next === "draw");
     if (next !== "select") { selId = null; drawSelection(); }
     const [hk, he] = HINT[next];
-    ui.hint.textContent = T(hk, he);
+    if (hint) showHint(T(hk, he));
     showOptions();
     updateUi();
   }
@@ -391,10 +413,6 @@ export async function startSession(host: EditHost): Promise<Session> {
   ui.editText.addEventListener("click", () => { const m = find(selId); if (m) startEdit(m, false); });
   ui.smaller.addEventListener("click", () => resize(0.9, "size-step"));
   ui.bigger.addEventListener("click", () => resize(1.1, "size-step"));
-  ui.opts.addEventListener("click", () => {
-    const open = ui.root.classList.toggle("open");
-    ui.opts.setAttribute("aria-expanded", String(open));
-  });
 
   // ---- Text editing -----------------------------------------------------------------------------
   function placeEditor(ta: HTMLTextAreaElement, m: Mark, L: Layer) {
@@ -847,7 +865,7 @@ export async function startSession(host: EditHost): Promise<Session> {
     dlg.classList.remove("fv-draggy");
   }
 
-  setMode("select");
+  setMode("select", false);
   afterChange();
   dirty = false;
   keepForOffline();

@@ -1,12 +1,17 @@
-// The editing toolbar of the viewer, built by script when Edit is pressed. On a wide screen it sits
-// under the viewer's top bar; on a phone it is a bar at the bottom with the main actions always in
-// reach and the colour, size and thickness choices behind an Options button.
+// The editing toolbar of the viewer, built by script when Edit is pressed. One tool palette, the way
+// drawing and markup tools lay it out: the tools, then the style of the tool in hand (or of the
+// selected mark) as small visual choices with no form labels, then Undo, Redo, Delete and Save.
+// On a wide screen it sits under the viewer's top bar; on a phone it is a bar at the bottom, with
+// the style choices in one slim strip above the tools. Every choice is a real radio button
+// underneath, named for screen readers.
 import { T } from "./words";
 import { button, el, icon } from "./dom";
 import type { IconName } from "./icons";
 
 export const INKS: [string, string, string][] = [["#000000", "cBlack", "Black"], ["#c62828", "cRed", "Red"], ["#1f5fcc", "cBlue", "Blue"], ["#0f7a44", "cGreen", "Green"]];
 export const MARKERS: [string, string, string][] = [["#ffdf3d", "cYellow", "Yellow"], ["#7ddf64", "cGreen", "Green"], ["#ff8fc4", "cPink", "Pink"], ["#6fb7ff", "cBlue", "Blue"], ["#ffa24d", "cOrange", "Orange"]];
+// White first: a white box covers a mistake on the page.
+export const FILLS: [string, string, string][] = [["#ffffff", "cWhite", "White"], ["#ffdf3d", "cYellow", "Yellow"], ["#dbe8ff", "cLightBlue", "Light blue"], ["#dcf2d4", "cLightGreen", "Light green"], ["#ececec", "cGrey", "Grey"]];
 export const MODES: [string, string, string, IconName][] = [
   ["select", "edSelect", "Select", "cursor"],
   ["text", "edText", "Text", "textT"],
@@ -14,97 +19,115 @@ export const MODES: [string, string, string, IconName][] = [
   ["highlight", "edHighlight", "Highlight", "highlighter"],
   ["draw", "edDraw", "Draw", "scribble"],
 ];
+// Text sizes in points, as steps people know from drawing tools. Smaller and Bigger fine-tune a mark.
+const SIZES: [string, string, string, number][] = [["12", "sSmall", "Small", 11], ["16", "sMedium", "Medium", 14], ["22", "sLarge", "Large", 17], ["32", "sXLarge", "Extra large", 21]];
 
-/** A row of colour swatches: radio buttons drawn as circles. `own` adds a "pick any colour" swatch. */
-function swatches(name: string, list: [string, string, string][], own?: string): HTMLElement {
-  const wrap = el("div", "fv-sw");
-  list.forEach(([hex, key, en], i) => {
-    const id = `fv-ed-${name}-${i}`;
-    const lab = el("label", "fv-swl", "", { for: id });
-    lab.style.background = hex;
-    lab.append(el("span", "sr-only", T(key, en)));
-    wrap.append(el("input", "", "", { type: "radio", name: `fv-ed-${name}`, id, value: hex, checked: i === 0 }), lab);
-  });
-  if (own) {
-    const lab = el("label", "fv-swl fv-swl-own", "", { for: `fv-ed-${name}-own` });
-    lab.append(el("span", "sr-only", T("cOther", "Other colour")));
-    wrap.append(lab, el("input", "fv-swpick", "", { type: "color", id: `fv-ed-${name}-own`, value: own }));
+/** A group of choices drawn as small buttons over radio inputs. `value` reads and sets the checked one. */
+export type Choice = { el: HTMLFieldSetElement; value: string; on: (fn: () => void) => void };
+
+function choice(name: string, legend: string, cls: string, items: { value: string; label: string; draw: (lab: HTMLElement) => void }[], value: string): Choice {
+  const set = el("fieldset", `fv-ch ${cls}`) as HTMLFieldSetElement;
+  set.append(el("legend", "sr-only", legend));
+  for (const it of items) {
+    const id = `fv-ed-${name}-${it.value.replace(/[^\w]/g, "")}`;
+    const input = el("input", "", "", { type: "radio", name: `fv-ed-${name}`, id, value: it.value, checked: it.value === value });
+    const lab = el("label", "", "", { for: id, title: it.label });
+    it.draw(lab);
+    lab.append(el("span", "sr-only", it.label));
+    set.append(input, lab);
   }
-  return wrap;
+  const radios = () => [...set.querySelectorAll<HTMLInputElement>(`input[name="fv-ed-${name}"]`)];
+  return {
+    el: set,
+    get value() { return radios().find((r) => r.checked)?.value ?? ""; },
+    set value(v: string) { for (const r of radios()) r.checked = r.value === v; },
+    on(fn) { for (const r of radios()) r.addEventListener("change", fn); },
+  };
 }
 
-function selectField(id: string, label: string, options: [string, string][], value: string, cls = ""): HTMLLabelElement {
-  const f = el("label", `field fv-ed-opt ${cls}`.trim(), "", { id: `${id}-f`, hidden: true });
-  const sel = el("select", "", "", { id });
-  for (const [v, l] of options) sel.append(el("option", "", l, { value: v, selected: v === value }));
-  f.append(el("span", "", label), sel);
-  return f;
+/** Colour dots. `own` adds a dot that opens the browser's colour picker; `none` adds "no colour". */
+function dots(name: string, legend: string, list: [string, string, string][], opts: { own?: string; none?: [string, string] } = {}) {
+  const items = list.map(([hex, key, en]) => ({ value: hex, label: T(key, en), draw: (lab: HTMLElement) => { const d = el("span", "fv-dot"); d.style.setProperty("--c", hex); lab.append(d); } }));
+  if (opts.none) items.unshift({ value: "none", label: T(opts.none[0], opts.none[1]), draw: (lab) => lab.append(el("span", "fv-dot fv-dot-none")) });
+  const c = choice(name, legend, "fv-dots", items, items[0].value);
+  let own: HTMLInputElement | null = null, ownDot: HTMLElement | null = null;
+  if (opts.own) {
+    // The picker sits inside its own dot, so a click opens it and the dot shows what was picked.
+    const lab = el("label", "fv-own", "", { title: T("cOther", "Other colour") });
+    ownDot = el("span", "fv-dot fv-dot-own");
+    own = el("input", "", "", { type: "color", value: opts.own, "aria-label": T("cOther", "Other colour") }) as HTMLInputElement;
+    lab.append(ownDot, own);
+    c.el.append(lab);
+  }
+  // Not a spread: that would copy the value once instead of keeping it live.
+  return Object.assign(c, { own, ownDot });
+}
+
+/** Line weights drawn as lines that get heavier; 0 is drawn as "none". */
+function weights(name: string, legend: string, list: [string, string, string][], value: string) {
+  return choice(name, legend, "fv-seg-s", list.map(([v, key, en]) => ({
+    value: v, label: T(key, en),
+    draw: (lab: HTMLElement) => {
+      if (Number(v) === 0) { lab.append(el("span", "fv-dot fv-dot-none fv-dot-sm")); return; }
+      const line = el("span", "fv-line");
+      line.style.setProperty("--w", `${Math.max(1.5, Math.min(7, Number(v) * 1.3))}px`);
+      lab.append(line);
+    },
+  })), value);
 }
 
 /** Everything the session needs to read from and write to. */
 export function buildBar() {
   const root = el("div", "fv-ed-in");
 
-  // ---- Main row -----------------------------------------------------------------------------
+  // ---- Tools ------------------------------------------------------------------------------------
   const main = el("div", "fv-ed-main");
   const modes = el("fieldset", "fv-eseg");
   modes.append(el("legend", "sr-only", T("edMode", "What do you want to do?")));
   for (const [id, key, en, ico] of MODES) {
     const input = el("input", "", "", { type: "radio", name: "fv-ed-mode", id: `fv-ed-m-${id}`, value: id, checked: id === "select" });
-    const lab = el("label", "", "", { for: `fv-ed-m-${id}` });
+    const lab = el("label", "", "", { for: `fv-ed-m-${id}`, title: T(key, en) });
     lab.append(icon(ico), el("span", "fv-cap", T(key, en)));
     modes.append(input, lab);
   }
-  const sig = button("fv-btn", T("edSign", "Signature"), "signature", { id: "fv-ed-sig", "aria-haspopup": "dialog" });
-  const acts = el("div", "fv-ed-acts");
-  const undo = button("fv-btn", T("edUndo", "Undo"), "undo", { id: "fv-ed-undo", disabled: true });
-  const redo = button("fv-btn", T("edRedo", "Redo"), "redo", { id: "fv-ed-redo", disabled: true });
-  const del = button("fv-btn", T("edDelete", "Delete"), "trash", { id: "fv-ed-del", disabled: true });
-  const opts = button("fv-btn fv-ed-optbtn", T("edOptions", "Options"), "sliders", { id: "fv-ed-optbtn", "aria-expanded": "false", "aria-controls": "fv-ed-sheet" });
-  const save = button("fv-btn fv-ed-save fv-keep", T("edSave", "Save"), "floppy", { id: "fv-ed-save" });
-  acts.append(undo, redo, del, opts, save);
-  main.append(modes, sig, acts);
+  const sig = button("fv-btn fv-ed-sigbtn", T("edSign", "Signature"), "signature", { id: "fv-ed-sig", "aria-haspopup": "dialog" });
+  const tools = el("div", "fv-ed-tools");
+  tools.append(modes, sig);
 
-  // ---- Sheet: options for the mode or the selected mark, a hint, the selected mark's actions -----
-  const sheet = el("div", "fv-ed-sheet", "", { id: "fv-ed-sheet" });
-  const optRow = el("div", "fv-ed-opts", "", { id: "fv-ed-opts" });
-
-  const colorSet = el("fieldset", "fv-ed-opt", "", { id: "fv-ed-o-color", hidden: true });
-  const colorLegend = el("legend", "", T("edColor", "Colour"), { id: "fv-ed-o-color-l" });
-  colorSet.append(colorLegend, swatches("color", INKS, "#7b3fc4"));
-  const markSet = el("fieldset", "fv-ed-opt", "", { id: "fv-ed-o-marker", hidden: true });
-  markSet.append(el("legend", "", T("edHlColor", "Highlight colour")), swatches("marker", MARKERS));
-
-  const size = el("label", "field fv-ed-opt fv-small", "", { id: "fv-ed-o-size", hidden: true });
-  size.append(el("span", "", T("edSize", "Text size")), el("input", "", "", { type: "number", id: "fv-ed-size", min: 6, max: 96, step: 1, value: 16, inputmode: "numeric" }));
-  const bw = selectField("fv-ed-bw", T("edBorder", "Border"), [["0", T("wNone", "None")], ["1", T("wThin", "Thin")], ["2", T("wMedium", "Medium")], ["4", T("wThick", "Thick")]], "2", "fv-small");
-  const fill = el("fieldset", "fv-ed-opt fv-ed-fill", "", { id: "fv-ed-o-fill", hidden: true });
-  const fillOn = el("input", "", "", { type: "checkbox", id: "fv-ed-fill-on" });
-  const fillOnL = el("label", "check");
-  fillOnL.append(fillOn, document.createTextNode(" "), el("span", "", T("edFill", "Fill")));
-  const fillColor = el("input", "fv-swpick fv-fillpick", "", { type: "color", id: "fv-ed-fill-color", value: "#ffdf3d", "aria-label": T("edFillColor", "Fill colour") });
-  const fillOp = el("select", "", "", { id: "fv-ed-fill-op", "aria-label": T("edFillStrength", "Fill strength") });
-  for (const [v, l] of [["0.25", "25%"], ["0.5", "50%"], ["0.75", "75%"], ["1", "100%"]]) fillOp.append(el("option", "", l, { value: v, selected: v === "0.5" }));
-  fill.append(el("legend", "sr-only", T("edFill", "Fill")), fillOnL, fillColor, fillOp);
-  const pw = selectField("fv-ed-pw", T("edPen", "Pen thickness"), [["1.5", T("wThin", "Thin")], ["3", T("wMedium", "Medium")], ["6", T("wThick", "Thick")]], "3", "fv-small");
-  pw.id = "fv-ed-o-pw";
-  bw.id = "fv-ed-o-bw";
-  optRow.append(colorSet, markSet, size, bw, fill, pw);
-
-  const hintRow = el("div", "fv-ed-hintrow");
-  const hint = el("p", "fv-ed-hint", "", { id: "fv-ed-hint" });
-  const add = el("button", "fv-btn", "", { type: "button", id: "fv-ed-add", hidden: true });
-  hintRow.append(hint, add);
-
-  const selbar = el("div", "fv-ed-selbar", "", { id: "fv-ed-selbar", hidden: true });
-  const seltext = el("p", "", "", { id: "fv-ed-seltext" });
-  const selacts = el("div", "fv-ed-selacts");
+  // ---- Style of the tool in hand, or of the selected mark -----------------------------------------
+  const ctx = el("div", "fv-ed-ctx", "", { id: "fv-ed-opts" });
+  const selLabel = el("p", "fv-ed-sel", "", { id: "fv-ed-seltext", hidden: true });
+  const color = dots("color", T("edColor", "Colour"), INKS, { own: "#7b3fc4" });
+  const marker = dots("marker", T("edHlColor", "Highlight colour"), MARKERS);
+  const size = choice("size", T("edSize", "Text size"), "fv-seg-s", SIZES.map(([v, key, en, px]) => ({
+    value: v, label: T(key, en), draw: (lab: HTMLElement) => { const a = el("span", "fv-aa", "A"); a.style.fontSize = `${px}px`; a.setAttribute("aria-hidden", "true"); lab.append(a); },
+  })), "16");
+  const bw = weights("bw", T("edBorder", "Border"), [["0", "wNone", "No border"], ["1", "wThin", "Thin"], ["2", "wMedium", "Medium"], ["4", "wThick", "Thick"]], "2");
+  const fill = dots("fill", T("edFill", "Fill"), FILLS, { none: ["wNoFill", "No fill"] });
+  const fillOp = choice("fillop", T("edFillStrength", "Fill strength"), "fv-seg-s", [["0.35", "opLight", "Light"], ["0.65", "opMedium", "Medium"], ["1", "opSolid", "Solid"]].map(([v, key, en]) => ({
+    value: v, label: T(key, en), draw: (lab: HTMLElement) => { const s = el("span", "fv-op"); s.style.setProperty("--o", v); lab.append(s); },
+  })), "1");
+  const pw = weights("pw", T("edPen", "Pen thickness"), [["1.5", "wThin", "Thin"], ["3", "wMedium", "Medium"], ["6", "wThick", "Thick"]], "3");
   const editText = button("fv-btn", T("edEditText", "Edit text"), "pencil", { id: "fv-ed-edit" });
-  const smaller = button("fv-btn", T("edSmaller", "Smaller"), "minus", { id: "fv-ed-smaller" });
-  const bigger = button("fv-btn", T("edBigger", "Bigger"), "plus", { id: "fv-ed-bigger" });
+  const smaller = button("fv-btn fv-ico", T("edSmaller", "Smaller"), "minus", { id: "fv-ed-smaller", title: T("edSmaller", "Smaller") });
+  const bigger = button("fv-btn fv-ico", T("edBigger", "Bigger"), "plus", { id: "fv-ed-bigger", title: T("edBigger", "Bigger") });
+  const selacts = el("div", "fv-ed-selacts", "", { id: "fv-ed-selbar", hidden: true });
   selacts.append(editText, smaller, bigger);
-  selbar.append(seltext, selacts);
-  sheet.append(optRow, hintRow, selbar);
+  const add = el("button", "fv-btn fv-ed-add", "", { type: "button", id: "fv-ed-add", hidden: true });
+  // The row keeps its place when there is nothing to style, so the page never jumps.
+  const empty = el("p", "fv-ed-empty", T("edPickTool", "Choose a tool, or select a mark to change it."), { hidden: true });
+  const groups = [color.el, marker.el, size.el, bw.el, fill.el, fillOp.el, pw.el];
+  groups.forEach((g) => (g.hidden = true));
+  ctx.append(empty, selLabel, ...groups, selacts, add);
+
+  // ---- History and saving ------------------------------------------------------------------------
+  const acts = el("div", "fv-ed-acts");
+  const undo = button("fv-btn fv-ico", T("edUndo", "Undo"), "undo", { id: "fv-ed-undo", disabled: true, title: T("edUndo", "Undo") });
+  const redo = button("fv-btn fv-ico", T("edRedo", "Redo"), "redo", { id: "fv-ed-redo", disabled: true, title: T("edRedo", "Redo") });
+  const del = button("fv-btn fv-ico", T("edDelete", "Delete"), "trash", { id: "fv-ed-del", disabled: true, title: T("edDelete", "Delete") });
+  const save = button("fv-btn fv-ed-save fv-keep", T("edSave", "Save"), "floppy", { id: "fv-ed-save" });
+  acts.append(undo, redo, del, save);
+  main.append(tools, ctx, acts);
 
   // ---- The unsaved choice and the status line -----------------------------------------------------
   const ask = el("div", "fv-ed-ask", "", { id: "fv-ed-ask", role: "group", "aria-labelledby": "fv-ed-ask-t", hidden: true });
@@ -114,18 +137,15 @@ export function buildBar() {
   const askKeep = el("button", "fv-btn", T("unsavedKeep", "Keep editing"), { type: "button", id: "fv-ed-ask-keep" });
   ask.append(askT, askSave, askDiscard, askKeep);
   const status = el("p", "fv-ed-status", "", { id: "fv-ed-status" });
+  // How to use the tool in hand: shown for a few seconds over the page, and read out once.
+  const hint = el("p", "fv-ed-toast", "", { id: "fv-ed-hint", role: "status" });
 
-  root.append(ask, main, sheet, status);
+  root.append(ask, main, status, hint);
   return {
-    root, main, modes, sig, undo, redo, del, opts, save, sheet, optRow,
-    colorSet, colorLegend, markSet, size, bw, fill, pw, hint, add, selbar, seltext, editText, smaller, bigger,
+    root, main, ctx, modes, sig, undo, redo, del, save,
+    color, marker, size, bw, fill, fillOp, pw, groups,
+    selLabel, selacts, editText, smaller, bigger, add, hint, empty,
     ask, askSave, askDiscard, askKeep, status,
-    own: colorSet.querySelector<HTMLInputElement>(".fv-swpick")!,
-    ownLabel: colorSet.querySelector<HTMLElement>(".fv-swl-own")!,
-    sizeIn: size.querySelector<HTMLInputElement>("input")!,
-    bwSel: bw.querySelector<HTMLSelectElement>("select")!,
-    pwSel: pw.querySelector<HTMLSelectElement>("select")!,
-    fillOn, fillColor, fillOp,
   };
 }
 export type Bar = ReturnType<typeof buildBar>;

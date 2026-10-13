@@ -783,6 +783,9 @@ test.describe("viewer: wheel, keys, jump, rotate", () => {
 
   test("double-click zooms in at that spot and back to fit", async ({ page }) => {
     await openLong(page, 9);
+    // Wait for the page to be drawn at full size: under load the picture is still being replaced,
+    // and a double-click split across two pictures never arrives.
+    await expect.poll(() => pageCanvas(page).first().evaluate((c) => c.width)).toBeGreaterThan(400);
     await pageCanvas(page).first().dblclick();
     await expect(page.locator("#fv-level")).not.toHaveValue("page");
     await pageCanvas(page).first().dblclick();
