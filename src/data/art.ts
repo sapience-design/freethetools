@@ -153,6 +153,7 @@ const PIECES: Record<string, Draw> = {
   "compress-images": (c) => { const [x, y] = at(0); return print(c, x, y, 120, 70) + box(x, y, 124, 16, 8, c.accent, 70); },
   "resize-images": (c) => { const [x, y] = at(0); return print(c, x - 30, y - 12, 96, 112) + print(c, x + 56, y + 28, 56, 66); },
   "convert-image-format": (c) => { const [x, y] = at(0); return print(c, x - 24, y - 12, 88, 104) + print(c, x + 30, y + 16, 88, 104); },
+  "image-to-svg": (c) => { const [x, y] = at(0); const ink = c.clay ? c.line : c.navy.left; return print(c, x - 38, y - 14, 84, 100) + box(x + 46, y + 22, 68, 68, 10, c.paper, 0, c.line) + top(x + 46, y + 22, 10, `<path d="M-22 18 C-22 -26 22 -26 22 18 Z" fill="${c.accent.left}"/><path d="M-22 18 H22" stroke="${ink}" stroke-width="4" stroke-linecap="round"/><circle cx="-22" cy="18" r="5" fill="${ink}"/><circle cx="22" cy="18" r="5" fill="${ink}"/>`); },
   "heic-to-jpg": (c) => { const [x, y] = at(0); return box(x - 46, y - 6, 54, 10, 104, c.navy) + face(x - 46, y - 6, 5, `<rect x="-23" y="8" width="46" height="88" rx="6" fill="${c.clay ? c.paper.top : "#1f2733"}"/>`) + print(c, x + 40, y + 16, 84, 100); },
   "remove-photo-location": (c) => { const [x, y] = at(0); return print(c, x - 10, y, 96, 112) + cylinder(c, x + 58, y + 30, 12, 34, c.accent) + cylinder(c, x + 58, y + 30 - 34, 20, 20, c.accent); },
   // Text

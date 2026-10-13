@@ -1,0 +1,20 @@
+{
+  "name": "Imagen a SVG",
+  "task": "Convierte una imagen en un dibujo SVG",
+  "tagline": "Vectoriza un logotipo, un icono o un dibujo en formas nítidas y escalables.",
+  "seoTitle": "De PNG y JPG a SVG sin subir nada",
+  "description": "Convierte una imagen PNG, JPG, WebP, GIF o BMP en un dibujo SVG, gratis y en tu navegador. Ideal para logotipos, iconos y dibujos. Tu imagen nunca se sube.",
+  "keywords": ["png a svg", "jpg a svg", "imagen a svg", "vectorizar", "vectorizar imagen", "logotipo a svg", "mapa de bits a vector", "bitmap a svg"],
+  "specs": {
+    "Motor": "imagetracerjs 1.2.6 (Unlicense, dominio público)",
+    "Ideal para": "Logotipos, iconos y dibujos",
+    "Tamaño": "Las imágenes de más de 1200 px en el lado largo se reducen a 1200 px antes de vectorizar",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    { "q": "¿Se sube mi imagen?", "a": "No. La imagen se vectoriza dentro de esta pestaña, y la política de seguridad de la página impide que envíe datos a ningún sitio." },
+    { "q": "¿Por qué mi foto se ve plana?", "a": "Vectorizar convierte una imagen en unas pocas zonas de color plano. Un logotipo o un dibujo ya es así. Una foto tiene millones de matices, y por eso queda en manchas. Sube los colores y el detalle para acercarte más, pero una foto nunca se verá como una foto en SVG." },
+    { "q": "¿Qué ajuste debo elegir?", "a": "Logotipo o icono para gráficos planos con pocos colores. Ilustración para dibujos con sombras o muchos colores. Blanco y negro para dibujos de línea, firmas y plantillas." },
+    { "q": "¿Puedo editar el SVG?", "a": "Sí. Ábrelo en Inkscape, Figma, Illustrator o cualquier editor vectorial. Cada color es un conjunto de formas que puedes mover, recolorear o borrar. El vectorizador no reconoce letras, así que el texto se convierte en formas." }
+  ]
+}

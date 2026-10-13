@@ -1,0 +1,30 @@
+{
+  "name": "Image to SVG",
+  "task": "Turn a picture into an SVG drawing",
+  "icon": "bezier-curve",
+  "short": "Image to SVG",
+  "tagline": "Trace a logo, icon or drawing into sharp, scalable shapes.",
+  "seoTitle": "PNG and JPG to SVG converter without uploading",
+  "description": "Turn a PNG, JPG, WebP, GIF or BMP picture into an SVG drawing for free, in your browser. Best for logos, icons and drawings. Your picture is never uploaded.",
+  "section": "Convert",
+  "keywords": ["png to svg", "jpg to svg", "image to svg", "vectorize", "trace image", "logo to svg", "raster to vector", "bitmap to svg"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-13",
+  "offline": true,
+  "specs": {
+    "Engine": "imagetracerjs 1.2.6 (Unlicense, public domain)",
+    "Best for": "Logos, icons and drawings",
+    "Size": "Pictures over 1200 px on the long side are shrunk to 1200 px before tracing",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Is my picture uploaded?", "a": "No. The picture is traced inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Why does my photo look posterised?", "a": "Tracing turns a picture into a few flat areas of colour. A logo or drawing already looks like that. A photo has millions of subtle shades, so it comes out as patches. Raise the colours and the detail for a closer match, but a photo will never look like a photo as an SVG." },
+    { "q": "Which preset should I pick?", "a": "Logo or icon for flat artwork with a few colours. Illustration for drawings with shading or many colours. Black and white for line art, signatures and stencils." },
+    { "q": "Can I edit the SVG?", "a": "Yes. Open it in Inkscape, Figma, Illustrator or any vector editor. Each colour is a set of shapes you can move, recolour or delete. The tracer does not recognise letters, so text becomes shapes." }
+  ],
+  "vendor": [
+    { "from": "imagetracerjs/imagetracer_v1.2.6.js", "to": "imagetracer.js" }
+  ]
+}
