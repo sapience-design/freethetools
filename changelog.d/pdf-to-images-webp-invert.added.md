@@ -1,0 +1,1 @@
+- PDF to Images (PDF, Convert): save pages as WebP too, where the browser can write it, and invert the colours so white pages turn black.

@@ -1,30 +1,42 @@
 {
   "name": "PDF til bilder",
   "task": "Lagre PDF-sider som bilder",
-  "tagline": "Hver side, eller bare noen, som JPG eller PNG.",
-  "seoTitle": "PDF til JPG og PNG uten å laste opp",
-  "description": "Gjør PDF-sider om til PNG- eller JPG-bilder, gratis i nettleseren, med 72, 150 eller 300 dpi. Velg sidene. Ingenting lastes opp.",
+  "tagline": "Hver side, eller bare noen, som PNG, JPG, WebP eller SVG.",
+  "seoTitle": "PDF til JPG, PNG, WebP og SVG uten å laste opp",
+  "description": "Gjør PDF-sider om til PNG, JPG, WebP eller SVG, gratis i nettleseren, med 72, 150 eller 300 dpi. Velg sidene, eller inverter fargene. Ingenting lastes opp.",
   "keywords": [
     "pdf til jpg",
     "pdf til png",
+    "pdf til webp",
+    "pdf til svg",
     "pdf til bilde",
     "trekk ut sider",
     "konverter pdf",
-    "skjermbilde av pdf"
+    "skjermbilde av pdf",
+    "inverter farger"
   ],
   "specs": {
-    "Motor": "pdf.js 6.3 (Apache-2.0), i nettleseren",
+    "Motor": "pdf.js 6.3 (Apache-2.0); MuPDF 1.28 (AGPL-3.0) for SVG; i nettleseren",
+    "Formater": "PNG, JPG, SVG, og WebP der nettleseren kan lagre det",
     "Oppløsning": "72, 150 eller 300 dpi, begrenset til 8000 piksler per side",
     "Fungerer frakoblet": "Ja, når siden er lastet"
   },
   "faq": [
     {
       "q": "Lastes filene mine opp?",
-      "a": "Nei. Sidene tegnes inni denne nettleserfanen av pdf.js, og sidens sikkerhetspolicy hindrer at data sendes ut."
+      "a": "Nei. Sidene tegnes inni denne nettleserfanen av pdf.js, eller av MuPDF for SVG, og sidens sikkerhetspolicy hindrer at data sendes ut."
     },
     {
-      "q": "PNG eller JPG?",
-      "a": "PNG er skarp og tapsfri, best for tekst og diagrammer. JPG er mye mindre, best for bilder og skanninger."
+      "q": "PNG, JPG eller WebP?",
+      "a": "PNG er skarp og tapsfri, best for tekst og diagrammer. JPG er mye mindre, best for bilder og skanninger. WebP er enda mindre og åpnes i alle moderne nettlesere, men noen eldre programmer kan ikke åpne det."
+    },
+    {
+      "q": "Hva er SVG bra for?",
+      "a": "SVG holder linjer og tekst skarpe i alle størrelser, for trykk, logoer og designprogrammer som Inkscape, Illustrator og Figma. Teksten blir til former, så den ser riktig ut uten PDF-ens skrifter, men kan ikke lenger redigeres som tekst. SVG-motoren lastes ned første gang (10 MB) og blir deretter på enheten din."
+    },
+    {
+      "q": "Hva gjør Invert colours?",
+      "a": "Hver farge byttes med sin motsatte: hvite sider blir svarte, og svart tekst blir hvit. Det passer for lesing på mørk skjerm, eller for lysbilder med mørk bakgrunn."
     }
   ]
 }
