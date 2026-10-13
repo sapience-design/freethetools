@@ -1,5 +1,5 @@
 import { baseName, defineTools, expectType, file } from "../../../src/agent/contract.js";
-import { allowsEverything, protectPdf, protectedSentence, randomOwner } from "./core.js";
+import { allowsEverything, passwordProblem, protectPdf, protectedSentence, randomOwner } from "./core.js";
 
 export default defineTools({
   name: "protect_pdf",
@@ -24,6 +24,8 @@ export default defineTools({
     expectType(f, ["application/pdf"], "a PDF");
     if (!ctx.qpdf) throw new Error("The PDF protector isn't available here.");
     if (!password) throw new Error("Give the password to lock the PDF with.");
+    const problem = passwordProblem(password, password);
+    if (problem) throw new Error(problem);
     const allow = { print: allowPrint, copy: allowCopy, edit: allowEdit };
     // The limits only hold when the owner password differs from the opening password.
     const owner = allowsEverything(allow) ? "" : randomOwner();

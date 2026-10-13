@@ -14,9 +14,13 @@ import { IN, OUT, inspectArgs, readInspection } from "../unlock/core.js";
  */
 export const DEFAULT_ALLOW = Object.freeze({ print: true, copy: false, edit: false });
 
+// qpdf 11.0 reads a password that starts with "-" as one of its own options and stops.
+const DASH = "A password can't start with a dash (-). Start it with a letter, a number or another sign.";
+
 /** Why a password pair can't be used yet, in a sentence a person can act on. Empty when it is fine. */
 export function passwordProblem(password, again) {
   if (!password) return "Type a password first.";
+  if (password.startsWith("-")) return DASH;
   if (password !== again) return "The two passwords don't match. Type the same password in both boxes.";
   return "";
 }
@@ -30,6 +34,7 @@ export function passwordProblem(password, again) {
  */
 export function encryptArgs({ password, owner = "", allow = DEFAULT_ALLOW }) {
   if (!password) throw new Error("A password is needed to protect a PDF.");
+  if (password.startsWith("-") || owner.startsWith("-")) throw new Error(DASH);
   const a = { ...DEFAULT_ALLOW, ...allow };
   return [
     "--encrypt", password, owner || password, "256",

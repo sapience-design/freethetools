@@ -95,3 +95,13 @@ test("qpdf is asked twice, and the password is only in the encrypt call", async 
   assert.ok(!calls[0].join(" ").includes(OPEN_PASSWORD));
   assert.equal(calls[1][0], "--encrypt");
 });
+
+test("a password that starts with a dash is refused with a reason, since qpdf would read it as an option", async () => {
+  assert.match(passwordProblem("-secret", "-secret"), /can't start with a dash/);
+  assert.throws(() => encryptArgs({ password: "--print=none" }), /can't start with a dash/);
+  // A dash later in the password is fine, and the file opens with it.
+  const r = await protectPdf(qpdf, plain, { password: "se-cret", owner: randomOwner() });
+  assert.equal(r.status, "protected");
+  const { status } = await unlockPdf(qpdf, r.bytes, "se-cret");
+  assert.equal(status, "unlocked");
+});
