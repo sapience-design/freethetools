@@ -3,25 +3,31 @@
   "task": "Save PDF pages as pictures",
   "icon": "images",
   "short": "PDF to images",
-  "tagline": "Every page, or just some, as PNG, JPG or WebP.",
-  "seoTitle": "PDF to JPG, PNG and WebP without uploading",
-  "description": "Convert PDF pages to PNG, JPG or WebP images for free in your browser, at 72, 150 or 300 dpi. Choose the pages, or invert the colours. Nothing is uploaded.",
+  "tagline": "Every page, or just some, as PNG, JPG, WebP or SVG.",
+  "seoTitle": "PDF to JPG, PNG, WebP and SVG without uploading",
+  "description": "Convert PDF pages to PNG, JPG, WebP or SVG for free in your browser, at 72, 150 or 300 dpi. Choose the pages, or invert the colours. Nothing is uploaded.",
   "section": "Convert",
-  "keywords": ["pdf to jpg", "pdf to png", "pdf to webp", "pdf to image", "extract pages", "convert pdf", "screenshot pdf", "invert pdf colors"],
+  "keywords": ["pdf to jpg", "pdf to png", "pdf to webp", "pdf to svg", "pdf to image", "extract pages", "convert pdf", "screenshot pdf", "invert pdf colors"],
   "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
   "status": "live",
   "added": "2026-09-28",
   "offline": true,
   "specs": {
-    "Engine": "pdf.js 6.3 (Apache-2.0), in your browser",
-    "Formats": "PNG, JPG, and WebP where your browser can write it",
+    "Engine": "pdf.js 6.3 (Apache-2.0); MuPDF 1.28 (AGPL-3.0) for SVG; in your browser",
+    "Formats": "PNG, JPG, SVG, and WebP where your browser can write it",
     "Resolution": "72, 150 or 300 dpi, capped at 8000 px a side",
     "Works offline": "Yes, once the page has loaded"
   },
   "faq": [
-    { "q": "Are my files uploaded?", "a": "No. Pages are drawn inside this browser tab by pdf.js, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Are my files uploaded?", "a": "No. Pages are drawn inside this browser tab by pdf.js, or by MuPDF for SVG, and the page's security policy blocks it from sending data anywhere." },
     { "q": "PNG, JPG or WebP?", "a": "PNG is sharp and lossless, best for text and diagrams. JPG is much smaller, best for photos and scans. WebP is smaller still and opens in every modern browser, but some older apps can't open it." },
+    { "q": "What is SVG good for?", "a": "SVG keeps lines and text sharp at any size, for print, logos and design apps such as Inkscape, Illustrator and Figma. Text becomes shapes, so it looks right without the PDF's fonts but is no longer editable as text. The SVG engine is a 10 MB download the first time; after that it stays on your device." },
     { "q": "What does Invert colours do?", "a": "It swaps each colour for its opposite: white pages turn black and black text turns white. It suits reading on a dark screen, or slides with a dark background." }
   ],
-  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }]
+  "vendor": [
+    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" },
+    { "from": "mupdf/dist/mupdf.js", "to": "mupdf.js", "shared": "mupdf" },
+    { "from": "mupdf/dist/mupdf-wasm.js", "to": "mupdf-wasm.js", "shared": "mupdf" },
+    { "from": "mupdf/dist/mupdf-wasm.wasm", "to": "mupdf-wasm.wasm", "shared": "mupdf" }
+  ]
 }

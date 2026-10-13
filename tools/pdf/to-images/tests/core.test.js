@@ -2,8 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { scaleFor, safeScale, pageFileName, FORMATS, formatFor, qualityFor } from "../core.js";
 
-test("PNG, JPG and WebP are offered, PNG first", () => {
-  assert.deepEqual(FORMATS.map((f) => f.ext), ["png", "jpg", "webp"]);
+test("PNG, JPG, WebP and SVG are offered, PNG first", () => {
+  assert.deepEqual(FORMATS.map((f) => f.ext), ["png", "jpg", "webp", "svg"]);
+  assert.equal(formatFor("svg").type, "image/svg+xml");
   assert.equal(formatFor("webp").type, "image/webp");
   assert.equal(formatFor("jpg").type, "image/jpeg");
   assert.equal(formatFor("tiff").ext, "png", "an unknown type falls back to PNG");

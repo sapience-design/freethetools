@@ -12,6 +12,18 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const root = fileURLToPath(new URL("..", import.meta.url));
 const toolsDir = join(root, "tools");
+
+/** A package file's path. Some packages list only their entry point in "exports" (mupdf does), so a
+ *  file we copy as it is, such as its .wasm, is then read straight from node_modules. */
+function resolveFile(from) {
+  try {
+    return require.resolve(from);
+  } catch (e) {
+    const direct = join(root, "node_modules", from);
+    if (e.code === "ERR_PACKAGE_PATH_NOT_EXPORTED" && existsSync(direct)) return direct;
+    throw e;
+  }
+}
 // "extract" turns a package file into a file we can serve. heic-to builds its decoder worker from a
 // string and starts it from a blob: URL, which our Content Security Policy blocks. We pull the string
 // out at build time and serve it as a normal worker file instead.
@@ -44,12 +56,12 @@ for (const category of dirs(toolsDir)) {
         const dest = join(sharedOut, shared, to);
         if (existsSync(dest)) continue; // another tool already copied it
         mkdirSync(join(sharedOut, shared), { recursive: true });
-        cpSync(require.resolve(from), dest);
+        cpSync(resolveFile(from), dest);
         console.log(`vendor  vendor/${shared}/${to}  <-  ${from}`);
         continue;
       }
-      if (extract) writeFileSync(join(out, to), extractors[extract](readFileSync(require.resolve(from), "utf8")));
-      else cpSync(require.resolve(from), join(out, to));
+      if (extract) writeFileSync(join(out, to), extractors[extract](readFileSync(resolveFile(from), "utf8")));
+      else cpSync(resolveFile(from), join(out, to));
       console.log(`vendor  ${category}/${tool}/vendor/${to}  <-  ${from}`);
     }
   }

@@ -650,6 +650,28 @@ test.describe("PDF to images", () => {
     }, out.toString("base64"));
     expect(corner.slice(0, 3).every((v) => v < 24)).toBe(true);
   });
+
+  test("saves a page as SVG with MuPDF, loaded only then", async ({ page }) => {
+    const engine = [];
+    page.on("request", (r) => { if (r.url().includes("/vendor/mupdf/")) engine.push(r.url()); });
+    await page.goto("/pdf/to-images/");
+    await page.setInputFiles("#p2i-file", PDF);
+    await expect(page.locator("#p2i-meta")).toContainText("3 pages ·");
+    expect(engine).toEqual([]);
+    await page.click('label[for="p2i-svg"]');
+    await expect(page.locator("#p2i-invert")).toBeDisabled();
+    await expect(page.locator("#p2i-svg-note")).toBeVisible();
+    await page.fill("#p2i-range", "1");
+    await page.click("#p2i-go");
+    const link = page.getByRole("link", { name: "Download", exact: true });
+    await expect(link).toHaveCount(1, { timeout: 60_000 });
+    await expect(page.locator("#p2i-files .fmeta")).toContainText("Page 1 · SVG ·");
+    const svg = (await download(page, () => link.click())).toString("utf8");
+    expect(svg.startsWith("<svg")).toBe(true);
+    expect(svg).toContain("<path");
+    expect(svg).not.toMatch(/<script/i);
+    expect(engine.some((u) => u.endsWith("mupdf-wasm.wasm"))).toBe(true);
+  });
 });
 
 test.describe("fill form and developer tools", () => {

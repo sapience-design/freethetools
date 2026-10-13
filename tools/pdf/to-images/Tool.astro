@@ -22,7 +22,8 @@ import { RESOLUTIONS, FORMATS } from "./core.js";
       <legend class="sr-only">Picture type</legend>
       {FORMATS.map((f, i) => (<div class="choice"><input type="radio" name="p2i-fmt" id={`p2i-${f.ext}`} value={f.ext} checked={i === 0} /><label for={`p2i-${f.ext}`}><b>{f.label}</b><small>{f.note}</small>{i === 0 && <span class="badge rec">Recommended</span>}</label></div>))}
     </fieldset>
-    <fieldset class="field">
+    <p class="hint" id="p2i-svg-note" hidden>SVG keeps lines and text sharp at any size, for print and design apps. Sharpness and Invert are for pictures only.</p>
+    <fieldset class="field" id="p2i-sharp">
       <legend>Sharpness</legend>
       <div class="seg">
         {RESOLUTIONS.map((r, i) => (<><input type="radio" name="p2i-dpi" id={`p2i-${r.dpi}`} value={r.dpi} checked={i === 1} /><label for={`p2i-${r.dpi}`}>{r.label}<small>{r.dpi} dpi</small></label></>))}
@@ -99,11 +100,72 @@ import { RESOLUTIONS, FORMATS } from "./core.js";
     }
   }
 
+  /** One page drawn by pdf.js at a DPI. JPG gets a white background; Invert flips every colour. */
+  async function drawPage(d: pdfjs.PDFDocumentProxy, n: number, dpi: number, white: boolean, invert: boolean) {
+    const page = await d.getPage(n);
+    const base = page.getViewport({ scale: 1 });
+    const viewport = page.getViewport({ scale: safeScale(base.width, base.height, dpi) });
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.floor(viewport.width); canvas.height = Math.floor(viewport.height);
+    const ctx = canvas.getContext("2d")!;
+    if (white) { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+    await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+    // A white layer in "difference" mode turns each colour into its opposite, in one fast step.
+    if (invert) {
+      ctx.globalCompositeOperation = "difference";
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = "source-over";
+    }
+    return canvas;
+  }
+
+  // ---- SVG: MuPDF in a worker, started only when someone picks SVG ----
+  let engine: Worker | null = null, engineFor: File | null = null, asked = 0;
+  function ask(msg: Record<string, unknown>, transfer: Transferable[] = []): Promise<{ svg?: string }> {
+    engine ??= new Worker(new URL("./svg-worker.js", import.meta.url), { type: "module" });
+    const w = engine, id = ++asked;
+    return new Promise((done, fail) => {
+      const stop = () => { w.removeEventListener("message", on); w.removeEventListener("error", broke); };
+      const on = ({ data }: MessageEvent) => {
+        if (data.id !== id) return;
+        stop();
+        if (data.ok) done(data); else fail(new Error(data.error));
+      };
+      const broke = () => { stop(); engine = null; engineFor = null; fail(new Error("worker failed")); };
+      w.addEventListener("message", on);
+      w.addEventListener("error", broke);
+      w.postMessage({ id, ...msg }, transfer);
+    });
+  }
+  async function svgPage(f: File, n: number): Promise<string> {
+    try {
+      if (engineFor !== f) {
+        const bytes = await f.arrayBuffer();
+        await ask({ type: "open", bytes }, [bytes]);
+        engineFor = f;
+      }
+      return (await ask({ type: "page", n })).svg!;
+    } catch {
+      throw new Error(`Page ${n} couldn't be saved as SVG. The first time, the SVG engine needs the internet for a 10 MB download.`);
+    }
+  }
+
+  // Sharpness and Invert are for pictures; an SVG stays sharp at any size.
+  function showFormatOptions() {
+    const svg = (document.querySelector('input[name="p2i-fmt"]:checked') as HTMLInputElement).value === "svg";
+    ($("p2i-sharp") as HTMLFieldSetElement).disabled = svg;
+    ($("p2i-invert") as HTMLInputElement).disabled = svg;
+    $("p2i-svg-note").hidden = !svg;
+  }
+  document.querySelectorAll('input[name="p2i-fmt"]').forEach((r) => r.addEventListener("change", showFormatOptions));
+  showFormatOptions();
+
   go.addEventListener("click", async () => {
     if (!doc || !file) return;
     const { ext, type } = formatFor((document.querySelector('input[name="p2i-fmt"]:checked') as HTMLInputElement).value);
     const dpi = +(document.querySelector('input[name="p2i-dpi"]:checked') as HTMLInputElement).value;
-    const invert = ($("p2i-invert") as HTMLInputElement).checked;
+    const invert = ext !== "svg" && ($("p2i-invert") as HTMLInputElement).checked;
     const rangeText = ($("p2i-range") as HTMLInputElement).value.trim();
     go.disabled = true;
     files.replaceChildren();
@@ -116,29 +178,24 @@ import { RESOLUTIONS, FORMATS } from "./core.js";
       // Each picture appears as soon as it's made, so a long PDF shows progress and a late error keeps the rest.
       const progress = result.querySelector<HTMLElement>(".res-busy > span:last-child");
       for (const n of pages) {
-        if (progress) progress.textContent = `Page ${made + 1} of ${pages.length}. Please keep this page open.`;
-        const page = await doc.getPage(n);
-        const base = page.getViewport({ scale: 1 });
-        const viewport = page.getViewport({ scale: safeScale(base.width, base.height, dpi) });
-        const canvas = document.createElement("canvas");
-        canvas.width = Math.floor(viewport.width); canvas.height = Math.floor(viewport.height);
-        const ctx = canvas.getContext("2d")!;
-        if (ext === "jpg") { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
-        // A white layer in "difference" mode turns each colour into its opposite, in one fast step.
-        if (invert) {
-          ctx.globalCompositeOperation = "difference";
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.globalCompositeOperation = "source-over";
+        if (progress) progress.textContent = ext === "svg" && !made && !engineFor
+          ? "Loading the SVG engine. The first time, this downloads 10 MB."
+          : `Page ${made + 1} of ${pages.length}. Please keep this page open.`;
+        let blob: Blob, size: string;
+        if (ext === "svg") {
+          blob = new Blob([await svgPage(file, n)], { type });
+          size = "SVG";
+        } else {
+          const canvas = await drawPage(doc, n, dpi, ext === "jpg", invert);
+          blob = await new Promise((r, no) => canvas.toBlob((b) => (b ? r(b) : no(new Error(`This browser couldn't save page ${n} as ${ext.toUpperCase()}.`))), type, qualityFor(type)));
+          size = `${canvas.width}×${canvas.height}`;
         }
-        const blob: Blob = await new Promise((r, no) => canvas.toBlob((b) => (b ? r(b) : no(new Error(`This browser couldn't save page ${n} as ${ext.toUpperCase()}.`))), type, qualityFor(type)));
         const name = pageFileName(file.name, n, doc.numPages, ext);
         // Each picture opens full screen, and Previous and Next browse all the pictures made.
         const at = outs.length;
         const thumb = imageThumb(blob);
         thumb.classList.add("fcontain");
-        const li = fileRow({ name, meta: `Page ${n} · ${canvas.width}×${canvas.height} · ${fmtBytes(blob.size)}`, thumb: viewable(thumb, viewLabel("page", n), () => outs.map((o): ViewItem => ({ kind: "image", blob: o.blob, name: o.name })), at), actions: [downloadLink(blob, name, type)] });
+        const li = fileRow({ name, meta: `Page ${n} · ${size} · ${fmtBytes(blob.size)}`, thumb: viewable(thumb, viewLabel("page", n), () => outs.map((o): ViewItem => ({ kind: "image", blob: o.blob, name: o.name })), at), actions: [downloadLink(blob, name, type)] });
         files.append(li); made++; outs.push({ name, blob });
       }
       const all = downloadAllButton(() => outs, `${baseName(file.name)}-images.zip`);

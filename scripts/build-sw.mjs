@@ -21,7 +21,9 @@ const LANGS = ["nb", "es", "ru"]; // besides English, which has no prefix
 // host's own files, and pages that only work online (usage totals).
 const NEVER = [/^\/og\//, /^\/api\//, /^\/stats\//, /^\/_(headers|redirects|routes\.json)$/, /^\/(sw\.js|offline-files\.json|integrity\.json)$/, /\.(xml|txt|md)$/];
 // Engines too large to download for everyone: offered as their own choice.
-const ENGINES = { compress: /^\/pdf\/compress\/vendor\/gs\./ };
+// MuPDF (SVG in PDF to Images) is kept after its first use, like any vendor file, but never
+// downloaded ahead for everyone.
+const ENGINES = { compress: /^\/pdf\/compress\/vendor\/gs\./, mupdf: /^\/vendor\/mupdf\// };
 const isEngine = (u) => Object.values(ENGINES).some((re) => re.test(u));
 
 function files(dir) {
