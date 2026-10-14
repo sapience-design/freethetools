@@ -19,6 +19,16 @@ export type ViewItem =
        * Called for pages on screen only. `signal` stops a drawing that is no longer needed.
        */
       render: (page: number, boxW: number, boxH: number, signal?: AbortSignal) => Promise<HTMLCanvasElement | null>;
+      /**
+       * The PDF itself. With it the viewer shows an Edit button (text, boxes, highlights, drawing, a
+       * signature). Give the unlocked bytes when a tool unlocked the file.
+       */
+      file?: Blob;
+      /**
+       * Where a saved copy goes. Without it the viewer downloads "<name>-edited.pdf". With it the
+       * host decides (the View and edit PDF page shows the copy and offers its download).
+       */
+      onSave?: (blob: Blob, name: string) => void;
     };
 
 // Words come from the viewer's own block (see ViewerDialog.astro); English is the fallback.
@@ -27,10 +37,10 @@ export const V = (key: string, fallback: string, vars: Record<string, string | n
 // Phosphor "arrows-out" (MIT).
 const ARROWS_OUT = '<svg class="ic" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false"><path d="M220,48V96a12,12,0,0,1-24,0V77l-35.51,35.52a12,12,0,0,1-17-17L179,60H160a12,12,0,0,1,0-24h48A12,12,0,0,1,220,48ZM95.51,143.51,60,179V160a12,12,0,0,0-24,0v48a12,12,0,0,0,12,12H96a12,12,0,0,0,0-24H77l35.52-35.51a12,12,0,0,0-17-17ZM208,148a12,12,0,0,0-12,12v19l-35.51-35.52a12,12,0,0,0-17,17L179,196H160a12,12,0,0,0,0,24h48a12,12,0,0,0,12-12V160A12,12,0,0,0,208,148ZM77,60H96a12,12,0,0,0,0-24H48A12,12,0,0,0,36,48V96a12,12,0,0,0,24,0V77l35.51,35.52a12,12,0,0,0,17-17Z"/></svg>'; // safe-html: a fixed icon, no outside text
 
-/** Open the viewer on `items`, starting at `index`. `opener` gets focus back when it closes. */
-export async function openViewer(items: ViewItem[], index = 0, opener?: HTMLElement | null) {
+/** Open the viewer on `items`, starting at `index`. `opener` gets focus back when it closes. `edit` opens a PDF that carries its file straight in edit mode. */
+export async function openViewer(items: ViewItem[], index = 0, opener?: HTMLElement | null, opts: { edit?: boolean } = {}) {
   const { show } = await import("./viewer");
-  show(items, index, opener ?? (document.activeElement as HTMLElement | null));
+  show(items, index, opener ?? (document.activeElement as HTMLElement | null), opts);
 }
 
 /** The button text for what is being shown: "View page 3 full screen", "View photo full screen". */

@@ -83,9 +83,58 @@ export async function pdfPageFit(file: Blob, page: number, boxW: number, boxH: n
   }
 }
 
-/** A PDF (or one page of it) for the full-screen viewer. The viewer draws only the pages on screen. */
-export function pdfViewItem(file: Blob, name: string, pages: number, page = 1): ViewItem {
-  return { kind: "pdf", name, pages, page, render: (n, w, h, signal) => pdfPageFit(file, n, w, h, signal) };
+/** Each page's size as a person sees it (turned, cut to the crop box), in points. For tools that lay pages out before drawing them. */
+export async function pdfPageSizes(file: Blob): Promise<{ width: number; height: number }[]> {
+  const doc = await open(file);
+  const sizes: { width: number; height: number }[] = [];
+  for (let n = 1; n <= doc.numPages; n++) {
+    const vp = (await doc.getPage(n)).getViewport({ scale: 1 });
+    sizes.push({ width: vp.width, height: vp.height });
+  }
+  return sizes;
+}
+
+/**
+ * Draw one page into an existing canvas, sharp for a page `cssWidth` pixels wide on this screen
+ * (never more than 4096 on a side). Returns false when the page can't be drawn or the drawing was
+ * stopped by `signal`.
+ */
+export async function pdfDrawPage(file: Blob, page: number, canvas: HTMLCanvasElement, cssWidth: number, signal?: AbortSignal): Promise<boolean> {
+  try {
+    const doc = await open(file);
+    const pg = await doc.getPage(page);
+    if (signal?.aborted) return false;
+    const base = pg.getViewport({ scale: 1 });
+    const ratio = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+    const scale = Math.max(0.05, Math.min((cssWidth * ratio) / base.width, 4096 / base.width, 4096 / base.height));
+    const vp = pg.getViewport({ scale });
+    // Draw off screen, then swap in: the page never flashes empty while it is redrawn.
+    const work = document.createElement("canvas");
+    work.width = Math.max(1, Math.floor(vp.width));
+    work.height = Math.max(1, Math.floor(vp.height));
+    const ctx = work.getContext("2d")!;
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, work.width, work.height);
+    const task = pg.render({ canvas: work, canvasContext: ctx, viewport: vp });
+    const stop = () => task.cancel();
+    signal?.addEventListener("abort", stop, { once: true });
+    try { await task.promise; } finally { signal?.removeEventListener("abort", stop); }
+    if (signal?.aborted) return false;
+    canvas.width = work.width;
+    canvas.height = work.height;
+    canvas.getContext("2d")!.drawImage(work, 0, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * A PDF (or one page of it) for the full-screen viewer. The viewer draws only the pages on screen.
+ * It carries the file, so the viewer offers Edit everywhere; `onSave` takes the saved copy instead of a download.
+ */
+export function pdfViewItem(file: Blob, name: string, pages: number, page = 1, onSave?: (blob: Blob, name: string) => void): ViewItem {
+  return { kind: "pdf", name, pages, page, file, onSave, render: (n, w, h, signal) => pdfPageFit(file, n, w, h, signal) };
 }
 
 /** A name for a Blob: a File's own, or a fallback. */
@@ -104,14 +153,14 @@ export function drawInto(box: HTMLElement, file: Blob, page = 1, turn = 0, size 
  * A PDF's first page as a preview that opens full screen: the picture, with the expand button on
  * it. `box` is the `.fthumb` to fill (a PDF icon until the page is drawn).
  */
-export function pdfPreview(box: HTMLElement, file: Blob, name = nameOf(file), pages = 0, size = 176) {
+export function pdfPreview(box: HTMLElement, file: Blob, name = nameOf(file), pages = 0, size = 176, onSave?: (blob: Blob, name: string) => void) {
   // A box already in the page (a tool's static thumbnail) is wrapped where it stands; one that was
   // wrapped for an earlier file keeps its wrapper and gets a new button.
   const old = box.parentElement?.classList.contains("pv") ? box.parentElement : null;
   const wrap = old ?? document.createElement("span");
   if (old) old.querySelector(".fv-open")?.remove();
   else { wrap.className = "pv"; box.parentNode?.replaceChild(wrap, box); wrap.append(box); }
-  const btn = viewButton(viewLabel("page", 1), async () => pdfViewItem(file, name, pages || (await pdfPages(file)) || 1, 1));
+  const btn = viewButton(viewLabel("page", 1), async () => pdfViewItem(file, name, pages || (await pdfPages(file)) || 1, 1, onSave));
   btn.hidden = true; // shown once the page is drawn: a locked or damaged file has nothing to open
   wrap.append(btn);
   pdfPageCanvas(file, 1, size).then((c) => { if (c) { c.setAttribute("aria-hidden", "true"); box.replaceChildren(c); btn.hidden = false; } });
@@ -137,7 +186,7 @@ export type PageTile = { n: number; tile: HTMLElement };
  * file stays fast, and is let go again when far away. Tools mark tiles (chosen, turned) by class on
  * `tile`; each tile has an expand button that opens the full-screen viewer at that page.
  */
-export function pageStrip(file: Blob, total: number, opts: { max?: number; turn?: number; size?: number; name?: string } = {}): { el: HTMLElement; tiles: PageTile[] } {
+export function pageStrip(file: Blob, total: number, opts: { max?: number; turn?: number; size?: number; name?: string; onSave?: (blob: Blob, name: string) => void } = {}): { el: HTMLElement; tiles: PageTile[] } {
   const { max = 12, turn = 0, size = 260 } = opts;
   const name = opts.name ?? nameOf(file);
   const el = document.createElement("div");
@@ -177,7 +226,7 @@ export function pageStrip(file: Blob, total: number, opts: { max?: number; turn?
     frame.className = "page-frame pv";
     const pic = document.createElement("span");
     pic.className = "page-pic";
-    frame.append(pic, viewButton(viewLabel("page", n), () => pdfViewItem(file, name, total, n)));
+    frame.append(pic, viewButton(viewLabel("page", n), () => pdfViewItem(file, name, total, n, opts.onSave)));
     const cap = document.createElement("figcaption");
     cap.textContent = String(n);
     tile.append(frame, cap);

@@ -746,6 +746,18 @@ test.describe("fill form and developer tools", () => {
     expect(out.getForm().getCheckBox("agree").isChecked()).toBe(true);
   });
 
+  test("Fill PDF Form sends a PDF without fields to View and Edit PDF", async ({ page }) => {
+    await page.goto("/pdf/fill-form/");
+    await page.setInputFiles("#pff-file", PDF);
+    await expect(page.locator("#pff-result")).toContainText("This PDF has no fields to fill");
+    const link = page.locator("#pff-result").getByRole("link", { name: "View and edit PDF" });
+    await expect(link).toBeVisible();
+    await expect(page.locator("#pff-next")).toHaveText("Write and sign anywhere on it in View and edit PDF.");
+    await link.click();
+    await expect(page).toHaveURL(/\/pdf\/edit\/$/);
+    await expect(page.locator("main h1")).toBeVisible();
+  });
+
   test("Password Generator makes a password of the chosen length", async ({ page }) => {
     await page.goto("/developer/password-generator/");
     await expect(page.locator("#pw-out")).toHaveText(/^.{20}$/);

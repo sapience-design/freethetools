@@ -1,0 +1,3 @@
+- View and Edit PDF (PDF, Edit): open and read any PDF, then fill it in, write on it, highlight, draw and sign it, and save a finished copy. Nothing is uploaded.
+- Edit on every PDF in the full-screen viewer: any PDF you open full screen, such as the result of Merge PDF or Compress PDF, has an Edit button for text, boxes, highlights, drawing and a signature.
+- Fill PDF Form now points to View and Edit PDF when a PDF has no fields to fill.

@@ -1,0 +1,37 @@
+{
+  "name": "View and Edit PDF",
+  "task": "View, fill in and sign a PDF",
+  "icon": "signature",
+  "short": "View and edit",
+  "tagline": "View, fill in, write on and sign any PDF, then save a finished copy.",
+  "seoTitle": "View and edit PDF online free, without uploading",
+  "description": "Open and read any PDF for free in your browser, then fill it in, write on it and sign it. Text, highlights, drawings and a signature. Nothing is uploaded.",
+  "section": "Edit",
+  "keywords": ["pdf viewer", "view pdf", "open pdf", "read pdf", "pdf reader", "edit pdf", "sign pdf", "signature", "write on pdf", "type on pdf", "annotate pdf", "highlight pdf", "draw on pdf", "fill flat form", "pdf form online"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "beta",
+  "added": "2026-10-12",
+  "offline": true,
+  "related": ["pdf/fill-form", "pdf/merge", "pdf/compress"],
+  "specs": {
+    "Engine": "pdf.js (Apache-2.0) shows the pages, pdf-lib 1.17 (MIT) saves them",
+    "View": "Read any PDF full screen: one page, two pages, a grid or a scroll, with zoom",
+    "Add": "Text, boxes, highlights, freehand drawing and a signature picture",
+    "Letters": "Latin letters in Helvetica. Cyrillic, Greek and more in Roboto (Apache-2.0)",
+    "Signature": "A picture of your signature, not a certificate-based digital signature",
+    "Works offline": "Yes, after you have opened a PDF in it once"
+  },
+  "faq": [
+    { "q": "Is my PDF uploaded?", "a": "No. Contracts and forms hold personal details, so the PDF is opened and saved inside this tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Can I just read a PDF here?", "a": "Yes. Choose the PDF, look through the pages on this page, or press View full screen for a reader with one page, two pages, a grid or a scroll, zoom and page numbers. Press Edit only when you want to write on it." },
+    { "q": "Is this a digital signature?", "a": "No. It puts a picture of your signature on the page, like signing on paper and scanning it. It is not a certificate-based digital signature, so it does not prove who signed or that the file is unchanged. Most forms and simple contracts accept a picture. If the other side needs a certified signature, ask them which service they use." },
+    { "q": "My form has no fillable boxes. Can I still use it?", "a": "Yes. That is what Edit is for. Click on the page, type, and the text is placed exactly there. If the PDF does have real fields, Fill PDF Form is quicker." },
+    { "q": "How do I remove something I added?", "a": "Click it (or press Tab to reach it), then press Delete or use the Delete button. Ctrl+Z (Cmd+Z on a Mac) undoes the last change, and Shift+Ctrl+Z brings it back. Once saved, the marks are part of the page, so keep your original file." },
+    { "q": "Can I edit a PDF from another tool here?", "a": "Yes. Every PDF you open full screen on this site, such as the result of Merge PDF or Compress PDF, has an Edit button. It is the same editor." },
+    { "q": "Can I type in Russian, Greek or other alphabets?", "a": "Yes. Latin letters, including æ, ø, å, é and ß, use the standard Helvetica font. Other alphabets use an open-source font that is saved with your file, so they look the same in every reader." }
+  ],
+  "vendor": [
+    { "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" },
+    { "from": "roboto-fontface/fonts/roboto/Roboto-Regular.woff", "to": "Roboto-Regular.woff" }
+  ]
+}

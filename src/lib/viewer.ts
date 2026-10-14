@@ -3,9 +3,12 @@
 // PDFs and sets of pictures can be read one page at a time, two side by side, four at a time (a
 // grid) or as one continuous scroll, with a zoom menu. Loaded only when a preview's expand button
 // is pressed (see expand.ts). Everything is local: blob: URLs made here are revoked when it closes.
+// A PDF that carries its file (`file`) also gets an Edit button: the editor (src/lib/pdf-edit/) is a
+// separate chunk that loads only then, so opening the viewer stays as light as it was.
 import type { ViewItem } from "./expand";
 import { V } from "./expand";
 import { compareSlider } from "./preview";
+import type { Session } from "./pdf-edit/editor";
 
 type Pdf = Extract<ViewItem, { kind: "pdf" }>;
 type Layout = "one" | "two" | "grid" | "scroll";
@@ -40,6 +43,9 @@ let token = 0;          // changes whenever what is on screen changes; late resu
 let ar = 0;             // width / height of the Compare picture on screen, once known
 let redraw = 0;
 let ready = false;
+let edit: Session | null = null; // set while the person edits the PDF on screen
+let starting = false;
+const LAYER = "fv-ed-layer";   // the editor's svg inside a page cell: kept when the page picture changes
 
 // Paged content: the cells (one per page on screen), what is known about each page's shape, and the drawing queue.
 const cells = new Map<number, Cell>();
@@ -72,6 +78,7 @@ const narrow = () => dlg.clientWidth < NARROW;
 const hasLayouts = () => multi() && pages() > 1;
 const eff = (): Layout => {
   if (!multi()) return "one";
+  if (edit) return "scroll"; // editing is done in one scrolling column
   // Until the person picks one, PDFs scroll and sets of pictures show one at a time.
   const l = forced ?? chosen ?? (isPdf(cur()) ? "scroll" : "one");
   return l === "two" && narrow() ? "one" : l;
@@ -111,7 +118,11 @@ function init() {
   fig.className = "fv-fig";
   stage.append(fig);
 
-  $("fv-close").addEventListener("click", () => dlg.close());
+  $("fv-close").addEventListener("click", closeViewer);
+  $("fv-edit").addEventListener("click", () => { void startEditing(); });
+  $("fv-done").addEventListener("click", () => { if (edit) edit.guard(exitEdit); });
+  // Escape: with unsaved marks, ask first (a keydown that the editor did not use ends up here).
+  dlg.addEventListener("cancel", (e) => { if (edit?.dirty) { e.preventDefault(); edit.guard(() => dlg.close()); } });
   $("fv-prev").addEventListener("click", () => go(-1));
   $("fv-next").addEventListener("click", () => go(1));
   $("fv-in").addEventListener("click", () => zoomBy(STEP));
@@ -151,7 +162,7 @@ function init() {
   stage.addEventListener("touchend", onTouchEnd, { passive: true });
   stage.addEventListener("touchcancel", () => { touch = null; }, { passive: true });
   stage.addEventListener("dblclick", (e) => {
-    if (performance.now() - lastTouch < 600 || !paged() || eff() === "grid") return; // a double tap is handled on its own
+    if (edit || performance.now() - lastTouch < 600 || !paged() || eff() === "grid") return; // a double tap is handled on its own; editing keeps double-click for text
     toggleZoom(e.clientX, e.clientY);
   });
   dlg.addEventListener("close", cleanup);
@@ -162,14 +173,16 @@ function init() {
     if (eff() !== lastEff) { build(); return; }
     sizeAll();
     chrome(false);
+    edit?.relayout();
     scheduleRedraw();
   }).observe(stage);
   return true;
 }
 
 /** Open the viewer on `list`, starting at `start`. */
-export function show(list: ViewItem[], start: number, from: HTMLElement | null) {
+export function show(list: ViewItem[], start: number, from: HTMLElement | null, opts: { edit?: boolean } = {}) {
   if (!list.length || !init()) return;
+  stopEditing();
   items = list;
   idx = Math.min(Math.max(0, start), list.length - 1);
   opener = from;
@@ -182,9 +195,85 @@ export function show(list: ViewItem[], start: number, from: HTMLElement | null) 
   $("fv-live").textContent = "";
   load(false);
   $("fv-close").focus();
+  if (opts.edit) void startEditing();
+}
+
+/** Close the viewer; with unsaved marks the editor asks first. */
+function closeViewer() {
+  if (edit) edit.guard(() => dlg.close());
+  else dlg.close();
+}
+
+/** Press Edit: load the editor and turn this PDF into a page with an editing layer. */
+async function startEditing() {
+  const it = cur();
+  if (edit || starting || !it || !isPdf(it) || !it.file) return;
+  starting = true;
+  const btn = $<HTMLButtonElement>("fv-edit");
+  btn.disabled = true;
+  $("fv-live").textContent = V("edLoading", "Getting the editor ready…");
+  try {
+    const { startSession } = await import("./pdf-edit/editor");
+    const s = await startSession({
+      dlg, stage, bar: $("fv-ed"), file: it.file, name: it.name,
+      saved: afterSave,
+      close: () => dlg.close(),
+      live: (text) => { const l = $("fv-live"); l.textContent = ""; setTimeout(() => (l.textContent = text), 40); },
+    });
+    if (!dlg.open || cur() !== it) { s.destroy(); return; }
+    edit = s;
+    rot = 0;
+    s.sizes.forEach((sz, i) => { aspect.set(i + 1, sz.width / sz.height); natural.set(i + 1, (sz.width * 96) / 72); });
+    if (zoom === "page" && narrow()) zoom = "width"; // on a phone a fitted page is too small to write on: use the width
+    dlg.classList.add("fv-editing");
+    build();
+    chrome(false);
+    $("fv-done").focus();
+  } catch {
+    $("fv-live").textContent = V("edFailed", "This PDF can't be edited here.");
+  } finally {
+    starting = false;
+    btn.disabled = false;
+  }
+}
+
+/** Leave edit mode (the marks are gone: saved, or discarded by the person). */
+function exitEdit() {
+  stopEditing();
+  build();
+  chrome(false);
+  const b = $("fv-edit");
+  if (!b.hidden) b.focus(); else $("fv-close").focus();
+}
+
+function stopEditing() {
+  edit?.destroy();
+  edit = null;
+  dlg?.classList.remove("fv-editing");
+}
+
+/** The editor saved a copy: hand it on, and show it from now on instead of the file without the marks. */
+function afterSave(blob: Blob, name: string) {
+  const old = cur();
+  if (!isPdf(old) || !edit) return;
+  items[idx] = edit.item(blob, name, old.pages, page, old.onSave);
+  if (old.onSave) old.onSave(blob, name);
+  else {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+  }
+  build();
+  chrome(false);
 }
 
 function cleanup() {
+  stopEditing();
   token++;
   stopAll();
   clearTimeout(redraw);
@@ -260,7 +349,9 @@ function chrome(announce: boolean) {
   ($("fv-next") as HTMLButtonElement).disabled = last;
   const zoomable = paged();
   $("fv-zoom").hidden = !zoomable;
-  $("fv-rot").hidden = !zoomable;
+  $("fv-rot").hidden = !zoomable || !!edit; // a turned view and marks do not mix: editing is upright
+  $("fv-edit").hidden = !(isPdf(it) && it.file) || !!edit;
+  $("fv-done").hidden = !edit;
   // "Go to page [ 3 ]": for three or more pages, so Previous and Next are not the only way.
   $("fv-jumpbox").hidden = n < 3;
   $("fv-jl").textContent = isPdf(it) ? V("goToPage", "Go to page") : V("goToImage", "Go to image");
@@ -268,7 +359,7 @@ function chrome(announce: boolean) {
   if (document.activeElement !== jump) jump.value = String(here());
   $("fv-full").hidden = !(it.kind === "media" && it.blob.type.startsWith("video/"));
   const seg = $("fv-layout");
-  seg.hidden = !hasLayouts();
+  seg.hidden = !hasLayouts() || !!edit; // editing is always Scroll
   if (!seg.hidden) {
     const l = eff(), nar = narrow();
     for (const m of ["one", "two", "grid", "scroll"] as Layout[]) ($(`fv-l-${m}`) as HTMLInputElement).checked = m === l;
@@ -430,6 +521,7 @@ function build() {
     els.push(el);
   }
   fig.replaceChildren(...els);
+  if (edit) for (const c of cells.values()) edit.mount(c.i, c.el);
   stage.scrollTo(0, 0);
   if (mode === "scroll") {
     watch(my);
@@ -469,11 +561,17 @@ function dropPic(c: Cell) {
   c.w = 0;
 }
 
+/** Replace what a cell shows with `node` (or nothing), keeping the editor's layer on top of it. */
+function put(c: Cell, node?: Node) {
+  for (const n of [...c.el.childNodes]) if (!(n instanceof Element && n.classList.contains(LAYER))) n.remove();
+  if (node) c.el.prepend(node);
+}
+
 /** A page far from the window: its picture goes, its place stays. */
 function release(c: Cell) {
   queue = queue.filter((j) => j.c !== c);
   dropPic(c);
-  c.el.replaceChildren();
+  put(c);
 }
 
 function stopAll() {
@@ -523,7 +621,7 @@ async function run(job: Job) {
     const p = document.createElement("p");
     p.className = "fv-msg";
     p.textContent = isPdf(cur()) ? V("failedPage", "This page can't be shown here.") : V("failedPicture", "This picture can't be shown here.");
-    c.el.replaceChildren(p);
+    put(c, p);
     return;
   }
   const nat = el instanceof HTMLCanvasElement ? Number(el.dataset.nw) || defNat : (el as HTMLImageElement).naturalWidth;
@@ -531,7 +629,7 @@ async function run(job: Job) {
   el.className = "fv-pic";
   if (eff() === "grid") el.setAttribute("aria-hidden", "true");
   else if (el instanceof HTMLCanvasElement) { el.setAttribute("role", "img"); el.setAttribute("aria-label", multi() && eff() !== "one" ? pageLabel(c.i) : labelFor()); }
-  c.el.replaceChildren(el);
+  put(c, el);
   c.pic = el;
   c.w = el instanceof HTMLCanvasElement ? el.width : need;
   const first = !aspect.size;
@@ -613,6 +711,7 @@ function setZoom(z: Zoom, at?: { x: number; y: number }) {
   zoom = z;
   saveView();
   sizeAll();
+  edit?.relayout();
   stage.scrollLeft = fx * stage.scrollWidth - ax;
   stage.scrollTop = fy * stage.scrollHeight - ay;
   chrome(false);
@@ -628,7 +727,7 @@ function zoomBy(f: number) {
 
 /** Turn the whole view by a quarter. It is only how the pages are shown; the file is not changed. */
 function rotate(d: number) {
-  if (!paged()) return;
+  if (!paged() || edit) return;
   rot = (rot + d + 360) % 360;
   sizeAll();
   chrome(false);
@@ -735,7 +834,7 @@ function onWheel(e: WheelEvent) {
 function onTouchEnd(e: TouchEvent) {
   const s = touch;
   touch = null;
-  if (!s || e.touches.length || !items.length || !paged()) return;
+  if (!s || e.touches.length || !items.length || !paged() || edit) return;
   const t = e.changedTouches[0], dx = t.clientX - s.x, dy = t.clientY - s.y, now = performance.now(), dt = now - s.t;
   lastTouch = now;
   if (Math.abs(dx) < 10 && Math.abs(dy) < 10 && dt < 300) {
@@ -748,6 +847,7 @@ function onTouchEnd(e: TouchEvent) {
 }
 
 function onKey(e: KeyboardEvent) {
+  if (edit?.key(e)) return;
   if (e.ctrlKey || e.metaKey || e.altKey || !items.length) return;
   const t = e.target as HTMLElement;
   const typing = t.matches("input:not([type=radio]), textarea, select, video, audio");
@@ -757,9 +857,9 @@ function onKey(e: KeyboardEvent) {
     if (e.key === "+" || e.key === "=") { e.preventDefault(); zoomBy(STEP); return; }
     if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomBy(1 / STEP); return; }
     if (e.key === "0") { e.preventDefault(); setZoom("page"); return; }
-    if (k === "r") { e.preventDefault(); rotate(e.shiftKey ? -90 : 90); return; }
+    if (k === "r" && !edit) { e.preventDefault(); rotate(e.shiftKey ? -90 : 90); return; }
     if (k === "g" && !$("fv-jumpbox").hidden) { e.preventDefault(); const j = $<HTMLInputElement>("fv-jump"); j.focus(); j.select(); return; }
-    if (hasLayouts()) {
+    if (hasLayouts() && !edit) {
       const to: Layout | undefined = k === "1" ? "one" : k === "2" ? "two" : k === "4" ? "grid" : k === "s" ? "scroll" : undefined;
       if (to) { e.preventDefault(); setLayout(to); return; }
     }

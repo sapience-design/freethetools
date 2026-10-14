@@ -46,6 +46,8 @@ Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL
 Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/
 
 pdf-lib 1.17 · Copyright (c) 2019 Andrew Dillon · MIT · https://pdf-lib.js.org/
+@pdf-lib/fontkit 1.1.1 · Copyright (c) 2014 Devon Govett and contributors · MIT · https://github.com/Hopding/fontkit
+Roboto (roboto-fontface 0.10.0) · Copyright 2011 Google Inc. · Apache-2.0 · https://github.com/choffmeister/roboto-fontface-bower
 pdf.js 6.3 · Copyright Mozilla Foundation · Apache-2.0 · https://mozilla.github.io/pdf.js/
 MiniSearch 7 · Copyright (c) 2019 Luca Ongaro · MIT
 Papa Parse 5.7 · Copyright (c) 2015 Matthew Holt · MIT · https://www.papaparse.com/
