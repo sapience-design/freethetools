@@ -16,7 +16,8 @@ test.beforeEach(async ({ page }) => {
   });
   page.__problems = problems;
 });
-test.afterEach(async ({ page }) => expect(page.__problems).toEqual([]));
+// Skipped (phone) tests never ran the hook above, so there is nothing to check for them.
+test.afterEach(async ({ page }) => expect(page.__problems ?? []).toEqual([]));
 test.skip(({ isMobile }) => isMobile, "file flows run once, on desktop");
 
 /** A PNG, w x h, whose left half is red and right half is blue. */
