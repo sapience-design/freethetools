@@ -1,0 +1,203 @@
+---
+// Protect PDF: choose a PDF, set a password, save the locked copy. qpdf (the engine Unlock PDF uses)
+// does the locking in the browser. A password is read from its fields, the fields are cleared at
+// once, and the password goes only to qpdf: it is never written to the page, logged or stored.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+---
+<section class="tool" id="ppw-tool" aria-label="Protect a PDF with a password">
+  <Step n={1} title="Choose your PDF">
+    <DropZone prefix="ppw" toolId="pdf/protect" category="pdf" name="Protect PDF" accept="application/pdf,.pdf" title="Drop your PDF here" hint="From your computer, phone or a USB stick" button="Choose PDF" />
+    <ul class="file-list" id="ppw-picked" hidden>
+      <li class="has-thumb">
+        <span class="fthumb" id="ppw-thumb"><Icon name="file-pdf" weight="duotone" /></span>
+        <span class="finfo"><span class="fname" id="ppw-name"></span><span class="fmeta" id="ppw-meta"></span></span>
+        <span class="fact"><button class="btn quiet small" id="ppw-change" type="button">Change</button></span>
+      </li>
+    </ul>
+    <div id="ppw-locked" role="alert" hidden></div>
+  </Step>
+
+  <Step n={2} title="Set a password" state="later">
+    <form id="ppw-form" class="ppw-form" novalidate>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" id="ppw-pw" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </label>
+      <label class="field">
+        <span>Type it again</span>
+        <input type="password" id="ppw-pw2" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </label>
+      <label class="check"><input type="checkbox" id="ppw-show"> <span>Show the password</span></label>
+      <p class="hint ppw-warn">If you forget this password, nobody can open the file again. Keep it somewhere safe.</p>
+      <fieldset class="field">
+        <legend>What can people do once it is open?</legend>
+        <label class="check"><input type="checkbox" id="ppw-print" checked> <span>Print it</span></label>
+        <label class="check"><input type="checkbox" id="ppw-copy"> <span>Copy text and images</span></label>
+        <label class="check"><input type="checkbox" id="ppw-edit"> <span>Change the file</span></label>
+        <small>Most PDF programs follow these limits, but they are a request, not a lock. The password is what keeps the file closed.</small>
+      </fieldset>
+      <div id="ppw-err" role="alert"></div>
+      <button class="btn run" id="ppw-go" type="submit" disabled><Icon name="lock-key" /><span>Protect PDF</span></button>
+    </form>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="ppw-result" aria-live="polite"><p class="res-wait">Your protected PDF will appear here.</p></div>
+  </Step>
+
+  <template id="ppw-lock-tile"><Icon name="lock-key" weight="duotone" /></template>
+</section>
+
+<style>
+  .ppw-form { display: grid; gap: 14px; }
+  .ppw-form :global(#ppw-err:empty) { display: none; }
+</style>
+
+<script>
+  import { allowsEverything, passwordProblem, protectPdf, protectedSentence, randomOwner } from "./core.js";
+  import { qpdf } from "../../../src/agent/qpdf.js";
+  import { wireDrop, fmtBytes, downloadLink, showError, showBusy, showDone, showWait, compactDrop, baseName } from "../../../src/lib/files";
+  import { usePdfWorker, pdfPreview, pdfPages } from "../../../src/lib/pdfthumb";
+  import { lockOf } from "../../../src/lib/pdfpassword";
+  import { stepTo } from "../../../src/lib/steps";
+  usePdfWorker();
+
+  const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+  const root = $("ppw-tool"), result = $("ppw-result"), go = $<HTMLButtonElement>("ppw-go");
+  const pw = $<HTMLInputElement>("ppw-pw"), pw2 = $<HTMLInputElement>("ppw-pw2"), show = $<HTMLInputElement>("ppw-show");
+  const err = $("ppw-err"), locked = $("ppw-locked");
+  const WAIT = "Your protected PDF will appear here.";
+  let file: File | null = null, bytes: Uint8Array | null = null;
+
+  const setShown = (on: boolean) => { pw.type = pw2.type = on ? "text" : "password"; };
+  show.addEventListener("change", () => setShown(show.checked));
+
+  function clearPasswords() {
+    pw.value = "";
+    pw2.value = "";
+    show.checked = false;
+    setShown(false);
+  }
+
+  /** A mistake the person can fix, shown by the form and read out. */
+  function tryAgain(text: string, field: HTMLInputElement) {
+    const p = document.createElement("p");
+    p.className = "tool-error";
+    p.id = "ppw-err-text";
+    p.textContent = text;
+    err.replaceChildren(p);
+    pw.setAttribute("aria-invalid", "true");
+    pw2.setAttribute("aria-invalid", "true");
+    pw.setAttribute("aria-describedby", p.id);
+    pw2.setAttribute("aria-describedby", p.id);
+    field.focus();
+  }
+  function noProblem() {
+    err.replaceChildren();
+    for (const f of [pw, pw2]) { f.removeAttribute("aria-invalid"); f.removeAttribute("aria-describedby"); }
+  }
+
+  /** A locked PDF can't be locked again here: say so and point to Unlock PDF. */
+  function refuseLocked(name: string) {
+    file = bytes = null;
+    go.disabled = true;
+    $("ppw-picked").hidden = true;
+    const p = document.createElement("p");
+    p.className = "tool-error";
+    p.append(`${name} is already locked, with a password or with limits. Unlock it first, then protect the unlocked copy. `);
+    const a = document.createElement("a");
+    a.href = "/pdf/unlock/";
+    a.textContent = "Use Unlock PDF.";
+    p.append(a);
+    locked.replaceChildren(p);
+    locked.hidden = false;
+    stepTo(root, 1);
+  }
+
+  $("ppw-change").addEventListener("click", () => $("ppw-file").click());
+
+  wireDrop("ppw", async (files) => {
+    const f = files.find((x) => /\.pdf$/i.test(x.name) || x.type === "application/pdf");
+    if (!f) return;
+    locked.hidden = true;
+    locked.replaceChildren();
+    showWait(result, WAIT);
+    noProblem();
+    clearPasswords();
+    let b: Uint8Array;
+    try {
+      b = new Uint8Array(await f.arrayBuffer());
+      if ((await lockOf(b)) !== "none") return refuseLocked(f.name);
+    } catch (e) {
+      return showError(result, `${f.name} could not be read. It may be damaged, or it may not be a PDF.`);
+    }
+    file = f;
+    bytes = b;
+    $("ppw-name").textContent = f.name;
+    const pages = await pdfPages(f);
+    $("ppw-meta").textContent = pages ? `${pages} ${pages === 1 ? "page" : "pages"} · ${fmtBytes(f.size)}` : fmtBytes(f.size);
+    $("ppw-picked").hidden = false;
+    pdfPreview($("ppw-thumb"), f, f.name, pages ?? 0);
+    compactDrop("ppw", true);
+    go.disabled = false;
+    stepTo(root, 2);
+    pw.focus();
+  });
+
+  // Changing anything in step 2 makes an earlier result out of date.
+  root.querySelector('.step[data-step="2"]')!.addEventListener("input", () => {
+    if (!result.querySelector(".res-done, .res-bad")) return;
+    showWait(result, WAIT);
+    stepTo(root, 2);
+  });
+
+  $("ppw-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!bytes || !file) return;
+    let password = pw.value, again = pw2.value;
+    const problem = passwordProblem(password, again);
+    if (problem) {
+      tryAgain(problem, password ? pw2 : pw);
+      return;
+    }
+    noProblem();
+    clearPasswords(); // never keep it: the fields are cleared before anything else happens
+    const allow = { print: $<HTMLInputElement>("ppw-print").checked, copy: $<HTMLInputElement>("ppw-copy").checked, edit: $<HTMLInputElement>("ppw-edit").checked };
+    // The limits only hold when the owner password differs from the one that opens the file.
+    const owner = allowsEverything(allow) ? "" : randomOwner();
+    go.disabled = true;
+    stepTo(root, 3);
+    await showBusy(result);
+    try {
+      const r = await protectPdf(qpdf, bytes, { password, owner, allow });
+      password = again = ""; // drop our copies too
+      if (r.status === "locked") return refuseLocked(file.name);
+      if (r.status !== "protected") {
+        showError(result, `${file.name} could not be protected. It may be damaged, or it may not be a PDF.`);
+        return;
+      }
+      const fname = `${baseName(file.name)}_protected.pdf`;
+      const dl = downloadLink(r.bytes, fname, "application/pdf", "Download PDF");
+      dl.classList.add("run");
+      dl.setAttribute("aria-label", `Download ${fname}`);
+      showDone(result, "Done. Your PDF now needs a password.", `${fname} · ${fmtBytes(r.bytes.length)}. ${protectedSentence(allow)}`);
+      // A locked file can't be drawn without its password, so the preview is a lock, not a page.
+      const tile = document.createElement("span");
+      tile.className = "fthumb";
+      tile.append($<HTMLTemplateElement>("ppw-lock-tile").content.cloneNode(true));
+      const row = document.createElement("div");
+      row.className = "out-row";
+      row.append(tile, dl);
+      result.append(row);
+      stepTo(root, 4);
+      dl.focus();
+    } catch {
+      showError(result, "The PDF locker could not load. Reload the page and try again.");
+    } finally {
+      password = again = "";
+      go.disabled = !bytes;
+    }
+  });
+</script>

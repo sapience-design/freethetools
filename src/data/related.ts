@@ -9,6 +9,7 @@ export const NEXT_STEP: Record<string, string[]> = {
   "pdf/images-to-pdf": ["pdf/compress", "pdf/merge"],
   "pdf/to-images": ["images/compress", "pdf/split"],
   "pdf/unlock": ["pdf/compress", "pdf/merge"],
+  "pdf/protect": ["pdf/unlock", "pdf/compress"],
   "pdf/rotate": ["pdf/merge", "pdf/split"],
   "pdf/fill-form": ["pdf/compress", "pdf/merge"],
   "images/compress": ["images/resize", "images/convert"],

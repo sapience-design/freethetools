@@ -1,0 +1,21 @@
+{
+  "name": "Proteger PDF",
+  "task": "Bloquear un PDF con contraseña",
+  "tagline": "Ponle una contraseña a un PDF para que solo quien la conozca pueda abrir el archivo.",
+  "seoTitle": "Proteger PDF con contraseña sin subirlo",
+  "description": "Bloquea un PDF con contraseña, gratis en tu navegador. Cifrado AES de 256 bits. Ni tu archivo ni tu contraseña se suben a ningún sitio.",
+  "keywords": ["proteger pdf", "poner contraseña a un pdf", "cifrar pdf", "bloquear pdf", "asegurar pdf", "añadir contraseña", "aes", "qpdf"],
+  "specs": {
+    "Motor": "qpdf 11, compilado a WebAssembly",
+    "Cifrado": "AES de 256 bits",
+    "Primera carga": "1,3 MB, luego guardado por tu navegador",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    { "q": "¿Se sube mi archivo?", "a": "No. El PDF se bloquea dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio. Tu archivo original no se toca." },
+    { "q": "¿Se envía mi contraseña a algún sitio?", "a": "No. La contraseña se queda en esta pestaña del navegador. Va al motor de bloqueo de esta página y a ningún otro sitio. La página nunca la guarda ni la registra, y los campos se vacían en cuanto la usas." },
+    { "q": "¿Qué pasa si olvido la contraseña?", "a": "Entonces nadie podrá volver a abrir el archivo, ni siquiera esta página. Una contraseña segura no se puede adivinar ni recuperar. Guárdala en un lugar seguro y conserva una copia sin bloquear del original por si la necesitas." },
+    { "q": "¿Qué programas pueden abrirlo?", "a": "Cualquier programa de PDF actual que admita AES de 256 bits: Adobe Acrobat y Reader, Vista Previa en Mac, Chrome, Edge, Firefox y la mayoría de las aplicaciones del móvil. Los programas muy antiguos quizá no puedan." },
+    { "q": "¿Las opciones de imprimir, copiar y modificar bloquean el archivo?", "a": "No. Son una petición que la mayoría de los programas de PDF respetan y algunos ignoran. Lo que mantiene el archivo cerrado es la contraseña. Elige una contraseña larga y difícil de adivinar." }
+  ]
+}

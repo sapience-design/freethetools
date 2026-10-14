@@ -110,7 +110,7 @@ Run `freethetools list` for the full list. Files are always paths on your comput
 <!-- tools:start: written by scripts/tool-table.mjs -->
 | Group | Tools |
 |---|---|
-| PDF | `compress_pdf`, `list_pdf_form_fields`, `fill_pdf_form`, `images_to_pdf`, `merge_pdfs`, `rotate_pdf`, `split_pdf`, `unlock_pdf` |
+| PDF | `compress_pdf`, `list_pdf_form_fields`, `fill_pdf_form`, `images_to_pdf`, `merge_pdfs`, `protect_pdf`, `rotate_pdf`, `split_pdf`, `unlock_pdf` |
 | Images | `remove_photo_metadata` |
 | Text | `convert_case`, `compare_texts`, `count_words` |
 | Data | `csv_to_json`, `json_to_csv`, `format_json` |

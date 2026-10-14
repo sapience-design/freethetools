@@ -1,0 +1,21 @@
+{
+  "name": "Beskytt PDF",
+  "task": "Lås en PDF med passord",
+  "tagline": "Legg et passord på en PDF, så bare de som kjenner det kan åpne filen.",
+  "seoTitle": "Passordbeskytt PDF uten å laste opp",
+  "description": "Lås en PDF med passord, gratis i nettleseren. 256-bits AES-kryptering. Filen og passordet ditt lastes aldri opp.",
+  "keywords": ["beskytt pdf", "passordbeskytt pdf", "krypter pdf", "lås pdf", "sikre pdf", "legg til passord", "aes", "qpdf"],
+  "specs": {
+    "Motor": "qpdf 11, kompilert til WebAssembly",
+    "Kryptering": "256-bits AES",
+    "Første gang": "1,3 MB, deretter lagret av nettleseren din",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    { "q": "Lastes filen min opp?", "a": "Nei. PDF-en låses inne i denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut. Originalfilen din røres ikke." },
+    { "q": "Sendes passordet mitt noe sted?", "a": "Nei. Passordet blir i denne nettleserfanen. Det går til låsemotoren på denne siden og ingen andre steder. Siden lagrer eller logger det aldri, og feltene tømmes så snart du har brukt dem." },
+    { "q": "Hva om jeg glemmer passordet?", "a": "Da kan ingen åpne filen igjen, heller ikke denne siden. Et sterkt passord kan ikke gjettes eller gjenopprettes. Oppbevar passordet på et trygt sted, og behold en ulåst kopi av originalen hvis du kan trenge den." },
+    { "q": "Hvilke programmer kan åpne den?", "a": "Alle nyere PDF-programmer som støtter 256-bits AES: Adobe Acrobat og Reader, Forhåndsvisning på Mac, Chrome, Edge, Firefox og de fleste apper på mobilen. Svært gamle programmer klarer det kanskje ikke." },
+    { "q": "Låser valgene om utskrift, kopiering og endring filen?", "a": "Nei. De er en oppfordring som de fleste PDF-programmer følger, men noen ignorerer dem. Det er passordet som holder filen lukket. Velg et langt passord som er vanskelig å gjette." }
+  ]
+}

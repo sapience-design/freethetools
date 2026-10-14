@@ -88,7 +88,7 @@ await build({
 const gsDir = dirname(require.resolve("@jspawn/ghostscript-wasm/package.json"));
 copyFileSync(join(gsDir, "gs.js"), join(dist, "gs.cjs"));
 copyFileSync(join(gsDir, "gs.wasm"), join(dist, "gs.wasm"));
-// qpdf compiled to WebAssembly, for unlock_pdf, shipped the same way.
+// qpdf compiled to WebAssembly, for unlock_pdf and protect_pdf, shipped the same way.
 const qpdfDir = dirname(require.resolve("@jspawn/qpdf-wasm/package.json"));
 copyFileSync(join(qpdfDir, "qpdf.js"), join(dist, "qpdf.cjs"));
 copyFileSync(join(qpdfDir, "qpdf.wasm"), join(dist, "qpdf.wasm"));

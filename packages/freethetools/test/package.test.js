@@ -144,6 +144,18 @@ test("unlock_pdf runs qpdf in Node, and the password never reaches the library",
   for (const f of readdirSync(library, { recursive: true, withFileTypes: true })) if (f.isFile() && f.name.endsWith(".jsonl")) assert.ok(!readFileSync(join(f.parentPath, f.name), "utf8").includes(OPEN_PASSWORD));
 });
 
+test("protect_pdf runs qpdf in Node, and the password never reaches the library", async () => {
+  const r = await call("protect_pdf", { file: SAMPLE, password: "pkg-secret-pw" });
+  assert.ok(!r.isError, text(r));
+  const [path] = section(r, "Saved files");
+  assert.match(path, /_protected.pdf$/);
+  assert.ok(!text(r).includes("pkg-secret-pw"), "the password is not echoed back");
+  const again = await call("protect_pdf", { file: path, password: "x" });
+  assert.equal(again.isError, true);
+  assert.match(text(again), /already locked/);
+  for (const f of readdirSync(library, { recursive: true, withFileTypes: true })) if (f.isFile() && f.name.endsWith(".jsonl")) assert.ok(!readFileSync(join(f.parentPath, f.name), "utf8").includes("pkg-secret-pw"));
+});
+
 test("failed calls return a plain error and are recorded", async () => {
   const missing = await call("merge_pdfs", { files: [join(tmp, "nope.pdf"), SAMPLE] });
   assert.equal(missing.isError, true);

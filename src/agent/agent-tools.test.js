@@ -322,3 +322,47 @@ test("PDF tools tell an agent to run unlock_pdf first when a PDF is locked", asy
     await assert.rejects(call(name, args), /run unlock_pdf on it first/i, name);
   }
 });
+
+test("protect_pdf uses the engine the channel lends it, and says what it did", async () => {
+  await assert.rejects(call("protect_pdf", { file: pdf(), password: "x" }), /isn.t available here/);
+  const seen = [];
+  const fake = async (args, input) => {
+    seen.push(args);
+    if (args[0] === "--show-encryption") return { code: 2, lines: ["File is not encrypted"] };
+    return { code: 0, lines: [], output: input.subarray(0, 100) };
+  };
+  const r = await call("protect_pdf", { file: pdf("report.pdf"), password: "hunter2", allowCopy: true }, { qpdf: fake });
+  const enc = seen.find((a) => a[0] === "--encrypt");
+  assert.equal(enc[1], "hunter2");
+  assert.notEqual(enc[2], "hunter2", "a separate owner password, so the limits hold");
+  assert.deepEqual(enc.slice(3, 7), ["256", "--print=full", "--extract=y", "--modify=none"]);
+  assert.equal(r.files[0].name, "report_protected.pdf");
+  assert.match(r.summary, /locked with a password/);
+  assert.ok(!JSON.stringify([r.summary, r.data]).includes("hunter2"), "the password is not echoed back");
+  const open = await call("protect_pdf", { file: pdf(), password: "x", allowPrint: true, allowCopy: true, allowEdit: true }, { qpdf: fake });
+  const same = seen.filter((a) => a[0] === "--encrypt").at(-1);
+  assert.equal(same[1], same[2], "with no limits, one password does both jobs");
+  assert.match(open.summary, /no limits/);
+  await assert.rejects(call("protect_pdf", { file: pdf(), password: "" }, { qpdf: fake }), /Give the password/);
+  const needs = async () => ({ code: 2, lines: ["qpdf: /in.pdf: invalid password"] });
+  await assert.rejects(call("protect_pdf", { file: pdf(), password: "x" }, { qpdf: needs }), /already locked.*unlock_pdf/);
+  await assert.rejects(call("protect_pdf", { file: pdf(), password: "x" }, { qpdf: async () => ({ code: 2, lines: ["qpdf: damaged"] }) }), /damaged or not a PDF/);
+});
+
+test("protect_pdf locks a real file with qpdf, and refuses a locked one", async () => {
+  const ctx = { qpdf: realQpdf };
+  const r = await call("protect_pdf", { file: pdf("a.pdf"), password: "s3cret" }, ctx);
+  await assert.rejects(PDFDocument.load(r.files[0].bytes), /encrypted/i);
+  const back = await call("unlock_pdf", { file: pdf("a_protected.pdf", r.files[0].bytes), password: "s3cret" }, ctx);
+  assert.equal(await pages(back.files[0].bytes), await pages(SAMPLE_PDF));
+  await assert.rejects(call("protect_pdf", { file: pdf("locked.pdf", withPassword), password: "x" }, ctx), /already locked/);
+});
+
+test("the library never keeps a protect password", () => {
+  const input = byName.protect_pdf.input;
+  assert.equal(input.properties.password["x-setting"], undefined, "password must not be a recorded setting");
+  assert.deepEqual(settingsOf(input, { file: "a.pdf", password: "hunter2", allowCopy: true }), { allowCopy: true });
+  assert.match(byName.protect_pdf.description, /password passes through the AI conversation/);
+  assert.deepEqual(byName.protect_pdf.needs, ["qpdf"]);
+  assert.equal(byName.protect_pdf.makesFiles, true);
+});

@@ -134,6 +134,15 @@ const PIECES: Record<string, Draw> = {
     const keyhole = `<circle cx="0" cy="22" r="4.5" fill="${lock}"/><rect x="-1.8" y="10" width="3.6" height="12" fill="${lock}"/>`;
     return stack(c, x - 30, y - 22, 5) + box(px, py, w, d, h, c.accent) + face(px, py, 0, shackle) + face(px, py, d / 2, keyhole);
   },
+  "protect-pdf": (c) => {
+    // The same stack of pages, with a closed padlock standing in front of it.
+    const [x, y] = at(0);
+    const [px, py, w, d, h] = [x + 60, y + 8, 44, 22, 34];
+    const lock = c.clay ? c.line : c.navy.left;
+    const shackle = `<path d="M-12 ${h} V${h + 14} A12 12 0 0 1 12 ${h + 14} V${h}" fill="none" stroke="${lock}" stroke-width="6" stroke-linecap="round"/>`;
+    const keyhole = `<circle cx="0" cy="22" r="4.5" fill="${lock}"/><rect x="-1.8" y="10" width="3.6" height="12" fill="${lock}"/>`;
+    return stack(c, x - 30, y - 22, 5) + box(px, py, w, d, h, c.accent) + face(px, py, 0, shackle) + face(px, py, d / 2, keyhole);
+  },
   "merge-pdfs": (c) => { const [x, y] = at(0); return stack(c, x - 34, y - 20, 3, 80, 104, false) + stack(c, x + 34, y + 20, 3, 80, 104, false) + stack(c, x, y, 7, 88, 112); },
   "split-pdf": (c) => { const [x, y] = at(0); return stack(c, x - 44, y - 6, 4, 80, 104) + stack(c, x + 44, y + 6, 3, 80, 104, false); },
   "rotate-pages": (c) => { const [x, y] = at(0); return stack(c, x - 20, y, 3, 88, 112) + box(x + 44, y - 10, 112, 4, 88, c.paper, 0, c.line); },
