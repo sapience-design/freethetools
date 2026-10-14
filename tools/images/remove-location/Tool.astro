@@ -112,8 +112,11 @@ import Icon from "../../../src/components/Icon.astro";
         m.textContent = removed.length ? `Removed ${removed.join(", ")} · ${fmtBytes(f.size)} → ${fmtBytes(r.bytes.length)}` : "No location or camera data found. This copy is clean.";
         if (r.found.gps) { li.classList.add("rml-gps"); gps++; }
         const out = `${baseName(f.name)}_clean.${EXT[r.format]}`;
+        const blob = new Blob([r.bytes], { type: MIME[r.format] });
+        // The row now shows the cleaned copy, so full screen opens the file you will download.
+        li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
         act.append(downloadLink(r.bytes, out, MIME[r.format]));
-        outs.push({ name: out, blob: new Blob([r.bytes], { type: MIME[r.format] }) });
+        outs.push({ name: out, blob });
         done++;
       } catch (e) { reportFailure(); m.textContent = (e as Error).message; m.classList.add("bad"); }
     }

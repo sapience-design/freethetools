@@ -17,6 +17,7 @@
     "Formats": "JPG and PNG as they are; WebP, GIF, SVG and others converted to PNG first",
     "Works offline": "Yes, once the page has loaded"
   },
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }],
   "faq": [
     { "q": "Are my images uploaded?", "a": "No. The images are placed into the PDF inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
     { "q": "Will my photos lose quality?", "a": "JPG and PNG images are embedded exactly as they are. Other formats are converted to PNG, which is lossless." },

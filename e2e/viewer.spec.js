@@ -172,6 +172,45 @@ test.describe("full-screen viewer", () => {
     await page.keyboard.press("Escape");
   });
 
+  test("Images to PDF: the new PDF's first page opens full screen", async ({ page }) => {
+    await page.goto("/pdf/images-to-pdf/");
+    await page.setInputFiles("#i2p-file", { name: "gradient.png", mimeType: "image/png", buffer: gradientPng(300, 200) });
+    await page.click("#i2p-go");
+    const open = page.locator("#i2p-result").getByRole("button", { name: "View page 1 full screen" });
+    await expect(open).toBeVisible();
+    await open.click();
+    await expect(viewer(page)).toHaveAttribute("aria-label", /images\.pdf/);
+    await expect(pageCanvas(page)).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(open).toBeFocused();
+  });
+
+  test("Remove Photo Location: the cleaned copy opens full screen", async ({ page }) => {
+    await page.goto("/images/remove-location/");
+    await page.setInputFiles("#rml-file", { name: "plain.png", mimeType: "image/png", buffer: gradientPng(300, 200) });
+    await page.click("#rml-go");
+    const open = page.locator("#rml-list").getByRole("button", { name: "View photo full screen" });
+    await expect(open).toBeVisible();
+    await open.click();
+    await expect(viewer(page)).toHaveAttribute("aria-label", /plain_clean\.png/);
+    await expect(page.locator("#fv-stage .fv-pic")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(open).toBeFocused();
+  });
+
+  test("QR Code Maker: the code opens full screen, big enough to scan from afar", async ({ page }) => {
+    await page.goto("/developer/qr-code-maker/");
+    const open = page.getByRole("button", { name: "Show the code full screen" });
+    await expect(open).toBeVisible();
+    await open.click();
+    await expect(viewer(page)).toBeVisible();
+    const pic = page.locator("#fv-stage .fv-pic");
+    await expect(pic).toBeVisible();
+    expect((await pic.boundingBox()).width).toBeGreaterThan(400);
+    await page.keyboard.press("Escape");
+    await expect(open).toBeFocused();
+  });
+
   test("Fill PDF Form: the page picture opens full screen", async ({ page }) => {
     const doc = await PDFDocument.create();
     const p = doc.addPage([400, 300]);

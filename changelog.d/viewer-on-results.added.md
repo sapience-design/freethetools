@@ -1,0 +1,1 @@
+- Every file result opens full screen: the PDF from Images to PDF, the cleaned photo from Remove Photo Location, and the code from QR Code Maker, big enough to scan from across a room.

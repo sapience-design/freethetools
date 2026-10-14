@@ -113,7 +113,10 @@ import Icon from "../../../src/components/Icon.astro";
       const dl = downloadLink(out, "images.pdf", "application/pdf", "Download PDF");
       dl.classList.add("run");
       showDone(result, `Done. ${n} ${n === 1 ? "photo" : "photos"}, ${n} ${n === 1 ? "page" : "pages"}.`, `images.pdf · ${fmtBytes(out.byteLength)}`);
-      result.append(dl);
+      // The first page of the new PDF, which opens full screen. pdf.js loads only now, not with the page.
+      const { usePdfWorker, outputRow } = await import("../../../src/lib/pdfthumb");
+      usePdfWorker();
+      result.append(outputRow(out, dl, "images.pdf"));
       stepTo(root, 4);
     } catch (e) { showError(result, (e as Error).message); }
     go.disabled = !items.length;
