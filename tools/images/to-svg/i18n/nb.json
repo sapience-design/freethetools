@@ -1,0 +1,20 @@
+{
+  "name": "Bilde til SVG",
+  "task": "Gjør et bilde om til en SVG-tegning",
+  "tagline": "Spor en logo, et ikon eller en tegning om til skarpe former som kan skaleres.",
+  "seoTitle": "PNG og JPG til SVG uten å laste opp",
+  "description": "Gjør et PNG-, JPG-, WebP-, GIF- eller BMP-bilde om til en SVG-tegning, gratis i nettleseren. Best for logoer, ikoner og tegninger. Bildet lastes aldri opp.",
+  "keywords": ["png til svg", "jpg til svg", "bilde til svg", "vektorisere", "spore bilde", "logo til svg", "raster til vektor", "bitmap til svg"],
+  "specs": {
+    "Motor": "imagetracerjs 1.2.6 (Unlicense, offentlig eiendom)",
+    "Passer best for": "Logoer, ikoner og tegninger",
+    "Størrelse": "Bilder over 1200 px på den lengste siden krympes til 1200 px før sporing",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    { "q": "Lastes bildet mitt opp?", "a": "Nei. Bildet spores i denne fanen, og sidens sikkerhetspolicy hindrer at data sendes ut." },
+    { "q": "Hvorfor ser fotoet mitt flatt ut?", "a": "Sporing gjør et bilde om til noen få flate fargeflater. En logo eller en tegning ser allerede slik ut. Et foto har millioner av små fargenyanser, så det blir til flekker. Øk antall farger og detaljnivået for å komme nærmere, men et foto blir aldri som et foto i SVG." },
+    { "q": "Hvilken forhåndsinnstilling bør jeg velge?", "a": "Logo eller ikon for flat grafikk med få farger. Illustrasjon for tegninger med skygge eller mange farger. Svart-hvitt for strektegninger, signaturer og sjablonger." },
+    { "q": "Kan jeg redigere SVG-filen?", "a": "Ja. Åpne den i Inkscape, Figma, Illustrator eller et annet vektorprogram. Hver farge er en samling former du kan flytte, farge om eller slette. Sporingen kjenner ikke igjen bokstaver, så tekst blir til former." }
+  ]
+}

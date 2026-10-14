@@ -1,0 +1,183 @@
+---
+// Image to SVG: choose pictures, pick a preset, press the button; each picture is traced into coloured shapes in the browser.
+import DropZone from "../../../src/components/DropZone.astro";
+import Step from "../../../src/components/Step.astro";
+import Icon from "../../../src/components/Icon.astro";
+import { PRESETS, MIN_COLOURS, MAX_COLOURS, MAX_SIDE } from "./core.js";
+---
+<section class="tool" id="i2s-tool" aria-label="Image to SVG">
+  <Step n={1} title="Choose your pictures">
+    <DropZone prefix="i2s" toolId="images/to-svg" category="images" name="Image to SVG" accept="image/*" multiple title="Drop your pictures here" hint="PNG, JPG, WebP, GIF or BMP · one or many" button="Choose pictures" />
+    <ul class="file-list" id="i2s-picked" hidden></ul>
+    <p class="hint">Works best on logos, icons and drawings. Photos come out as flat patches of colour.</p>
+  </Step>
+
+  <Step n={2} title="What kind of picture is it?" state="later">
+    <fieldset class="choices cols">
+      <legend class="sr-only">Preset</legend>
+      {Object.entries(PRESETS).map(([key, p], i) => (
+        <div class="choice"><input type="radio" name="i2s-preset" id={`i2s-${key}`} value={key} checked={i === 0} /><label for={`i2s-${key}`}><b>{p.label}</b><small>{p.note}</small>{i === 0 && <span class="badge rec">Recommended</span>}</label></div>
+      ))}
+    </fieldset>
+    <details class="more" id="i2s-more">
+      <summary>More options</summary>
+      <div class="more-body">
+        <p class="hint">The preset fills these in. Change them to fine-tune the result.</p>
+        <div class="row-fields">
+          <label class="field" id="i2s-c-f"><span>Colours ({MIN_COLOURS} to {MAX_COLOURS})</span><input type="number" id="i2s-colours" value={PRESETS.logo.colours} min={MIN_COLOURS} max={MAX_COLOURS} inputmode="numeric"></label>
+        </div>
+        <fieldset class="field">
+          <legend>Detail</legend>
+          <div class="seg">
+            <input type="radio" name="i2s-detail" id="i2s-d-low" value="low"><label for="i2s-d-low">Low</label>
+            <input type="radio" name="i2s-detail" id="i2s-d-medium" value="medium" checked><label for="i2s-d-medium">Medium</label>
+            <input type="radio" name="i2s-detail" id="i2s-d-high" value="high"><label for="i2s-d-high">High</label>
+          </div>
+          <small class="hint">More detail keeps small shapes and sharp corners. The file gets bigger.</small>
+        </fieldset>
+      </div>
+    </details>
+    <p class="hint">Pictures larger than {MAX_SIDE} px on the long side are shrunk first, so tracing stays quick.</p>
+    <button class="btn run" id="i2s-go" type="button" disabled><Icon name="bezier-curve" /><span id="i2s-go-label">Turn into SVG</span></button>
+  </Step>
+
+  <Step n={3} title="Save it" state="later">
+    <div class="result" id="i2s-status" aria-live="polite"><p class="res-wait">Your SVG drawings will appear here.</p></div>
+    <ul class="file-list" id="i2s-list"></ul>
+    <button class="btn quiet" id="i2s-again" type="button" hidden><Icon name="arrow-counter-clockwise" />Do another</button>
+  </Step>
+</section>
+
+<script>
+  import { PRESETS, clampColours, traceOptions, traceSize, svgName, isSafeSvg } from "./core.js";
+  import { decode } from "../../../src/lib/images";
+  import { compactDrop, fmtBytes, downloadLink, downloadAllButton, dateStamp, reportFailure, iconButton, showBusy, showDone, showProblem, showWait, wireDrop, photoRow, fileRow, viewableImage } from "../../../src/lib/files";
+  import { stepTo } from "../../../src/lib/steps";
+  import { compareButton } from "../../../src/lib/preview";
+  const $ = (id: string) => document.getElementById(id)!;
+  const root = $("i2s-tool"), picked = $("i2s-picked"), list = $("i2s-list"), status = $("i2s-status");
+  const go = $("i2s-go") as HTMLButtonElement, again = $("i2s-again");
+  const colours = $("i2s-colours") as HTMLInputElement;
+  let pending: File[] = [];
+  let running = false;
+
+  const worker = new Worker(new URL("./worker.js", import.meta.url));
+  type Done = { svg: string; colours: number };
+  const waiting = new Map<number, { ok: (r: Done) => void; fail: (e: Error) => void }>();
+  let nextId = 1;
+  const LOAD_FAILED = "The tracer could not load. Reload the page and try again.";
+  worker.onmessage = ({ data }) => {
+    const job = waiting.get(data.id);
+    waiting.delete(data.id);
+    if (!job) return;
+    if (data.ok) job.ok(data);
+    else job.fail(new Error(data.load ? LOAD_FAILED : "This picture could not be traced."));
+  };
+  worker.onerror = () => {
+    if (navigator.onLine) reportFailure();
+    for (const job of waiting.values()) job.fail(new Error(LOAD_FAILED));
+    waiting.clear();
+  };
+  const trace = (width: number, height: number, buffer: ArrayBuffer, options: object, outWidth: number, outHeight: number) =>
+    new Promise<Done>((ok, fail) => {
+      const id = nextId++;
+      waiting.set(id, { ok, fail });
+      worker.postMessage({ id, width, height, buffer, options, outWidth, outHeight }, [buffer]);
+    });
+
+  const preset = () => (document.querySelector('input[name="i2s-preset"]:checked') as HTMLInputElement).value as keyof typeof PRESETS;
+  const detail = () => (document.querySelector('input[name="i2s-detail"]:checked') as HTMLInputElement).value;
+
+  // A preset fills in the colours and detail; the person can change them afterwards.
+  function applyPreset() {
+    const p = PRESETS[preset()];
+    colours.value = String(p.colours);
+    colours.disabled = preset() === "bw";
+    ($(`i2s-d-${p.detail}`) as HTMLInputElement).checked = true;
+  }
+  document.querySelectorAll('input[name="i2s-preset"]').forEach((el) => el.addEventListener("change", applyPreset));
+  colours.addEventListener("change", () => { colours.value = String(clampColours(colours.value, PRESETS[preset()].colours)); });
+
+  function renderPicked() {
+    picked.hidden = !pending.length;
+    picked.replaceChildren(...pending.map((f, i) => photoRow(f, [iconButton("remove", `Remove ${f.name}`, () => { pending.splice(i, 1); renderPicked(); })])));
+    compactDrop("i2s", pending.length > 0 || list.children.length > 0);
+    go.disabled = !pending.length || running;
+    if (pending.length) stepTo(root, 2);
+    else if (!list.children.length) stepTo(root, 1);
+  }
+
+  wireDrop("i2s", (files) => {
+    pending.push(...files.filter((x) => x.type.startsWith("image/")));
+    renderPicked();
+  });
+
+  /** The picture's pixels at tracing size. Black and white sits on white, so see-through areas read as white. */
+  async function pixels(file: File, bw: boolean) {
+    const bmp = await decode(file);
+    const { width, height, shrunk } = traceSize(bmp.width, bmp.height);
+    const c = document.createElement("canvas");
+    c.width = width; c.height = height;
+    const ctx = c.getContext("2d", { willReadFrequently: true })!;
+    if (bw) { ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, width, height); }
+    ctx.imageSmoothingQuality = "high";
+    ctx.drawImage(bmp, 0, 0, width, height);
+    const out = { width, height, shrunk, fromWidth: bmp.width, fromHeight: bmp.height, data: ctx.getImageData(0, 0, width, height).data.buffer };
+    bmp.close();
+    return out;
+  }
+
+  go.addEventListener("click", async () => {
+    if (!pending.length || running) return;
+    running = true;
+    const files = pending;
+    pending = [];
+    renderPicked();
+    const kind = preset();
+    const options = traceOptions({ preset: kind, colours: colours.value, detail: detail() });
+    again.hidden = true;
+    list.replaceChildren();
+    stepTo(root, 3);
+    compactDrop("i2s", true);
+    await showBusy(status, files.length > 1 ? `Tracing ${files.length} pictures. Please keep this page open.` : undefined);
+    let done = 0;
+    const outs: { name: string; blob: Blob }[] = [];
+    for (const f of files) {
+      const li = fileRow({ name: f.name, meta: "Tracing…", thumb: viewableImage(f, f.name) });
+      const m = li.querySelector<HTMLElement>(".fmeta")!, act = li.querySelector<HTMLElement>(".fact")!;
+      list.append(li);
+      try {
+        const px = await pixels(f, kind === "bw");
+        const r = await trace(px.width, px.height, px.data, options, px.fromWidth, px.fromHeight);
+        if (!isSafeSvg(r.svg)) throw new Error("This picture could not be traced.");
+        const blob = new Blob([r.svg], { type: "image/svg+xml" });
+        const out = svgName(f.name);
+        const n = r.colours;
+        m.textContent = `${(f.type.split("/")[1] || "image").toUpperCase()} → SVG · ${fmtBytes(f.size)} → ${fmtBytes(blob.size)} · ${n} ${n === 1 ? "colour" : "colours"}${px.shrunk ? ` · traced at ${px.width} × ${px.height}` : ""}`;
+        li.querySelector(".pv")?.replaceWith(viewableImage(blob, out));
+        act.append(compareButton(li, f, blob, { beforeLabel: (f.type.split("/")[1] || "Original").toUpperCase(), afterLabel: "SVG", name: f.name }), downloadLink(blob, out, "image/svg+xml"));
+        outs.push({ name: out, blob });
+        done++;
+      } catch (e) { reportFailure(); m.textContent = (e as Error).message; }
+    }
+    running = false;
+    go.disabled = !pending.length;
+    again.hidden = false;
+    if (!done) {
+      showProblem(status, files.length > 1 ? "None of these pictures could be traced. Each row says why." : "This picture could not be traced. The row below says why.", "That didn't work");
+      return;
+    }
+    stepTo(root, 4);
+    const all = downloadAllButton(() => outs, `svg-drawings-${dateStamp()}.zip`);
+    showDone(status, done > 1 ? `Done. ${done} pictures are now SVG drawings.` : "Done. Your picture is now an SVG drawing.", ...(all ? [all] : []));
+  });
+
+  again.addEventListener("click", () => {
+    list.replaceChildren();
+    again.hidden = true;
+    showWait(status, "Your SVG drawings will appear here.");
+    renderPicked();
+    stepTo(root, 1);
+    document.getElementById("i2s-drop")?.focus();
+  });
+</script>

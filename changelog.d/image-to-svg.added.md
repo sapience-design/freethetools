@@ -1,0 +1,1 @@
+- Image to SVG (Images, Convert): trace a logo, icon or drawing into an SVG, in the browser. Pick Logo or icon, Illustration, or Black and white.

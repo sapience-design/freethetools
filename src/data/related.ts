@@ -17,6 +17,7 @@ export const NEXT_STEP: Record<string, string[]> = {
   "images/resize": ["images/compress", "images/convert"],
   "images/convert": ["images/compress", "images/resize"],
   "images/heic-to-jpg": ["images/compress", "images/resize"],
+  "images/to-svg": ["images/convert", "images/resize"],
   "images/video-to-gif": ["images/compress"],
   "images/remove-location": ["images/compress", "images/resize"],
   "data/csv-to-json": ["data/json-formatter"],

@@ -41,6 +41,12 @@ heic-to 1.6.5 (libheif compiled to WebAssembly, in HEIC to JPG)
   The decoder worker is served as a separate, unmodified file extracted from the package at
   build time (scripts/sync-tool-assets.mjs), so another build of libheif can replace it.
 
+imagetracerjs 1.2.6 (in Image to SVG)
+  Copyright (c) András Jankovics
+  License: Unlicense (public domain) · https://github.com/jankovicsandras/imagetracerjs
+  Served as a separate, unmodified file copied from the package at build time
+  (scripts/sync-tool-assets.mjs).
+
 Schibsted Grotesk (typeface) · Schibsted Media Group · SIL Open Font License 1.1
 Bricolage Grotesque (typeface) · The Bricolage Grotesque Project Authors · SIL Open Font License 1.1
 Phosphor Icons · Copyright (c) 2023 Phosphor Icons · MIT · https://phosphoricons.com/
