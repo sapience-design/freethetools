@@ -29,6 +29,9 @@ const tools = defineCollection({
     faq: z.array(z.object({ q: z.string(), a: z.string() })).default([]),
     vendor: z.array(z.object({ from: z.string(), to: z.string(), shared: z.string().optional() })).default([]),
     related: z.array(z.string().regex(/^[a-z0-9-]+\/[a-z0-9-]+$/)).max(6).optional(),
+    // Tools that share one screen name it (docs/adr/0016-shared-screens.md). The build checks that
+    // at least two tools of one group share it.
+    screen: z.string().regex(/^[a-z0-9-]+$/).optional(),
   }),
 });
 

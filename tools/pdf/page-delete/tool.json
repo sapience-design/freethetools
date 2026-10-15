@@ -1,0 +1,27 @@
+{
+  "name": "Delete or Reorder Pages",
+  "task": "Delete or reorder PDF pages",
+  "icon": "trash",
+  "short": "Delete pages",
+  "tagline": "Take out the pages you don't need, or put them in a new order, with a picture of every page.",
+  "seoTitle": "Delete or reorder PDF pages without uploading",
+  "description": "Remove pages from a PDF or change their order for free in your browser. See every page, then move, turn or delete it. Nothing is uploaded.",
+  "section": "Organize",
+  "screen": "pdf-pages",
+  "keywords": ["delete pages", "remove pages", "reorder", "rearrange", "sort pages", "move pages", "page order", "organise", "organize", "pdf", "drop pages"],
+  "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
+  "status": "live",
+  "added": "2026-10-15",
+  "offline": true,
+  "specs": {
+    "Engine": "pdf-lib 1.17 (MIT), in your browser",
+    "Bookmarks": "Kept when you only turn pages; not carried over when you delete or move pages",
+    "Works offline": "Yes, once the page has loaded"
+  },
+  "faq": [
+    { "q": "Are my files uploaded?", "a": "No. The PDF is read and rebuilt inside this browser tab, and the page's security policy blocks it from sending data anywhere." },
+    { "q": "Are deleted pages really gone?", "a": "Yes. The new PDF is built only from the pages you keep, so a deleted page is not hidden inside the file. Your original file is not changed." },
+    { "q": "Can I do this without dragging?", "a": "Yes. Every page has buttons to move it earlier or later, turn it and delete it, and they work with a keyboard. You can also type the pages to delete, such as 2, 5-7." }
+  ],
+  "vendor": [{ "from": "pdfjs-dist/build/pdf.worker.min.mjs", "to": "pdf.worker.min.mjs", "shared": "pdfjs" }]
+}

@@ -65,7 +65,8 @@ test("a missing Norwegian address shows the Norwegian 404 page", async ({ page }
 
 const WCAG = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 for (const theme of ["light", "dark"]) {
-  for (const path of ["/nb/", "/nb/pdf/compress/", "/nb/pdf/page-delete/"]) {
+  // A home page, two tool pages (one on the shared PDF pages screen) and a requested tool's page.
+  for (const path of ["/nb/", "/nb/pdf/compress/", "/nb/pdf/page-delete/", "/nb/developer/cron-explainer/"]) {
     test(`${path} meets WCAG 2.2 AA (${theme})`, async ({ page, context }) => {
       await context.addInitScript((t) => { try { localStorage.setItem("ftt:theme", t); } catch {} }, theme);
       await page.goto(path);

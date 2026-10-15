@@ -13,8 +13,9 @@ import { join } from "node:path";
 
 const SKIP = new Set(["vendor", "tests", "node_modules", "i18n"]);
 const files = [];
-// The tools, and the editor they share with the full-screen viewer (src/lib/pdf-edit/): the same rules apply to both.
-const ROOTS = ["tools", "src/lib/pdf-edit"];
+// The tools, the editor they share with the full-screen viewer (src/lib/pdf-edit/) and the PDF
+// pages screen (src/lib/pdf-pages/, ADR 0016): the same rules apply to all of them.
+const ROOTS = ["tools", "src/lib/pdf-edit", "src/lib/pdf-pages"];
 function walk(dir) {
   for (const n of readdirSync(dir)) {
     const p = join(dir, n);

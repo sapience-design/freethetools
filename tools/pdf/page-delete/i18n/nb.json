@@ -1,0 +1,35 @@
+{
+  "name": "Slett eller sorter sider",
+  "task": "Slett eller sorter PDF-sider",
+  "tagline": "Fjern sidene du ikke trenger, eller sett dem i ny rekkefølge, med et bilde av hver side.",
+  "seoTitle": "Slett eller sorter PDF-sider uten å laste dem opp",
+  "description": "Fjern sider fra en PDF eller endre rekkefølgen gratis i nettleseren. Se hver side, og flytt, snu eller slett den. Ingenting lastes opp.",
+  "keywords": [
+    "slett sider",
+    "fjern sider",
+    "sorter sider",
+    "endre rekkefølge",
+    "flytt sider",
+    "organiser pdf",
+    "siderekkefølge"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), i nettleseren",
+    "Bokmerker": "Beholdes når du bare snur sider; følger ikke med når du sletter eller flytter sider",
+    "Fungerer frakoblet": "Ja, når siden er lastet"
+  },
+  "faq": [
+    {
+      "q": "Lastes filene mine opp?",
+      "a": "Nei. PDF-en leses og bygges på nytt inni denne nettleserfanen, og sidens sikkerhetspolicy hindrer at data sendes ut."
+    },
+    {
+      "q": "Er slettede sider virkelig borte?",
+      "a": "Ja. Den nye PDF-en lages bare av sidene du beholder, så en slettet side ligger ikke skjult i filen. Originalfilen din endres ikke."
+    },
+    {
+      "q": "Kan jeg gjøre dette uten å dra?",
+      "a": "Ja. Hver side har knapper for å flytte den tidligere eller senere, snu den og slette den, og de fungerer med tastaturet. Du kan også skrive inn sidene du vil slette, for eksempel 2, 5-7."
+    }
+  ]
+}

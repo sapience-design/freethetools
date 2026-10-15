@@ -1,0 +1,36 @@
+{
+  "name": "Eliminar o reordenar páginas",
+  "task": "Eliminar o reordenar páginas de PDF",
+  "tagline": "Quita las páginas que no necesitas o ponlas en otro orden, con una imagen de cada página.",
+  "seoTitle": "Eliminar o reordenar páginas de PDF sin subirlas",
+  "description": "Quita páginas de un PDF o cambia su orden gratis en tu navegador. Mira cada página y muévela, gírala o elimínala. No se sube nada.",
+  "keywords": [
+    "eliminar páginas",
+    "quitar páginas",
+    "borrar páginas pdf",
+    "reordenar páginas",
+    "ordenar páginas",
+    "mover páginas",
+    "organizar pdf",
+    "orden de páginas"
+  ],
+  "specs": {
+    "Motor": "pdf-lib 1.17 (MIT), en tu navegador",
+    "Marcadores": "Se mantienen si solo giras páginas; no se conservan si eliminas o mueves páginas",
+    "Funciona sin conexión": "Sí, una vez cargada la página"
+  },
+  "faq": [
+    {
+      "q": "¿Se suben mis archivos?",
+      "a": "No. El PDF se lee y se rehace dentro de esta pestaña del navegador, y la política de seguridad de la página impide que envíe datos a ningún sitio."
+    },
+    {
+      "q": "¿Las páginas eliminadas desaparecen de verdad?",
+      "a": "Sí. El PDF nuevo se hace solo con las páginas que conservas, así que una página eliminada no queda escondida en el archivo. Tu archivo original no cambia."
+    },
+    {
+      "q": "¿Puedo hacerlo sin arrastrar?",
+      "a": "Sí. Cada página tiene botones para moverla antes o después, girarla y eliminarla, y funcionan con el teclado. También puedes escribir las páginas que quieres eliminar, como 2, 5-7."
+    }
+  ]
+}
