@@ -191,6 +191,9 @@ export function startPdfPages(root: HTMLElement) {
     moreBtn.textContent = showAll ? V("showFewer", "Show fewer pages") : V("showAll", "Show all {n} pages", { n: order.length });
 
     reset.hidden = !file || !changed();
+    // Until a PDF is read there is nothing to delete: say so by the box being off, not by ignoring it.
+    del.disabled = !file;
+    $<HTMLButtonElement>("del-go").disabled = !file;
     if (!file) { go.disabled = true; return; }
     if (job === "rotate") {
       go.disabled = !kept().length;

@@ -150,7 +150,10 @@ test.describe("PDF tools", () => {
 
   test("Delete or Reorder Pages deletes typed pages, refuses to delete them all, and undoes everything", async ({ page }) => {
     await page.goto("/pdf/page-delete/");
+    // Nothing to delete until a PDF is in: the box waits, rather than ignoring what is typed.
+    await expect(page.locator("#pdfd-del")).toBeDisabled();
     await page.setInputFiles("#pdfd-file", await numberedPdf(4));
+    await expect(page.locator("#pdfd-del")).toBeEnabled();
     await page.fill("#pdfd-del", "1-2");
     await page.press("#pdfd-del", "Enter");
     await expect(page.locator("#pdfd-go")).toContainText("Save the new PDF (2 pages)");
