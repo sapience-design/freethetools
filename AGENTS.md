@@ -46,6 +46,8 @@ nothing else. The npm package in `packages/freethetools/` runs the same tools as
   instructions.
 - No `eval`, `new Function` or string timers. Put text into the page with `textContent`. An
   `innerHTML` write needs a `safe-html:` comment that says why no outside text reaches it.
+- Read the clipboard only from a paste the person makes, never with `navigator.clipboard.read()`.
+  File inputs get dropped and pasted files through `takePageFiles` in `src/lib/page-files.ts`.
 - `core.js` and `agent.js` also run in the npm package on people's computers: no network, no Node
   built-ins and no `process` there. `tests/tool-safety.test.js` checks both rules.
 - Follow the security review list in CONTRIBUTING.md for every new tool.
