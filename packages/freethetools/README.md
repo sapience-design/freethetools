@@ -175,7 +175,10 @@ claude mcp add freethetools -- npx -y freethetools mcp --allow-save ~/Documents/
 - Each call stops after 60 seconds, and after 5 minutes for `compress_pdf`. This stops a runaway job from hanging the server.
 - A call may read up to 2 GB of input files. Larger files are refused.
 - Password-protected PDFs must be unlocked first.
-- Image Compress, Convert and Resize, and PDF to Images, are not in the package yet. They need an image engine that runs in Node.
+- Some tools on the website are not in the package yet, because they use parts of the browser that Node does not have:
+  - Image Compress, Convert and Resize, HEIC to JPG, Image to SVG and PDF to Images read or save pictures through the browser's canvas. They need an image engine that runs in Node.
+  - Video to GIF takes its frames from the browser's video player. It needs a video decoder that runs in Node.
+  - Markdown to HTML and File Converter need the browser's page model (DOM) or canvas.
 
 ## How compress_pdf works
 
