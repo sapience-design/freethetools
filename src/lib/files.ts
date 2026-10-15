@@ -5,6 +5,7 @@ import type { ZipEntry } from "./zip.js";
 import { shareButton, canShareFile } from "./share";
 import { txt } from "./ui";
 import { viewable, viewLabel } from "./expand";
+import { takePageFiles, pasteKey } from "./page-files";
 
 export { zipAll };
 
@@ -83,7 +84,8 @@ export const baseName = (name: string) => name.replace(/\.[^.]+$/, "");
 
 /**
  * Wire a DropZone (see src/components/DropZone.astro) to a handler. Clicking or pressing
- * Enter/Space opens the file picker; dropping files works too.
+ * Enter/Space opens the file picker; dropping files works too, on the zone or anywhere on the
+ * page, and so does pasting them (src/lib/page-files.ts).
  */
 export function wireDrop(prefix: string, onFiles: (files: File[]) => void | Promise<void>) {
   const drop = document.getElementById(`${prefix}-drop`)!;
@@ -112,6 +114,8 @@ export function wireDrop(prefix: string, onFiles: (files: File[]) => void | Prom
   for (const t of ["dragenter", "dragover"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add("over"); });
   for (const t of ["dragleave", "drop"]) drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.remove("over"); });
   drop.addEventListener("drop", (e) => take([...((e as DragEvent).dataTransfer?.files ?? [])]));
+  takePageFiles({ input, zone: drop, overlay: document.getElementById(`${prefix}-overlay`) ?? undefined });
+  for (const key of drop.querySelectorAll("[data-paste-key]")) key.textContent = pasteKey();
 }
 
 /** Make a drop zone small once files are in, so the next step is in view. */

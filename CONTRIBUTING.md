@@ -72,6 +72,7 @@ The reviewer then reads the code for what tests cannot see:
 - **Crafted files.** A file may be made to attack the tool. Check limits on size, pages, frames and decompression, so a small file cannot freeze the tab or the computer.
 - **Patterns from people.** A regular expression or other pattern a person types, or one run on large text, must not hang the page.
 - **Output.** Text from a file or a person goes into the page as text, never as HTML. A name found inside a file, such as a path in a ZIP, never decides where a result is saved.
+- **Clipboard.** Read it only from a paste the person makes (the `paste` event), never with `navigator.clipboard.read()`. Pasted files go through `takePageFiles` in `src/lib/page-files.ts`, like dropped ones.
 - **Libraries.** An exact version from the official package, a compatible licence, and no install script that downloads code.
 - **Agents.** `agent.js` accepts only what its input schema allows, and returns files as bytes. Saving them is the channel's job.
 
