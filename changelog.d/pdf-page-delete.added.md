@@ -1,0 +1,1 @@
+- Delete or Reorder Pages (PDF, Organize): see every page of a PDF, then move, turn or delete pages with buttons or by dragging, or type the pages to delete. A deleted page is gone from the new file, not hidden in it. For AI assistants too, as `arrange_pdf_pages`.

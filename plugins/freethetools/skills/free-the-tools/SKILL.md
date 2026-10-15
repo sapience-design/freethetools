@@ -11,7 +11,7 @@ Free the Tools is a local MCP server. It runs on the user's computer, so files a
 
 Use its tools when the user asks for a file job, for example:
 
-- Compress, merge, split or rotate PDFs.
+- Compress, merge, split or rotate PDFs, or delete and reorder their pages.
 - Convert CSV to JSON or JSON to CSV.
 - Hash a file.
 - Format or convert data and text.

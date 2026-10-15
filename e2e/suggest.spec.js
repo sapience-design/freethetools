@@ -91,15 +91,15 @@ test("three steps send the same body as the /suggest/ form, and nothing is sent 
 test("a wanted-page link keeps its tool in the payload", async ({ page }) => {
   let body;
   await page.route("**/api/feedback", (route) => { body = route.request().postDataJSON(); return route.fulfill({ status: 200, body: "{}" }); });
-  await page.goto("/pdf/page-delete/");
+  await page.goto("/developer/cron-explainer/");
   await page.getByRole("link", { name: "Tell us what you need" }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByRole("textbox", { name: "What should the tool do?" }).fill("Delete pages from a PDF");
+  await dialog.getByRole("textbox", { name: "What should the tool do?" }).fill("Explain a cron schedule");
   await dialog.getByRole("button", { name: "Next" }).click();
   await dialog.getByRole("button", { name: "Next" }).click();
   await dialog.getByRole("button", { name: "Send suggestion" }).click();
   await expect(dialog.getByRole("heading", { name: "Thank you!" })).toBeVisible();
-  expect(body).toEqual({ kind: "suggestion", message: "Delete pages from a PDF", use: "", tool: "pdf/page-delete", email: "", website: "", page: "/pdf/page-delete/", search: "", lang: "en" });
+  expect(body).toEqual({ kind: "suggestion", message: "Explain a cron schedule", use: "", tool: "developer/cron-explainer", email: "", website: "", page: "/developer/cron-explainer/", search: "", lang: "en" });
 });
 
 test("on a failed send the text stays and a plain message says what to do", async ({ page }) => {

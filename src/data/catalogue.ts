@@ -102,6 +102,15 @@ export async function loadCatalogue() {
     checkRelated("src/data/related.ts", id, list);
   }
 
+  // A shared screen (docs/adr/0016-shared-screens.md) is shared: at least two tools, all in one group.
+  const screens = new Map<string, Tool[]>();
+  for (const t of tools) if (t.data.screen) screens.set(t.data.screen, [...(screens.get(t.data.screen) ?? []), t]);
+  for (const [name, list] of screens) {
+    if (list.length < 2) throw new Error(`tools/${list[0].id}/tool.json: screen "${name}" is used by this tool only. A screen is shared by two or more tools; remove the field.`);
+    const groups = new Set(list.map((t) => t.category.slug));
+    if (groups.size > 1) throw new Error(`screen "${name}" is used by tools in different groups (${list.map((t) => t.id).join(", ")}). Tools that share a screen are in one group.`);
+  }
+
   // A wanted tool has the address it will have once built. If a real tool already has it, the
   // entry is out of date and must be removed from src/data/wanted.json.
   const seen = new Set<string>();
@@ -203,8 +212,9 @@ export async function loadCatalogue() {
 }
 
 /**
- * The related tools of a tool, up to `max`: its own `related` list from tool.json, else the
- * next-step map in related.ts, then topped up from the same section and group. Never the tool itself.
+ * The related tools of a tool, up to `max`: first the tools that share its screen (each page links
+ * to the others, docs/adr/0016-shared-screens.md), then its own `related` list from tool.json, else
+ * the next-step map in related.ts, then topped up from the same section and group. Never the tool itself.
  */
 export function relatedFor(tools: Tool[], tool: Tool, max = 4): Tool[] {
   const byId = new Map(tools.map((t) => [t.id, t]));
@@ -212,6 +222,7 @@ export function relatedFor(tools: Tool[], tool: Tool, max = 4): Tool[] {
   const wantedIds = tool.data.related ?? NEXT_STEP[tool.id] ?? [];
   const out: Tool[] = [];
   const add = (t?: Tool) => { if (t && t.id !== tool.id && !out.includes(t) && out.length < max) out.push(t); };
+  if (tool.data.screen) tools.filter((t) => t.data.screen === tool.data.screen).sort(byName).forEach(add);
   wantedIds.forEach((id) => add(byId.get(id)));
   const sameGroup = tools.filter((t) => t.category.slug === tool.category.slug).sort(byName);
   sameGroup.filter((t) => t.data.section === tool.data.section).forEach(add);

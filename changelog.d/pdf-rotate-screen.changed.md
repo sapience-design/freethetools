@@ -1,0 +1,2 @@
+- Rotate Pages and Delete or Reorder Pages share one screen: buttons at the top switch between turning pages and deleting or reordering them on the same PDF, without choosing it again, and every change carries over. A file that isn't a PDF now gets a message saying where it can go instead, and "Do another" starts again with a new PDF.
+- Rotate Pages names its file like the other tools, such as report-rotated.pdf.

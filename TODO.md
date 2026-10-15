@@ -1,6 +1,6 @@
 # Free the Tools — what is left
 
-*Single list. Update it as things move; delete what ships. Live state (2026-10-11): 33 tools in four languages (English, Norwegian, Spanish and Russian), 25 of them in the
+*Single list. Update it as things move; delete what ships. Live state (2026-10-15): 37 tools in four languages (English, Norwegian, Spanish and Russian), 28 of them in the
 npm package for AI assistants, with themes, search, sorting, anonymous usage totals, visit breakdowns and likes, all on freethetools.com.*
 
 ## Build (Claude sessions or contributors)
@@ -20,8 +20,9 @@ One pull request each, in this order. Every tool keeps its page, its URL and its
 
 | # | Shared screen | Tools that open it | Request met | Status |
 |---|---|---|---|---|
-| C1 | The `screen` field and "Also here" links on tool pages, the README tool table, tests | — | — | Ready |
-| C2 | PDF pages: add, reorder, rotate and delete pages, save as one file or several. Reorder with buttons as well as dragging (WCAG 2.2, 2.5.7) | Merge, Split, Rotate, Delete or reorder pages (`/pdf/page-delete/`) | #63 | Ready |
+| C1 | The `screen` field: the build check, sharing tools first under "Related tools", tests | — | — | Done with C2a |
+| C2a | PDF pages: every page as a tile to move, turn or delete, with buttons as well as dragging (WCAG 2.2, 2.5.7); buttons at the top switch jobs on the same file | Rotate, Delete or Reorder Pages (`/pdf/page-delete/`) | #63 | In review |
+| C2b | PDF pages: several output files, and whole files put in order | Split, Merge | — | Ready, after C2a |
 | C3 | PDF editor: also fills forms, and stamps text or page numbers on every page | View and Edit, Fill PDF Form, Watermark and page numbers (`/pdf/watermark/`) | #64 | Ready |
 | C4 | PDF password: sees whether a PDF is locked and offers the right action | Protect, Unlock | — | Ready |
 | C5 | Photo: size, crop, format and quality on one screen; the photo's location is removed by default | Compress, Resize, Convert, HEIC to JPG, Crop (`/images/crop/`) | #66 | Ready |

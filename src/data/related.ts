@@ -11,6 +11,7 @@ export const NEXT_STEP: Record<string, string[]> = {
   "pdf/unlock": ["pdf/compress", "pdf/merge"],
   "pdf/protect": ["pdf/unlock", "pdf/compress"],
   "pdf/rotate": ["pdf/merge", "pdf/split"],
+  "pdf/page-delete": ["pdf/split", "pdf/merge"],
   "pdf/fill-form": ["pdf/edit", "pdf/compress"],
   "pdf/edit": ["pdf/compress", "pdf/merge"],
   "images/compress": ["images/resize", "images/convert"],
