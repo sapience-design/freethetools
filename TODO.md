@@ -14,6 +14,21 @@ npm package for AI assistants, with themes, search, sorting, anonymous usage tot
 | B13 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
 | B14 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
 
+## Shared screens ([ADR 0016](docs/adr/0016-shared-screens.md))
+
+One pull request each, in this order. Every tool keeps its page, its URL and its row in the lists; the tools in one row below open the same screen, ready for their own job. A requested tool keeps the address it has now. Sharing is optional: when it would make a job harder, the tools keep their own screens.
+
+| # | Shared screen | Tools that open it | Request met | Status |
+|---|---|---|---|---|
+| C1 | The `screen` field and "Also here" links on tool pages, the README tool table, tests | — | — | Ready |
+| C2 | PDF pages: add, reorder, rotate and delete pages, save as one file or several. Reorder with buttons as well as dragging (WCAG 2.2, 2.5.7) | Merge, Split, Rotate, Delete or reorder pages (`/pdf/page-delete/`) | #63 | Ready |
+| C3 | PDF editor: also fills forms, and stamps text or page numbers on every page | View and Edit, Fill PDF Form, Watermark and page numbers (`/pdf/watermark/`) | #64 | Ready |
+| C4 | PDF password: sees whether a PDF is locked and offers the right action | Protect, Unlock | — | Ready |
+| C5 | Photo: size, crop, format and quality on one screen; the photo's location is removed by default | Compress, Resize, Convert, HEIC to JPG, Crop (`/images/crop/`) | #66 | Ready |
+| C6 | Data: paste CSV, JSON or YAML, tidy it and convert it | JSON Formatter, CSV to JSON, JSON to YAML (`/data/json-to-yaml/`) | #67 | Ready |
+| C7 | File Converter: also opens and makes zip files, and refuses zip bombs | File Converter, Zip and Unzip (`/everyday/zip/`) | #65 | Ready |
+| C8 | Encode (Base64 and URL Encode) and Time (Unix Timestamp and Time Zone) | — | — | Idea: only if `/stats/` shows people use them together |
+
 ## Done recently
 
 Older entries are in [CHANGELOG.md](CHANGELOG.md).
