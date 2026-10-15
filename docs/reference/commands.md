@@ -16,4 +16,5 @@
 | `npx wrangler d1 migrations apply DB --remote` | Owner only: apply new files in `migrations/` to the production stats database, before merging the code that needs them |
 | `npm run check:live [url]` | Read-only check of the live site (default https://freethetools.com): every page in the sitemap on desktop and phone. Also runs daily in CI and after each production deploy. |
 | `npm run check` | Build, then unit, site and browser tests |
+| `npm run docs:check [-- --base <ref>]` | Lists the docs, translations, generated files and steps your branch's changes bring up, as a Markdown checklist for the pull request, from the [pull request checklist](pr-checklist.md). Ticks what the branch already changes. Compares with `origin/main` (or `main`); never fails. |
 | `npm run new-tool -- <group> <slug> "<Name>" [section]` | Scaffold a tool from `tools/_template` |

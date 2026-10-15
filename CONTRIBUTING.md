@@ -82,6 +82,7 @@ The reviewer then reads the code for what tests cannot see:
 - **Write commit messages as [Conventional Commits](https://www.conventionalcommits.org/)**: `feat(text): add word counter`, `fix(pdf/compress): keep bookmarks`, `docs: clarify vendoring`. The type drives the changelog and version numbers.
 - **Add a changelog entry as its own file** in [`changelog.d/`](changelog.d/README.md), for example `changelog.d/word-counter.added.md`, rather than editing `CHANGELOG.md`. Pull requests then never collide there.
 - **One tool or one fix per pull request.** Fill in the template, including a screenshot for anything visible.
+- **Update what your change touches.** Run `npm run docs:check`: it lists the translations, docs, generated files and steps your change brings up, such as the npm package's tool table, the AI pages, the search fields and the privacy pages. Update each item or say in the pull request why it needs no change. The [pull request checklist](docs/reference/pr-checklist.md) has the full list.
 
 ## Review
 

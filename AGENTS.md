@@ -19,6 +19,7 @@ nothing else. The npm package in `packages/freethetools/` runs the same tools as
    [tool.json reference](docs/reference/tool-json.md) lists every field.
 4. Add a changelog file such as `changelog.d/<slug>.added.md`. Never edit `CHANGELOG.md`.
 5. Run `npm run check`. It builds the site and runs every test.
+6. Run `npm run docs:check` and follow the [pull request checklist](docs/reference/pr-checklist.md).
 
 ## Rules
 
@@ -39,6 +40,9 @@ nothing else. The npm package in `packages/freethetools/` runs the same tools as
 - Sign off every commit with `git commit -s`. The sign-off certifies the Developer Certificate of
   Origin, so a person must review the change and be able to sign for it.
 - One tool or one fix per pull request, with a screenshot for anything visible.
+- Before opening a pull request, run `npm run docs:check`. Update every item it lists, or say in
+  the pull request why one needs no change. Paste its output into the pull request. The
+  [pull request checklist](docs/reference/pr-checklist.md) is the full list.
 
 ## Security
 

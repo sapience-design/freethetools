@@ -19,6 +19,13 @@ Closes #
 - [ ] New dependency: exact version, AGPL-compatible licence, added to `NOTICE` and the licences page
 - [ ] New tool or changed tool code: checked against the security review list in `CONTRIBUTING.md`
 - [ ] A changelog entry in `changelog.d/` (one file, see its README)
+- [ ] If `npm run build` changed `README.md` or `packages/freethetools/README.md`, they are committed
+- [ ] Changed `agent.js` or `packages/`: `npm run test:package` passes
+
+## Docs and checks
+
+<!-- Run `npm run docs:check` and paste its output here. Update each unticked item, or say why it
+     needs no change. The full list is docs/reference/pr-checklist.md. -->
 
 ## For the reviewer
 
