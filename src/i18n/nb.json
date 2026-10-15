@@ -470,16 +470,6 @@
     "images/remove-location": "Før du deler dem på nett"
   },
   "wanted": {
-    "pdf/page-delete": {
-      "name": "Slett og sorter PDF-sider",
-      "task": "Slett eller sorter PDF-sider",
-      "blurb": "Fjern sider, eller sett dem i ny rekkefølge, med et miniatyrbilde av hver.",
-      "concept": {
-        "in": "Én PDF.",
-        "out": "En ny PDF med sider fjernet eller i ny rekkefølge.",
-        "options": ["Velg sidene som skal bort", "Dra sider til en ny rekkefølge", "Se et miniatyrbilde av hver side"]
-      }
-    },
     "pdf/watermark": {
       "name": "PDF-vannmerke og sidetall",
       "task": "Legg til vannmerke eller sidetall",

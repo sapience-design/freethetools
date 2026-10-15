@@ -7,6 +7,7 @@
   "seoTitle": "Rotate PDF pages without uploading",
   "description": "Rotate PDF pages 90 or 180 degrees for free in your browser. Turn every page or just the ones you pick. Nothing is uploaded.",
   "section": "Organize",
+  "screen": "pdf-pages",
   "keywords": ["rotate", "turn", "sideways", "upside down", "landscape", "portrait", "pdf", "orientation"],
   "authors": [{ "name": "Sapience Design", "github": "sapience-design" }],
   "status": "live",

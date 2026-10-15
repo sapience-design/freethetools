@@ -361,6 +361,25 @@ test("README.md links every tool page", () => {
       }
     });
   }
+
+  // Shared screens (docs/adr/0016-shared-screens.md): the tools on one screen are listed first under
+  // Related tools, in every language, so each of their pages links to the others.
+  const screenOf = new Map(tools.map((t) => [t.id, JSON.parse(readFileSync(join("tools", t.id, "tool.json"), "utf8")).screen]));
+  for (const { page, id } of toolPages.filter((x) => screenOf.get(x.id))) {
+    test(`${page}: links first to the tools that share its screen`, () => {
+      const mates = [...screenOf].filter(([other, s]) => other !== id && s === screenOf.get(id)).map(([other]) => other);
+      const nav = /<nav\b[^>]*aria-labelledby="related-h"[^>]*>([\s\S]*?)<\/nav>/.exec(html(page));
+      const firsts = [...nav[1].matchAll(/<a\b[^>]*\shref="([^"]+)"/g)].slice(0, mates.length)
+        .map((m) => m[1].split("/").filter(Boolean).filter((part) => !LANGS.includes(part)).join("/"));
+      assert.deepEqual(firsts.sort(), [...mates].sort());
+    });
+  }
+  test("the PDF pages screen offers each of its jobs on each of its pages", () => {
+    for (const [page, prefix] of [["pdf/rotate/index.html", "pdfr"], ["pdf/page-delete/index.html", "pdfd"]]) {
+      const h = html(page);
+      for (const job of ["rotate", "arrange"]) assert.match(h, new RegExp(`id="${prefix}-job-${job}"`), `${page} has no ${job} job`);
+    }
+  });
 }
 
 test("the installed app lets our top bar fill the title bar (Window Controls Overlay)", () => {

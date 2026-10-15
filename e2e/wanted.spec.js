@@ -20,15 +20,15 @@ test.afterEach(async ({ page }) => {
 });
 
 test("a wanted page says what the tool will do, is noindex, and links to the form, sponsorship and the issue", async ({ page }) => {
-  await page.goto("/pdf/page-delete/");
-  await expect(page.locator("h1")).toHaveText("Delete or reorder PDF pages");
+  await page.goto("/developer/cron-explainer/");
+  await expect(page.locator("h1")).toHaveText("Explain a cron schedule");
   await expect(page.locator("main .tag")).toContainText("Not built yet");
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex");
   await expect(page.getByText("What goes in")).toBeVisible();
   await expect(page.getByText("What comes out")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Tell us what you need" })).toHaveAttribute("href", "/suggest/?tool=pdf%2Fpage-delete");
+  await expect(page.getByRole("link", { name: "Tell us what you need" })).toHaveAttribute("href", "/suggest/?tool=developer%2Fcron-explainer");
   await expect(page.getByRole("link", { name: "Sponsor this tool" })).toHaveAttribute("href", "/support/#company-h");
-  await expect(page.getByRole("link", { name: "For developers: build it" })).toHaveAttribute("href", /github\.com\/.*\/issues\/63$/);
+  await expect(page.getByRole("link", { name: "For developers: build it" })).toHaveAttribute("href", /github\.com\/.*\/issues\/70$/);
   // The breadcrumb for search engines still names the group.
   const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
   expect(ld.join(" ")).toContain("BreadcrumbList");
@@ -37,18 +37,18 @@ test("a wanted page says what the tool will do, is noindex, and links to the for
 test("wanted pages are not in the sitemap or the llms files", async ({ request }) => {
   for (const file of ["/sitemap.xml", "/llms.txt", "/llms-full.txt"]) {
     const text = await (await request.get(file)).text();
-    expect(text, file).not.toContain("/pdf/page-delete/");
+    expect(text, file).not.toContain("/developer/cron-explainer/");
   }
 });
 
 test("the group page and the home page link a wanted row to its own page, not to GitHub", async ({ page }) => {
-  await page.goto("/pdf/");
-  const row = page.locator('li.want[data-want-id="pdf/page-delete"] a.row');
-  await expect(row).toHaveAttribute("href", "/pdf/page-delete/");
+  await page.goto("/developer/");
+  const row = page.locator('li.want[data-want-id="developer/cron-explainer"] a.row');
+  await expect(row).toHaveAttribute("href", "/developer/cron-explainer/");
   await expect(row).not.toContainText("GitHub");
   await expect(page.locator("main .more").getByRole("link", { name: "Suggest a tool" })).toHaveAttribute("href", "/suggest/");
   await page.goto("/");
-  await expect(page.locator('li.want[data-want-id="pdf/page-delete"] a.row')).toHaveAttribute("href", "/pdf/page-delete/");
+  await expect(page.locator('li.want[data-want-id="developer/cron-explainer"] a.row')).toHaveAttribute("href", "/developer/cron-explainer/");
   await expect(page.locator("footer").getByRole("link", { name: "Suggest a tool" })).toHaveAttribute("href", "/suggest/");
 });
 
@@ -79,7 +79,7 @@ test("the Worker counts a vote only for a planned tool, and only from this site"
   const url = "/api/stats/want";
   expect((await request.post(url, { headers: { Origin: baseURL }, data: { tool: "pdf/merge" } })).status()).toBe(400);
   expect((await request.post(url, { headers: { Origin: baseURL }, data: { tool: "nope/nope" } })).status()).toBe(400);
-  expect((await request.post(url, { headers: { Origin: "https://example.org" }, data: { tool: "pdf/page-delete" } })).status()).toBe(403);
+  expect((await request.post(url, { headers: { Origin: "https://example.org" }, data: { tool: "developer/cron-explainer" } })).status()).toBe(403);
   expect((await request.get(url)).status()).toBe(405);
 });
 

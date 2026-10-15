@@ -470,20 +470,6 @@
     "images/remove-location": "Antes de compartirlas en internet"
   },
   "wanted": {
-    "pdf/page-delete": {
-      "name": "Eliminar y reordenar páginas de PDF",
-      "task": "Eliminar o reordenar páginas de PDF",
-      "blurb": "Quita páginas o cámbialas de orden, con una miniatura de cada una.",
-      "concept": {
-        "in": "Un PDF.",
-        "out": "Un PDF nuevo con páginas quitadas o en otro orden.",
-        "options": [
-          "Elige las páginas que quitar",
-          "Arrastra las páginas para cambiar el orden",
-          "Mira una miniatura de cada página"
-        ]
-      }
-    },
     "pdf/watermark": {
       "name": "Marca de agua y números de página en PDF",
       "task": "Añadir una marca de agua o números de página",

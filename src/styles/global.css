@@ -472,6 +472,14 @@ ol.file-list > li.has-thumb > .fact { grid-column: 3; }
 .page-tile.t180 canvas { transform: rotate(180deg); }
 .page-tile.t270 canvas { transform: rotate(-90deg); }
 .page-more { align-self: center; font-size: 14px; color: var(--muted); }
+/* The PDF pages screen (src/lib/pdf-pages/screen.ts): buttons under each page to move, turn or
+   delete it. A deleted page stays in place, faded, with "deleted" in its caption and Put back. */
+.page-acts { display: grid; grid-template-columns: repeat(2, 44px); gap: 6px; }
+.page-acts .page-back { grid-column: 1 / -1; }
+.page-tile.gone .page-frame { opacity: .35; }
+.page-tile[draggable="true"] { cursor: grab; }
+.page-tile.dragging { opacity: .5; }
+.page-tile.drag-over .page-pic { outline: 2.5px dashed var(--edge); outline-offset: 2px; }
 /* The finished PDF's first page beside its Download button. */
 .out-row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .out-row .fthumb { width: 96px; height: 120px; }

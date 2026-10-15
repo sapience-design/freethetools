@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
 import { readFileSync } from "node:fs";
 import { PDFDocument } from "pdf-lib";
 import { unzipSync } from "fflate";
@@ -116,6 +117,113 @@ test.describe("PDF tools", () => {
     await page.click("#pdfr-go");
     const out = await download(page, () => page.getByRole("link", { name: "Download" }).click());
     expect((await pdf(out)).getPages().map((p) => p.getRotation().angle)).toEqual([90, 90, 90]);
+  });
+
+  // The PDF pages screen (ADR 0016): Delete or Reorder Pages, and Rotate Pages on the same screen.
+  /** A PDF whose page n is 100 + 50n points wide, so each page can be told apart after it moves. */
+  const numberedPdf = async (pages, name = "four.pdf") => {
+    const doc = await PDFDocument.create();
+    for (let n = 1; n <= pages; n++) doc.addPage([100 + 50 * n, 600]);
+    return { name, mimeType: "application/pdf", buffer: Buffer.from(await doc.save()) };
+  };
+  const pageOrder = async (buf) => (await pdf(buf)).getPages().map((p) => (p.getWidth() - 100) / 50);
+  const button = (page, name) => page.getByRole("button", { name, exact: true });
+
+  test("Delete or Reorder Pages deletes and moves pages with the buttons, and keeps focus", async ({ page }) => {
+    await page.goto("/pdf/page-delete/");
+    await page.setInputFiles("#pdfd-file", await numberedPdf(4));
+    await expect(page.locator("#pdfd-pages .page-tile")).toHaveCount(4);
+    await expect(page.locator("#pdfd-go")).toBeDisabled();
+    await expect(page.locator("#pdfd-go")).toContainText("Delete, move or turn a page first");
+    await button(page, "Delete page 2").click();
+    await expect(page.locator('#pdfd-pages .page-tile[data-page="2"] figcaption')).toHaveText("2 · deleted");
+    await expect(button(page, "Put back page 2")).toBeFocused();
+    await button(page, "Move page 4 earlier").click();
+    await expect(button(page, "Move page 4 earlier")).toBeFocused();
+    await expect(page.locator("#pdfd-say")).toHaveText("Page 4 moved to place 3 of 4.");
+    await expect(page.locator("#pdfd-go")).toContainText("Save the new PDF (3 pages)");
+    await page.click("#pdfd-go");
+    const link = page.getByRole("link", { name: "Download" });
+    await expect(link).toHaveAttribute("download", "four-edited.pdf");
+    expect(await pageOrder(await download(page, () => link.click()))).toEqual([1, 4, 3]);
+  });
+
+  test("Delete or Reorder Pages deletes typed pages, refuses to delete them all, and undoes everything", async ({ page }) => {
+    await page.goto("/pdf/page-delete/");
+    await page.setInputFiles("#pdfd-file", await numberedPdf(4));
+    await page.fill("#pdfd-del", "1-2");
+    await page.press("#pdfd-del", "Enter");
+    await expect(page.locator("#pdfd-go")).toContainText("Save the new PDF (2 pages)");
+    await page.fill("#pdfd-del", "9");
+    await page.click("#pdfd-del-go");
+    await expect(page.locator("#pdfd-del-err")).toContainText("outside pages 1 to 4");
+    await expect(page.locator("#pdfd-del")).toHaveAttribute("aria-invalid", "true");
+    await page.fill("#pdfd-del", "3-");
+    await page.click("#pdfd-del-go");
+    await expect(page.locator("#pdfd-go")).toBeDisabled();
+    await expect(page.locator("#pdfd-go")).toContainText("Keep at least one page");
+    await page.click("#pdfd-reset");
+    await expect(page.locator("#pdfd-go")).toContainText("Delete, move or turn a page first");
+    await expect(page.locator("#pdfd-pages .page-tile.gone")).toHaveCount(0);
+    await expect(page.locator("#pdfd-del")).toBeFocused();
+  });
+
+  test("Rotate Pages can switch to deleting pages and back, on the same file, keeping the change", async ({ page }) => {
+    await page.goto("/pdf/rotate/");
+    await page.setInputFiles("#pdfr-file", await numberedPdf(4));
+    await page.click('label[for="pdfr-job-arrange"]');
+    await expect(page.locator('.step[data-step="2"] h2')).toHaveText("Arrange the pages");
+    await button(page, "Delete page 1").click();
+    await page.click('label[for="pdfr-job-rotate"]');
+    await expect(page.locator("#pdfr-pages .page-tile:not([hidden])")).toHaveCount(3);
+    await page.click("#pdfr-go");
+    const link = page.getByRole("link", { name: "Download" });
+    await expect(link).toHaveAttribute("download", "four-rotated.pdf");
+    const out = await download(page, () => link.click());
+    expect(await pageOrder(out)).toEqual([2, 3, 4]);
+    expect((await pdf(out)).getPages().map((p) => p.getRotation().angle)).toEqual([90, 90, 90]);
+  });
+
+  test("the PDF pages screen says where a photo or a second PDF should go, and Do another starts again", async ({ page }) => {
+    await page.goto("/pdf/page-delete/");
+    await page.setInputFiles("#pdfd-file", { name: "scan.png", mimeType: "image/png", buffer: PNG });
+    await expect(page.locator("#pdfd-reject")).toContainText("scan.png isn't a PDF");
+    await expect(page.locator("#pdfd-reject").getByRole("link", { name: "Images to PDF" })).toHaveAttribute("href", "/pdf/images-to-pdf/");
+    await page.setInputFiles("#pdfd-file", [await numberedPdf(2, "a.pdf"), await numberedPdf(3, "b.pdf")]);
+    await expect(page.locator("#pdfd-reject").getByRole("link", { name: "Merge PDFs" })).toHaveAttribute("href", "/pdf/merge/");
+    await expect(page.locator("#pdfd-name")).toHaveText("a.pdf");
+    await button(page, "Turn page 1 right").click();
+    await page.click("#pdfd-go");
+    await expect(page.getByRole("link", { name: "Download" })).toBeVisible();
+    await page.getByRole("button", { name: "Do another" }).click();
+    await expect(page.locator("#pdfd-picked")).toBeHidden();
+    await expect(page.locator("#pdfd-drop")).toBeFocused();
+  });
+
+  for (const theme of ["light", "dark"]) {
+    test(`${theme}: the PDF pages screen with a PDF in it meets WCAG 2.2 AA`, async ({ page, context }) => {
+      await context.addInitScript((t) => { try { localStorage.setItem("ftt:theme", t); } catch {} }, theme);
+      await page.goto("/pdf/page-delete/");
+      await page.setInputFiles("#pdfd-file", await numberedPdf(4));
+      await button(page, "Delete page 2").click();
+      await expect(page.locator("#pdfd-pages canvas").first()).toBeAttached();
+      const { violations } = await new AxeBuilder({ page })
+        .options({ runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] }, rules: { "label-content-name-mismatch": { enabled: true } } })
+        .analyze();
+      const summary = violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.map((n) => n.target.join(" ")).slice(0, 4).join(" | ")}`);
+      expect(summary, summary.join("\n")).toEqual([]);
+    });
+  }
+
+  test("at 320 px the page tiles and their buttons fit, with no sideways scroll", async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.goto("/pdf/page-delete/");
+    await page.setInputFiles("#pdfd-file", await numberedPdf(4));
+    await expect(page.locator("#pdfd-pages .page-tile")).toHaveCount(4);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const size = await button(page, "Turn page 1 right").boundingBox();
+    expect(size.width).toBeGreaterThanOrEqual(44);
+    expect(size.height).toBeGreaterThanOrEqual(44);
   });
 
   test("Images to PDF makes a page per image", async ({ page }) => {
@@ -1197,7 +1305,7 @@ test.describe("a click opens the file picker", () => {
   test.skip(({ isMobile }) => isMobile, "runs once, on desktop");
   // Every drop area shows a Choose button; tools without one have an "Open a file" button.
   const PICKERS = [
-    ["/pdf/merge/", ".drop .drop-btn"], ["/pdf/split/", ".drop .drop-btn"], ["/pdf/rotate/", ".drop .drop-btn"],
+    ["/pdf/merge/", ".drop .drop-btn"], ["/pdf/split/", ".drop .drop-btn"], ["/pdf/rotate/", ".drop .drop-btn"], ["/pdf/page-delete/", ".drop .drop-btn"],
     ["/pdf/fill-form/", ".drop .drop-btn"], ["/pdf/images-to-pdf/", ".drop .drop-btn"], ["/pdf/to-images/", ".drop .drop-btn"],
     ["/pdf/compress/", ".drop .drop-btn"], ["/images/compress/", ".drop .drop-btn"], ["/images/convert/", ".drop .drop-btn"],
     ["/images/resize/", ".drop .drop-btn"], ["/images/remove-location/", ".drop .drop-btn"], ["/everyday/file-converter/", ".drop .drop-btn"],

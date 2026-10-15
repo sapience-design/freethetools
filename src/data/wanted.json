@@ -1,23 +1,5 @@
 [
   {
-    "name": "PDF Page Delete and Reorder",
-    "category": "pdf",
-    "section": "Organize",
-    "blurb": "Drop pages, or put them in a new order, with a thumbnail of each.",
-    "slug": "page-delete",
-    "issue": 63,
-    "task": "Delete or reorder PDF pages",
-    "concept": {
-      "in": "One PDF.",
-      "out": "A new PDF with pages removed or in a new order.",
-      "options": [
-        "Pick the pages to drop",
-        "Drag pages into a new order",
-        "See a thumbnail of every page"
-      ]
-    }
-  },
-  {
     "name": "PDF Watermark and Page Numbers",
     "category": "pdf",
     "section": "Organize",
