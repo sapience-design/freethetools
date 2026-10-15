@@ -30,3 +30,25 @@ test("segments text for highlighting, skipping empty matches", () => {
   assert.deepEqual(segments("foo bar", r.matches).map((s) => [s.text, s.match]), [["f", false], ["o", true], ["o", true], [" bar", false]]);
   assert.deepEqual(segments("ab", runRegex("x*", "g", "ab").matches), [{ text: "ab", match: false }]);
 });
+
+test("plain hint for unclosed round bracket", () => {
+  const r = runRegex("(", "g", "x");
+  assert.match(r.error, /an unclosed round bracket/);
+});
+
+test("plain hint for unclosed square bracket", () => {
+  const r = runRegex("[", "g", "x");
+  assert.match(r.error, /an unclosed square bracket/);
+});
+
+test("plain hint for pattern ending in backslash", () => {
+  const r = runRegex("abc\\", "g", "x");
+  assert.match(r.error, /a pattern that ends in a backslash/);
+});
+
+test("plain hint for star or plus with nothing before it", () => {
+  const r = runRegex("*", "g", "x");
+  assert.match(r.error, /a star or plus with nothing before it/);
+  const r2 = runRegex("+", "g", "x");
+  assert.match(r2.error, /a star or plus with nothing before it/);
+});
