@@ -10,7 +10,7 @@ Free the Tools wants to be found by people who search for a job, such as "compre
 
 | Page | Example | Why it earns a place |
 |---|---|---|
-| Tool page | `/pdf/compress/` | Runs the tool. Its title is the job ("Compress PDF without uploading"), its description says what happens to the file, and its FAQ answers the questions people ask. |
+| Tool page | `/pdf/compress/` | Runs the tool. Its title is the job ("Compress PDF without uploading"), its description says what happens to the file, and its FAQ answers the questions people ask. Tools that share a screen, such as Merge, Split and Rotate, are still separate tool pages: each opens the shared screen ready for its own job, with its own title, description and FAQ ([ADR 0016](../adr/0016-shared-screens.md)). |
 | Group page | `/pdf/` | Lists the tools for one kind of file, and the tools people have asked for. |
 | Guide | `/guides/compress-a-pdf-for-email/` | A short how-to for one job, in Diátaxis how-to style: the goal, the steps, the tool embedded, and what to do when it goes wrong. 300 to 600 words. One guide per job, never two guides for the same job. |
 | Preset page | `/pdf/compress/under-1-mb/` | A tool page with a preset applied, for a task people search for by its own name. Allowed only when all four conditions below hold. |
@@ -30,7 +30,7 @@ At most three preset pages per tool until data shows more are used.
 
 ## Pages we refuse
 
-- One page per keyword variation ("compress pdf online", "pdf compressor free", "reduce pdf size") that run the same tool with the same settings. They are thin, they compete with each other, and they make the site look like a content farm.
+- One page per keyword variation ("compress pdf online", "pdf compressor free", "reduce pdf size") that run the same tool with the same settings. They are thin, they compete with each other, and they make the site look like a content farm. A tool that shares a screen with others is not one of these: it opens on a different job.
 - Pages about jobs we cannot do in the browser.
 - Pages that exist to carry links, such as a "resources" list.
 - Comparison pages that make a claim we cannot test.
