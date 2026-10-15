@@ -1,6 +1,6 @@
 # 16. Several tools, one shared screen
 
-Date: 2026-10-15 · Status: proposed · Extends [ADR 0004](0004-one-folder-per-tool.md) and [ADR 0015](0015-shared-pdf-editor.md)
+Date: 2026-10-15 · Status: accepted (decided by Sapience Design) · Extends [ADR 0004](0004-one-folder-per-tool.md) and [ADR 0015](0015-shared-pdf-editor.md)
 
 ## Context
 
@@ -23,7 +23,7 @@ Each tool page is also how people find the site. They search for the job, such a
 
 - Tools whose jobs meet the three conditions below share one screen. Its code lives in `src/lib/<screen>/`, as the PDF editor does in `src/lib/pdf-edit/`. Each tool's `Tool.astro` shows that screen, opened for its own job. For example, `/pdf/split/` opens the page screen ready to split.
 - Each tool keeps everything else: its folder and URL, its texts, FAQ and translations, its `core.js`, `agent.js` and tests, its usage totals and its share image.
-- The lists keep a row for every job, so people find a job by its own name. Tools that share a screen name it in their `tool.json` (`"screen": "<name>"`). Their rows sit together in their section, and each of their pages links to the others ("Also here: Merge · Rotate · Delete pages").
+- The lists keep a row for every job, so people find a job by its own name. Tools that share a screen name it in their `tool.json` (`"screen": "<name>"`). Their rows sit together in their section, and each of their pages links to the others: they come first under "Related tools". On the screen itself, buttons at the top switch to another job on the same file, keeping every change, so nobody leaves the page and chooses the file again.
 - No page is added just to hold a shared screen.
 
 **When to share a screen.** All three must hold. Sharing a group or a word is not enough.
@@ -43,7 +43,7 @@ Each tool page is also how people find the site. They search for the job, such a
 - Two jobs on one file no longer mean choosing the file twice, and the same step works the same way in every tool on a screen.
 - Each tool page still has its own title, description and FAQ, so the [search policy](../explanation/seo-policy.md) treats it as a tool page. The build test for unique titles still applies.
 - A shared screen is bigger than any one tool. If it shows every control at once, it is worse than the tools it replaces. Each shared screen is reviewed against the three conditions above, one pull request at a time.
-- The `screen` field and the "Also here" links come once, in their own pull request, before any tool uses them.
+- The `screen` field, its build check and the Related-tools order came with the first shared screen (PDF pages: Rotate Pages and Delete or Reorder Pages), so they were tested on real pages.
 
 ## Options not chosen
 
