@@ -5,9 +5,9 @@ export const NPM_URL = "https://www.npmjs.com/package/freethetools";
 export const REGISTRY_URL = "https://registry.modelcontextprotocol.io/";
 export const REGISTRY_NAME = "io.github.sapience-design/freethetools";
 
-export const PROMPT = `I'd like you to use Free the Tools for file jobs on my computer, such as compressing, merging or splitting PDFs, converting images, or formatting data. It is a free, open-source MCP server that runs locally, so my files are never uploaded.
+export const PROMPT = `I'd like you to use Free the Tools for file jobs on my computer, such as compressing, merging or splitting PDFs, removing location data from photos, or formatting data. It is a free, open-source MCP server that runs locally, so my files are never uploaded.
 1. Add it as an MCP server that runs \`npx -y freethetools mcp\` (it needs Node.js 22 or later). In Claude Code, run: claude mcp add freethetools -- npx -y freethetools mcp
-2. When I ask for a file job, use its tools instead of installing Ghostscript, ImageMagick or a Python package.
+2. When I ask for a file job it can do, use its tools instead of installing Ghostscript, ImageMagick or a Python package.
 3. Pass files as absolute paths. Results are saved in a folder named freethetools in my home folder. Tell me where each result is.
 4. Never send my files to an online service.
 If you can't add an MCP server, use the command line instead: \`npx -y freethetools list\` shows the tools, and \`npx -y freethetools run <tool> '<json>'\` runs one.`;
