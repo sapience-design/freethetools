@@ -2,6 +2,9 @@
 // The drop area for file tools: the tool's product shot on its group tint, with a card that says
 // what to drop and a Choose button. Pair with wireDrop(prefix, handler) from src/lib/files.ts;
 // compactDrop(prefix) shrinks it once files are in. Ids are prefixed with the tool's slug.
+// Files dropped anywhere on the page or pasted come here too (src/lib/page-files.ts). The paste
+// line is for computers; wireDrop puts in the right key ("Ctrl+V" or "Cmd+V"). While a file is
+// dragged over the page, the overlay (#<prefix>-overlay) shows the whole page is a drop area.
 import { artFor } from "../data/art";
 import Icon from "./Icon.astro";
 
@@ -25,8 +28,16 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
     <strong>{title}</strong>
     <span class="drop-btn"><Icon name="folder-open" />{button}</span>
     {hint && <small>{hint}</small>}
+    <small class="drop-paste">You can also paste a file (<kbd data-paste-key>Ctrl+V</kbd>)</small>
   </span>
   <input type="file" id={`${prefix}-file`} accept={accept} multiple={multiple} hidden>
+</div>
+<div class="page-drop" id={`${prefix}-overlay`} data-g={category} lang="en" aria-hidden="true">
+  <span class="page-drop-card">
+    <Icon name="tray-arrow-down" />
+    <strong>{title}</strong>
+    <small>Anywhere on this page. It stays on this device.</small>
+  </span>
 </div>
 
 <style>
@@ -49,5 +60,28 @@ const shot = artFor(toolId, category, `${prefix}drop`, name);
   .drop.compact { min-height: 0; align-content: center; padding: 10px; }
   .drop.compact .drop-shot, .drop.compact strong, .drop.compact small { display: none; }
   .drop.compact .drop-card { background: transparent; border: 0; padding: 0; }
+  /* Pasting needs a keyboard: phones and tablets don't show the line. */
+  @media (pointer: coarse) { .drop-paste { display: none; } }
+  /* The whole page as a drop area, while a file is dragged over it: the yellow of a chosen option
+     (--pick), a dashed ink frame like the drop area, and a card. In dark mode the yellow is mixed
+     into the page, so the screen doesn't glare and the light frame stays visible. */
+  .page-drop {
+    position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 28px;
+    background: color-mix(in srgb, var(--pick) 92%, transparent);
+    pointer-events: none; opacity: 0; visibility: hidden; transition: opacity .15s, visibility .15s;
+  }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .page-drop { background: color-mix(in srgb, color-mix(in srgb, var(--bg) 70%, var(--pick)) 92%, transparent); }
+  }
+  :global(:root[data-theme="dark"]) .page-drop { background: color-mix(in srgb, color-mix(in srgb, var(--bg) 70%, var(--pick)) 92%, transparent); }
+  .page-drop::before { content: ""; position: absolute; inset: 12px; border: 2px dashed var(--edge); border-radius: var(--r-xl); }
+  .page-drop.on { opacity: 1; visibility: visible; }
+  .page-drop-card {
+    position: relative; display: grid; gap: 8px; justify-items: center; max-width: 360px; padding: 22px 26px;
+    border: 1.5px solid var(--edge); border-radius: var(--r-xl); background: var(--card); box-shadow: var(--shadow); text-align: center;
+  }
+  .page-drop-card :global(.ic) { font-size: 40px; }
+  .page-drop-card strong { font-family: var(--display); font-size: 20px; line-height: 1.2; }
+  .page-drop-card small { font-size: 15px; color: var(--soft); text-wrap: balance; }
   @media (prefers-reduced-motion: reduce) { .drop-shot :global(.obj) { transition: none; } }
 </style>

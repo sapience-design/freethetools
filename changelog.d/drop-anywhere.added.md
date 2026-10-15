@@ -1,0 +1,1 @@
+- File tools now take a file dropped anywhere on the page, not only on the drop area, and a file pasted with Ctrl+V (Cmd+V on a Mac), such as a screenshot. While you drag a file over the page, the whole page shows it is a drop area. A file dropped beside the drop area no longer opens in the browser and takes you away from the tool.
