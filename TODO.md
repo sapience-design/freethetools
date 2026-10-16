@@ -12,7 +12,8 @@ npm package for AI assistants, with themes, search, sorting, anonymous usage tot
 | B10 | Compress PDF and Compress Images: "Does it need to be under a size?" (No limit / 1 MB / 2 MB / 5 MB), trying lower qualities until the file fits | In the v4 design; not built, so the port leaves it out | Ready |
 | B12 | Fill PDF Form: drawn signatures | The v4 help text mentions them as "coming later"; the port does not promise them | Idea |
 | B13 | `agent.js` for Markdown to HTML and File Converter | Their logic needs the browser's DOM or canvas, so the contract needs a "browser only" mark first | Ready |
-| B14 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas | Ready |
+| B14 | A WebAssembly image engine (for example jSquash) for Compress, Convert and Resize Images, HEIC to JPG, Image to SVG and PDF to Images | Lets these tools join the agent tools and the npm package, which have no canvas. HEIC to JPG already decodes in WebAssembly but saves through the canvas; Image to SVG traces in plain JavaScript but reads the picture through the canvas | Ready |
+| B15 | `agent.js` for Video to GIF | It takes its frames from the browser's video player, which Node does not have. It needs a video decoder that runs in Node; none is chosen yet, and its size and licence need checking | Idea |
 
 ## Shared screens ([ADR 0016](docs/adr/0016-shared-screens.md))
 

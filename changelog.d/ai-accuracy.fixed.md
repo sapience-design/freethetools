@@ -1,0 +1,1 @@
+- AI assistants: the setup prompt no longer says the npm package converts images, and the package's README now lists every website tool that assistants cannot use yet, with the reason.
